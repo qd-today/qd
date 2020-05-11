@@ -11,8 +11,8 @@ __操作前请一定要记得备份数据库__<br>
 
 http://cordimax.f3322.net:5558/381.html
 
-2. 增加了server酱、bark推送，并可以设置推送开关（by AragonSnow）
-需要推送的：登录账号以后点击注册bark/s酱，测试推送没有问题以后,再点击提交
+2. 增加了server酱、bark推送，WXPusher推送，并可以设置推送开关（by AragonSnow）
+需要推送的：登录账号以后点击注册bark/s酱/WXPusher，测试推送没有问题以后,再点击提交
 
 
 3. 增加定时功能，在新建任务以后会出现定时按钮，设置每天的定时时间。<br>
