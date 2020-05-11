@@ -28,6 +28,7 @@ class UserDB(_UserDB, BaseDB):
           `aip` INT UNSIGNED NOT NULL,
           `skey` VARBINARY(128) NOT NULL DEFAULT '',
           `barkurl` VARBINARY(128) NOT NULL DEFAULT '',
+          `wxpusher` VARBINARY(128) NOT NULL DEFAULT '',
           `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1
         )''' % self.__tablename__)
 

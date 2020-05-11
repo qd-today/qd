@@ -48,6 +48,11 @@ class DBconverter(_TaskDB, BaseDB):
                 self._execute("ALTER TABLE `user` ADD `barkurl` VARBINARY(128) NOT NULL DEFAULT '' " )
                 
             try:
+                self.db.user.get("1", fields=('wxpusher'))
+            except:
+                self._execute("ALTER TABLE `user` ADD `wxpusher` VARBINARY(128) NOT NULL DEFAULT '' " )
+                
+            try:
                 self.db.user.get("1", fields=('noticeflg'))
             except :
                 self._execute("ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1 " )             

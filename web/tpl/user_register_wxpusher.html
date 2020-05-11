@@ -1,0 +1,28 @@
+{% import "utils.html" as utils %}
+<form method="POST" action="/user/{{ userid }}/wxpusher">
+  <h2 class="text-center">注册WXPusher</h2>
+  <hr>
+
+  <div id="run-result"></div>
+
+  {% if current_user %}
+  <div class="form-group">
+    <label class="control-label" for="note">apptoken</label>
+	<!-- MY页面-添加签到-增加提示语 -->
+    <input type="text" class="form-control" name="wxpusher_token" value="" id="wxpusher_token" placeholder="请测试通过后再提交">
+    
+    <label class="control-label" for="note">uid</label>
+    <input type="text" class="form-control" name="wxpusher_uid" value="" id="wxpusher_uid" placeholder="请测试通过后再提交">
+	<!-- MY页面-添加签到-增加备注图标 -->
+	<span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+  </div>
+  {% endif %}
+
+  <div class="text-right">
+    <button id="testwxpusher" name="testwxpusher" data-loading-text="loading..." class="btn btn-default">测试</button>
+    <button id="send" name="send" type="submit" data-loading-text="loading..." class="btn btn-primary">提交</button>
+  </div>
+
+  {{ utils.task_new_scripts() }}
+  {{ utils.submit_loading() }}
+</form>

@@ -136,18 +136,23 @@ class TaskRunHandler(BaseHandler):
                 session = [],
                 )
         
-        notice = self.db.user.get(task['userid'], fields=('skey', 'barkurl', 'noticeflg'))
+        notice = self.db.user.get(task['userid'], fields=('skey', 'barkurl', 'noticeflg', 'wxpusher'))
+        temp = notice['wxpusher'].split(u";")
+        wxpusher_token = temp[0] if (len(temp) >= 2) else ""
+        wxpusher_uid = temp[1] if (len(temp) >= 2) else "" 
+        pushno2b = send2phone.send2phone(barkurl=notice['barkurl'])
+        pushno2s = send2phone.send2phone(skey=notice['skey'])
+        pushno2w = send2phone.send2phone(wxpusher_token=wxpusher_token, wxpusher_uid=wxpusher_uid)
 
         try:
             new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
         except Exception as e:
             if (notice['noticeflg'] & 0x4 != 0):
-                pushno2b = send2phone.send2phone(barkurl=notice['barkurl'])
-                pushno2s = send2phone.send2phone(skey=notice['skey'])
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
                 title = u"签到任务 {0} 手动运行失败".format(tpl['sitename'])
                 pushno2b.send2bark(title, u"{0} 请排查原因".format(t, e))
                 pushno2s.send2s(title, u"{0} 日志：{1}".format(t, e))
+                pushno2w.send2wxpusher(title+u"{0} 日志：{1}".format(t, e))
                 
             self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
             self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well">%s</div>' % e)
@@ -168,12 +173,11 @@ class TaskRunHandler(BaseHandler):
                 next = nextTime)
         
         if (notice['noticeflg'] & 0x8 != 0):
-            pushno2b = send2phone.send2phone(barkurl=notice['barkurl'])
-            pushno2s = send2phone.send2phone(skey=notice['skey'])
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
             title = u"签到任务 {0} 手动运行成功".format(tpl['sitename'])
             pushno2b.send2bark(title, u"{0} 成功".format(t))
             pushno2s.send2s(title, u"{0} 成功".format(t))
+            pushno2w.send2wxpusher(title+u"{0}".format(t))
         
         self.db.tpl.incr_success(tpl['id'])
         self.finish('<h1 class="alert alert-success text-center">签到成功</h1>')

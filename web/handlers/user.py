@@ -90,6 +90,49 @@ class UserRegschan(BaseHandler):
         
         self.redirect('/my/')
         
+class UserRegWXpusher(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, userid):
+        self.render('user_register_wxpusher.html', userid=userid)
+    
+    @tornado.web.authenticated
+    def post(self, userid):
+        if  ("testwxpusher" in self.request.body_arguments):
+            try:
+                if  (self.request.body_arguments["wxpusher_token"][0] != "")\
+                 and (self.request.body_arguments["wxpusher_uid"][0] != ""):
+                    token = self.request.body_arguments["wxpusher_token"][0]
+                    uid = self.request.body_arguments["wxpusher_uid"][0]
+                    
+                    push = send2phone.send2phone(wxpusher_token=token, wxpusher_uid=uid)
+                    t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
+                    push.send2wxpusher(u"{t} 发送测试".format(t=t))
+                else:
+                    raise Exception(u"请输入 apptoken 和 uid")
+            except Exception as e:
+                self.render('tpl_run_failed.html', log=e)
+                return
+            
+            self.render('tpl_run_success.html', log=u"测试成功，请检查是否受到推送")
+            return
+        
+        if  ("send" in self.request.body_arguments):
+            try:
+                if  (self.request.body_arguments["wxpusher_token"][0] != "")\
+                 and (self.request.body_arguments["wxpusher_uid"][0] != ""):
+                    token = self.request.body_arguments["wxpusher_token"][0]
+                    uid = self.request.body_arguments["wxpusher_uid"][0]
+                    self.db.user.mod(userid, wxpusher = token + ";" + uid)
+                else:
+                    raise Exception(u"请输入 apptoken 和 uid")
+            except Exception as e:
+                self.render('tpl_run_failed.html', log=e)
+                return
+            self.render('tpl_run_success.html', log=u"注册成功")
+            return
+        
+        self.redirect('/my/')
+        
 class UserRegPushSw(BaseHandler):
     @tornado.web.authenticated
     def get(self, userid):
@@ -117,4 +160,5 @@ handlers = [
         ('/user/(\d+)/barkurl', UserRegBark),
         ('/user/(\d+)/schan', UserRegschan),
         ('/user/(\d+)/pushsw', UserRegPushSw),
+        ('/user/(\d+)/wxpusher', UserRegWXpusher),
         ]
