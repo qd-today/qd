@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}注册签到{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="{{ static_url('register.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+<div class="container">
+  <form method="POST">
+    <h2 class="text-center">私有签到框架<sup>alpha</sup></h2>
+	<hr>
+    {% block reg %}<p class="alert alert-info">注册签到 (欢迎注册私有签到服务)</p>{% endblock %}
+    <div class="form-group {{ 'has-error' if email_error }}">
+      <label class="control-label" for="email">Email 地址</label>
+      <input type="email" class="form-control" name="email" id="email" value="{{ email }}" placeholder="请输入 email 地址">
+	  <!-- 登录页面-Email地址-增加图标 -->
+	  <span class="glyphicon glyphicon-check form-control-feedback" aria-hidden="true"></span>
+      {% if email_error %}<p class="text-danger">{{ email_error }}</p>{% endif %}
+    </div>
+    <div class="form-group {{ 'has-error' if password_error }}">
+      <label for="password">密码</label>
+      <input type="password" class="form-control" name="password" id="password" placeholder="请输入 密码">
+	  <!-- 登录页面-密码地址-增加图标 -->
+	  <span class="glyphicon glyphicon-asterisk form-control-feedback" aria-hidden="true"></span>
+      {% if password_error %}<p class="text-danger">{{ password_error }}</p>{% endif %}
+    </div>
+	<hr>
+    <div class="text-right">
+
+      <button type="submit" class="btn btn-default" onclick="document.forms[0].action='/login'+location.search">登录</button>
+      <button type="submit" class="btn btn-default" onclick="document.forms[0].action='/register'+location.search">注册</button>
+	  <!-- 登录页面-忘记密码增加按钮效果 -->
+	  <button type="submit" class="btn btn-default" onclick="document.forms[0].action='/password_reset'+location.search">忘记密码?</button>
+    </div>
+</div>
+{{ utils.submit_loading() }}
+{% endblock %}

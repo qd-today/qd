@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}我的发布请求{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="{{ static_url('my.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+{{ utils.header(current_user) }}
+
+<section>
+  <div class="container">
+    <h2>
+      我的发布
+    </h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>来自</th>
+          <th>创建时间</th>
+          <th>最近修改时间</th>
+          <th>最近成功时间</th>
+
+          <th>发布到</th>
+          <th>最近修改时间</th>
+          <th>最近成功时间</th>
+
+          <th>状态</th>
+          <th>留言</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for each in pushs | sort(reverse=True, attribute="ctime") %}
+        <tr>
+          <td>
+            {{ utils.username(each.from_user) }}
+            的
+            {{ utils.tplname(each.from_tpl) }}
+          </td>
+          <td>{{ format_date(each.from_tpl.ctime) }}</td>
+          <td>{{ format_date(each.from_tpl.mtime ) }}</td>
+          <td>{{ format_date(each.from_tpl.last_success) }}</td>
+
+          <td>
+            {{ utils.username(each.to_user) }}
+            的
+            {{ utils.tplname(each.to_tpl) if each.to_tpl else "新模版" }}
+          </td>
+          <td>{{ format_date(each.to_tpl.mtime ) }}</td>
+          <td>{{ format_date(each.to_tpl.last_success) }}</td>
+
+          <td>
+            <span class="label label-{{ {0: 'info', 1: 'warning', 2: 'danger', 3: 'success'}.get(each.status, '') }}">
+            {{ {0:'待处理', 1:'取消', 2:'拒绝', 3:'成功'}.get(each.status, '未知') }}
+            </span>
+          </td>
+          <td>
+            <a href="javascript:void(0)" data-placement="left" data-container="body" data-toggle="popover" data-content="{{ each.msg }}">{{ each.msg | truncate(3, True) }}</a>
+          </td>
+          <td>
+            {% if each.status == 0 %}
+            <a href="/push/{{ each.id }}/view" target="_blank">查看</a>
+            <a data-method="post" href="/push/{{ each.id }}/cancel">取消</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if pulls %}
+<section>
+  <div class="container">
+    <h2>
+      我的审核
+    </h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>来自</th>
+          <th>创建时间</th>
+          <th>最近修改时间</th>
+          <th>最近成功时间</th>
+
+          <th>发布到</th>
+          <th>最近修改时间</th>
+          <th>最近成功时间</th>
+
+          <th>状态</th>
+          <th>留言</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for each in pulls | sort(reverse=True, attribute="ctime") %}
+        <tr>
+          <td>
+            {{ utils.username(each.from_user) }}
+            的
+            {{ utils.tplname(each.from_tpl) }}
+          </td>
+          <td>{{ format_date(each.from_tpl.ctime) }}</td>
+          <td>{{ format_date(each.from_tpl.mtime ) }}</td>
+          <td>{{ format_date(each.from_tpl.last_success) }}</td>
+
+          <td>
+            {{ utils.username(each.to_user) }}
+            的
+            {{ utils.tplname(each.to_tpl) if each.to_tpl else "新模版" }}
+          </td>
+          <td>{{ format_date(each.to_tpl.mtime ) }}</td>
+          <td>{{ format_date(each.to_tpl.last_success) }}</td>
+
+          <td>
+            <span class="label label-{{ {0: 'info', 1: 'warning', 2: 'danger', 3: 'success'}.get(each.status, '') }}">
+            {{ {0:'待处理', 1:'取消', 2:'拒绝', 3:'成功'}.get(each.status, '未知') }}
+            </span>
+          </td>
+          <td>
+            <a href="javascript:void(0)" data-placement="left" data-container="body" data-toggle="popover" data-content="{{ each.msg }}">{{ each.msg | truncate(3, True) }}</a>
+          </td>
+          <td>
+            {% if each.status == 0 %}
+            <a href="/push/{{ each.id }}/view" target="_blank">查看</a>
+            <a data-method="post" href="/push/{{ each.id }}/accept">接受</a>
+            <a data-method="post" data-prompt="reject message" href="/push/{{ each.id }}/refuse">拒绝</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
+<script>
+  $(function() {
+    $('[data-toggle=popover]').popover({
+      trigger: 'hover'
+    });
+  })
+</script>
+{{ utils.apost() }}
+{% endblock %}

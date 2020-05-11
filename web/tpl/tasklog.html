@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}签到日志{% endblock %}
+
+{% block header %}
+{{ super() }}
+<link href="{{ static_url('my.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+{{ utils.header(current_user) }}
+
+<section>
+  <div class="container">
+    <h2>
+      任务执行日志
+    </h2>
+	<table class="table">
+      <thead>
+        <tr>
+          <th>时间</th>
+          <th>状态</th>
+          <th>日志</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in tasklog | sort(reverse=True, attribute="ctime") %}
+        <tr>
+          <td>{{ format_date(log.ctime) }}</td>
+          <td>
+            {% if log.success %}
+            <span class="text-success">成功</span>
+            {% else %}
+            <span class="text-danger">失败</span>
+            {% endif %}
+          </td>
+          <td>{{ log.msg }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

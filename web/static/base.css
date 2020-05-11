@@ -1,0 +1,41 @@
+﻿/* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
+/* Author: Binux<i@binux.me> */
+/*         http://binux.me */
+/* Created on 2014-08-08 23:02:39 */
+html {
+  position: relative;
+  min-height: 95%;
+}
+body {
+  margin-bottom: 60px;
+  background: url(body.jpg) repeat-x #FFF;/* 修改-新加-头部图片 */
+}
+footer {
+  position: absolute;
+  height: 30px;
+  width: 100%;
+  bottom: 0;
+  margin: 10px 0;
+}
+h1 > a {
+  color: black;
+  text-decoration: none;
+}
+h1 > a:hover,
+h1 > a:focus {
+  color: black;
+  text-decoration: none;
+}
+.form-group {
+  position: relative;
+}
+.form-group .control-label .control-helper {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+.form-group .control-label .control-helper[disabled] {
+  color: darkgray;
+  text-decoration: none;
+  cursor: default;
+}

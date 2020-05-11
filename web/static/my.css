@@ -1,0 +1,38 @@
+/* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
+/* Author: Binux<i@binux.me> */
+/*         http://binux.me */
+/* Created on 2014-08-08 22:53:48 */
+/* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
+/* Author: Binux<i@binux.me> */
+/*         http://binux.me */
+/* Created on 2014-08-09 11:44:44 */
+form {
+  padding: 0 20px 20px 20px;
+}
+form button {
+  margin-left: 10px;
+}
+header .container {
+  position: relative;
+    /* 修改-顶部下划线border-bottom: 1px solid #eee */
+   /* 修改-新加-下划线阴影-webkit-box-shadow:0 1px 1px rgba(0,0,0,.05) */
+  /* 修改-新加-下划线阴影 box-shadow:0 1px 1px rgba(0,0,0,.05); */
+  background: url(header.jpg) repeat-x #FFF;/* 修改-新加-头部图片 */
+  background-repeat: no-repeat;/* 修改-新加-头部图片 */
+}
+header .buttons {
+  position: absolute;
+  margin-bottom: 10px;
+  left: -10px;
+  right: -10px;
+  bottom: 0;
+}
+header .buttons a {
+  margin: 0 10px;
+}
+section h2 a.btn {
+  margin-top: -0.2em;
+}
+[data-toggle=popover] {
+  cursor: pointer;
+}

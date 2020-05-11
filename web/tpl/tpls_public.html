@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}公开的签到模板{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="{{ static_url('my.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+{{ utils.header(current_user) }}
+
+<section>
+  <div class="container">
+    <h2>
+      公开模板
+    </h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>网站</th>
+          <th>创建时间</th>
+          <th>最近修改时间</th>
+          <th>最近成功时间</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tpl in tpls %}
+        <tr>
+          <td>
+            {{ utils.tplname(tpl) }} {% if tpl.siteurl %}- {{ tpl.siteurl }}{% endif %}
+          </td>
+          <td>
+            {{ format_date(tpl.ctime) }}
+          </td>
+          <td>
+            {{ format_date(tpl.mtime) }}
+          </td>
+          <td>
+            {% if tpl.last_success %}
+            <span class="last_success">{{ format_date(tpl.last_success) }}</span>
+            {% else %}
+            从未
+            {% endif %}
+          </td>
+          <td>
+            {% if current_user.isadmin %}
+            <a data-method="POST" href="/tpl/{{ tpl.id }}/del" data-confirm="是否要删除模板?">删除</a>
+            {% endif %}
+            <a class="" href="/tpl/{{ tpl.id }}/edit" target="_blank">查看</a>
+            <a class="modal_load" href="/task/new?tplid={{ tpl.id }}">新建签到</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+  $(function() {
+    $('[data-toggle=popover]').popover({
+      trigger: 'hover'
+    });
+  })
+</script>
+
+{{ utils.modal_load() }}
+{{ utils.apost() }}
+{% endblock %}

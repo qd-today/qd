@@ -1,0 +1,24 @@
+<dl class="dl-horizontal">
+  <!-- name -->
+  <dt ng-repeat-start="each in $list | filter: $filter">
+  <div class="pull-left select"
+    ng-if="each.checked !== undefined">
+    <label class="btn btn-default btn-xxs"
+      ng-class="{active: each.checked}" ng-click="each.checked = !each.checked">
+    </label>
+  </div>
+  <div class="contentedit-wrapper">
+    <span ng-bind-html="variables_wrapper(each.name, 'name')"></span>
+  </div>
+  <div contenteditable ng-model="each.name"></div>
+  </dt>
+
+  <!-- value -->
+  <dd ng-repeat-end>
+  <span class="btn btn-default btn-xxs remove pull-right"
+    ng-click="delete(each.$$hashKey, $list)"></span>
+  <div class="contentedit-wrapper"
+    ng-bind-html="variables_wrapper(each.value, ':empty')"></div>
+  <div contenteditable ng-model="each.value"></div>
+  </dd>
+</dl>

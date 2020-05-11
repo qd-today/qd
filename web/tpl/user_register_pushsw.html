@@ -1,0 +1,43 @@
+{% import "utils.html" as utils %}
+<form method="POST" action="/user/{{ userid }}/pushsw">
+  <h2 class="text-center">私有签到框架<sup>alpha</sup></h2>
+  <hr>
+  <div id="run-result"></div>
+
+  <div class="checkbox">
+    <label>
+      
+      <input type="checkbox" id="handpush_succ" name="handpush_succ" {% if flg.handpush_succ %}  checked="" {% endif %}> 手动执行成功通知
+     
+    </label>
+  </div>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" id="handpush_fail" name="handpush_fail" {% if flg.handpush_fail %}  checked="" {% endif %}> 手动执行失败通知
+    </label>
+  </div>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" id="autopush_succ" name="autopush_succ" {% if flg.autopush_succ %}  checked="" {% endif %}> 自动执行成功通知
+    </label>
+  </div>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" id="autopush_fail" name="autopush_fail" {% if flg.autopush_fail %}  checked="" {% endif %}> 自动执行失败通知
+    </label>
+  </div>
+
+  <div class="text-right">
+    <button id="sendpushsw" name="sendpushsw" type="submit" data-loading-text="loading..." class="btn btn-primary">提交</button>
+  </div>
+  <!-- <script>
+    $(function() {
+      // 测试链接
+      $('#sendpushsw').on('click', function() {
+      });
+    })
+  </script> -->
+
+  {{ utils.task_new_scripts() }}
+  {{ utils.submit_loading() }}
+</form>

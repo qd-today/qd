@@ -1,0 +1,34 @@
+<form method="POST" action="/tpl/{{ tpl.id }}/push">
+  <h1 class="text-center">模板发布</h1>
+  <div class="alert alert-info">
+    <p>发布模板需要经过以下测试</p>
+    <li>使用<strong>错误的</strong>用户名密码，执行<strong>签到失败</strong></li>
+    <li>使用<strong>未签到的正确的</strong>用户名密码，执行<strong>签到成功</strong></li>
+    <li>使用<strong>已签到的正确的</strong>用户名密码，执行<strong>签到失败</strong></li>
+    <p>您可以使用成功/失败断言检测签到是否成功</o>
+  </div>
+  <div class="form-group">
+    <label class="control-label" for="from-tpl">将模板</label>
+    <input type="text" class="form-control" id="from-tpl" value="{{ tpl.sitename or "未命名" }}" disabled>
+    <p class="help-block">只有勾选的HAR请求会被发布，但依旧不要忘记删除请求中的个人信息</p>
+  </div>
+  <div class="form-group">
+    <label class="control-label" for="to-tpl">发布为</label>
+    <select class="form-control" name="totpl">
+      <option value="0">新模板</option>
+      {% for t in tpls %}
+      <option value="{{ t.id }}">{{ t.sitename }}</option>
+      {% endfor %}
+    </select>
+    <p class="help-block">您的模板将会被暂时锁定，直到发布被接受或拒绝。</p>
+  </div>
+  <div class="form-group">
+    <label class="control-label" for="msg">留言</label>
+    <input class="form-control" type="text" name="msg" id="msg">
+	<!-- 模板发布-留言添加图标 -->
+	<span class="glyphicon glyphicon-info-sign form-control-feedback" aria-hidden="true"></span>
+  </div>
+  <div class="text-right">
+    <button type="submit" class="btn btn-default">提交</button>
+  </div>
+</form>

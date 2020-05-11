@@ -1,0 +1,27 @@
+/* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
+/* Author: Binux<i@binux.me> */
+/*         http://binux.me */
+/* Created on 2014-08-09 23:10:58 */
+.login {
+  position: absolute;
+  right: 0;
+  top: 0;
+  margin: 20px;
+}
+form {
+  width: 300px;
+  padding-top: 40px;
+  margin: 0 auto;
+}
+form h1 {
+  text-align: center;
+  font-size: 52px;
+  margin-bottom: 30px;
+}
+form h1 sup {
+  font-size: 50%;
+  top: -1em;
+}
+form div.text-right {
+  margin-top: 30px;
+}

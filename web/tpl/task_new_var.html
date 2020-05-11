@@ -1,0 +1,29 @@
+{% if tpl.note %}<div class="alert alert-info">{{ tpl.note }}</div>{% endif %}
+
+{% macro asurl(siteurl) %}{{ 'http://'+siteurl if not siteurl.startswith('http') else siteurl }}{% endmacro %}
+
+{% macro varname_format(var) %}
+{%- set var_lower = var.lower() %}
+{%- if var_lower == 'username' %}用户名
+{%- elif var_lower == 'password' %}密码
+{%- elif var_lower == 'cookie' or var_lower == 'cookies' %}<span>Cookies</span>{% if tpl.siteurl %}<a href="javascript:void(0)" class="control-helper" data-toggle="get-cookie" data-site="{{ asurl(tpl.siteurl) }}" data-cookie="" disabled>点击获取</a>{% endif %}
+{%- else %}{{ var }}
+{%- endif -%}
+{% endmacro %}
+
+{% macro var_tips(var) %}
+{% endmacro %}
+
+{% for var in variables %}
+<div class="form-group">
+  <label class="control-label" for="input-{{ var }}">{{ varname_format(var) }}</label>
+  <input type="text" class="form-control" name="{{ var }}" id="input-{{ var }}" placeholder="请输入 {{ var }}">
+  <!-- 未登录首页-加图标 -->
+  <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+  {{ var_tips(var) }}
+</div>
+{% endfor %}
+
+<script>
+  $('#siteurl').attr("href", "{{ asurl(tpl.siteurl) if tpl.siteurl else '' }}");
+</script>

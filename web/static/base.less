@@ -1,0 +1,45 @@
+/* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
+/* Author: Binux<i@binux.me> */
+/*         http://binux.me */
+/* Created on 2014-08-08 23:02:39 */
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+footer {
+  position: absolute;
+  height: 30px;
+  width: 100%;
+  bottom: 0;
+  margin: 10px 0;
+}
+
+h1 > a {
+  color: black;
+  text-decoration: none;
+  &:hover, &:focus {
+    color: black;
+    text-decoration: none;
+  }
+}
+
+.form-group {
+  position: relative;
+  .control-label .control-helper {
+    position: absolute;
+    top: 0;
+    right: 0;
+    
+    &[disabled] {
+      color: darkgray;
+      text-decoration: none;
+      cursor: default;
+    }
+  }
+}

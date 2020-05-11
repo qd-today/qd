@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block head %}
+{{ super() }}
+<link href="{{ static_url('index.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+<div class="container">
+  <div class="text-right login">
+    <a href="/login" class="btn btn-default">登录</a>
+  </div>
+  <form>
+    <h2 class="text-center">私有签到框架<sup>alpha</sup></h2>
+    <hr><br>
+    <div class="form-group" id="site-select-div">
+      <label class="control-label" for="site-select">
+        <a target="_blank" id="siteurl" style="color:black;">网站</a>
+        <a class="control-helper" href="/tpls/public">查看所有公开模板</a>
+      </label>
+      <select class="form-control" name="_binux_tplid">
+        {% for tpl in tpls %}
+        <option value="{{ tpl.id }}" {% if tpl.id == tplid %}selected{% endif %} {% if not tpl.id %}disabled{% endif %}>{{ tpl.sitename or '未命名' }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div id="variables">
+      {% include "task_new_var.html" %}
+    </div>
+
+    <div class="text-right">
+      <a data-load-method="POST" href="/tpl/run" id="run" class="btn btn-default modal_load">立即签到</a>
+      <a href="/register" class="btn btn-primary">创建签到任务</a>
+    </div>
+
+    <script>
+      $(function() {
+        $('#run').data('data-callback', function() {
+          var tplid = $('select[name=_binux_tplid]').val();
+          var env = {};
+          for (var _env=$('form').serializeArray(), i=_env.length-1; i>=0; i--) {
+            env[_env[i].name] = _env[i].value;
+          }
+          return {
+            env: JSON.stringify(env),
+            _binux_tplid: tplid,
+          }
+        });
+      })
+    </script>
+    {{ utils.task_new_scripts() }}
+    {{ utils.modal_load() }}
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <title>{% block title %}签到{% endblock %}</title>
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <meta name="description" content="{% block desc %}帮你每日签到，每天打卡！{% endblock %}">
+    <meta name="author" content="{% block author %}binux{% endblock %}">
+    <link rel="icon" type="image/png" href="{{ static_url('img/icon.png') }}">
+	
+	<meta name="description" content="WEB自动化HAR重放工具" />
+    <meta name="Keywords" content="HAR,WEB,自动化,应用,APP,Windows,Mac,Android,iOS,iPhone,手机,科技,重放,签到,qiandao,https" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="签到框架" />
+    <meta property="og:title" content="签到框架" />
+    <meta property="og:url" content="https://192.168.1.5:59595" />
+    <meta property="og:description" content="WEB自动化" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:image" content="{{ static_url('img/200.png') }}" />
+    <link rel="icon" type="image/png" href="{{ static_url('img/16.png') }}" sizes="16x16" />
+    <link rel="icon" type="image/png" href="{{ static_url('img/32.png') }}" sizes="32x32" />
+    <link rel="icon" type="image/png" href="{{ static_url('img/96.png') }}" sizes="96x96" />
+    <link rel="icon" type="image/png" sizes="128x128" href="{{ static_url('img/128.png') }}" />
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ static_url('img/192.png') }}" />
+    <meta name="apple-mobile-web-app-title" content="签到框架" />
+    <link rel="apple-touch-icon" href="{{ static_url('img/180.png') }}" />
+    <link rel="apple-touch-icon" sizes="152x152" href="{{ static_url('img/152.png') }}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ static_url('img/180.png') }}" />
+    <link rel="apple-touch-icon" sizes="167x167" href="{{ static_url('img/167.png') }}" />
+    <link rel="apple-touch-icon" sizes="120x120" href="{{ static_url('img/120.png') }}" />
+    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="{{ static_url('img/180.png') }}" />	
+	
+    <script src="{{ static_url('components/seajs/dist/sea.js') }}"></script>
+    <script>
+      seajs.config({
+        base: "/static",
+      })
+      console = console || {};
+      console.log = console.log || function(){};
+      console.debug = console.debug || function(){};
+      console.info = console.info || function(){};
+      console.error = console.error || function(){};
+    </script>
+    {% block head %}
+    <link href="{{ static_url('components/bootstrap/dist/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
+    <script src="{{ static_url('components/jquery/dist/jquery.min.js') }}"></script>
+    <script src="{{ static_url('components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
+    <link href="{{ static_url('base.css') }}" rel="stylesheet" type="text/css">
+    {% endblock %}
+
+    {% import "utils.html" as utils %}
+  </head>
+
+  <body>
+    {% block body %}{% endblock %}
+    {% block foot %}
+    <footer>
+	<hr>
+      <div class="container">
+        <p class="text-center">Powered by <a href="http://binux.me/" target="_blank" style="color: #000000;">Binux</a> | Theme by <a href="http://www.quchao.net/" target="_blank" style="color: #000000;">Mark</a> © 2019.</p>
+		</div>
+    </footer>
+    {% endblock %}
+    {% if config.ga_key %}
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', '{{ config.ga_key }}', 'auto');
+      ga('send', 'pageview');
+    </script>
+    {% endif %}
+	<!-- 动态背景 -->
+	<!-- <script>
+!function(){function o(w,v,i){return w.getAttribute(v)||i}function j(i){return document.getElementsByTagName(i)}function l(){var i=j("script"),w=i.length,v=i[w-1];return{l:w,z:o(v,"zIndex",-1),o:o(v,"opacity",0.5),c:o(v,"color","0,0,0"),n:o(v,"count",99)}}function k(){r=u.width=window.innerWidth||document.documentElement.clientWidth||document.body.clientWidth,n=u.height=window.innerHeight||document.documentElement.clientHeight||document.body.clientHeight}function b(){e.clearRect(0,0,r,n);var w=[f].concat(t);var x,v,A,B,z,y;t.forEach(function(i){i.x+=i.xa,i.y+=i.ya,i.xa*=i.x>r||i.x<0?-1:1,i.ya*=i.y>n||i.y<0?-1:1,e.fillRect(i.x-0.5,i.y-0.5,1,1);for(v=0;v<w.length;v++){x=w[v];if(i!==x&&null!==x.x&&null!==x.y){B=i.x-x.x,z=i.y-x.y,y=B*B+z*z;y<x.max&&(x===f&&y>=x.max/2&&(i.x-=0.03*B,i.y-=0.03*z),A=(x.max-y)/x.max,e.beginPath(),e.lineWidth=A/2,e.strokeStyle="rgba("+s.c+","+(A+0.2)+")",e.moveTo(i.x,i.y),e.lineTo(x.x,x.y),e.stroke())}}w.splice(w.indexOf(i),1)}),m(b)}var u=document.createElement("canvas"),s=l(),c="c_n"+s.l,e=u.getContext("2d"),r,n,m=window.requestAnimationFrame||window.webkitRequestAnimationFrame||window.mozRequestAnimationFrame||window.oRequestAnimationFrame||window.msRequestAnimationFrame||function(i){window.setTimeout(i,1000/45)},a=Math.random,f={x:null,y:null,max:20000};u.id=c;u.style.cssText="position:fixed;top:0;left:0;z-index:"+s.z+";opacity:"+s.o;j("body")[0].appendChild(u);k(),window.onresize=k;window.onmousemove=function(i){i=i||window.event,f.x=i.clientX,f.y=i.clientY},window.onmouseout=function(){f.x=null,f.y=null};for(var t=[],p=0;s.n>p;p++){var h=a()*r,g=a()*n,q=2*a()-1,d=2*a()-1;t.push({x:h,y:g,xa:q,ya:d,max:6000})}setTimeout(function(){b()},100)}();
+    </script> -->
+		<!-- 鼠标指针 -->
+<!-- <style type="text/css">
+    * { cursor:url('{{ static_url('cur/default.cur') }}'),default; } a{ cursor:url('{{ static_url('cur/pointer.cur') }}'),pointer; }
+</style> -->
+  </body>
+</html>
+<!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: -->

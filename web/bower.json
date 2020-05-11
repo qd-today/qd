@@ -1,0 +1,17 @@
+{
+  "name": "qiandao",
+  "version": "0.0.0",
+  "authors": [
+    "binux <roy@binux.me>"
+  ],
+  "description": "qiandao.today",
+  "homepage": "http://qiandao.today/",
+  "private": true,
+  "ignore": [],
+  "dependencies": {
+    "angularjs": "~1.2.21",
+    "jquery": "~2.1.1",
+    "bootstrap": "~3.2.0",
+    "seajs": "~2.3.0"
+  }
+}

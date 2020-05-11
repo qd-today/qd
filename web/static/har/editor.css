@@ -1,0 +1,166 @@
+/* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
+/* Author: Binux<i@binux.me> */
+/*         http://binux.me */
+/* Created on 2014-08-01 19:18:00 */
+.container {
+  margin-top: 10px;
+}
+.pageref {
+  color: #3c763d;
+  background-color: #dff0d8;
+}
+.entry {
+  padding-left: 46px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.entry-checked {
+  position: absolute;
+  border-right: 1px solid #ddd;
+  padding: 0 12px;
+  left: 0;
+}
+.label {
+  margin: 0 .2em;
+}
+.btn-xxs {
+  padding: 1px 3px;
+  font-size: 8px;
+  line-height: 1.5;
+  border-radius: 2px;
+}
+a.h1-index {
+  color: black;
+}
+a.h1-index:hover,
+a.h1-index:focus {
+  text-decoration: none;
+}
+h1 {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+#upload-har #har-guide {
+  position: absolute;
+  margin: 10px 10px;
+  top: 0;
+  right: 0;
+}
+#edit-entry .entry-method {
+  display: inline-block;
+}
+#edit-entry .entry-url {
+  padding: .2em .6em .1em;
+}
+#edit-entry dt .contentedit-wrapper:after {
+  content: ":";
+}
+#edit-entry dt,
+#edit-entry dd {
+  word-break: break-all;
+}
+#edit-entry details dt .contentedit-wrapper {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#edit-entry .select .btn {
+  margin-top: 1px;
+  margin-right: .5em;
+}
+#edit-entry .select .btn.active {
+  color: #fff;
+  background-color: #449d44;
+  border-color: #398439;
+}
+#edit-entry .select .btn:after {
+  font-family: 'Glyphicons Halflings';
+  content: "\2212";
+}
+#edit-entry .select .btn.active:after {
+  content: "\e013";
+}
+#edit-entry .remove.btn:after {
+  line-height: 1.5;
+  font-family: 'Glyphicons Halflings';
+  content: "\e014";
+}
+#edit-entry .panel-preview iframe {
+  border: 0;
+  width: 100%;
+  height: 400px;
+}
+#edit-entry .preview-assert dt {
+  width: 60%;
+  text-align: left;
+  position: relative;
+}
+#edit-entry .preview-assert dt select {
+  width: 100px;
+}
+#edit-entry .preview-assert dt .input-wrapper {
+  position: absolute;
+  top: 0;
+  left: 105px;
+  right: 40px;
+}
+#edit-entry .preview-assert dt .input-wrapper input {
+  width: 100%;
+  border: 0;
+  text-align: right;
+}
+#edit-entry .preview-assert dt .eq {
+  width: 20px;
+  float: right;
+}
+#edit-entry .preview-assert dd {
+  margin-left: 60%;
+  padding-left: 20px;
+}
+#edit-entry .extract-variables dt {
+  width: 60%;
+  position: relative;
+}
+#edit-entry .extract-variables dt .select-wrapper {
+  width: 100px;
+  position: absolute;
+  left: 0;
+}
+#edit-entry .extract-variables dt .input-wrapper {
+  width: 50%;
+  float: left;
+  padding: 0 20px;
+}
+#edit-entry .extract-variables dt .input-wrapper.name {
+  padding-left: 120px;
+}
+#edit-entry .extract-variables dt .eq {
+  position: absolute;
+  left: 50%;
+  margin-left: -20px;
+  width: 20px;
+  float: left;
+}
+#edit-entry .extract-variables dt .eq:nth-child(2) {
+  left: 100%;
+}
+#edit-entry .extract-variables dt input {
+  border: 0;
+  width: 100%;
+  text-align: right;
+}
+#edit-entry .extract-variables dd {
+  margin-left: 60%;
+  padding-left: 20px;
+}
+.contentedit-wrapper + [contenteditable] {
+  display: none;
+}
+[contenteditable]:empty:not(:focus):before {
+  color: #777;
+  content: attr(data-ph);
+}
+.add-request {
+  float: left;
+}

@@ -1,0 +1,65 @@
+{% import "utils.html" as utils %}
+<form method="POST" action="/task/{{ '%s/settime' % task.id if task else 'new' }}">
+  <h2 class="text-center">私有签到框架<sup>alpha</sup></h2>
+  <hr>
+  {% if task.disabled %}
+  <p class="alert alert-danger">任务处于禁用状态，使用 <a class="modal_load alert-link" href="/task/{{ task.id }}/run">立即执行</a> 成功签到一次，即可解除。</p>
+  {% endif %}
+
+  <div id="run-result"></div>
+
+  <div class="form-group">
+    <label class="control-label" for="site-select">
+      <a id="siteurl" href="" target="_blank" style="color:black;">网站</a>
+    </label>
+    <select class="form-control" name="_binux_tplid">
+      {% for tpl in tpls %}
+      <option value="{{ tpl.id }}" {% if tpl.id == tplid %}selected{% endif %} {% if not tpl.id %}disabled{% endif %}>{{ tpl.sitename or '未命名' }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <input type="time" id="timevalue" value="00:00:00" name='timevalue', step="1" min="{{ mintime }}"/>
+
+  {% if current_user %}
+  <div class="form-group">
+    <label class="control-label" for="note">备注</label>
+	<!-- MY页面-添加签到-增加提示语 -->
+    <input type="text" class="form-control" name="_binux_note" value="{{ task.note or '' }}" id="note" placeholder="尽可能填写15个字符以内">
+	<!-- MY页面-添加签到-增加备注图标 -->
+	<span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+	
+  </div>
+  {% endif %}
+
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" id="flg" name="flg" {% if ontimeflg %}  checked="" {% endif %}> 强制每天定时
+    </label>
+  </div>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" id="todayflg" name="todayflg" checked="checked" onchange="checkboxOnclick(this)"> 今天是否运行
+    </label>
+  </div>
+
+  <div class="text-right">
+    {% if current_user %}
+    <button id="send" data-method="POST" href="/task/{{ task.id }}/settime" class="btn btn-primary">提交</button>
+    {% endif %}
+  </div>
+  
+
+	<script>
+    function checkboxOnclick(checkbox){
+          if (checkbox.checked == true){
+              document.getElementById("timevalue").min="{{ mintime }}";
+          }else{
+            document.getElementById("timevalue").min="00:00:00";
+          }
+      }
+	</script>
+  
+  {{ utils.task_new_scripts() }}
+  {{ utils.submit_loading() }}
+</form>
