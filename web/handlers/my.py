@@ -27,11 +27,17 @@ class MyHandler(BaseHandler):
         tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork'), limit=None)
 
         tasks = []
-        for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime'), limit=None):
+        for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'groups'), limit=None):
             tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
             task['tpl'] = tpl
             tasks.append(task)
-        self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'])
+        groups = []
+        for task in tasks:
+            temp = task['groups']
+            if (temp not  in groups):
+                groups.append(temp)
+
+        self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=groups)
 
 handlers = [
         ('/my/?', MyHandler),

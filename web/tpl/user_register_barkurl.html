@@ -20,35 +20,6 @@
     <button id="testbark" name="testbark" data-loading-text="loading..." class="btn btn-default">测试</button>
     <button id="send" name="send" type="submit" data-loading-text="loading..." class="btn btn-primary">提交</button>
   </div>
-  <!-- <script>
-    $(function() {
-      // 测试链接
-      $('#test').on('click', function() {
-        var burl = document.getElementById("testbark");
-        var data = {
-          url:burl,
-          "test":1
-        }
-        var $this = $(this);
-        $this.button('loading');
-        $.ajax("/user/{{ userid }}/barkurl", {
-          type: 'POST',
-          data: data,
-        })
-        .done(function(data) {
-          $('#run-result').html(data).show()
-        })
-        .fail(function(jxhr) {
-          $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
-        })
-        .always(function() {
-          $this.button('reset');
-        });
-
-        return false;
-      });
-    })
-  </script> -->
 
   {{ utils.task_new_scripts() }}
   {{ utils.submit_loading() }}

@@ -23,7 +23,7 @@
 
   {% if current_user %}
   <div class="form-group">
-    <label class="control-label" for="note">备注</label>
+    <label class="control-label" for="note">之前设置 定时 时间：{{ onetime }}</label>
 	<!-- MY页面-添加签到-增加提示语 -->
     <input type="text" class="form-control" name="_binux_note" value="{{ task.note or '' }}" id="note" placeholder="尽可能填写15个字符以内">
 	<!-- MY页面-添加签到-增加备注图标 -->

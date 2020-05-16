@@ -1,0 +1,54 @@
+{% import "utils.html" as utils %}
+<form method="POST" action="/task/{{ taskid }}/group">
+  <h2 class="text-center">设置分组</h2>
+  <hr>
+
+  <!-- {% for group in groups %}
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" id="select_group" name="select_group"  {% if group == groupNow %}  checked="{{ group }}" {% endif %}> {{ group }}
+    </label>
+  </div>
+  {% endfor %} -->
+
+  <div class="use_redpackets_content" id="oneCheck">
+    {% for group in groups %}
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" id="select_group" name="{{ group }} "  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
+      </label>
+    </div>
+    {% endfor %}
+  </div>
+
+
+  <div class="form-group">
+    <label class="control-label" for="note">设置新分组</label>
+	<!-- MY页面-添加签到-增加提示语 -->
+    <input type="text" class="form-control" name="New_group" value="" id="New_group" placeholder="尽可能填写15个字符以内">
+	<!-- MY页面-添加签到-增加备注图标 -->
+	<span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+  </div>
+
+  <div class="text-right">
+    {% if current_user %}
+    <button id="send" data-method="POST" href="/task/{{ taskid }}/group" class="btn btn-primary">提交</button>
+    {% endif %}
+  </div>
+
+  <script type="text/javascript">
+    $(function () {
+                var fanxiBox = $("#oneCheck input:checkbox");
+                fanxiBox.click(function () {
+                   if(this.checked || this.checked=='checked'){
+    
+                       fanxiBox.removeAttr("checked");
+                       $(this).prop("checked", true);
+                     }
+                });
+             });   
+    </script>
+
+  {{ utils.task_new_scripts() }}
+  {{ utils.submit_loading() }}
+</form>

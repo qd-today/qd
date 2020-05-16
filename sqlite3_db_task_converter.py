@@ -55,5 +55,10 @@ class DBconverter(_TaskDB, BaseDB):
             try:
                 self.db.user.get("1", fields=('noticeflg'))
             except :
-                self._execute("ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1 " )             
+                self._execute("ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1 " ) 
+                
+            try:
+                self.db.task.get("1", fields=('groups'))
+            except Exception as e:
+                self._execute("ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )                         
         return 

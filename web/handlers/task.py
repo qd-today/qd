@@ -208,7 +208,7 @@ class TaskSetTimeHandler(TaskNewHandler):
     def get(self, taskid):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid',
-            'tplid', 'disabled', 'note', 'ontimeflg')), 'w')
+            'tplid', 'disabled', 'note', 'ontime', 'ontimeflg')), 'w')
 
         tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'note',
             'sitename', 'siteurl', 'variables')))
@@ -216,8 +216,9 @@ class TaskSetTimeHandler(TaskNewHandler):
         variables = json.loads(tpl['variables'])
         todayflg = True if task['ontimeflg'] == 1 else False
         now = datetime.datetime.now().strftime( '%H:%M:%S')
+        onetime = task['ontime']
         
-        self.render('task_setTime.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, task=task, ontimeflg=todayflg, mintime=now)
+        self.render('task_setTime.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, task=task, ontimeflg=todayflg, mintime=now, onetime=onetime)
     
     @tornado.web.authenticated
     def post(self, taskid):
@@ -254,6 +255,39 @@ class TaskSetTimeHandler(TaskNewHandler):
         self.redirect('/my/')
         
         
+class TaskGroupHandler(TaskNewHandler):
+    @tornado.web.authenticated
+    def get(self, taskid):
+        user = self.current_user      
+        groupNow = self.db.task.get(taskid, fields=('groups'))['groups']
+        tasks = []
+        groups = []
+        for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
+            temp = task['groups']
+            if (temp not  in groups):
+                groups.append(temp)
+
+        self.render('task_setgroup.html', taskid=taskid, groups=groups, groupNow=groupNow)
+    
+    @tornado.web.authenticated
+    def post(self, taskid):        
+        New_group = self.request.body_arguments['New_group'][0].strip()
+        
+        if New_group != "" :
+            target_group = New_group.decode("utf-8").encode("utf-8")
+        else:
+            for value in self.request.body_arguments:
+                if self.request.body_arguments[value][0] == 'on':
+                    target_group = value.strip()
+                    break
+                else:
+                    target_group = 'None'
+            
+        self.db.task.mod(taskid, groups=target_group)
+   
+        self.redirect('/my/')
+        
+        
 handlers = [
         ('/task/new', TaskNewHandler),
         ('/task/(\d+)/edit', TaskEditHandler),
@@ -261,4 +295,5 @@ handlers = [
         ('/task/(\d+)/del', TaskDelHandler),
         ('/task/(\d+)/log', TaskLogHandler),
         ('/task/(\d+)/run', TaskRunHandler),
+        ('/task/(\d+)/group', TaskGroupHandler),
         ]
