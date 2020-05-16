@@ -1,9 +1,19 @@
-qiandao
+# qiandao
 =======
 __操作前请一定要记得备份数据库__<br>
 __操作前请一定要记得备份数据库__<br>
 __操作前请一定要记得备份数据库__<br>
 
+## 2020.5.16 更新
+1. 添加任务分类功能
+
+如果使用mysql 请使用以下命令：
+```
+ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' 
+```
+2. 定时功能显示之前的定时值
+
+## 初始版本
 基于quchaonet的蓝调主题签到增加了:
 
 
