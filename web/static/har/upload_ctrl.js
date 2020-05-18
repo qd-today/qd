@@ -15,12 +15,14 @@
       }
       return false;
     };
+    
     return angular.module('upload_ctrl', []).controller('UploadCtrl', function($scope, $rootScope, $http) {
       var element;
       element = angular.element('#upload-har');
       element.modal('show').on('hide.bs.modal', function() {
         return $scope.is_loaded != null;
       });
+
       element.find('input[type=file]').on('change', function(ev) {
         return $scope.file = this.files[0];
       });
@@ -52,9 +54,15 @@
       $scope.load_file = function(data) {
         var each, i, len, loaded, ref;
         console.log(data);
+        name = ""
+        if (HARPATH != ""){
+          name = HARNAME;
+        }else{
+          name = $scope.file.name;
+        }
         if (data.log) {
           loaded = {
-            filename: $scope.file.name,
+            filename: name,
             har: analysis.analyze(data, {
               username: $scope.username,
               password: $scope.password
@@ -63,7 +71,7 @@
           };
         } else {
           loaded = {
-            filename: $scope.file.name,
+            filename: name,
             har: utils.tpl2har(data),
             upload: true
           };
@@ -96,27 +104,37 @@
           return $scope.load_remote(location.href);
         }
       };
-      return $scope.upload = function() {
-        var reader;
-        if ($scope.file == null) {
-          $scope.alert('还没选择文件啊，亲');
-          return false;
-        }
-        if ($scope.file.size > 50 * 1024 * 1024) {
-          $scope.alert('文件大小超过50M');
-          return false;
-        }
-        element.find('button').button('loading');
-        reader = new FileReader();
-        reader.onload = function(ev) {
-          return $scope.$apply(function() {
-            $scope.uploaded = true;
-            $scope.load_file(angular.fromJson(ev.target.result));
-            return element.find('button').button('reset');
-          });
+      
+      if (HARPATH != ""){
+        $.get(HARPATH,function(data,status){
+          reader = new FileReader();
+          $scope.load_file(angular.fromJson(data));
+          return element.find('button').button('reset');
+        });
+      }
+      else{
+        return $scope.upload = function() {
+          var reader;
+          if ($scope.file == null) {
+            $scope.alert('还没选择文件啊，亲');
+            return false;
+          }
+          if ($scope.file.size > 50 * 1024 * 1024) {
+            $scope.alert('文件大小超过50M');
+            return false;
+          }
+          element.find('button').button('loading');
+          reader = new FileReader();
+          reader.onload = function(ev) {
+            return $scope.$apply(function() {
+              $scope.uploaded = true;
+              $scope.load_file(angular.fromJson(ev.target.result));
+              return element.find('button').button('reset');
+            });
+          };
+          return reader.readAsText($scope.file);
         };
-        return reader.readAsText($scope.file);
-      };
+      }
     });
   });
 

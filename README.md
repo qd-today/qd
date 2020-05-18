@@ -1,8 +1,14 @@
 # qiandao
-=======
+
 __操作前请一定要记得备份数据库__<br>
 __操作前请一定要记得备份数据库__<br>
 __操作前请一定要记得备份数据库__<br>
+
+## 2020.5.18 更新
+1. 定时的 "今日是否运行" 修改 为 "今日运行"
+2. 添加模板订阅功能，仓库地址在[https://github.com/qiandao-today/templates](https://github.com/qiandao-today/templates)
+   主页打开公共模板按钮，点击订阅后自动导入模板，需要自己确认保存
+3. 模板上传指定格式为.har
 
 ## 2020.5.16 更新
 1. 添加任务分类功能
@@ -38,8 +44,8 @@ ALTER TABLE `user` ADD `wxpusher` VARBINARY(128) NOT NULL DEFAULT ''
 ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1
 ```
 
-=========
-以下为原镜像说明：
+
+## 以下为原镜像说明：
 
 签到 —— 一个自动签到框架 base on an HAR editor
 

@@ -59,6 +59,6 @@ class DBconverter(_TaskDB, BaseDB):
                 
             try:
                 self.db.task.get("1", fields=('groups'))
-            except Exception as e:
+            except :
                 self._execute("ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )                         
         return 

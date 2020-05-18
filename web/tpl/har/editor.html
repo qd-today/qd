@@ -14,7 +14,10 @@
 <script>
   TPLID={{ tplid or 0 }};
   HASUSER={{ 1 if current_user else 0 }};
+  HARPATH = "{{ harpath }}";
+  HARNAME = "{{ harname }}";
 </script>
+
 {% raw %}
 <div class="container">
   <div class="row" ng-controller="EntryList">
@@ -280,7 +283,7 @@
             <div class="form-group">
               <label class="col-sm-3 control-label">上传 HAR 文件</label>
               <div class="col-sm-9">
-                <input type="file">
+                <input type="file" accept=".har">
               </div>
             </div>
             <div class="form-group">
