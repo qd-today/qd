@@ -37,12 +37,12 @@
             </div>
           </td>
           <td style="text-align:center">{{ tpl.name }}</td>
-          <td style="text-align:center">{{ tpl.author }}</td>
+          <td style="text-align:center">{{ tpl.author | safe }}</td>
           <td style="text-align:center">
             <a href="{{ tpl.url }}">{{ tpl.filename }}</a>
           </td>
-          <td style="text-align:center">{{ tpl.vars }}</td>
-          <td style="text-align:center">{{ tpl.comments }}</td>
+          <td style="text-align:center">{{ tpl.vars | safe }}</td>
+          <td style="text-align:center">{{ tpl.comments | safe }}</td>
         </tr>
         {% endfor %}
       </tbody>

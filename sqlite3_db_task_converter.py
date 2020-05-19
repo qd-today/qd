@@ -60,5 +60,15 @@ class DBconverter(_TaskDB, BaseDB):
             try:
                 self.db.task.get("1", fields=('groups'))
             except :
-                self._execute("ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )                         
+                self._execute("ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
+                
+            try:
+                self.db.tpl.get("1", fields=('tplurl'))
+            except :
+                self._execute("ALTER TABLE `tpl` ADD `tplurl` VARCHAR(1024) NULL DEFAULT '' " )
+                
+            try:
+                self.db.tpl.get("1", fields=('updateable'))
+            except :
+                self._execute("ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0 " )                           
         return 

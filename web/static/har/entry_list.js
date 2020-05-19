@@ -250,18 +250,20 @@
           id: $scope.id,
           har: $scope.har,
           tpl: har2tpl($scope.har),
-          setting: $scope.setting
+          setting: $scope.setting,
         };
         save_btn = angular.element('#save-har .btn').button('loading');
         alert_elem = angular.element('#save-har .alert-danger').hide();
         alert_info_elem = angular.element('#save-har .alert-info').hide();
-        return $http.post(location.pathname.replace('edit', 'save'), data).success(function(data, status, headers, config) {
+        replace_text = 'save?tplurl='+HARPATH
+        return $http.post(location.pathname.replace('edit', replace_text), data).success(function(data, status, headers, config) {
           var pathname;
           utils.storage.del('har_filename');
           utils.storage.del('har_har');
           utils.storage.del('har_env');
           save_btn.button('reset');
           pathname = "/tpl/" + data.id + "/edit";
+          
           if (pathname !== location.pathname) {
             location.pathname = pathname;
           }

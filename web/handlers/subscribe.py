@@ -38,14 +38,12 @@ class SubscribeHandler(BaseHandler):
             
             for cnt in range(1, len(tpls_temp)):
                 tpl_temp = re.findall(r"center\">(.+?)</td", tpls_temp[cnt])
-                author = re.findall(r">(.+?)<", tpl_temp[1])[0]
                 harurl = re.findall(r"href=\"(.+?)\"", tpl_temp[2])[0]
                 filename = re.findall(r">(.+?)<", tpl_temp[2])[0]
                 
                 tpls.append ({
-                                "No":cnt,
                                 "name":tpl_temp[0],
-                                "author":author,
+                                "author":tpl_temp[1],
                                 "filename":filename,
                                 "url":harurl,
                                 "vars":tpl_temp[3],
