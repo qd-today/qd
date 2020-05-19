@@ -7,6 +7,12 @@ __操作前请一定要记得备份数据库__<br>
 ## 2020.5.19 更新
 1. 添加手动检查模板更新的按钮。
 
+如果使用mysql 在 5.18 请使用以下命令：
+```
+"ALTER TABLE `tpl` ADD `tplurl` VARCHAR(1024) NULL DEFAULT '' "
+ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0
+```
+
 ## 2020.5.18 更新
 1. 定时的 "今日是否运行" 修改 为 "今日运行"
 2. 添加模板订阅功能，仓库地址在[https://github.com/qiandao-today/templates](https://github.com/qiandao-today/templates)
