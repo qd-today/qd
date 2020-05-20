@@ -10,7 +10,7 @@ jobs:
           - name: Checkout master
             uses: actions/checkout@master
           - name: Build and publish image
-            uses: AragonSnow/docker_buildx@master
+            uses: ilteoood/docker_buildx@master
             with:
               publish: true
               imageName: asdaragon/qiandao # dockerid/imageName
@@ -18,3 +18,4 @@ jobs:
               tag: 20200519,latest # 默认latest，可以针对平台，修改tag
               dockerHubUser: ${{ secrets.DOCKER_USERNAME }} # docker hub userid 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
               dockerHubPassword: ${{ secrets.DOCKER_PASSWORD }} # docker hub password,在setting创建secrets name=DOCKER_PASSWORD  value=dockerpassword
+              load: false
