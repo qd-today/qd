@@ -9,7 +9,7 @@ __操作前请一定要记得备份数据库__<br>
 
 如果使用mysql 在 5.18 请使用以下命令：
 ```
-"ALTER TABLE `tpl` ADD `tplurl` VARCHAR(1024) NULL DEFAULT '' "
+ALTER TABLE `tpl` ADD `tplurl` VARCHAR(1024) NULL DEFAULT '' 
 ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0
 ```
 
