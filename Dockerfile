@@ -22,9 +22,7 @@ ENV PORT 80
 EXPOSE $PORT/tcp
 
 # timezone
-RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-RUN echo 'Asia/Shanghai' >/etc/timezone
-ENV TZ=Asia/Shanghai
+ENV TZ=CST-8
 
 # 添加挂载点
 VOLUME ["/usr/src/app/"]
