@@ -1,0 +1,68 @@
+<!-- 参考了 鹦鹉 的代码，在此致谢 -->
+<!-- https://ezbox.idv.tw/131/back-to-top-button-without-images -->
+
+<button type="button" id="BackTop" class="toTop-arrow" style="z-index: 100;">&#x2191;</button>
+<button type="button" id="Back2tpl" class="toTop-arrow-down" style="z-index: 100;">&#x2193;</button>
+<button type="button" id="newtplbtn" class="newtplclss" style="z-index: 100;">&#xFF0B;</button>
+<script>
+    // 向上滚动的函数
+    $(function () {
+        $('#BackTop').click(function () {
+            $('html,body').animate({scrollTop: 0}, 500);
+        });
+    });
+</script>
+
+<script>
+    Back2tpl.onclick = function(){
+      $('html,body').scrollTop(document.getElementById("tplsection").scrollHeight) 
+    }
+</script>
+
+<script>
+    newtplbtn.onclick = function(){
+        window.open('/har/edit','_blank',);
+    }
+</script>
+
+<style>
+    /* 按钮边框的大小、位置、样式 */
+    .toTop-arrow {
+        width: 3.5rem;
+        height: 3.5rem;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        position: fixed;
+        left: 1.5rem;
+        top: 1.5rem;
+        display: block;
+    }
+
+    /* 按钮边框的大小、位置、样式 */
+    .toTop-arrow-down {
+        width: 3.5rem;
+        height: 3.5rem;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        position: fixed;
+        left: 1.5rem;
+        top: 6rem;
+        display: block;
+    }
+
+    
+    /* 按钮边框的大小、位置、样式 */
+    .newtplclss {
+        width: 3.5rem;
+        height: 3.5rem;
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        position: fixed;
+        left: 1.5rem;
+        top: 10rem;
+        display: block;
+    }
+</style>

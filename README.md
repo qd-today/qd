@@ -7,11 +7,15 @@ __操作前请一定要记得备份数据库__<br>
 个人项目精力有限，仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request让我修改。
 
 因为需要测试，docker镜像会晚于gitHub几天更新
+
 docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.com/r/asdaragon/qiandao)
+docker部署命令：
+``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
 ## 2020.5.22 更新
 1. 分组增加折叠/展开功能
-2. 顶部增加新建模板按钮，“↑”回到顶部， “↓”表示跳转到模板页面
+2. 左侧增加新建模板按钮，“↑”回到顶部， “↓”表示跳转到模板页面
+3. 修复删除任务时日志不删除bug
 
 ## 2020.5.19 更新
 1. 添加手动检查模板更新的按钮。

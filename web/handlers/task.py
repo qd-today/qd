@@ -198,8 +198,11 @@ class TaskDelHandler(BaseHandler):
     def post(self, taskid):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid', )), 'w')
-
+        logs = self.db.tasklog.list(taskid = taskid, fields=('id'))
+        for log in logs:
+            self.db.tasklog.delete(log['id'])
         self.db.task.delete(task['id'])
+        
         referer = self.request.headers.get('referer', '/my/')
         self.redirect(referer)
         

@@ -48,3 +48,6 @@ class TaskLogDB(BaseDB):
             where_values.append(value)
         for tasklog in self._select2dic(what=fields, where=where, where_values=where_values, limit=limit):
             yield tasklog
+    
+    def delete(self, id):
+        self._delete(where="id=%s" % self.placeholder, where_values=(id, ))

@@ -10,7 +10,6 @@
 {% block body %}
 {{ utils.header(current_user) }}
 
-<div style="height:60px;"></div> 
 <section class="task", id="task section">
   <div class="container">
     <h2>
@@ -179,15 +178,7 @@
     }
   }
 </script>
-
-<script>
-  scrollTplbtn.onclick = function(){
-    var a = document.getElementById("tplsection")
-    var b = a.scrollHeight
-    $('html,body').scrollTop(b) 
-  }
-</script>
-
+{% include 'back2top.html' %}
 {{ utils.modal_load() }}
 {{ utils.apost() }}
 {% endblock %}
