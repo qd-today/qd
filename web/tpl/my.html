@@ -10,7 +10,8 @@
 {% block body %}
 {{ utils.header(current_user) }}
 
-<section class="task">
+<div style="height:60px;"></div> 
+<section class="task", id="task section">
   <div class="container">
     <h2>
       我的签到
@@ -33,12 +34,19 @@
       </thead>
       <tbody>
         {% for group in taskgroups | sort(reverse=True) %}
-        <tr>
-          <tr><td><text>{{group}}</text></td></tr>
+        <tr name="{{group}} taskgroups">
+          <tr>
+            <td colspan="6">
+              <text>{{group}}</text> 
+              <label>
+                <input type="checkbox"  name="{{group}} taskgroup" onchange="checkboxOnclick(this)"> 
+              </label>
+            </td> 
+          </tr>
+          
           {% for task in tasks | sort(reverse=True, attribute="ctime") %}
           {% if group == task.groups %}
-          <tr>
-            
+          <tr class="{{group}} taskgroup " >
             <td>
               <text>----></text> 
               {% if task.disabled %}<span title="任务处于禁用状态,使用 (立即执行) 成功签到一次,即可解除." style="color:#ff7600;border-left:5px solid #ff7600;padding-left:5px;">[禁用]</span>{% endif %}
@@ -87,7 +95,7 @@
   </div>
 </section>
 
-<section class="tpl">
+<section class="tpl" id="tplsection">
   <div class="container">
     <h2>
       我的模板
@@ -156,6 +164,28 @@
       trigger: 'hover'
     });
   })
+</script>
+
+
+<script>
+  function checkboxOnclick(checkbox){
+    var tasknodes = document.getElementsByClassName(checkbox.name);
+    for (i = 0; i < tasknodes.length; i++) { 
+      if (checkbox.checked == true){
+        $(tasknodes[i]).hide(); 
+      }else{
+        $(tasknodes[i]).show();
+      }
+    }
+  }
+</script>
+
+<script>
+  scrollTplbtn.onclick = function(){
+    var a = document.getElementById("tplsection")
+    var b = a.scrollHeight
+    $('html,body').scrollTop(b) 
+  }
 </script>
 
 {{ utils.modal_load() }}

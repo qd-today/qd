@@ -12,8 +12,11 @@ form {
 form button {
   margin-left: 10px;
 }
+
 header .container {
-  position: relative;
+  position: fixed;
+  width:100%;
+  z-index:9999;
     /* 修改-顶部下划线border-bottom: 1px solid #eee */
    /* 修改-新加-下划线阴影-webkit-box-shadow:0 1px 1px rgba(0,0,0,.05) */
   /* 修改-新加-下划线阴影 box-shadow:0 1px 1px rgba(0,0,0,.05); */
@@ -23,8 +26,8 @@ header .container {
 header .buttons {
   position: absolute;
   margin-bottom: 10px;
-  left: -10px;
-  right: -10px;
+  left: 10px;
+  right: 10px;
   bottom: 0;
 }
 header .buttons a {

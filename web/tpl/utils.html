@@ -5,10 +5,19 @@
     <div class="buttons">
       <a href="/" class="btn btn-default pull-left">首页</a>
       {% if current_user %}
+      <a href="/har/edit" class="btn btn-default pull-left"  target="_blank">添加模板</a>
+      <a id="scrollTopbtn" class="btn btn-default pull-left">&#x2191;</a>
+      <script>
+        scrollTopbtn.onclick = function(){
+            document.body.scrollTop = document.documentElement.scrollTop = 0;
+        }
+      </script>
+      <a id="scrollTplbtn" class="btn btn-default pull-left">&#x2193;</a>
       <a href="/logout" class="btn btn-default pull-right">登出</a>
       {% else %}
       <a href="/register" class="btn btn-default pull-right">注册</a>
       {% endif %}
+
     </div>
   </div>
 </header>
