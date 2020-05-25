@@ -13,6 +13,7 @@ import tornado.log
 import tornado.ioloop
 from tornado import gen
 import send2phone
+import json
 
 import config
 from libs import utils
@@ -141,8 +142,8 @@ class MainWorker(object):
         user = self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname'))
         tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl',
             'interval', 'last_success'))
-        ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg'))
-        
+        ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg', 'pushsw'))
+        pushsw = json.loads(ontime['pushsw'])
         notice = self.db.user.get(task['userid'], fields=('skey', 'barkurl', 'noticeflg', 'wxpusher'))
         temp = notice['wxpusher'].split(";")
         wxpusher_token = temp[0] if (len(temp) >= 2) else ""
@@ -212,7 +213,7 @@ class MainWorker(object):
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
                 title = u"签到任务 {0} 成功".format(tpl['sitename'])
                 logtemp = new_env['variables'].get('__log__')
-                if (notice['noticeflg'] & 0x40 != 0):
+                if (notice['noticeflg'] & 0x40 != 0) and (pushsw['pushen']):
                     if (pusher["barksw"]):pushno2b.send2bark(title, u"{0} 运行成功".format(t))
                     if (pusher["schansw"]):pushno2s.send2s(title, u"{0}  日志：{1}".format(t, logtemp))
                     if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"{0}  日志：{1}".format(t, logtemp))
@@ -225,7 +226,7 @@ class MainWorker(object):
             title = u"签到任务 {0} 失败".format(tpl['sitename'])
             if next_time_delta:
                 # 每次都推送通知
-                if (notice['noticeflg'] & 1 == 1):
+                if (notice['noticeflg'] & 1 == 1) and (pushsw['pushen']):
                     if (pusher["barksw"]):pushno2b.send2bark(title, u"{0} 请检查状态".format(t))
                     if (pusher["schansw"]):pushno2s.send2s(title, u"{0} 请进行排查".format(t))
                     if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"{0}  请进行排查".format(t))

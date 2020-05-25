@@ -124,7 +124,7 @@ class TaskRunHandler(BaseHandler):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'init_env',
             'env', 'session', 'last_success', 'last_failed', 'success_count',
-            'failed_count', 'last_failed_count', 'next', 'disabled', 'ontime', 'ontimeflg')), 'w')
+            'failed_count', 'last_failed_count', 'next', 'disabled', 'ontime', 'ontimeflg', 'pushsw')), 'w')
 
         tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename',
             'siteurl', 'tpl', 'interval', 'last_success')))
@@ -147,12 +147,13 @@ class TaskRunHandler(BaseHandler):
         pusher["barksw"] = False if (notice['noticeflg'] & 0x40) == 0 else True 
         pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True 
         pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True 
+        taskpushsw = json.loads(task['pushsw'])
 
 
         try:
             new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
         except Exception as e:
-            if (notice['noticeflg'] & 0x4 != 0):
+            if (notice['noticeflg'] & 0x4 != 0) and (taskpushsw['pushen']):
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
                 title = u"签到任务 {0} 手动运行失败".format(tpl['sitename'])
                 if pusher["barksw"]:
@@ -180,7 +181,7 @@ class TaskRunHandler(BaseHandler):
                 mtime = time.time(),
                 next = nextTime)
         
-        if (notice['noticeflg'] & 0x8 != 0):
+        if (notice['noticeflg'] & 0x8 != 0) and (taskpushsw['pushen']):
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
             title = u"签到任务 {0} 手动运行成功".format(tpl['sitename'])
             if pusher["barksw"]:
