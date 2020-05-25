@@ -15,7 +15,7 @@
 
 <script>
     Back2tpl.onclick = function(){
-      $('html,body').scrollTop(document.getElementById("tplsection").scrollHeight) 
+    $('html,body').animate({scrollTop: $("#tplsection").offset().top }, {duration: 500,easing: "swing"});
     }
 </script>
 
