@@ -70,5 +70,15 @@ class DBconverter(_TaskDB, BaseDB):
             try:
                 self.db.tpl.get("1", fields=('updateable'))
             except :
-                self._execute("ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0 " )                           
+                self._execute("ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0 " )       
+
+            try:
+                self.db.task.get("1", fields=('pushsw'))
+            except :
+                self._execute("ALTER TABLE `task` ADD `pushsw` VARBINARY(128) NOT NULL DEFAULT '{\"logen\":false,\"pushen\":true}' " )   
+
+            try:
+                self.db.user.get("1", fields=('logtime'))
+            except :
+                self._execute("ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}' " )                             
         return 

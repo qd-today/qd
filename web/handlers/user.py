@@ -9,156 +9,180 @@ import json
 import time
 import datetime
 from tornado import gen
+import re
 
 from base import *
 
 import send2phone 
+import pytz
 
-class UserRegBark(BaseHandler):
-    @tornado.web.authenticated
-    def get(self, taskid):
-        user = self.current_user
-        self.render('user_register_barkurl.html', userid=user['id'])
-    
-    @tornado.web.authenticated
-    def post(self, userid):
-        if  ("testbark" in self.request.body_arguments):
-            try:
-                if  (self.request.body_arguments["barkurl"][0] != ""):
-                    barkurl = self.request.body_arguments["barkurl"][0]
-                    push = send2phone.send2phone(barkurl=barkurl)
-                    t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
-                    push.send2bark(u"正在测试Bark", u"{t} 发送测试".format(t=t))
-                else:
-                    raise Exception(u"请输入barkurl")
-            except Exception as e:
-                self.render('tpl_run_failed.html', log=e)
-                return
-            
-            self.render('tpl_run_success.html', log=u"测试成功，请检查是否受到推送")
-            return
-        
-        if  ("send" in self.request.body_arguments):
-            try:
-                if  (self.request.body_arguments["barkurl"][0] != ""):
-                    self.db.user.mod(userid, barkurl = self.request.body_arguments["barkurl"][0])
-                else:
-                    raise Exception(u"注册失败")
-            except Exception as e:
-                self.render('tpl_run_failed.html', log=e)
-                return
-            self.render('tpl_run_success.html', log=u"注册成功")
-            return
-        
-        self.redirect('/my/')
-        
-class UserRegschan(BaseHandler):
-    @tornado.web.authenticated
-    def get(self, taskid):
-        user = self.current_user
-        self.render('user_register_schan.html', userid=user['id'])
-    
-    @tornado.web.authenticated
-    def post(self, userid):
-        if  ("testschan" in self.request.body_arguments):
-            try:
-                if  (self.request.body_arguments["skey"][0] != ""):
-                    skey = self.request.body_arguments["skey"][0]
-                    push = send2phone.send2phone(skey=skey)
-                    t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
-                    push.send2s(u"正在测试S酱", u"{t} 发送测试".format(t=t))
-                else:
-                    raise Exception(u"skey")
-            except Exception as e:
-                self.render('tpl_run_failed.html', log=e)
-                return
-            
-            self.render('tpl_run_success.html', log=u"测试成功，请检查是否受到推送")
-            return
-        
-        if  ("send" in self.request.body_arguments):
-            try:
-                if  (self.request.body_arguments["skey"][0] != ""):
-                    self.db.user.mod(userid, skey = self.request.body_arguments["skey"][0])
-                else:
-                    raise Exception(u"注册失败")
-            except Exception as e:
-                self.render('tpl_run_failed.html', log=e)
-                return
-            self.render('tpl_run_success.html', log=u"注册成功")
-            return
-        
-        self.redirect('/my/')
-        
-class UserRegWXpusher(BaseHandler):
+class UserRegPush(BaseHandler):
     @tornado.web.authenticated
     def get(self, userid):
-        self.render('user_register_wxpusher.html', userid=userid)
+        self.render('user_register_pusher.html', userid=userid)
     
     @tornado.web.authenticated
     def post(self, userid):
-        if  ("testwxpusher" in self.request.body_arguments):
+        env = json.loads(self.request.body_arguments['env'][0])
+        token = env["wxpusher_token"]
+        uid = env["wxpusher_uid"]
+        skey = env["skey"]
+        barkurl = env["barkurl"]
+        log = ""
+        if  ("reg" == self.request.body_arguments['func'][0]):
             try:
-                if  (self.request.body_arguments["wxpusher_token"][0] != "")\
-                 and (self.request.body_arguments["wxpusher_uid"][0] != ""):
-                    token = self.request.body_arguments["wxpusher_token"][0]
-                    uid = self.request.body_arguments["wxpusher_uid"][0]
+                if  (token != "") and (uid != ""):
+                    temp = token + ";" + uid
+                    self.db.user.mod(userid, wxpusher = temp)
+                    if (self.db.user.get(userid, fields=("wxpusher"))["wxpusher"] == temp):
+                        log = u"注册 wxpusher 成功\r\n"
+                    else:
+                        log = u"注册 wxpusher 失败\r\n"
+
+                if (skey != ""):
+                    self.db.user.mod(userid, skey = skey)
+                    if (self.db.user.get(userid, fields=("skey"))["skey"] == skey):
+                        log = log+u"注册 S酱 成功\r\n"
+                    else:
+                        log = log+u"注册 S酱 失败\r\n"
                     
-                    push = send2phone.send2phone(wxpusher_token=token, wxpusher_uid=uid)
-                    t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
-                    push.send2wxpusher(u"{t} 发送测试".format(t=t))
-                else:
-                    raise Exception(u"请输入 apptoken 和 uid")
+                if  (barkurl != ""):
+                    self.db.user.mod(userid, barkurl = barkurl)
+                    if (self.db.user.get(userid, fields=("barkurl"))["barkurl"] == barkurl):
+                        log = log+u"注册 Bark 成功\r\n"
+                    else:
+                        log = log+u"注册 Bark 失败\r\n"
             except Exception as e:
                 self.render('tpl_run_failed.html', log=e)
                 return
             
-            self.render('tpl_run_success.html', log=u"测试成功，请检查是否受到推送")
+            self.render('tpl_run_success.html', log=log)
             return
-        
-        if  ("send" in self.request.body_arguments):
+
+        else:
             try:
-                if  (self.request.body_arguments["wxpusher_token"][0] != "")\
-                 and (self.request.body_arguments["wxpusher_uid"][0] != ""):
-                    token = self.request.body_arguments["wxpusher_token"][0]
-                    uid = self.request.body_arguments["wxpusher_uid"][0]
-                    self.db.user.mod(userid, wxpusher = token + ";" + uid)
-                else:
-                    raise Exception(u"请输入 apptoken 和 uid")
+                t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
+
+                if  (token != "") and (uid != ""):
+                    push = send2phone.send2phone(wxpusher_token=token, wxpusher_uid=uid)
+                    push.send2wxpusher(u"{t} 发送测试".format(t=t))
+
+                if (skey != ""):
+                    push = send2phone.send2phone(skey=skey)
+                    push.send2s(u"正在测试S酱", u"{t} 发送测试".format(t=t))
+
+                if  (barkurl != ""):
+                    push = send2phone.send2phone(barkurl=barkurl)
+                    push.send2bark(u"正在测试Bark", u"{t} 发送测试".format(t=t))
+
             except Exception as e:
                 self.render('tpl_run_failed.html', log=e)
                 return
-            self.render('tpl_run_success.html', log=u"注册成功")
+            
+            self.render('tpl_run_success.html', log=u"请检查是否受到推送")
             return
-        
-        self.redirect('/my/')
-        
+
 class UserRegPushSw(BaseHandler):
     @tornado.web.authenticated
     def get(self, userid):
+        tasks = []
+        for task in self.db.task.list(userid, fields=('id', 'tplid', 'note', 'disabled', 'ctime', 'pushsw'), limit=None):
+            tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
+            task['tpl'] = tpl
+            task['pushsw'] = json.loads(task['pushsw'])
+            tasks.append(task)
         temp = self.db.user.get(userid, fields=('noticeflg'))
         temp = temp['noticeflg']
         flg = {}
-        flg['handpush_succ'] = False if ((temp & 0x8) == 0) else True 
-        flg['handpush_fail'] = False if ((temp & 0x4) == 0) else True 
-        flg['autopush_succ'] = False if ((temp & 0x2) == 0) else True 
-        flg['autopush_fail'] = False if ((temp & 0x1) == 0) else True 
-        self.render('user_register_pushsw.html', userid=userid, flg=flg)
-    
+        flg['barksw']        = False if ((temp & 0x40) == 0) else True 
+        flg['schansw']       = False if ((temp & 0x20) == 0) else True 
+        flg['wxpushersw']    = False if ((temp & 0x10) == 0) else True 
+        flg['handpush_succ'] = False if ((temp & 0x08) == 0) else True 
+        flg['handpush_fail'] = False if ((temp & 0x04) == 0) else True 
+        flg['autopush_succ'] = False if ((temp & 0x02) == 0) else True 
+        flg['autopush_fail'] = False if ((temp & 0x01) == 0) else True
+        logtime = json.loads(self.db.user.get(userid, fields=('logtime'))['logtime'])
+        if 'schanEN' not in logtime:logtime['schanEN'] = False
+        if 'WXPEn' not in logtime:logtime['WXPEn'] = False
+
+        self.render('user_register_pushsw.html', userid=userid, flg=flg, tasks=tasks, logtime=logtime)
+
     @tornado.web.authenticated
     def post(self, userid):
-        handpush_succ_flg = 1 if ("handpush_succ" in self.request.body_arguments) else 0
-        handpush_fail_flg = 1 if ("handpush_fail" in self.request.body_arguments) else 0
-        autopush_succ_flg = 1 if ("autopush_succ" in self.request.body_arguments) else 0
-        autopush_fail_flg = 1 if ("autopush_fail" in self.request.body_arguments) else 0
-        flg = (handpush_succ_flg << 3) | (handpush_fail_flg << 2) | (autopush_succ_flg << 1)  | (autopush_fail_flg)
-        self.db.user.mod(userid, noticeflg=flg)
-        
-        self.redirect('/my/')
+        try:
+            tasks = []
+            for task in self.db.task.list(userid, fields=('id', 'tplid', 'note', 'disabled', 'ctime', 'pushsw'), limit=None):
+                tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
+                task['tpl'] = tpl
+                task['pushsw'] = json.loads(task['pushsw'])
+                task['pushsw']["logen"] = False
+                task['pushsw']["pushen"] = False
+                tasks.append(task)
+            temp = self.db.user.get(userid, fields=('noticeflg'))
+            logtime = json.loads(self.db.user.get(userid, fields=('logtime'))['logtime'])
+            env = json.loads(self.request.body_arguments['env'][0])
+
+            barksw_flg        = 1 if ("barksw" in env) else 0 
+            schansw_flg       = 1 if ("schansw" in env) else 0 
+            wxpushersw_flg    = 1 if ("wxpushersw" in env) else 0 
+            handpush_succ_flg = 1 if ("handpush_succ" in env) else 0
+            handpush_fail_flg = 1 if ("handpush_fail" in env) else 0
+            autopush_succ_flg = 1 if ("autopush_succ" in env) else 0
+            autopush_fail_flg = 1 if ("autopush_fail" in env) else 0
+            
+            flg = (barksw_flg << 6) \
+                | (schansw_flg << 5) \
+                | (wxpushersw_flg << 4) \
+                | (handpush_succ_flg << 3) \
+                | (handpush_fail_flg << 2) \
+                | (autopush_succ_flg << 1) \
+                | (autopush_fail_flg)
+            logtime['en'] = True if ('logensw' in env) else False
+            logtime['time'] = env['timevalue']
+            logtime['schanEn'] = True if ('schanlogsw' in env) else False
+            logtime['WXPEn'] = True if ('wxpusherlogsw' in env) else False
+
+            tz = pytz.timezone('Asia/Shanghai')
+            now = datetime.datetime.now()
+            now = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour, minute=now.minute, tzinfo=tz)
+            temp = logtime['time'].split(":")
+            ehour = int(temp[0])
+            emin = int(temp[1])
+            esecond = int(temp[2])
+            pre = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=ehour, minute=emin,second=esecond,tzinfo=tz)
+            now_ts = int(time.time())
+            next = int(time.mktime(pre.timetuple()) + pre.microsecond/1e6)
+            if (now_ts > next):
+                pre = datetime.datetime(year=now.year, month=now.month, day=now.day+1, hour=ehour, minute=emin,second=esecond,tzinfo=tz)
+                next = int(time.mktime(pre.timetuple()) + pre.microsecond/1e6)
+            logtime['ts'] = next
+
+            for e in env:
+                temp = re.findall(r"(.+?)logen", e)
+                if len(temp) > 0:
+                    taskid = int(temp[0])
+                    for task in tasks:
+                        if (taskid == task["id"]):
+                            task['pushsw']["logen"] = True
+                            
+                temp = re.findall(r"(.+?)pushen", e)
+                if len(temp) > 0:
+                    taskid = int(temp[0])
+                    for task in tasks:
+                        if (taskid == task["id"]):
+                            task['pushsw']["pushen"] = True
+                            
+            self.db.user.mod(userid, noticeflg=flg, logtime=json.dumps(logtime))
+            for task in tasks:
+                self.db.task.mod(task["id"], pushsw=json.dumps(task['pushsw']))
+        except Exception as e:
+            self.render('tpl_run_failed.html', log=e)
+            return
+            
+        self.render('tpl_run_success.html', log=u"设置完成")
+        return
      
 handlers = [
-        ('/user/(\d+)/barkurl', UserRegBark),
-        ('/user/(\d+)/schan', UserRegschan),
         ('/user/(\d+)/pushsw', UserRegPushSw),
-        ('/user/(\d+)/wxpusher', UserRegWXpusher),
+        ('/user/(\d+)/regpush', UserRegPush),
         ]

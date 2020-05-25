@@ -29,7 +29,8 @@ class UserDB(_UserDB, BaseDB):
           `skey` VARBINARY(128) NOT NULL DEFAULT '',
           `barkurl` VARBINARY(128) NOT NULL DEFAULT '',
           `wxpusher` VARBINARY(128) NOT NULL DEFAULT '',
-          `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1
+          `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1,
+          `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}'
         )''' % self.__tablename__)
 
         for each in ('email', 'nickname'):

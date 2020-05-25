@@ -9,8 +9,20 @@ __操作前请一定要记得备份数据库__<br>
 因为需要测试，docker镜像会晚于gitHub几天更新
 
 docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.com/r/asdaragon/qiandao)
-docker部署命令：
-``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
+
+docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
+
+## 2020.5.25 更新
+1. Bark, S酱, WXPusher 注册合并为一个按钮
+2. 任务推送支持注册后也能关闭
+3. 支持分任务开/关推送
+4. 新增每日日志功能，可以将每日定时前的最后一个日志推送到S酱和WXPusher
+
+如果使用mysql 在 5.22 请使用以下命令：
+```
+ALTER TABLE `task` ADD `pushsw` VARBINARY(128) NOT NULL DEFAULT '{\"logen\":false,\"pushen\":true}'
+ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}'
+```
 
 ## 2020.5.22 更新
 1. 分组增加折叠/展开功能

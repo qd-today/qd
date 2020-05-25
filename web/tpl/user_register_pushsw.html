@@ -1,14 +1,26 @@
 {% import "utils.html" as utils %}
 <form method="POST" action="/user/{{ userid }}/pushsw">
-  <h2 class="text-center">私有签到框架<sup>alpha</sup></h2>
+  <h2 class="text-center">推送设置</h2>
   <hr>
   <div id="run-result"></div>
 
+  <label>任务结果推送设备：</label>
   <div class="checkbox">
     <label>
-      
+      <input type="checkbox" id="barksw" name="barksw" {% if flg.barksw %}  checked="" {% endif %}> Bark
+    </label>
+    <label>
+      <input type="checkbox" id="schansw" name="schansw" {% if flg.schansw %}  checked="" {% endif %}> S酱
+    </label>
+    <label>
+      <input type="checkbox" id="wxpushersw" name="wxpushersw" {% if flg.wxpushersw %}  checked="" {% endif %}> WXPusher
+    </label>
+  </div>
+
+  <label>任务结果通知时间选择</label>
+  <div class="checkbox">
+    <label>
       <input type="checkbox" id="handpush_succ" name="handpush_succ" {% if flg.handpush_succ %}  checked="" {% endif %}> 手动执行成功通知
-     
     </label>
   </div>
   <div class="checkbox">
@@ -27,17 +39,106 @@
     </label>
   </div>
 
+  <label>定时日志设置：</label>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" id="logensw" name="logensw" {% if logtime.en %}  checked="" {% endif %}>总开关
+    </label>
+  </div>
+  
+  
+  <label>定时日志推送设备：</label>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" id="schanlogsw" name="schanlogsw" {% if logtime.schanEn %}  checked="" {% endif %}> S酱
+    </label>
+    <label>
+      <input type="checkbox" id="wxpusherlogsw" name="wxpusherlogsw" {% if logtime.WXPEn %}  checked="" {% endif %}> WXPusher
+    </label>
+  </div>
+
+  <div>定时日志推送时间：
+    <input type="time" id="timevalue" value="{{ logtime.time }}" name='timevalue', step="1" />
+  </div>
+
+  <div id="taskpushsw">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th title="签到网站平台名称">任务名称</th>
+          <th style="text-align:center" title="签到成功/失败次数">任务推送开关</th>
+          <th title="上次签到成功时间">定时日志开关</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks | sort(reverse=True, attribute="ctime") %}
+        <tr>
+          <td>
+            {% if task.disabled %}<span title="任务处于禁用状态,使用 (立即执行) 成功签到一次,即可解除." style="color:#ff7600;border-left:5px solid #ff7600;padding-left:5px;">[禁用]</span>{% endif %}
+            {{ utils.tplname(task.tpl) if task.tpl else "[已删除]" }}
+  
+            {% if task.note %}
+            -
+              <code>{% if task.note | length > 15 %}</code>
+              <span data-toggle="popover" data-content="{{ task.note }}">{{ task.note or '' | truncate(10, True) }}</span>
+              {% else %} {{ task.note }} {% endif %}
+            {% endif %}
+          </td>
+          <td>
+            <label>
+              <input type="checkbox" name="{{ task.id }} pushen" {% if task.pushsw.pushen %}  checked="" {% endif %} value="1">
+            </label>
+          </td>
+          <td>
+            <label>
+              <input type="checkbox" name="{{ task.id }} logen" {% if task.pushsw.logen %}  checked="" {% endif %} value="1">
+            </label>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+
+
   <div class="text-right">
     <button id="sendpushsw" name="sendpushsw" type="submit" data-loading-text="loading..." class="btn btn-primary">提交</button>
   </div>
-  <!-- <script>
+
+  <script>
     $(function() {
-      // 测试链接
+      // run test
       $('#sendpushsw').on('click', function() {
+        var env = {};
+        for (var _env=$('form').serializeArray(), i=_env.length-1; i>=0; i--) {
+          env[_env[i].name] = _env[i].value;
+        }
+
+        var data = {
+          env: JSON.stringify(env)
+          }
+
+        var $this = $(this);
+        $this.button('loading');
+        $.ajax("/user/{{ userid }}/pushsw", {
+          type: 'POST',
+          data: data,
+        })
+        .done(function(data) {
+          $('#run-result').html(data).show()
+        })
+        .fail(function(jxhr) {
+          $('#run-result').html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+        })
+        .always(function() {
+          $this.button('reset');
+        });
+
+        return false;
       });
     })
-  </script> -->
+  </script>
 
-  {{ utils.task_new_scripts() }}
   {{ utils.submit_loading() }}
 </form>
