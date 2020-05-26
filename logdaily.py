@@ -53,7 +53,7 @@ class logdaily(_TaskDB, BaseDB):
                             for tasklog in  self.db.tasklog.list(taskid = task["id"], fields=('id', 'msg')):
                                 tasklogs.append(tasklog['msg'])   
                             tpl = self.db.tpl.get(task['tplid'], fields=('sitename'))
-                            temp = u"{name}-{note} | {msg}\r\n".format(name=tpl['sitename'], note=task["note"], msg=tasklogs[-1])                        
+                            temp = u"{name}-{note} | {msg}\r\n".format(name=tpl['sitename'], note=task["note"], msg=tasklogs[0])                        
                             logs.append(temp)
 
                     temp = u"网站|日志\r\n :-: | :-: \r\n"

@@ -12,12 +12,15 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.5.26 更新
+1. 修复定时日志发送的最后一条日志的bug
+
 ## 2020.5.25 更新
 1. Bark, S酱, WXPusher 注册合并为一个按钮
 2. 任务推送支持注册后也能关闭
 3. 支持分任务开/关推送
 4. 新增每日日志功能，可以将每日定时前的最后一个日志推送到S酱和WXPusher
-5. 修复“↓”按钮定位不准的问题
+5. 修复“↓”按钮定位不准的bug
 
 如果使用mysql 在 5.22 请使用以下命令：
 ```
