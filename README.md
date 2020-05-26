@@ -14,6 +14,7 @@ docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qian
 
 ## 2020.5.26 更新
 1. 修复定时日志发送的最后一条日志的bug
+2. 修复定时日志出错影响程序运行的bug
 
 ## 2020.5.25 更新
 1. Bark, S酱, WXPusher 注册合并为一个按钮
