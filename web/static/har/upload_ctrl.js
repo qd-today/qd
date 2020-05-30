@@ -104,13 +104,76 @@
           return $scope.load_remote(location.href);
         }
       };
+
+      $scope.add_local = function() {
+        var reader;
+        if ($scope.file == null) {
+          $scope.alert('还没选择文件啊，亲');
+          return false;
+        }
+        if ($scope.file.size > 50 * 1024 * 1024) {
+          $scope.alert('文件大小超过50M');
+          return false;
+        }
+        element.find('button').button('loading');
+        reader = new FileReader();
+        reader.onload = function(ev) {
+        return $scope.$apply(function() {
+            var har = {
+              filename: utils.storage.get('har_filename'),
+              har: utils.storage.get('har_har'),
+              env: utils.storage.get('har_env'),
+              upload: true
+            };
+
+            var new_har = {
+              filename: $scope.file.name,
+              har: utils.tpl2har(angular.fromJson(ev.target.result)),
+              upload: true
+            };
+            new_har.env = {};
+            ref = analysis.find_variables(new_har.har);
+            for (i = 0, len = ref.length; i < len; i++) {
+              each = ref[i];
+              new_har.env[each] = "";
+            }
+            
+            var target_har;
+            if (har.filename == null) {
+              target_har = new_har;
+            }
+            else {
+              target_har = har;
+              for(var key in new_har){
+                if(new_har.hasOwnProperty(key)===true){
+                    target_har.env[key]=new_har.env[key];
+                  } 
+                }
+              
+              for (i = 0, len = new_har.har.log.entries.length; i < len; i++) {
+                target_har.har.log.entries.push(new_har.har.log.entries[i]);
+              }
+            }
+
+            $scope.uploaded = true;
+            $scope.loaded(target_har);
+            return element.find('button').button('reset');
+          });
+        };
+        return reader.readAsText($scope.file);
+      };
       
       if (HARPATH != ""){
-        $.get(HARPATH,function(data,status){
-          reader = new FileReader();
-          $scope.load_file(angular.fromJson(data));
-          return element.find('button').button('reset');
-        });
+        element.find('button').button('loading');
+        reader = new FileReader();
+        reader.onload = function(ev, data) {
+          return $scope.$apply(function() {
+            $scope.uploaded = true;
+            $scope.load_file(angular.fromJson(data));
+            return element.find('button').button('reset');
+          });
+        };
+        return reader.readAsText($scope.file);
       }
       else{
         return $scope.upload = function() {

@@ -302,6 +302,7 @@
             <button type=button class="btn btn-default btn-xs" ng-click="copy_request()">复制</button>
             <button type=button ng-if="copy_entry" class="btn btn-default btn-xs" ng-click="paste_request(0)">粘帖到前面</button>
             <button type=button ng-if="copy_entry" class="btn btn-default btn-xs" ng-click="paste_request(1)">粘帖到后面</button>
+            <button type=button class="btn btn-default btn-xs" ng-click="del_request(0)">删除</button>
           </div>
           <button type="button" class="btn btn-success do-test" data-loading-test="Loading..."
             ng-show="panel=='test' || panel=='preview' || panel=='preview-headers'"

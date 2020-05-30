@@ -224,12 +224,13 @@ class MainWorker(object):
                         
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
             title = u"签到任务 {0} 失败".format(tpl['sitename'])
+            content = u"日志：{log}".format(log=e)
             if next_time_delta:
                 # 每次都推送通知
                 if (notice['noticeflg'] & 1 == 1) and (pushsw['pushen']):
-                    if (pusher["barksw"]):pushno2b.send2bark(title, u"{0} 请检查状态".format(t))
-                    if (pusher["schansw"]):pushno2s.send2s(title, u"{0} 请进行排查".format(t))
-                    if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"{0}  请进行排查".format(t))
+                    if (pusher["barksw"]):pushno2b.send2bark(title, u"请自行排查")
+                    if (pusher["schansw"]):pushno2s.send2s(title, content)
+                    if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"  "+content)
                 disabled = False
                 next = time.time() + next_time_delta
             else:

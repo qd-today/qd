@@ -129,6 +129,7 @@
         re = /{{\s*([\w]+)[^}]*?\s*}}/g;
         return $sce.trustAsHtml(string.replace(re, '<span class="label label-primary">$&</span>'));
       };
+
       $scope.insert_request = function(pos, entry) {
         var current_pos;
         if (pos == null) {
@@ -143,6 +144,7 @@
         $rootScope.$broadcast('har-change');
         return angular.element('#edit-entry').modal('hide');
       };
+
       $scope.add_request = function(pos) {
         return $scope.insert_request(pos, {
           checked: false,
@@ -160,6 +162,7 @@
           response: {}
         });
       };
+
       $scope.add_delay_request = function() {
         return $scope.insert_request(1, {
           checked: true,
@@ -184,6 +187,7 @@
           ]
         });
       };
+
       $scope.copy_request = function() {
         if (!$scope.entry) {
           $scope.alert("can't find position to paste request");
@@ -197,7 +201,7 @@
         if ((base = $scope.copy_entry).comment == null) {
           base.comment = '';
         }
-		$scope.copy_entry.comment = 'Copy_' + $scope.copy_entry.comment;
+		    $scope.copy_entry.comment = 'Copy_' + $scope.copy_entry.comment;
         $scope.copy_entry.pageref = $scope.entry.pageref;
         return $scope.insert_request(pos, $scope.copy_entry);
 		
@@ -208,6 +212,23 @@
         return $scope.copy_entry = null; */
 		// 老版本用于粘贴完释放粘贴板的功能
       };
+
+      $scope.del_request = function(pos) {
+        var current_pos;
+        if (pos == null) {
+          pos = 1;
+        }
+        if ((current_pos = $scope.$parent.har.log.entries.indexOf($scope.entry)) === -1) {
+          $scope.alert("can't find position to add request");
+          return;
+        }
+        current_pos += pos;
+        $scope.$parent.har.log.entries.splice(current_pos, 1);
+        $rootScope.$broadcast('har-change');
+        return angular.element('#edit-entry').modal('hide');
+      };
+
+
       return $scope.do_test = function() {
         var c, h, ref, ref1;
         angular.element('.do-test').button('loading');

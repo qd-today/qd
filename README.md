@@ -12,6 +12,12 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.5.30 更新
+1. 修改 任务失败时 推送的消息内容为 任务日志；
+2. 因浏览器支持不好，取消 2020.5.18更新的 ‘模板上传指定格式为.har’；
+3. 新增模板编辑 追加HAR 的功能；
+4. 新增模板请求删除功能。
+
 ## 2020.5.26 更新
 1. 修复定时日志发送的最后一条日志的bug
 2. 修复定时日志出错影响程序运行的bug
