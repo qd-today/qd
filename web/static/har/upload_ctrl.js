@@ -138,11 +138,27 @@
               old_har = global_har
             }
 
-            var new_har = { 
-                            filename: $scope.file.name,
-                            har: utils.tpl2har(angular.fromJson(ev.target.result)),
-                            upload: true
-                          };
+            har_file_upload = angular.fromJson(ev.target.result)
+            var new_har = {}
+            if (har_file_upload.log) 
+            {
+              new_har = {
+                          filename: name,
+                          har: analysis.analyze(har_file_upload, {
+                            username: $scope.username,
+                            password: $scope.password
+                          }),
+                          upload: true
+                        };
+            } 
+            else 
+            {
+              new_har = {
+                          filename: $scope.file.name,
+                          har: utils.tpl2har(har_file_upload),
+                          upload: true
+                        };
+            }
 
             new_har.env = {};
             ref = analysis.find_variables(new_har.har);
