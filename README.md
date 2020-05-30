@@ -12,6 +12,10 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.5.31 更新
+1. 修复定时 ‘day out of month’ 的BUG
+2. 取消定时界面的今日运行选项，自动判断当前时间是今天还是第二天
+
 ## 2020.5.30 更新
 1. 修改 任务失败时 推送的消息内容为 任务日志；
 2. 因浏览器支持不好，取消 2020.5.18更新的 ‘模板上传指定格式为.har’；

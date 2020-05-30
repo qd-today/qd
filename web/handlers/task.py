@@ -14,32 +14,19 @@ import send2phone
 
 from base import *
 
-def calNextTimestamp(etime, todayflg):
+def calNextTimestamp(etime):
     tz = pytz.timezone('Asia/Shanghai')
     now = datetime.datetime.now()
-    now = datetime.datetime(year=now.year, 
-                            month=now.month, 
-                            day=now.day, 
-                            hour=now.hour, 
-                            minute=now.minute, 
-                            tzinfo=tz)
+    now_ts = int(time.time())
+    zero = datetime.datetime(year=now.year, month=now.month, day=now.day,  hour=0,  minute=0, second=0, tzinfo=tz)
+    zero_ts = int(time.mktime(zero.timetuple()) + zero.microsecond/1e6)
     temp = etime.split(":")
-    if (todayflg):
-        eday = now.day
-    else:
-        eday = now.day+1
-    ehour = int(temp[0])
-    emin = int(temp[1])
-    esecond = int(temp[2])
-    pre = datetime.datetime(year=now.year, 
-                            month=now.month, 
-                            day=eday, 
-                            hour=ehour, 
-                            minute=emin,
-                            second=esecond,
-                            tzinfo=tz)
-    next = int(time.mktime(pre.timetuple()) + pre.microsecond/1e6)
-    return next
+    e_ts = int(temp[0]) * 3600 + int(temp[1]) * 60 + int(temp[2])
+    next_ts = zero_ts + e_ts
+    if  (now_ts > next_ts):
+        next_ts = next_ts + (24 * 60 * 60)
+    
+    return next_ts
 
 class TaskNewHandler(BaseHandler):    
     def get(self):
@@ -169,7 +156,7 @@ class TaskRunHandler(BaseHandler):
 
         self.db.tasklog.add(task['id'], success=True, msg=new_env['variables'].get('__log__'))
         if (task["ontimeflg"] == 1):
-            nextTime = calNextTimestamp(task["ontime"], todayflg=False)
+            nextTime = calNextTimestamp(task["ontime"])
         else:
             nextTime = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)
             
@@ -230,10 +217,10 @@ class TaskSetTimeHandler(TaskNewHandler):
         
         variables = json.loads(tpl['variables'])
         todayflg = True if task['ontimeflg'] == 1 else False
-        now = datetime.datetime.now().strftime( '%H:%M:%S')
+        # now = datetime.datetime.now().strftime( '%H:%M:%S')
         onetime = task['ontime']
         
-        self.render('task_setTime.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, task=task, ontimeflg=todayflg, mintime=now, onetime=onetime)
+        self.render('task_setTime.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, task=task, ontimeflg=todayflg, onetime=onetime)
     
     @tornado.web.authenticated
     def post(self, taskid):
@@ -253,10 +240,7 @@ class TaskSetTimeHandler(TaskNewHandler):
         
         if  ('flg' in self.request.body_arguments):
             OntimeFlg = 1
-            if  ('todayflg' in self.request.body_arguments):
-                next = calNextTimestamp(ontime, todayflg=True)
-            else:
-                next = calNextTimestamp(ontime, todayflg=False)
+            next = calNextTimestamp(ontime)
         else :
             OntimeFlg = 0
             next = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)

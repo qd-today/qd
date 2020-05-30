@@ -14,7 +14,7 @@ import re
 from base import *
 
 import send2phone 
-import pytz
+from web.handlers.task import calNextTimestamp
 
 class UserRegPush(BaseHandler):
     @tornado.web.authenticated
@@ -142,20 +142,8 @@ class UserRegPushSw(BaseHandler):
             logtime['schanEn'] = True if ('schanlogsw' in env) else False
             logtime['WXPEn'] = True if ('wxpusherlogsw' in env) else False
 
-            tz = pytz.timezone('Asia/Shanghai')
-            now = datetime.datetime.now()
-            now = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour, minute=now.minute, tzinfo=tz)
-            temp = logtime['time'].split(":")
-            ehour = int(temp[0])
-            emin = int(temp[1])
-            esecond = int(temp[2])
-            pre = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=ehour, minute=emin,second=esecond,tzinfo=tz)
-            now_ts = int(time.time())
-            next = int(time.mktime(pre.timetuple()) + pre.microsecond/1e6)
-            if (now_ts > next):
-                pre = datetime.datetime(year=now.year, month=now.month, day=now.day+1, hour=ehour, minute=emin,second=esecond,tzinfo=tz)
-                next = int(time.mktime(pre.timetuple()) + pre.microsecond/1e6)
-            logtime['ts'] = next
+            next_ts = calNextTimestamp(logtime['time'])
+            logtime['ts'] = next_ts
 
             for e in env:
                 temp = re.findall(r"(.+?)logen", e)

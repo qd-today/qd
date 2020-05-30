@@ -12,9 +12,9 @@ import os
 import json
 import time
 import datetime
-import pytz
 
 import send2phone
+from web.handlers.task import calNextTimestamp
 
 def tostr(s):
     if isinstance(s, bytearray):
@@ -68,21 +68,9 @@ class logdaily(_TaskDB, BaseDB):
                             wxp_temp = user['wxpusher'].split(";")
                             s = send2phone.send2phone(wxpusher_token=wxp_temp[0], wxpusher_uid=wxp_temp[1])
                             s.send2wxpusher(temp)
-                        
-                        tz = pytz.timezone('Asia/Shanghai')
-                        now = datetime.datetime.now()
-                        now = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=now.hour, minute=now.minute, tzinfo=tz)
-                        temp = logtime['time'].split(":")
-                        ehour = int(temp[0])
-                        emin = int(temp[1])
-                        esecond = int(temp[2])
-                        pre = datetime.datetime(year=now.year, month=now.month, day=now.day, hour=ehour, minute=emin,second=esecond,tzinfo=tz)
-                        now_ts = int(time.time())
-                        next = int(time.mktime(pre.timetuple()) + pre.microsecond/1e6)
-                        if (now_ts > next):
-                            pre = datetime.datetime(year=now.year, month=now.month, day=now.day+1, hour=ehour, minute=emin,second=esecond,tzinfo=tz)
-                            next = int(time.mktime(pre.timetuple()) + pre.microsecond/1e6)
-                        logtime['ts'] = next
+
+                        next_ts = calNextTimestamp(logtime['time'])
+                        logtime['ts'] = next_ts
 
                         self.db.user.mod(user['id'], logtime=json.dumps(logtime))
         except Exception as e:
