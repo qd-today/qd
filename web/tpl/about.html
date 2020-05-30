@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}关于{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="{{ static_url('my.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+{{ utils.header(current_user) }}
+
+<section class="tpl">
+  <div class="container">
+    <h2>
+      常用Api
+    </h2>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="text-align:center">api</th>
+          <th style="text-align:center">地址</th>
+          <th style="text-align:center">参数</th>
+          <th style="text-align:center">参数是否必须</th>
+          <th style="text-align:center">说明</th>
+          <th style="text-align:center">用例</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tpl in tpls %}
+        <tr>
+          <td style="text-align:center">{{ tpl.api }}</td>
+          <td style="text-align:center">{{ tpl.url }}</td>
+          <td style="text-align:center">{{ tpl.vars | safe }}</td>
+          <td style="text-align:center">{{ tpl.varsreq }}</td>
+          <td style="text-align:center">{{ tpl.comments | safe }}</td>
+          <td style="text-align:center">{{ tpl.examples | safe }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h2>
+      常用参数及过滤器
+    </h2>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="text-align:center">参数</th>
+          <th style="text-align:center">说明</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+</section>
+
+<script>
+  $(function() {
+    $('[data-toggle=popover]').popover({
+      trigger: 'hover'
+    });
+  })
+</script>
+
+{{ utils.modal_load() }}
+{{ utils.apost() }}
+{% endblock %}
