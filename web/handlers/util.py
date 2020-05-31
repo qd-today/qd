@@ -84,10 +84,48 @@ class UrlDecodeHandler(BaseHandler):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
 
+class UtilRegexHandler(BaseHandler):
+    @gen.coroutine
+    def get(self):
+        Rtv = {}
+        try:
+            data = self.get_argument("data", "")
+            p = self.get_argument("p", "")
+            temp = {}
+            ds = re.findall(p, data, re.IGNORECASE)
+            for cnt in range (0, len(ds)):
+                temp[cnt+1] = ds[cnt]
+            Rtv[u"数据"] = temp
+            Rtv[u"状态"] = "OK"
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+
+class UtilStrReplaceHandler(BaseHandler):
+    @gen.coroutine
+    def get(self):
+        Rtv = {}
+        try:
+            s = self.get_argument("s", "")
+            p = self.get_argument("p", "")
+            t = self.get_argument("t", "")
+            Rtv[u"原始字符串"] = s
+            Rtv[u"处理后字符串"] = re.sub(p, t, s)
+            Rtv[u"状态"] = "OK"                
+        except Exception as e:
+            Rtv["状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+
 
 handlers = [
     ('/util/delay/(\d+)', UtilDelayHandler),
     ('/util/timestamp', TimeStampHandler),
     ('/util/unicode', UniCodeHandler),
     ('/util/urldecode', UrlDecodeHandler),
+    ('/util/regex', UtilRegexHandler),
+    ('/util/string/replace', UtilStrReplaceHandler),
 ]
