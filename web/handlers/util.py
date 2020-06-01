@@ -61,7 +61,6 @@ class UniCodeHandler(BaseHandler):
                     continue
                 tmp = tmp + repr(cr).replace("u'", "").replace("'","").replace("\\\\", "\\")
             Rtv[u"转换后"] = tmp.decode("unicode_escape")
-            print ("222222"+ Rtv[u"转换后"])
             Rtv[u"状态"] = "200"
         except Exception as e:
             Rtv[u"状态"] = str(e)

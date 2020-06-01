@@ -142,7 +142,8 @@
         current_pos += pos;
         $scope.$parent.har.log.entries.splice(current_pos, 0, entry);
         $rootScope.$broadcast('har-change');
-        return angular.element('#edit-entry').modal('hide');
+        angular.element('#edit-entry').modal('hide');
+        return true
       };
 
       $scope.add_request = function(pos) {
@@ -183,6 +184,110 @@
             {
               re: "200",
               from: "status"
+            }
+          ]
+        });
+      };
+
+      $scope.add_unicode_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: 'unicode转换',
+          request: {
+            method: 'GET',
+            url: location.origin + '/util/unicode?content=',
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            },
+            {
+              re: "\"状态\": \"200\"",
+              from: "content"
+            }
+          ]
+        });
+      };
+
+      $scope.add_urldecode_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: 'url解码',
+          request: {
+            method: 'GET',
+            url: location.origin + '/util/urldecode?content=',
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            },
+            {
+              re: "\"状态\": \"200\"",
+              from: "content"
+            }
+          ]
+        });
+      };
+
+      $scope.add_regex_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: '正则提取',
+          request: {
+            method: 'GET',
+            url: location.origin + '/util/regex?p=&data=',
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            },
+            {
+              re: "\"状态\": \"OK\"",
+              from: "content"
+            }
+          ]
+        });
+      };
+
+      $scope.add_string_replace_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: '字符串替换',
+          request: {
+            method: 'GET',
+            url: location.origin + '/util/string/replace?p=&s=&t=',
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            },
+            {
+              re: "\"状态\": \"OK\"",
+              from: "content"
             }
           ]
         });

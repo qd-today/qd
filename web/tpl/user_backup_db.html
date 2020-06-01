@@ -1,0 +1,13 @@
+{% import "utils.html" as utils %}
+<form method="POST" action="/user/{{ userid }}/backup">
+  <h2 class="text-center">备份数据库</h2>
+  <hr>
+  <div class="text-right">
+    {% if current_user %}
+      <button id="send" data-method="POST" href="/user/{{ userid }}/backup" class="btn btn-primary">备份</button>
+    {% endif %}
+  </div>
+
+  {{ utils.task_new_scripts() }}
+  {{ utils.submit_loading() }}
+</form>

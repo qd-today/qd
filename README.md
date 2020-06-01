@@ -12,6 +12,12 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.6.1 更新
+1. 时间显示修改为具体时间，取消之前的 "1小时后"等模糊显示(By 戏如人生)
+2. 新建任务时可以选择分组
+3. Bark推送支持保存历史信息，需要升级APP。
+4. HAR编辑里添加添加插入unicode解码，url解码，正则表达式，字符串替换的功能
+
 ## 2020.5.31 更新
 1. 修复定时 ‘day out of month’ 的BUG
 2. 取消定时界面的今日运行选项，自动判断当前时间是今天还是第二天

@@ -50,8 +50,14 @@ class TaskNewHandler(BaseHandler):
 
         tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'note', 'sitename', 'siteurl', 'variables')))
         variables = json.loads(tpl['variables'])
+
+        groups = []
+        for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
+            temp = task['groups']
+            if (temp not  in groups):
+                groups.append(temp)
         
-        self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={})
+        self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, groups=groups)
 
     @tornado.web.authenticated
     def post(self, taskid=None):
@@ -70,6 +76,20 @@ class TaskNewHandler(BaseHandler):
                 continue
             env[key] = self.get_body_argument(key)
 
+        if ('New_group' in self.request.body_arguments):
+            New_group = self.request.body_arguments['New_group'][0].strip()
+            
+            if New_group != "" :
+                target_group = New_group.decode("utf-8").encode("utf-8")
+            else:
+                for value in self.request.body_arguments:
+                    if self.request.body_arguments[value][0] == 'on':
+                        if (value.find("group-select-") > -1):
+                            target_group = value.replace("group-select-", "").strip()
+                            break
+                    else:
+                        target_group = 'None'
+
         if not taskid:
             env = self.db.user.encrypt(user['id'], env)
             taskid = self.db.task.add(tplid, user['id'], env)
@@ -85,8 +105,10 @@ class TaskNewHandler(BaseHandler):
             init_env.update(env)
             init_env = self.db.user.encrypt(user['id'], init_env)
             self.db.task.mod(taskid, init_env=init_env, env=None, session=None, note=note)
+        
+        if ('New_group' in self.request.body_arguments):
+            self.db.task.mod(taskid, groups=target_group)
 
-        #referer = self.request.headers.get('referer', '/my/')
         self.redirect('/my/')
 
 class TaskEditHandler(TaskNewHandler):
@@ -217,7 +239,6 @@ class TaskSetTimeHandler(TaskNewHandler):
         
         variables = json.loads(tpl['variables'])
         todayflg = True if task['ontimeflg'] == 1 else False
-        # now = datetime.datetime.now().strftime( '%H:%M:%S')
         onetime = task['ontime']
         
         self.render('task_setTime.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, task=task, ontimeflg=todayflg, onetime=onetime)

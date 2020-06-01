@@ -24,7 +24,7 @@ class send2phone:
             try:
                 if (self.barklink[-1:] == u"/"):
                     self.barklink = self.barklink[0: len(self.barklink)-1]
-                msg = u"{0}/推送标题/{1}/'{2}'".format(self.barklink, title, content)
+                msg = u"{0}/推送标题/{1}/{2}?isArchive=1".format(self.barklink, title, content)
                 res = requests.get(msg,verify=False)
             except Exception as e:
                 print('Reason:', e)
