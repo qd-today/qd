@@ -76,6 +76,11 @@ class DBconverter(_TaskDB, BaseDB):
                 self.db.task.get("1", fields=('pushsw'))
             except :
                 self._execute("ALTER TABLE `task` ADD `pushsw` VARBINARY(128) NOT NULL DEFAULT '{\"logen\":false,\"pushen\":true}' " )   
+            
+            try:
+                self.db.task.get("1", fields=('newontime'))
+            except :
+                self._execute("ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0 }' " )   
 
             try:
                 self.db.user.get("1", fields=('logtime'))

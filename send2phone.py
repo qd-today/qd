@@ -58,8 +58,3 @@ class send2phone:
             except Exception as e:
                 print('Reason:', e)
         return    
-    
-if __name__ == "__main__":
-    pushno.send2wxpusher("签到任务 {0} 失败 任务已禁用".format('test') )
-    pushno.send2bark("签到任务 {0} 失败".format('test'), "任务已禁用")
-    pushno.send2s("签到任务 {0} 失败".format('test'), "任务已禁用")

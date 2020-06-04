@@ -11,6 +11,7 @@ from tornado import gen
 import datetime 
 import pytz
 import send2phone
+import random
 
 from base import *
 
@@ -20,12 +21,19 @@ def calNextTimestamp(etime):
     now_ts = int(time.time())
     zero = datetime.datetime(year=now.year, month=now.month, day=now.day,  hour=0,  minute=0, second=0, tzinfo=tz)
     zero_ts = int(time.mktime(zero.timetuple()) + zero.microsecond/1e6)
-    temp = etime.split(":")
+    temp = etime["time"].split(":")
     e_ts = int(temp[0]) * 3600 + int(temp[1]) * 60 + int(temp[2])
-    next_ts = zero_ts + e_ts
-    if  (now_ts > next_ts):
-        next_ts = next_ts + (24 * 60 * 60)
     
+    if (etime['sw'] and etime['randsw']):
+        r_ts = random.randint(etime['tz1'], etime['tz2'])
+    else:
+        r_ts = 0
+        
+    next_ts = zero_ts + e_ts
+    if  (now_ts > next_ts) :
+        next_ts = next_ts + (24 * 60 * 60)
+        
+    next_ts = next_ts + r_ts
     return next_ts
 
 class TaskNewHandler(BaseHandler):    
@@ -133,7 +141,7 @@ class TaskRunHandler(BaseHandler):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'init_env',
             'env', 'session', 'last_success', 'last_failed', 'success_count',
-            'failed_count', 'last_failed_count', 'next', 'disabled', 'ontime', 'ontimeflg', 'pushsw')), 'w')
+            'failed_count', 'last_failed_count', 'next', 'disabled', 'ontime', 'ontimeflg', 'pushsw','newontime')), 'w')
 
         tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename',
             'siteurl', 'tpl', 'interval', 'last_success')))
@@ -157,7 +165,7 @@ class TaskRunHandler(BaseHandler):
         pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True 
         pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True 
         taskpushsw = json.loads(task['pushsw'])
-
+        newontime = json.loads(task['newontime'])
 
         try:
             new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
@@ -166,7 +174,7 @@ class TaskRunHandler(BaseHandler):
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
                 title = u"签到任务 {0} 手动运行失败".format(tpl['sitename'])
                 if pusher["barksw"]:
-                    pushno2b.send2bark(title, u"{0} 请排查原因".format(t, e))
+                    pushno2b.send2bark(title, u"{0} 请排查原因".format(e))
                 if pusher["schansw"]:
                     pushno2s.send2s(title, u"{0} 日志：{1}".format(t, e))
                 if pusher["wxpushersw"]:
@@ -177,8 +185,8 @@ class TaskRunHandler(BaseHandler):
             return
 
         self.db.tasklog.add(task['id'], success=True, msg=new_env['variables'].get('__log__'))
-        if (task["ontimeflg"] == 1):
-            nextTime = calNextTimestamp(task["ontime"])
+        if (newontime["sw"]):
+            nextTime = calNextTimestamp(newontime)
         else:
             nextTime = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)
             
@@ -232,47 +240,56 @@ class TaskSetTimeHandler(TaskNewHandler):
     def get(self, taskid):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid',
-            'tplid', 'disabled', 'note', 'ontime', 'ontimeflg')), 'w')
-
-        tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'note',
-            'sitename', 'siteurl', 'variables')))
+            'tplid', 'disabled', 'note', 'ontime', 'ontimeflg', 'newontime')), 'w')
         
-        variables = json.loads(tpl['variables'])
-        todayflg = True if task['ontimeflg'] == 1 else False
-        onetime = task['ontime']
+        newonetime = json.loads(task['newontime'])
         
-        self.render('task_setTime.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, task=task, ontimeflg=todayflg, onetime=onetime)
+        self.render('task_setTime.html', task=task, newonetime=newonetime)
     
     @tornado.web.authenticated
     def post(self, taskid):
-        self.evil(+2)
-        
-        task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'init_env',
-            'env', 'session', 'last_success', 'last_failed', 'success_count',
-            'failed_count', 'last_failed_count', 'next', 'disabled')), 'w')
-
-        tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename',
+        try:
+            form = json.loads(self.request.body_arguments["env"][0])
+            task = self.db.task.get(taskid, fields=('tplid', "newontime"))
+            tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename',
             'siteurl', 'tpl', 'interval', 'last_success')))
+            ontime_new = json.loads(task["newontime"])
+            
+            if  ('flg' in form):
+                ontime_new['sw'] = True
+                ontime = form['ontimevalue']
+                ontimetemp = ontime.split(":")
+                if (len(ontimetemp) < 3):
+                    ontime = ontime + ":00"     # 没有秒自动补零
+                    ontimetemp.append("00")
+                ontime_new['time'] = ontime
 
-        ontime = self.request.body_arguments['timevalue'][0]
-        temp = ontime.split(":")
-        if (len(temp) < 3):
-            ontime = ontime + ":00"     # 没有秒自动补零
+                if  ('randtimezonesw' in form):
+                    ontime_new['randsw'] = True
+                    tz1 = int(form['timezone1'])
+                    tz2 = int(form['timezone2'])
+                    if (tz1 <= tz2):
+                        ontime_new['tz1'] = tz1
+                        ontime_new['tz2'] = tz2
+                    else:
+                        raise Exception(u"随机时间开始要大于结束")
+                        
+                next_ts = calNextTimestamp(ontime_new)
+            else :
+                ontime_new['sw'] = False
+                next_ts = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)
+                    
+            self.db.task.mod(taskid,
+                    disabled = False,
+                    newontime = json.dumps(ontime_new),
+                    next = next_ts)
+            
+        except Exception as e:
+            self.render('tpl_run_failed.html', log=e)
+            return
         
-        if  ('flg' in self.request.body_arguments):
-            OntimeFlg = 1
-            next = calNextTimestamp(ontime)
-        else :
-            OntimeFlg = 0
-            next = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)
-        
-        self.db.task.mod(task['id'],
-                disabled = False,
-                ontime = ontime,
-                ontimeflg = OntimeFlg,
-                next = next)
-                
-        self.redirect('/my/')
+        self.render('tpl_run_success.html', log=u"设置完成")
+        return
         
         
 class TaskGroupHandler(TaskNewHandler):

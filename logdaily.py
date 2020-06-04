@@ -68,8 +68,14 @@ class logdaily(_TaskDB, BaseDB):
                             wxp_temp = user['wxpusher'].split(";")
                             s = send2phone.send2phone(wxpusher_token=wxp_temp[0], wxpusher_uid=wxp_temp[1])
                             s.send2wxpusher(temp)
-
-                        next_ts = calNextTimestamp(logtime['time'])
+                        Nextlogtime={
+                            "sw" : True,
+                            "time" : logtime['time'],
+                            "randsw" : False,
+                            "tz1" : 0,
+                            "tz2" : 0
+                        }
+                        next_ts = calNextTimestamp(Nextlogtime)
                         logtime['ts'] = next_ts
 
                         self.db.user.mod(user['id'], logtime=json.dumps(logtime))

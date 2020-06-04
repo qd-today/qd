@@ -143,7 +143,7 @@
             if (har_file_upload.log) 
             {
               new_har = {
-                          filename: name,
+                          filename: $scope.file.name,
                           har: analysis.analyze(har_file_upload, {
                             username: $scope.username,
                             password: $scope.password

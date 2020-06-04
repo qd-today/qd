@@ -172,7 +172,7 @@
           comment: '延时3秒',
           request: {
             method: 'GET',
-            url: location.origin + '/util/delay/3',
+            url: 'http://localhost/util/delay/3',
             postData: {
               test: ''
             },
@@ -197,7 +197,7 @@
           comment: 'unicode转换',
           request: {
             method: 'GET',
-            url: location.origin + '/util/unicode?content=',
+            url: 'http://localhost/util/unicode?content=',
             headers: [],
             cookies: []
           },
@@ -223,7 +223,7 @@
           comment: 'url解码',
           request: {
             method: 'GET',
-            url: location.origin + '/util/urldecode?content=',
+            url: 'http://localhost/util/urldecode?content=',
             headers: [],
             cookies: []
           },
@@ -249,7 +249,7 @@
           comment: '正则提取',
           request: {
             method: 'GET',
-            url: location.origin + '/util/regex?p=&data=',
+            url: 'http://localhost/util/regex?p=&data=',
             headers: [],
             cookies: []
           },
@@ -275,7 +275,7 @@
           comment: '字符串替换',
           request: {
             method: 'GET',
-            url: location.origin + '/util/string/replace?p=&s=&t=',
+            url: 'http://localhost/util/string/replace?p=&s=&t=',
             headers: [],
             cookies: []
           },
@@ -411,14 +411,18 @@
           if (!from) {
             return null;
           } else if (from === 'content') {
-            content = (ref2 = $scope.preview.response) != null ? ref2.content : void 0;
-            if ((content == null) || (content.text == null)) {
-              return null;
-            }
-            if (!content.decoded) {
-              content.decoded = atob(content.text);
-            }
-            data = content.decoded;
+              if (typeof($scope.preview) == 'undefined'){
+                return false
+              }
+              content = (ref2 = $scope.preview.response) != null ? ref2.content : void 0;
+              
+              if ((content == null) || (content.text == null)) {
+                return null;
+              }
+              if (!content.decoded) {
+                content.decoded = atob(content.text);
+              }
+              data = content.decoded;
           } else if (from === 'status') {
             data = '' + $scope.preview.response.status;
           } else if (from.indexOf('header-') === 0) {

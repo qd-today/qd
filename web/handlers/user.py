@@ -142,7 +142,14 @@ class UserRegPushSw(BaseHandler):
             logtime['schanEn'] = True if ('schanlogsw' in env) else False
             logtime['WXPEn'] = True if ('wxpusherlogsw' in env) else False
 
-            next_ts = calNextTimestamp(logtime['time'])
+            Nextlogtime={
+                            "sw" : True,
+                            "time" : logtime['time'],
+                            "randsw" : False,
+                            "tz1" : 0,
+                            "tz2" : 0
+                        }
+            next_ts = calNextTimestamp(Nextlogtime)
             logtime['ts'] = next_ts
 
             for e in env:
@@ -169,72 +176,6 @@ class UserRegPushSw(BaseHandler):
             
         self.render('tpl_run_success.html', log=u"设置完成")
         return
-
-class UserRegPush(BaseHandler):
-    @tornado.web.authenticated
-    def get(self, userid):
-        self.render('user_register_pusher.html', userid=userid)
-    
-    @tornado.web.authenticated
-    def post(self, userid):
-        env = json.loads(self.request.body_arguments['env'][0])
-        token = env["wxpusher_token"]
-        uid = env["wxpusher_uid"]
-        skey = env["skey"]
-        barkurl = env["barkurl"]
-        log = ""
-        if  ("reg" == self.request.body_arguments['func'][0]):
-            try:
-                if  (token != "") and (uid != ""):
-                    temp = token + ";" + uid
-                    self.db.user.mod(userid, wxpusher = temp)
-                    if (self.db.user.get(userid, fields=("wxpusher"))["wxpusher"] == temp):
-                        log = u"注册 wxpusher 成功\r\n"
-                    else:
-                        log = u"注册 wxpusher 失败\r\n"
-
-                if (skey != ""):
-                    self.db.user.mod(userid, skey = skey)
-                    if (self.db.user.get(userid, fields=("skey"))["skey"] == skey):
-                        log = log+u"注册 S酱 成功\r\n"
-                    else:
-                        log = log+u"注册 S酱 失败\r\n"
-                    
-                if  (barkurl != ""):
-                    self.db.user.mod(userid, barkurl = barkurl)
-                    if (self.db.user.get(userid, fields=("barkurl"))["barkurl"] == barkurl):
-                        log = log+u"注册 Bark 成功\r\n"
-                    else:
-                        log = log+u"注册 Bark 失败\r\n"
-            except Exception as e:
-                self.render('tpl_run_failed.html', log=e)
-                return
-            
-            self.render('tpl_run_success.html', log=log)
-            return
-
-        else:
-            try:
-                t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
-
-                if  (token != "") and (uid != ""):
-                    push = send2phone.send2phone(wxpusher_token=token, wxpusher_uid=uid)
-                    push.send2wxpusher(u"{t} 发送测试".format(t=t))
-
-                if (skey != ""):
-                    push = send2phone.send2phone(skey=skey)
-                    push.send2s(u"正在测试S酱", u"{t} 发送测试".format(t=t))
-
-                if  (barkurl != ""):
-                    push = send2phone.send2phone(barkurl=barkurl)
-                    push.send2bark(u"正在测试Bark", u"{t} 发送测试".format(t=t))
-
-            except Exception as e:
-                self.render('tpl_run_failed.html', log=e)
-                return
-            
-            self.render('tpl_run_success.html', log=u"请检查是否受到推送")
-            return
      
 handlers = [
         ('/user/(\d+)/pushsw', UserRegPushSw),

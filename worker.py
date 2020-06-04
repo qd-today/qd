@@ -142,7 +142,8 @@ class MainWorker(object):
         user = self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname'))
         tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl',
             'interval', 'last_success'))
-        ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg', 'pushsw'))
+        ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg', 'pushsw', 'newontime'))
+        newontime = json.loads(ontime["newontime"])
         pushsw = json.loads(ontime['pushsw'])
         notice = self.db.user.get(task['userid'], fields=('skey', 'barkurl', 'noticeflg', 'wxpusher'))
         temp = notice['wxpusher'].split(";")
@@ -191,8 +192,8 @@ class MainWorker(object):
                     new_env['session'].to_json() if hasattr(new_env['session'], 'to_json') else new_env['session'])
 
             # todo next not mid night
-            if (ontime['ontimeflg'] == 1):
-                next = calNextTimestamp(ontime['ontime'])
+            if (newontime['sw']):
+                next = calNextTimestamp(newontime)
             else:
                 next = time.time() + max((tpl['interval'] if tpl['interval'] else 24 * 60 * 60), 1*60)
                 if tpl['interval'] is None:

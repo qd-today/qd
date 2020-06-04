@@ -12,6 +12,19 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.6.4 更新
+1. 根据反馈，HAR编辑里插入链接修改默认地址为localhost
+2. 修复2020601版，插入请求后修改为localhost地址, 点击测试的500错误的问题
+3. 支持定时后 随机延时
+
+__本次更新会把之前的定时设置全部取消，介意请勿更新__
+
+如果使用mysql 在 20200601 请使用以下命令：
+```
+ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0 }
+```
+延时的另一种用法，间隔定时运行：如果要实现每1周定时运行一次，设置最大最小值都是604800，即可
+
 ## 2020.6.1 更新
 1. 时间显示修改为具体时间，取消之前的 "1小时后"等模糊显示(By 戏如人生)
 2. 新建任务时可以选择分组
