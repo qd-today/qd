@@ -12,6 +12,9 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.6.5 更新
+1. 修复 sqlite3 数据库初始值错误的问题，仅影响新建数据库的用户 
+
 ## 2020.6.4 更新
 1. 根据反馈，HAR编辑里插入链接修改默认地址为localhost
 2. 修复2020601版，插入请求后修改为localhost地址, 点击测试的500错误的问题
