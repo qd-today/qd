@@ -200,15 +200,12 @@
       
       if (HARPATH != ""){
         element.find('button').button('loading');
-        reader = new FileReader();
-        reader.onload = function(ev, data) {
-          return $scope.$apply(function() {
-            $scope.uploaded = true;
-            $scope.load_file(angular.fromJson(data));
-            return element.find('button').button('reset');
-          });
-        };
-        return reader.readAsText($scope.file);
+        $.get(HARPATH,function(data){
+          reader = new FileReader();
+          $scope.load_file(angular.fromJson(data));
+          element.find('button').button('reset');
+          return true
+        });
       }
       else{
         return $scope.upload = function() {

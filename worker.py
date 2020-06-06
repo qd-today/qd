@@ -193,7 +193,7 @@ class MainWorker(object):
 
             # todo next not mid night
             if (newontime['sw']):
-                next = calNextTimestamp(newontime)
+                next = calNextTimestamp(newontime, True)
             else:
                 next = time.time() + max((tpl['interval'] if tpl['interval'] else 24 * 60 * 60), 1*60)
                 if tpl['interval'] is None:
@@ -214,7 +214,7 @@ class MainWorker(object):
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
                 title = u"签到任务 {0} 成功".format(tpl['sitename'])
                 logtemp = new_env['variables'].get('__log__')
-                if (notice['noticeflg'] & 0x40 != 0) and (pushsw['pushen']):
+                if (notice['noticeflg'] & 0x2 != 0) and (pushsw['pushen']):
                     if (pusher["barksw"]):pushno2b.send2bark(title, u"{0} 运行成功".format(t))
                     if (pusher["schansw"]):pushno2s.send2s(title, u"{0}  日志：{1}".format(t, logtemp))
                     if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"{0}  日志：{1}".format(t, logtemp))
@@ -228,7 +228,7 @@ class MainWorker(object):
             content = u"日志：{log}".format(log=e)
             if next_time_delta:
                 # 每次都推送通知
-                if (notice['noticeflg'] & 1 == 1) and (pushsw['pushen']):
+                if (notice['noticeflg'] & 0x1 == 1) and (pushsw['pushen']):
                     if (pusher["barksw"]):pushno2b.send2bark(title, u"请自行排查")
                     if (pusher["schansw"]):pushno2s.send2s(title, content)
                     if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"  "+content)

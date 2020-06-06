@@ -38,6 +38,8 @@ class UserRegPush(BaseHandler):
                         log = u"注册 wxpusher 成功\r\n"
                     else:
                         log = u"注册 wxpusher 失败\r\n"
+                else:
+                    log = u"wxpusher 未填写完整\r\n"
 
                 if (skey != ""):
                     self.db.user.mod(userid, skey = skey)
@@ -45,13 +47,18 @@ class UserRegPush(BaseHandler):
                         log = log+u"注册 S酱 成功\r\n"
                     else:
                         log = log+u"注册 S酱 失败\r\n"
+                else:
+                    log = log+u"skey 未填写完整\r\n"
                     
-                if  (barkurl != ""):
+                if (barkurl != ""):
                     self.db.user.mod(userid, barkurl = barkurl)
                     if (self.db.user.get(userid, fields=("barkurl"))["barkurl"] == barkurl):
                         log = log+u"注册 Bark 成功\r\n"
                     else:
                         log = log+u"注册 Bark 失败\r\n"
+                else:
+                    log = log+u"Bark 未填写完整\r\n"
+
             except Exception as e:
                 self.render('tpl_run_failed.html', log=e)
                 return
@@ -66,20 +73,29 @@ class UserRegPush(BaseHandler):
                 if  (token != "") and (uid != ""):
                     push = send2phone.send2phone(wxpusher_token=token, wxpusher_uid=uid)
                     push.send2wxpusher(u"{t} 发送测试".format(t=t))
+                    log = u"wxpusher 已推送\r\n"
+                else:
+                    log = u"wxpusher 未填写完整\r\n"
 
                 if (skey != ""):
                     push = send2phone.send2phone(skey=skey)
                     push.send2s(u"正在测试S酱", u"{t} 发送测试".format(t=t))
+                    log = log+u"S酱 已推送\r\n"
+                else:
+                    log = log+u"skey 未填写完整\r\n"
 
                 if  (barkurl != ""):
                     push = send2phone.send2phone(barkurl=barkurl)
                     push.send2bark(u"正在测试Bark", u"{t} 发送测试".format(t=t))
+                    log = log+u"Bark 已推送\r\n"
+                else:
+                    log = log+u"Bark 未填写完整\r\n"
 
             except Exception as e:
                 self.render('tpl_run_failed.html', log=e)
                 return
             
-            self.render('tpl_run_success.html', log=u"请检查是否受到推送")
+            self.render('tpl_run_success.html', log=log)
             return
 
 class UserRegPushSw(BaseHandler):
@@ -149,7 +165,7 @@ class UserRegPushSw(BaseHandler):
                             "tz1" : 0,
                             "tz2" : 0
                         }
-            next_ts = calNextTimestamp(Nextlogtime)
+            next_ts = calNextTimestamp(Nextlogtime, True)
             logtime['ts'] = next_ts
 
             for e in env:

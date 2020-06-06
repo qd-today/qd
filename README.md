@@ -12,6 +12,13 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.6.6 更新
+1. 修复用户不存在依然能登陆的BUG(具体表现为：新用户新建模板保存时500错误，注册推送时提示NoneType) 
+2. 完善注册推送的注册消息
+3. 修复自动完成不推送的bug
+4. 添加定时 “今日已签过” 选项，可以直接定时第二天
+5. 修复公共模板的HAR订阅功能
+
 ## 2020.6.5 更新
 1. 修复 sqlite3 数据库初始值错误的问题，仅影响新建数据库的用户 
 

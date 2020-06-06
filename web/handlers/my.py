@@ -29,20 +29,24 @@ class MyHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         user = self.current_user
-        tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork'), limit=None)
+        # 验证用户是否存在
+        if (self.db.user.get(user['id'], fields=('id'))):
+            tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork'), limit=None)
 
-        tasks = []
-        for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'groups'), limit=None):
-            tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
-            task['tpl'] = tpl
-            tasks.append(task)
-        groups = []
-        for task in tasks:
-            temp = task['groups']
-            if (temp not  in groups):
-                groups.append(temp)
-                
-        self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=groups)
+            tasks = []
+            for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'groups'), limit=None):
+                tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
+                task['tpl'] = tpl
+                tasks.append(task)
+            groups = []
+            for task in tasks:
+                temp = task['groups']
+                if (temp not  in groups):
+                    groups.append(temp)
+                    
+            self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=groups)
+        else:
+            return self.redirect('/login')
 
 class CheckUpdateHandler(BaseHandler):
     @tornado.web.addslash

@@ -24,6 +24,12 @@
     <input type="number" name="timezone2" value="{{ newonetime.tz2 }}" class="modal_input" min="1" max="604800"/>秒
   </div>
 
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" id="todayflg" name="todayflg" {% if newonetime.sw %}  checked="" {% endif %}> 今日已签过
+    </label>
+  </div>
+
   <div class="text-right">
     <button id="send" name="send" type="submit" data-loading-text="loading..." class="btn btn-primary">提交</button>
   </div>

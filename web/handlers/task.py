@@ -15,7 +15,7 @@ import random
 
 from base import *
 
-def calNextTimestamp(etime):
+def calNextTimestamp(etime, todayflg):
     tz = pytz.timezone('Asia/Shanghai')
     now = datetime.datetime.now()
     now_ts = int(time.time())
@@ -30,7 +30,7 @@ def calNextTimestamp(etime):
         r_ts = 0
         
     next_ts = zero_ts + e_ts
-    if  (now_ts > next_ts) :
+    if  (now_ts > next_ts) or (todayflg):
         next_ts = next_ts + (24 * 60 * 60)
         
     next_ts = next_ts + r_ts
@@ -186,7 +186,7 @@ class TaskRunHandler(BaseHandler):
 
         self.db.tasklog.add(task['id'], success=True, msg=new_env['variables'].get('__log__'))
         if (newontime["sw"]):
-            nextTime = calNextTimestamp(newontime)
+            nextTime = calNextTimestamp(newontime, True)
         else:
             nextTime = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)
             
@@ -273,8 +273,8 @@ class TaskSetTimeHandler(TaskNewHandler):
                         ontime_new['tz2'] = tz2
                     else:
                         raise Exception(u"随机时间开始要大于结束")
-                        
-                next_ts = calNextTimestamp(ontime_new)
+                todayflg = True if ('todayflg' in form) else False
+                next_ts = calNextTimestamp(ontime_new, todayflg)
             else :
                 ontime_new['sw'] = False
                 next_ts = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)

@@ -18,7 +18,7 @@ from libs import utils
 
 class LoginHandler(BaseHandler):
     def get(self):
-        if self.current_user:
+        if (self.current_user) and (self.db.user.get(self.current_user['id'], fields=('id'))):
             self.redirect('/my/')
             return
         return self.render('login.html')
