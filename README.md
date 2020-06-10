@@ -51,7 +51,7 @@ __本次更新会把之前的定时设置全部取消，介意请勿更新__
 
 如果使用mysql 在 20200601 请使用以下命令：
 ```
-ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0 }
+ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0 }'
 ```
 延时的另一种用法，间隔定时运行：如果要实现每1周定时运行一次，设置最大最小值都是604800，即可
 
