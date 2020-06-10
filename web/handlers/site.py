@@ -41,7 +41,11 @@ class SiteManagerHandler(BaseHandler):
                     if ("site.regEn" in envs):
                         self.db.site.mod(1, regEn=0)
                         if (self.db.site.get(1, fields=('regEn'))['regEn'] != 0):
-                            raise Exception(u"写入失败")
+                            raise Exception(u"关闭注册失败")
+                    else:
+                        self.db.site.mod(1, regEn=1)
+                        if (self.db.site.get(1, fields=('regEn'))['regEn'] != 1):
+                            raise Exception(u"开启注册失败")
                 else:
                     raise Exception(u"账号/密码错误")
             else:

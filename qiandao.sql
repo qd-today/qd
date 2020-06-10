@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS `qiandao`.`user` (
+CREATE TABLE IF NOT EXISTS `user` (
           `id` INTEGER NOT NULL PRIMARY KEY  AUTO_INCREMENT,
           `email` VARCHAR(256) NOT NULL,
           `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `qiandao`.`user` (
           `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{"en":false,"time":"20:00:00","ts":0,"schanEn":false,"WXPEn":false}',
           `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable'
         );
-CREATE TABLE IF NOT EXISTS `qiandao`.`tpl` (
+CREATE TABLE IF NOT EXISTS `tpl` (
           `id` INTEGER NOT NULL PRIMARY KEY,
           `userid` INT UNSIGNED NULL,
           `siteurl` VARCHAR(256) NULL,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS `qiandao`.`tpl` (
           `tplurl` VARCHAR(1024) NULL DEFAULT '',
           `updateable` INT UNSIGNED NOT NULL DEFAULT 0
         );
-CREATE TABLE IF NOT EXISTS `qiandao`.`task` (
+CREATE TABLE IF NOT EXISTS `task` (
           `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
           `tplid` INT UNSIGNED NOT NULL,
           `userid` INT UNSIGNED NOT NULL,
@@ -66,14 +66,14 @@ CREATE TABLE IF NOT EXISTS `qiandao`.`task` (
           `pushsw`  VARBINARY(128) NOT NULL DEFAULT '{"logen":false,"pushen":true}',
           `newontime`  VARBINARY(256) NOT NULL DEFAULT '{"sw":false,"time":"00:10:10","randsw":false,"tz1":0,"tz2":0}'
         );
-CREATE TABLE IF NOT EXISTS `qiandao`.`tasklog` (
+CREATE TABLE IF NOT EXISTS `tasklog` (
           `id` INTEGER NOT NULL PRIMARY KEY,
           `taskid` INT UNSIGNED NOT NULL,
           `success` TINYINT(1) NOT NULL,
           `ctime` INT UNSIGNED NOT NULL,
           `msg` TEXT NULL
         );
-CREATE TABLE IF NOT EXISTS `qiandao`.`push_request` (
+CREATE TABLE IF NOT EXISTS `push_request` (
           `id` INTEGER NOT NULL PRIMARY KEY,
           `from_tplid` INT UNSIGNED NOT NULL,
           `from_userid` INT UNSIGNED NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `qiandao`.`push_request` (
           `mtime` INT UNSIGNED NOT NULL,
           `atime` INT UNSIGNED NOT NULL
         );
-CREATE TABLE IF NOT EXISTS `qiandao`.`site` (
+CREATE TABLE IF NOT EXISTS `site` (
           `id` INTEGER NOT NULL PRIMARY KEY,
           `regEn` INT UNSIGNED NOT NULL DEFAULT 1
         );

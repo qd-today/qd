@@ -14,7 +14,7 @@ docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qian
 
 ## 2020.6.10 更新
 1. 添加管理员管理用户功能，可以将用户禁用/开启/删除
-2. 添加关闭注册功能
+2. 添加关闭/开启注册功能
 3. 修改主页的'检查更新'为'检查模板更新'
 
 使用前需要进入容器，将对应已注册邮箱设置为管理员：
@@ -28,7 +28,7 @@ python ./chrole.py 邮箱 admin
 如果使用mysql 在 20200604 请使用以下命令：
 ```
 ALTER TABLE `user` ADD `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable';
-CREATE TABLE IF NOT EXISTS `qiandao`.`site` (
+CREATE TABLE IF NOT EXISTS `site` (
           `id` INTEGER NOT NULL PRIMARY KEY,
           `regEn` INT UNSIGNED NOT NULL DEFAULT 1
         );
