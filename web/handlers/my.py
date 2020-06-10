@@ -29,8 +29,11 @@ class MyHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         user = self.current_user
+        adminflg = False
         # 验证用户是否存在
         if (self.db.user.get(user['id'], fields=('id'))):
+            if  self.db.user.get(user['id'], fields=('role'))['role'] == 'admin':
+                adminflg = True
             tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork'), limit=None)
 
             tasks = []
@@ -44,7 +47,7 @@ class MyHandler(BaseHandler):
                 if (temp not  in groups):
                     groups.append(temp)
                     
-            self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=groups)
+            self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=groups, adminflg=adminflg)
         else:
             return self.redirect('/login')
 

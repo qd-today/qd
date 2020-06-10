@@ -15,8 +15,20 @@
     <h2>
       我的签到
       <a href="/task/new" class="btn btn-default btn-xs modal_load glyphicon glyphicon-plus"></a>
-      <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/regpush" title="注册BarkURL">推送注册</a></span>
-      <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/pushsw" title="推送通知开关">推送通知开关</a></span>
+      <span type="span" class="btn btn-default">
+        <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/regpush" title="注册BarkURL">推送注册</a>
+      </span>
+      <span type="span" class="btn btn-default">
+        <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/pushsw" title="推送通知开关">推送通知开关</a>
+      </span>
+      {% if adminflg %}
+      <span type="span" class="btn btn-default">
+        <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/manage" title="管理用户">管理用户</a>
+      </span>
+      <span type="span" class="btn btn-default">
+        <a data-load-method="GET" class="modal_load" href="/site/{{ userid }}/manage" title="管理网站">管理网站</a>
+      </span>
+      {% endif %}
     </h2>
     <table class="table table-hover">
       <thead>
@@ -98,7 +110,7 @@
       我的模板
       <a href="/har/edit" class="btn btn-default btn-xs glyphicon glyphicon-plus" target="_blank"></a>
       <span type="span" class="btn btn-default"><a href="/subscribe" target="_blank" title="查看公共模板">公共模板</a></span>
-      <span type="span" class="btn btn-default"><a href="/my/checkupdate" target="_blank" title="检查公共模板更新">检查更新</a></span>
+      <span type="span" class="btn btn-default"><a href="/my/checkupdate" target="_blank" title="检查公共模板更新">检查模板更新</a></span>
     </h2>
     <table class="table table-hover">
       <thead>

@@ -12,6 +12,26 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.6.10 更新
+1. 添加管理员管理用户功能，可以将用户禁用/开启/删除
+2. 添加关闭注册功能
+3. 修改主页的'检查更新'为'检查模板更新'
+
+使用前需要进入容器，将对应已注册邮箱设置为管理员：
+```
+docker exec -it 容器名 /bin/bash
+python ./chrole.py 邮箱 admin
+```
+被禁用的账户将不能登录网站,所有任务将被禁用。
+被删除的账户，会删除该用户的所有任务，模板和日志
+
+如果使用mysql 在 20200604 请使用以下命令：
+```
+ALTER TABLE `user` ADD `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable';
+CREATE TABLE IF NOT EXISTS `site` (`regEn` INT UNSIGNED NOT NULL DEFAULT 1);
+INSERT INTO `site` (`regEn`) VALUES (?);
+```
+
 ## 2020.6.6 更新
 1. 修复用户不存在依然能登陆的BUG(具体表现为：新用户新建模板保存时500错误，注册推送时提示NoneType) 
 2. 完善注册推送的注册消息
@@ -66,8 +86,8 @@ ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":fa
 
 如果使用mysql 在 5.22 请使用以下命令：
 ```
-ALTER TABLE `task` ADD `pushsw` VARBINARY(128) NOT NULL DEFAULT '{\"logen\":false,\"pushen\":true}'
-ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}'
+ALTER TABLE `task` ADD `pushsw` VARBINARY(128) NOT NULL DEFAULT '{\"logen\":false,\"pushen\":true}';
+ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}';
 ```
 
 ## 2020.5.22 更新
@@ -80,8 +100,8 @@ ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,
 
 如果使用mysql 在 5.18 请使用以下命令：
 ```
-ALTER TABLE `tpl` ADD `tplurl` VARCHAR(1024) NULL DEFAULT '' 
-ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0
+ALTER TABLE `tpl` ADD `tplurl` VARCHAR(1024) NULL DEFAULT '' ;
+ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0;
 ```
 
 ## 2020.5.18 更新
@@ -95,7 +115,7 @@ ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0
 
 如果使用mysql 请使用以下命令：
 ```
-ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' 
+ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' ;
 ```
 2. 定时功能显示之前的定时值
 
@@ -116,12 +136,12 @@ __不兼容旧版的数据库， 旧版数据库导入会自动转换，旧版�
 __使用SQLite3的，默认路径改为config文件夹里面，方便挂载后备份__<br>
 __使用Mysq的,请使用一下命令更新数据库：__<br>
 ```
-ALTER TABLE `task` ADD `ontimeflg` INT UNSIGNED NOT NULL DEFAULT 0
-ALTER TABLE `task` ADD `ontime` VARCHAR(256) NOT NULL DEFAULT '00:10:00'
-ALTER TABLE `user` ADD `skey` VARBINARY(128) NOT NULL DEFAULT '' 
-ALTER TABLE `user` ADD `barkurl` VARBINARY(128) NOT NULL DEFAULT '' 
-ALTER TABLE `user` ADD `wxpusher` VARBINARY(128) NOT NULL DEFAULT '' 
-ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1
+ALTER TABLE `task` ADD `ontimeflg` INT UNSIGNED NOT NULL DEFAULT 0;
+ALTER TABLE `task` ADD `ontime` VARCHAR(256) NOT NULL DEFAULT '00:10:00';
+ALTER TABLE `user` ADD `skey` VARBINARY(128) NOT NULL DEFAULT '' ;
+ALTER TABLE `user` ADD `barkurl` VARBINARY(128) NOT NULL DEFAULT '' ;
+ALTER TABLE `user` ADD `wxpusher` VARBINARY(128) NOT NULL DEFAULT '' ;
+ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1;
 ```
 
 

@@ -16,11 +16,16 @@ import config
 from base import *
 from libs import utils
 
+class ForbiddenHandler(BaseHandler):
+    def get(self):
+        return self.render('Forbidden.html')
+
 class LoginHandler(BaseHandler):
     def get(self):
         if (self.current_user) and (self.db.user.get(self.current_user['id'], fields=('id'))):
             self.redirect('/my/')
             return
+
         return self.render('login.html')
 
     def post(self):
@@ -28,6 +33,11 @@ class LoginHandler(BaseHandler):
         password = self.get_argument('password')
         if not email or not password:
             self.render('login.html', password_error=u'请输入用户名和密码', email=email)
+            return
+
+        user_try = self.db.user.get(email=email, fields=('id', 'role', 'status'))
+        if (user_try['status'] != 'Enable') and (user_try['role'] != 'admin'):
+            self.render('login.html', password_error=u'账号已被禁用，请联系管理员', email=email)
             return
 
         if self.db.user.challenge(email, password):
@@ -64,42 +74,48 @@ class RegisterHandler(BaseHandler):
         return self.render('register.html')
 
     def post(self):
-        self.evil(+5)
+        siteconfig = self.db.site.get(1, fields=('regEn'))
+        regEn = siteconfig['regEn']
+        if (regEn == 1):
+            self.evil(+5)
 
-        email = self.get_argument('email')
-        password = self.get_argument('password')
+            email = self.get_argument('email')
+            password = self.get_argument('password')
 
-        if not email:
-            self.render('register.html', email_error=u'请输入邮箱')
+            if not email:
+                self.render('register.html', email_error=u'请输入邮箱')
+                return
+            if email.count('@') != 1 or email.count('.') == 0:
+                self.render('register.html', email_error=u'邮箱格式不正确')
+                return
+            if len(password) < 6:
+                self.render('register.html', password_error=u'密码需要大于6位', email=email)
+                return
+
+            try:
+                self.db.user.add(email=email, password=password, ip=self.ip2int)
+            except self.db.user.DeplicateUser as e:
+                self.evil(+3)
+                self.render('register.html', email_error=u'email地址已注册')
+                return
+            user = self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role'))
+
+            setcookie = dict(
+                    expires_days=config.cookie_days,
+                    httponly=True,
+                    )
+            if config.https:
+                setcookie['secure'] = True
+            self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
+
+            next = self.get_argument('next', '/my/')
+            self.redirect(next)
+            future = self.send_mail(user)
+            if future:
+                IOLoop.current().add_future(future, lambda x: x)
+        else:
+            self.render('register.html', email_error=u'管理员关闭注册')
             return
-        if email.count('@') != 1 or email.count('.') == 0:
-            self.render('register.html', email_error=u'邮箱格式不正确')
-            return
-        if len(password) < 6:
-            self.render('register.html', password_error=u'密码需要大于6位', email=email)
-            return
-
-        try:
-            self.db.user.add(email=email, password=password, ip=self.ip2int)
-        except self.db.user.DeplicateUser as e:
-            self.evil(+3)
-            self.render('register.html', email_error=u'email地址已注册')
-            return
-        user = self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role'))
-
-        setcookie = dict(
-                expires_days=config.cookie_days,
-                httponly=True,
-                )
-        if config.https:
-            setcookie['secure'] = True
-        self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
-
-        next = self.get_argument('next', '/my/')
-        self.redirect(next)
-        future = self.send_mail(user)
-        if future:
-            IOLoop.current().add_future(future, lambda x: x)
 
     def send_mail(self, user):
         verified_code = [user['email'], time.time()]
@@ -261,4 +277,5 @@ handlers = [
         ('/register', RegisterHandler),
         ('/verify/(.*)', VerifyHandler),
         ('/password_reset/?(.*)', PasswordResetHandler),
+        ('/forbidden', ForbiddenHandler),
         ]

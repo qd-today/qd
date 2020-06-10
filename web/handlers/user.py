@@ -15,6 +15,12 @@ from base import *
 
 import send2phone 
 from web.handlers.task import calNextTimestamp
+from sqlite3_db.basedb import BaseDB
+
+def tostr(s):
+    if isinstance(s, bytearray):
+        return str(s)
+    return s
 
 class UserRegPush(BaseHandler):
     @tornado.web.authenticated
@@ -192,8 +198,73 @@ class UserRegPushSw(BaseHandler):
             
         self.render('tpl_run_success.html', log=u"设置完成")
         return
+    
+class UserManagerHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, userid):
+        adminflg = False
+        users = []
+        user = self.db.user.get(userid, fields=('role'))
+        if user and user['role'] == "admin":
+            adminflg = True
+            users = []
+            for user in self.db.user.list(fields=('id','status', 'token', 'role', 'ctime', 'email')):
+                if user['role'] != 'admin':
+                    users.append(user)
+
+        self.render("user_manage.html", users=users, userid=userid, adminflg=adminflg)
+        return
+
+    @tornado.web.authenticated
+    def post(self, userid):
+        try:
+            user = self.db.user.get(userid, fields=('role'))
+            if user and user['role'] == "admin":
+                envs = self.request.body_arguments
+                mail = envs['adminmail'][0]
+                pwd = u"{0}".format(envs['adminpwd'][0])
+                if self.db.user.challenge(mail, pwd):
+                    Target_users = []
+                    for key, value in envs.items():
+                        if value[0] == "on":
+                            Target_users.append(key)
+
+                    for sub_user in Target_users:
+                        if (self.db.user.get(sub_user, fields=('role')) != 'admin'):
+                            if 'banbtn' in envs:
+                                self.db.user.mod(sub_user, status='Disable')
+                                for task in self.db.task.list(sub_user, fields=('id'), limit=None):
+                                    self.db.task.mod(task['id'], disabled=True)
+
+                            if 'activatebtn' in envs:
+                                self.db.user.mod(sub_user, status='Enable')
+                                for task in self.db.task.list(sub_user, fields=('id'), limit=None):
+                                    self.db.task.mod(task['id'], disabled=False)
+
+                            if 'delbtn' in envs:
+                                for task in self.db.task.list(sub_user, fields=('id'), limit=None):
+                                    self.db.task.delete(task['id'])
+                                    logs = self.db.tasklog.list(taskid = task['id'], fields=('id'))
+                                    for log in logs:
+                                        self.db.tasklog.delete(log['id'])
+
+                                for tpl in self.db.tpl.list(fields=('id', 'userid'), limit=None):
+                                    if tpl['userid'] == int(sub_user):
+                                        self.db.tpl.delete(tpl['id'])
+                                self.db.user.delete(sub_user)
+                else:
+                    raise Exception(u"账号/密码错误")
+            else:
+                raise Exception(u"非管理员，不可操作")
+        except Exception as e:
+            self.render('tpl_run_failed.html', log=e)
+            return
+            
+        self.redirect('/my/')
+        return
      
 handlers = [
         ('/user/(\d+)/pushsw', UserRegPushSw),
         ('/user/(\d+)/regpush', UserRegPush),
+        ('/user/(\d+)/manage', UserManagerHandler),
         ]

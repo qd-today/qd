@@ -10,3 +10,4 @@ from .task import TaskDB
 from .tasklog import TaskLogDB
 from .push_request import PRDB
 from db.redisdb import RedisDB
+from .site import SiteDB

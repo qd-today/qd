@@ -81,6 +81,9 @@ class UserDB(BaseDB):
 
         if 'password' in kwargs:
             kwargs['password'] = self.encrypt(id, crypto.password_hash(kwargs['password']))
+            
+        if 'token' in kwargs:
+            kwargs['token'] = self.encrypt(id, crypto.password_hash(kwargs['token']))
 
         return self._update(where="id=%s" % self.placeholder, where_values=(id, ), **kwargs)
 
@@ -125,3 +128,18 @@ class UserDB(BaseDB):
 
         for user in self._select2dic(what=fields, where=where, where_values=value):
             return user
+    
+    def list(self, fields=None, limit=None, **kwargs):
+        where = '1=1'
+        where_values = []
+        for key, value in kwargs.iteritems():
+            if value is None:
+                where += ' and %s is %s' % (self.escape(key), self.placeholder)
+            else:
+                where += ' and %s = %s' % (self.escape(key), self.placeholder)
+            where_values.append(value)
+        for tpl in self._select2dic(what=fields, where=where, where_values=where_values, limit=limit):
+            yield tpl
+
+    def delete(self, id):
+        self._delete(where="id=%s" % self.placeholder, where_values=(id, ))

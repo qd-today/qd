@@ -26,6 +26,7 @@ class DBconverter(_TaskDB, BaseDB):
                 tpl = db.TPLDB()
                 task = db.TaskDB()
                 tasklog = db.TaskLogDB()
+                site = db.SiteDB()
             self.db = DB
             try:
                 self.db.task.get("1", fields=('ontimeflg'))
@@ -85,5 +86,21 @@ class DBconverter(_TaskDB, BaseDB):
             try:
                 self.db.user.get("1", fields=('logtime'))
             except :
-                self._execute("ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}' " )                             
+                self._execute("ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}' " )
+                            
+            try:
+                self.db.user.get("1", fields=('status'))
+            except :
+                self._execute("ALTER TABLE `user` ADD `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable' " )     
+            
+            self._execute('''CREATE TABLE IF NOT EXISTS `%s` (
+                        `regEn` INT UNSIGNED NOT NULL DEFAULT 1
+                        )''' %'site')      
+            try:
+                temp = self.db.site.get(1, fields=('regEn'))
+                if not (temp):
+                    raise Exception("new")
+            except Exception as e:
+                insert = dict(regEn = 1)
+                self.db.site._insert(**insert)                    
         return 
