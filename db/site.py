@@ -33,9 +33,9 @@ class SiteDB(BaseDB):
 
     def mod(self, id, **kwargs):
         assert id, 'need id'
-        return self._update(where="rowid=%s" % self.placeholder, where_values=(id, ), **kwargs)
+        return self._update(where="id=%s" % self.placeholder, where_values=(id, ), **kwargs)
 
     def get(self, id, fields=None):
         assert id, 'need id'
-        for task in self._select2dic(what=fields, where='rowid=%s' % self.placeholder, where_values=(id, )):
+        for task in self._select2dic(what=fields, where='id=%s' % self.placeholder, where_values=(id, )):
             return task

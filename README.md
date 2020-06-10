@@ -28,8 +28,11 @@ python ./chrole.py 邮箱 admin
 如果使用mysql 在 20200604 请使用以下命令：
 ```
 ALTER TABLE `user` ADD `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable';
-CREATE TABLE IF NOT EXISTS `site` (`regEn` INT UNSIGNED NOT NULL DEFAULT 1);
-INSERT INTO `site` (`regEn`) VALUES (?);
+CREATE TABLE IF NOT EXISTS `qiandao`.`site` (
+          `id` INTEGER NOT NULL PRIMARY KEY,
+          `regEn` INT UNSIGNED NOT NULL DEFAULT 1
+        );
+INSERT INTO `site` VALUES(1,1);
 ```
 
 ## 2020.6.6 更新

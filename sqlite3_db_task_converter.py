@@ -94,6 +94,7 @@ class DBconverter(_TaskDB, BaseDB):
                 self._execute("ALTER TABLE `user` ADD `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable' " )     
             
             self._execute('''CREATE TABLE IF NOT EXISTS `%s` (
+                        `id` INTEGER NOT NULL PRIMARY KEY,
                         `regEn` INT UNSIGNED NOT NULL DEFAULT 1
                         )''' %'site')      
             try:

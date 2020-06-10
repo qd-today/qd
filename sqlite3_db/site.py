@@ -13,6 +13,7 @@ class SiteDB(_SiteDB, BaseDB):
     def __init__(self, path=config.sqlite3.path):
         self.path = path
         self._execute('''CREATE TABLE IF NOT EXISTS `%s` (
+          `id` INTEGER NOT NULL PRIMARY KEY,
           `regEn` INT UNSIGNED NOT NULL DEFAULT 1
         )''' % self.__tablename__)
 
