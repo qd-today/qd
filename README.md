@@ -12,6 +12,9 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.6.11 更新
+1. 修复MySQL的支持，不需要手动更新Mysql数据库
+
 ## 2020.6.10 更新
 1. 添加管理员管理用户功能，可以将用户禁用/开启/删除
 2. 添加关闭/开启注册功能
