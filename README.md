@@ -12,6 +12,10 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.6.12 更新
+1. 定时日志BUG太多，修不过来，取消此功能
+2. 修复用户不存在时登录500错误
+
 ## 2020.6.11 更新
 1. 修复MySQL的支持，不需要手动更新Mysql数据库
 

@@ -141,7 +141,7 @@ class UserRegPushSw(BaseHandler):
                 task['pushsw']["pushen"] = False
                 tasks.append(task)
             temp = self.db.user.get(userid, fields=('noticeflg'))
-            logtime = json.loads(self.db.user.get(userid, fields=('logtime'))['logtime'])
+            #logtime = json.loads(self.db.user.get(userid, fields=('logtime'))['logtime'])
             env = json.loads(self.request.body_arguments['env'][0])
 
             barksw_flg        = 1 if ("barksw" in env) else 0 
@@ -159,29 +159,31 @@ class UserRegPushSw(BaseHandler):
                 | (handpush_fail_flg << 2) \
                 | (autopush_succ_flg << 1) \
                 | (autopush_fail_flg)
-            logtime['en'] = True if ('logensw' in env) else False
-            logtime['time'] = env['timevalue']
-            logtime['schanEn'] = True if ('schanlogsw' in env) else False
-            logtime['WXPEn'] = True if ('wxpusherlogsw' in env) else False
+                
+            # logtime['en'] = True if ('logensw' in env) else False
+            # logtime['time'] = ""
+            # logtime['schanEn'] = True if ('schanlogsw' in env) else False
+            # logtime['WXPEn'] = True if ('wxpusherlogsw' in env) else False
 
-            Nextlogtime={
-                            "sw" : True,
-                            "time" : logtime['time'],
-                            "randsw" : False,
-                            "tz1" : 0,
-                            "tz2" : 0
-                        }
-            next_ts = calNextTimestamp(Nextlogtime, True)
-            logtime['ts'] = next_ts
+            # Nextlogtime={
+            #                 "sw" : True,
+            #                 "time" : logtime['time'],
+            #                 "randsw" : False,
+            #                 "tz1" : 0,
+            #                 "tz2" : 0
+            #             }
+            # next_ts = calNextTimestamp(Nextlogtime, True)
+            # logtime['ts'] = next_ts
 
-            for e in env:
-                temp = re.findall(r"(.+?)logen", e)
-                if len(temp) > 0:
-                    taskid = int(temp[0])
-                    for task in tasks:
-                        if (taskid == task["id"]):
-                            task['pushsw']["logen"] = True
-                            
+            # for e in env:
+            #     temp = re.findall(r"(.+?)logen", e)
+            #     if len(temp) > 0:
+            #         taskid = int(temp[0])
+            #         for task in tasks:
+            #             if (taskid == task["id"]):
+            #                 task['pushsw']["logen"] = True
+            
+            for e in env:          
                 temp = re.findall(r"(.+?)pushen", e)
                 if len(temp) > 0:
                     taskid = int(temp[0])
@@ -189,9 +191,11 @@ class UserRegPushSw(BaseHandler):
                         if (taskid == task["id"]):
                             task['pushsw']["pushen"] = True
                             
-            self.db.user.mod(userid, noticeflg=flg, logtime=json.dumps(logtime))
+            #self.db.user.mod(userid, noticeflg=flg, logtime=json.dumps(logtime))
+            self.db.user.mod(userid, noticeflg=flg)
             for task in tasks:
                 self.db.task.mod(task["id"], pushsw=json.dumps(task['pushsw']))
+                
         except Exception as e:
             self.render('tpl_run_failed.html', log=e)
             return

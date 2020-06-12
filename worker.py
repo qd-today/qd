@@ -23,8 +23,6 @@ from web.handlers.task import calNextTimestamp
 
 logger = logging.getLogger('qiandao.worker')
 
-import logdaily
-
 class MainWorker(object):
     def __init__(self):
         self.running = False
@@ -46,7 +44,6 @@ class MainWorker(object):
         if self.running:
             return
         self.running = self.run()
-        self.logscheduler()
         def done(future):
             self.running = None
             success, failed = future.result()
@@ -54,10 +51,6 @@ class MainWorker(object):
                 logger.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
             return
         self.running.add_done_callback(done)
-
-    def logscheduler(self):
-        converter = logdaily.logdaily()
-        converter.logpusher()
       
     @gen.coroutine
     def run(self):

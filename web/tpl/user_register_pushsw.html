@@ -39,7 +39,7 @@
     </label>
   </div>
 
-  <label>定时日志设置：</label>
+  <!-- <label>定时日志设置：</label>
   <div class="checkbox">
     <label>
       <input type="checkbox" id="logensw" name="logensw" {% if logtime.en %}  checked="" {% endif %}>总开关
@@ -59,7 +59,7 @@
 
   <div>定时日志推送时间：
     <input type="time" id="timevalue" value="{{ logtime.time }}" name='timevalue', step="1" />
-  </div>
+  </div> -->
 
   <div id="taskpushsw">
     <table class="table table-hover">
@@ -67,7 +67,7 @@
         <tr>
           <th title="签到网站平台名称">任务名称</th>
           <th style="text-align:center" title="签到成功/失败次数">任务推送开关</th>
-          <th title="上次签到成功时间">定时日志开关</th>
+          <!-- <th title="上次签到成功时间">定时日志开关</th> -->
         </tr>
       </thead>
       <tbody>
@@ -89,11 +89,11 @@
               <input type="checkbox" name="{{ task.id }} pushen" {% if task.pushsw.pushen %}  checked="" {% endif %} value="1">
             </label>
           </td>
-          <td>
+          <!-- <td>
             <label>
               <input type="checkbox" name="{{ task.id }} logen" {% if task.pushsw.logen %}  checked="" {% endif %} value="1">
             </label>
-          </td>
+          </td> -->
         </tr>
         {% endfor %}
       </tbody>

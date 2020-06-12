@@ -36,8 +36,12 @@ class LoginHandler(BaseHandler):
             return
 
         user_try = self.db.user.get(email=email, fields=('id', 'role', 'status'))
-        if (user_try['status'] != 'Enable') and (user_try['role'] != 'admin'):
-            self.render('login.html', password_error=u'账号已被禁用，请联系管理员', email=email)
+        if (user_try):
+            if (user_try['status'] != 'Enable') and (user_try['role'] != 'admin'):
+                self.render('login.html', password_error=u'账号已被禁用，请联系管理员', email=email)
+                return
+        else:
+            self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email)
             return
 
         if self.db.user.challenge(email, password):
