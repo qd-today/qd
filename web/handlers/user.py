@@ -212,7 +212,7 @@ class UserManagerHandler(BaseHandler):
         if user and user['role'] == "admin":
             adminflg = True
             users = []
-            for user in self.db.user.list(fields=('id','status', 'role', 'ctime', 'email')):
+            for user in self.db.user.list(fields=('id','status', 'role', 'ctime', 'email', 'atime')):
                 if user['role'] != 'admin':
                     users.append(user)
 

@@ -9,6 +9,19 @@ import urllib
 import pytz
 from base import *
 from tornado import gen
+import base64
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import  PKCS1_v1_5
+from Crypto import Random
+
+
+def request_parse(req_data):
+    '''解析请求数据并以json形式返回'''
+    if req_data.method == 'POST':
+            data = req_data.body_arguments
+    elif req_data.method == 'GET':
+        data = req_data.arguments
+    return data
 
 
 class UtilDelayHandler(BaseHandler):
@@ -112,12 +125,105 @@ class UtilStrReplaceHandler(BaseHandler):
             t = self.get_argument("t", "")
             Rtv[u"原始字符串"] = s
             Rtv[u"处理后字符串"] = re.sub(p, t, s)
-            Rtv[u"状态"] = "OK"                
+            Rtv[u"状态"] = "OK"      
+            if self.get_argument("r", "")  == "text":
+                self.write(Rtv[u"处理后字符串"])
+                return
+            else:
+                self.set_header('Content-Type', 'application/json; charset=UTF-8')
+                self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+                return
         except Exception as e:
             Rtv["状态"] = str(e)
 
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+
+class UtilRSAHandler(BaseHandler):
+    @gen.coroutine
+    def get(self):
+        try:
+            res_data = request_parse(self.request)
+            key = res_data["key"][0] if "key" in  res_data else None
+            data = res_data["data"][0] if "data" in  res_data else None 
+            func = res_data["f"][0] if "f" in  res_data else None 
+            if (key) and (data) and (func):
+                lines = ""
+                temp = key
+                temp = re.findall("-----.*?-----", temp)
+                if (len(temp) == 2):
+                    keytemp = key
+                    for t in temp:
+                        keytemp = keytemp.replace(t, "")
+
+                    while(keytemp):
+                        line = keytemp[0:63]
+                        lines = lines+line+"\n"
+                        keytemp = keytemp.replace(line, "")
+                    
+                    lines = temp[0]+"\n" + lines + temp[1]
+
+                else:
+                    self.write(u"证书格式错误")
+                    return 
+
+                cipher_rsa = PKCS1_v1_5.new(RSA.import_key(lines))
+                if (func.find("encode") > -1):
+                    crypt_text = cipher_rsa.encrypt(bytes(data))
+                    crypt_text = base64.b64encode(crypt_text).decode('utf8')
+                    self.write(crypt_text)
+                    return
+                elif (func.find("decode") > -1): 
+                    t1 = base64.b64decode(data)
+                    decrypt_text = cipher_rsa.decrypt(t1, Random.new().read)
+                    decrypt_text = decrypt_text.decode('utf8')
+                    self.write(decrypt_text)
+                    return
+                else:
+                    self.write(u"功能选择错误")
+                    return
+            else:
+                self.write(u"参数不完整，请确认")
+        except Exception as e:
+            self.write(str(e))
+            return
+
+    @gen.coroutine
+    def post(self):
+        try:
+            res_data = request_parse(self.request)
+            key = res_data["key"][0] if "key" in  res_data else None
+            data = res_data["data"][0] if "data" in  res_data else None 
+            func = res_data["f"][0] if "f" in  res_data else None 
+            if (key) and (data) and (func):
+                lines = ""
+                for line in key.split("\n"):
+                    if (line.find("--") < 0):
+                        line = line.replace(" ", "+")
+                    lines = lines+line+"\n"
+                data = data.replace(" ", "+")
+                
+                cipher_rsa = PKCS1_v1_5.new(RSA.import_key(lines))
+                if (func.find("encode") > -1):
+                    crypt_text = cipher_rsa.encrypt(bytes(data))
+                    crypt_text = base64.b64encode(crypt_text).decode('utf8')
+                    self.write(crypt_text)
+                    return
+                elif (func.find("decode") > -1): 
+                    decrypt_text = cipher_rsa.decrypt(base64.b64decode(data), Random.new().read)
+                    decrypt_text = decrypt_text.decode('utf8')
+                    self.write(decrypt_text)
+                    return
+                else:
+                    self.write(u"功能选择错误")
+                    return
+            else:
+                self.write(u"参数不完整，请确认")
+        except Exception as e:
+            self.write(str(e))
+            return
+
+        
 
 
 handlers = [
@@ -127,4 +233,5 @@ handlers = [
     ('/util/urldecode', UrlDecodeHandler),
     ('/util/regex', UtilRegexHandler),
     ('/util/string/replace', UtilStrReplaceHandler),
+    ('/util/rsa', UtilRSAHandler),
 ]

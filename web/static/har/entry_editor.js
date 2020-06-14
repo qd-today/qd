@@ -275,7 +275,7 @@
           comment: '字符串替换',
           request: {
             method: 'GET',
-            url: 'http://localhost/util/string/replace?p=&s=&t=',
+            url: 'http://localhost/util/string/replace?r=json&p=&s=&t=',
             headers: [],
             cookies: []
           },
@@ -288,6 +288,28 @@
             {
               re: "\"状态\": \"OK\"",
               from: "content"
+            }
+          ]
+        });
+      };
+
+      $scope.add_RSA_Encrypt_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: 'RSA加密',
+          request: {
+            method: 'GET',
+            url: 'http://localhost/util/rsa?key=&data=&f=encode',
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
             }
           ]
         });

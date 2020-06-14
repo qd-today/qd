@@ -12,6 +12,11 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.6.14 更新
+1. 添加RSA加密/解密
+2. 用户管理页面添加用户最后登陆时间
+3. 字符串替换功能可以返回纯文本，避免有转义'\\'的出现,需要替换参数r=text
+
 ## 2020.6.12 更新
 1. 定时日志BUG太多，修不过来，取消此功能
 2. 修复用户不存在时登录500错误
