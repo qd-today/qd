@@ -15,24 +15,24 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Init
-      run: |
-        chmod -R 777 ./IBM_Cloud_CLI/
+    - name: Install IBM CLI
+      run: curl -sL https://ibm.biz/idt-installer | bash
+
     - name: Login IBM Cloud
       env:
         IBM_EMAIL: ${{ secrets.IBM_EMAIL }}
         IBM_PWD: ${{ secrets.IBM_PWD }}
         IBM_RGN: ${{ secrets.IBM_RGN }}
       run: |
-        ./IBM_Cloud_CLI/ibmcloud login -u "$IBM_EMAIL" -p "$IBM_PWD" -r "$IBM_RGN"
+        ibmcloud login -u "$IBM_EMAIL" -p "$IBM_PWD" -r "$IBM_RGN"
     - name: Target IBM Cloud
       env:
         IBM_EMAIL: ${{ secrets.IBM_EMAIL }}
       run: |
-        ./IBM_Cloud_CLI/ibmcloud target --cf-api 'https://api.ng.bluemix.net' -o "$IBM_EMAIL" -s 'dev'  
-        ./IBM_Cloud_CLI/ibmcloud cf install
+        ibmcloud target --cf-api 'https://api.ng.bluemix.net' -o "$IBM_EMAIL" -s 'dev'  
+        ibmcloud cf install
     - name: Restart IBM Cloud
       env:
         IBM_APP_NAME: ${{ secrets.IBM_APP_NAME }}
       run: |
-        ./IBM_Cloud_CLI/ibmcloud cf restart "$IBM_APP_NAME"
+        ibmcloud cf restart "$IBM_APP_NAME"
