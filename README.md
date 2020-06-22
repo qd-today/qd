@@ -12,6 +12,11 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+## 2020.6.22 更新
+1. 修复检查公共模板更新功能；
+2. 美化左侧三按钮(By 十六君)
+3. 修复插入RSA加密实际是字符串替换的BUG
+   
 ## 2020.6.14 更新
 1. 添加RSA加密/解密
 2. 用户管理页面添加用户最后登陆时间
