@@ -11,11 +11,15 @@ import datetime
 from tornado import gen
 import re
 
+import config
 from base import *
+
+import sqlite3
 
 import send2phone 
 from web.handlers.task import calNextTimestamp
-from sqlite3_db.basedb import BaseDB
+
+from backup import DBnew
 
 def tostr(s):
     if isinstance(s, bytearray):
@@ -159,29 +163,6 @@ class UserRegPushSw(BaseHandler):
                 | (handpush_fail_flg << 2) \
                 | (autopush_succ_flg << 1) \
                 | (autopush_fail_flg)
-                
-            # logtime['en'] = True if ('logensw' in env) else False
-            # logtime['time'] = ""
-            # logtime['schanEn'] = True if ('schanlogsw' in env) else False
-            # logtime['WXPEn'] = True if ('wxpusherlogsw' in env) else False
-
-            # Nextlogtime={
-            #                 "sw" : True,
-            #                 "time" : logtime['time'],
-            #                 "randsw" : False,
-            #                 "tz1" : 0,
-            #                 "tz2" : 0
-            #             }
-            # next_ts = calNextTimestamp(Nextlogtime, True)
-            # logtime['ts'] = next_ts
-
-            # for e in env:
-            #     temp = re.findall(r"(.+?)logen", e)
-            #     if len(temp) > 0:
-            #         taskid = int(temp[0])
-            #         for task in tasks:
-            #             if (taskid == task["id"]):
-            #                 task['pushsw']["logen"] = True
             
             for e in env:          
                 temp = re.findall(r"(.+?)pushen", e)
@@ -191,7 +172,6 @@ class UserRegPushSw(BaseHandler):
                         if (taskid == task["id"]):
                             task['pushsw']["pushen"] = True
                             
-            #self.db.user.mod(userid, noticeflg=flg, logtime=json.dumps(logtime))
             self.db.user.mod(userid, noticeflg=flg)
             for task in tasks:
                 self.db.task.mod(task["id"], pushsw=json.dumps(task['pushsw']))
@@ -266,9 +246,50 @@ class UserManagerHandler(BaseHandler):
             
         self.redirect('/my/')
         return
+
+class UserDBHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, userid):
+        self.render("DB_manage.html", userid=userid)
+        return
+    
+    @tornado.web.authenticated
+    def post(self, userid):
+        try:
+            user = self.db.user.get(userid, fields=('role', 'email'))
+            envs = self.request.body_arguments
+            mail = envs['adminmail'][0]
+            pwd = u"{0}".format(envs['adminpwd'][0])
+            now=datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
+                if ('backupbtn' in envs):
+                    if user and user['role'] == "admin":
+                        filename = config.sqlite3.path
+                        savename = "database_{now}.db".format(now=now)
+                        self.set_header ('Content-Type', 'application/octet-stream')
+                        self.set_header ('Content-Disposition', 'attachment; filename='+savename)
+                        with open(filename, 'rb') as f:
+                            while True:
+                                data = f.read(1024)
+                                if not data:
+                                    break
+                                self.write(data)
+                        self.finish()
+                        return
+                    else:
+                        raise Exception(u"管理员才能备份数据库") 
+            else:
+                raise Exception(u"账号/密码错误")   
+        except Exception as e:
+            self.render('tpl_run_failed.html', log=e)
+            return
+            
+        self.redirect('/my/')
+        return
      
 handlers = [
         ('/user/(\d+)/pushsw', UserRegPushSw),
         ('/user/(\d+)/regpush', UserRegPush),
         ('/user/(\d+)/manage', UserManagerHandler),
+        ('/user/(\d+)/database', UserDBHandler),
         ]

@@ -64,6 +64,7 @@
   <div class="text-right">
     {% if task %}
     <a class="btn btn-default" data-method="POST" href="/task/{{ task.id }}/del" data-confirm="是否要删除任务?">删除</a>
+    <a class="btn btn-default" data-method="POST" href="/task/{{ task.id }}/disable" data-confirm="是否禁用任务?">禁用</a>
     {% else %}
     <button id="run" data-loading-text="loading..." class="btn btn-default">测试</button>
     {% endif %}

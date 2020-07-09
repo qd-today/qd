@@ -12,10 +12,18 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
-## 2020.6.22 更新
+## 2020.07.09更新
+1. 添加 管理员 备份数据库功能
+2. 添加任务日志清空功能
+3. 修复定时的随机延时取消失败的BUG
+4. 添加任务禁用功能
+5. 为了提高兼容性，请求不验证SSL
+
+## 2020.6.22 更新W
 1. 修复检查公共模板更新功能；
 2. 美化左侧三按钮(By 十六君)
 3. 修复插入RSA加密实际是字符串替换的BUG
+4. 修改请求为不验证SSL，提升兼容性
    
 ## 2020.6.14 更新
 1. 添加RSA加密/解密

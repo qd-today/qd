@@ -222,6 +222,19 @@ class TaskLogHandler(BaseHandler):
 
         self.render('tasklog.html', task=task, tasklog=tasklog)
 
+class TaskLogDelHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, taskid):
+        user = self.current_user
+        task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'disabled')))
+        tasklog = self.db.tasklog.list(taskid = taskid, fields=('id', 'success', 'ctime', 'msg'))
+        for log in tasklog:
+            self.db.tasklog.delete(log['id'])
+        tasklog = self.db.tasklog.list(taskid = taskid, fields=('id', 'success', 'ctime', 'msg'))
+
+        self.redirect("/task/{0}/log".format(taskid))
+        return
+
 class TaskDelHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self, taskid):
@@ -231,6 +244,17 @@ class TaskDelHandler(BaseHandler):
         for log in logs:
             self.db.tasklog.delete(log['id'])
         self.db.task.delete(task['id'])
+        
+        referer = self.request.headers.get('referer', '/my/')
+        self.redirect(referer)
+
+class TaskDisableHandler(BaseHandler):
+    @tornado.web.authenticated
+    def post(self, taskid):
+        user = self.current_user
+        task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid', )), 'w')
+        logs = self.db.tasklog.list(taskid = taskid, fields=('id'))
+        self.db.task.mod(task['id'], disabled=1)
         
         referer = self.request.headers.get('referer', '/my/')
         self.redirect(referer)
@@ -273,6 +297,8 @@ class TaskSetTimeHandler(TaskNewHandler):
                         ontime_new['tz2'] = tz2
                     else:
                         raise Exception(u"随机时间开始要大于结束")
+                else:
+                    ontime_new['randsw'] = False
                 todayflg = True if ('todayflg' in form) else False
                 next_ts = calNextTimestamp(ontime_new, todayflg)
             else :
@@ -329,8 +355,10 @@ handlers = [
         ('/task/new', TaskNewHandler),
         ('/task/(\d+)/edit', TaskEditHandler),
         ('/task/(\d+)/settime', TaskSetTimeHandler),
-        ('/task/(\d+)/del', TaskDelHandler),
+        ('/task/(\d+)/del', TaskDelHandler), 
+        ('/task/(\d+)/disable', TaskDisableHandler),
         ('/task/(\d+)/log', TaskLogHandler),
+        ('/task/(\d+)/log/del', TaskLogDelHandler),
         ('/task/(\d+)/run', TaskRunHandler),
         ('/task/(\d+)/group', TaskGroupHandler),
         ]

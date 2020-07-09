@@ -97,6 +97,7 @@ class Fetcher(object):
                 allow_nonstandard_methods = True,
                 allow_ipv6 = True,
                 prepare_curl_callback = set_size_limit_callback,
+                validate_cert=False,
                 )
 
         session = cookie_utils.CookieSession()

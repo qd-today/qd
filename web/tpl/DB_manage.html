@@ -1,0 +1,22 @@
+{% import "utils.html" as utils %}
+<form method="POST" action="/user/{{ userid }}/database">
+
+  <h2 class="text-center">用户列表</h2>
+  <hr>
+    
+  <div class="form-group">
+    <label class="control-label" for="note">必须输入账号密码验证！！！</label>
+    <label class="control-label" for="note">邮箱</label>
+    <input type="text" class="form-control" name="adminmail" value="" id="adminmail" placeholder="管理员邮箱">
+    <label class="control-label" for="note">密码</label>
+    <input type="text" class="form-control" name="adminpwd" value="" id="adminpwd" placeholder="管理员密码">
+  </div>
+
+  <div class="text-right">
+    <button id="backup" name="backupbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">备份</button>
+    <button id="recovery" name="recoverybtn" type="submit" data-loading-text="loading..." class="btn btn-primary">恢复</button>
+  </div>
+
+  {{ utils.submit_loading() }}
+</form>
+
