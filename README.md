@@ -12,6 +12,10 @@ docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.c
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
+数据库备份指令：```docker cp 容器名:/usr/src/app/config/database.db . ```
+
+数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
+
 ## 2020.07.09更新
 1. 添加 管理员 备份数据库功能
 2. 添加任务日志清空功能
