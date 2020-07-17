@@ -16,6 +16,10 @@ docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qian
 
 数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
 
+## 2020.07.17更新
+1. 使报错显示中文，添加点击复制错误日志按钮(by [liubei121212](https://github.com/liubei121212/qiandao))
+2. 主页版本从alpha修改为20200717
+
 ## 2020.07.09更新
 1. 添加 管理员 备份数据库功能
 2. 添加任务日志清空功能
