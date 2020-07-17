@@ -7,3 +7,4 @@ env27/
 .python-version
 .vscode
 database - 副本.db
+*.un~

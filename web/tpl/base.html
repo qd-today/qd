@@ -32,6 +32,7 @@
     <link rel="apple-touch-icon" sizes="167x167" href="{{ static_url('img/167.png') }}" />
     <link rel="apple-touch-icon" sizes="120x120" href="{{ static_url('img/120.png') }}" />
     <link rel="apple-touch-icon-precomposed" sizes="180x180" href="{{ static_url('img/180.png') }}" />	
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script> 
 	
     <script src="{{ static_url('components/seajs/dist/sea.js') }}"></script>
     <script>
@@ -55,6 +56,7 @@
   </head>
 
   <body>
+<script>var clipboard = new ClipboardJS('.btn');clipboard.on('success', function(e) {alert("复制成功");});clipboard.on('error', function(e) {alert("复制失败");});</script>
     {% block body %}{% endblock %}
     {% block foot %}
     <footer>

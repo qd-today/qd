@@ -17,6 +17,9 @@ from worker import MainWorker
 import sqlite3_db_task_converter
 
 if __name__ == "__main__":
+    if sys.getdefaultencoding() != 'utf-8':
+        reload(sys)
+        sys.setdefaultencoding('utf-8')
     # init logging
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG if config.debug else logging.INFO)

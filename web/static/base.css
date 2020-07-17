@@ -39,3 +39,28 @@ h1 > a:focus {
   text-decoration: none;
   cursor: default;
 }
+
+.autowrap {
+    word-wrap: break-word;
+    word-break: break-all;
+    position: relative;
+}
+
+.autowrap:hover .hljs-button {
+	display: block
+}
+
+.hljs-button {
+	display: none;
+	position: absolute;
+	right: 4px;
+	top: 4px;
+	font-size: 12px;
+	color: #4d4d4d;
+	background-color: white;
+	padding: 2px 8px;
+	margin: 8px;
+	border-radius: 4px;
+	cursor: pointer;
+	box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.05);
+}

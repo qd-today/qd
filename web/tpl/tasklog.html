@@ -38,7 +38,7 @@
             <span class="text-danger">失败</span>
             {% endif %}
           </td>
-          <td>{{ log.msg }}</td>
+          <td class="autowrap">{{ log.msg }}<button class="btn hljs-button" data-clipboard-text="{{ log.msg }}">复制</button></td>
         </tr>
         {% endfor %}
       </tbody>
