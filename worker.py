@@ -148,7 +148,9 @@ class MainWorker(object):
         pusher =  {}
         pusher["barksw"] = False if (notice['noticeflg'] & 0x40) == 0 else True 
         pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True 
-        pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True 
+        pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True
+        logtime = json.loads(self.db.user.get(task['userid'], fields=('logtime'))['logtime'])
+        if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0 
 
         if task['disabled']:
             self.db.tasklog.add(task['id'], False, msg='task disabled.')
@@ -221,10 +223,11 @@ class MainWorker(object):
             content = u"日志：{log}".format(log=e)
             if next_time_delta:
                 # 每次都推送通知
-                if (notice['noticeflg'] & 0x1 == 1) and (pushsw['pushen']):
-                    if (pusher["barksw"]):pushno2b.send2bark(title, u"请自行排查")
-                    if (pusher["schansw"]):pushno2s.send2s(title, content)
-                    if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"  "+content)
+                if (logtime['ErrTolerateCnt'] <= task['last_failed_count']):
+                    if (notice['noticeflg'] & 0x1 == 1) and (pushsw['pushen']):
+                        if (pusher["barksw"]):pushno2b.send2bark(title, u"请自行排查")
+                        if (pusher["schansw"]):pushno2s.send2s(title, content)
+                        if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"  "+content)
                 disabled = False
                 next = time.time() + next_time_delta
             else:

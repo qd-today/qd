@@ -130,6 +130,7 @@ class UserRegPushSw(BaseHandler):
         logtime = json.loads(self.db.user.get(userid, fields=('logtime'))['logtime'])
         if 'schanEN' not in logtime:logtime['schanEN'] = False
         if 'WXPEn' not in logtime:logtime['WXPEn'] = False
+        if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0
 
         self.render('user_register_pushsw.html', userid=userid, flg=flg, tasks=tasks, logtime=logtime)
 
@@ -145,8 +146,14 @@ class UserRegPushSw(BaseHandler):
                 task['pushsw']["pushen"] = False
                 tasks.append(task)
             temp = self.db.user.get(userid, fields=('noticeflg'))
-            #logtime = json.loads(self.db.user.get(userid, fields=('logtime'))['logtime'])
+
             env = json.loads(self.request.body_arguments['env'][0])
+            
+            logtime = json.loads(self.db.user.get(userid, fields=('logtime'))['logtime'])
+            if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0
+            if (logtime['ErrTolerateCnt'] != int(env['ErrTolerateCnt'])):
+                logtime['ErrTolerateCnt'] = int(env['ErrTolerateCnt'])
+                self.db.user.mod(userid, logtime=json.dumps(logtime))
 
             barksw_flg        = 1 if ("barksw" in env) else 0 
             schansw_flg       = 1 if ("schansw" in env) else 0 
