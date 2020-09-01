@@ -132,9 +132,9 @@ class MainWorker(object):
 
     @gen.coroutine
     def do(self, task):
+        task['note'] = self.db.task.get(task['id'], fields=('note'))['note']
         user = self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname'))
-        tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl',
-            'interval', 'last_success'))
+        tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl', 'interval', 'last_success'))
         ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg', 'pushsw', 'newontime'))
         newontime = json.loads(ontime["newontime"])
         pushsw = json.loads(ontime['pushsw'])
