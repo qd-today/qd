@@ -108,7 +108,7 @@ class HARSave(BaseHandler):
         har = self.db.user.encrypt(userid, data['har'])
         tpl = self.db.user.encrypt(userid, data['tpl'])
         variables = json.dumps(list(self.get_variables(data['tpl'])))
-
+        groupName = 'None'
         if id:
             _tmp = self.check_permission(self.db.tpl.get(id, fields=('id', 'userid', 'lock')), 'w')
             if not _tmp['userid']:
@@ -121,6 +121,7 @@ class HARSave(BaseHandler):
                 return
 
             self.db.tpl.mod(id, har=har, tpl=tpl, variables=variables)
+            groupName = self.db.tpl.get(id, fields=('groups'))['groups']
         else:
             id = self.db.tpl.add(userid, har, tpl, variables)
             if not id:
@@ -134,7 +135,8 @@ class HARSave(BaseHandler):
                 note=setting.get('note'),
                 interval=setting.get('interval') or None,
                 mtime=time.time(),
-                updateable=0)
+                updateable=0,
+                groups=groupName)
         self.finish({
             'id': id
             })

@@ -199,8 +199,12 @@ class UserManagerHandler(BaseHandler):
         if user and user['role'] == "admin":
             adminflg = True
             users = []
-            for user in self.db.user.list(fields=('id','status', 'role', 'ctime', 'email', 'atime')):
+            for user in self.db.user.list(fields=('id','status', 'role', 'ctime', 'email', 'atime', 'email_verified')):
                 if user['role'] != 'admin':
+                    if (user['email_verified'] == 0):
+                        user['email_verified'] = False
+                    else:
+                        user['email_verified'] = True
                     users.append(user)
 
         self.render("user_manage.html", users=users, userid=userid, adminflg=adminflg)

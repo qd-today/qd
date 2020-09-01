@@ -40,7 +40,7 @@ define (require, exports, module) ->
 
     if $('body').attr('get-cookie') is undefined
       alert('尚未安装GetCookie插件，请安装插件或手动获取！')
-      # $this.attr('href', 'https://chrome.google.com/webstore/detail/cookies-get-assistant/ljjpkibacifkfolehlgaolibbnlapkme').attr('target', '_blank')
+      $this.attr('href', 'https://chrome.google.com/webstore/detail/cookies-get-assistant/ljjpkibacifkfolehlgaolibbnlapkme').attr('target', '_blank')
       return
   )
   window.addEventListener("message", (ev) ->

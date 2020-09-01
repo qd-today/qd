@@ -33,7 +33,8 @@ class DBconverter(_TaskDB, BaseDB):
             if config.db_type == 'sqlite3':
                 self._execute('''CREATE TABLE IF NOT EXISTS `%s` (
                         `id` INTEGER NOT NULL PRIMARY KEY,
-                        `regEn` INT UNSIGNED NOT NULL DEFAULT 1
+                        `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
+                        `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0
                         )''' %'site')
             else:
                 self.db.site._execute('''CREATE TABLE IF NOT EXISTS `user` (
@@ -79,7 +80,8 @@ class DBconverter(_TaskDB, BaseDB):
                 `mtime` INT UNSIGNED NOT NULL,
                 `atime` INT UNSIGNED NOT NULL,
                 `tplurl` VARCHAR(1024) NULL DEFAULT '',
-                `updateable` INT UNSIGNED NOT NULL DEFAULT 0
+                `updateable` INT UNSIGNED NOT NULL DEFAULT 0,
+                `groups` VARCHAR(256) NOT NULL DEFAULT 'None'
                 );''')
                 self.db.site._execute('''CREATE TABLE IF NOT EXISTS `task` (
                 `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -204,5 +206,16 @@ class DBconverter(_TaskDB, BaseDB):
                     raise Exception("new")
             except Exception as e:
                 insert = dict(regEn = 1)
-                self.db.site._insert(**insert)                    
+                self.db.site._insert(**insert)
+                
+            try:
+                self.db.site.get("1", fields=('MustVerifyEmailEn'))
+            except :
+                exec_shell("ALTER TABLE `site` ADD `MustVerifyEmailEn`  INT UNSIGNED NOT NULL DEFAULT 0 " )  
+
+            try:
+                self.db.tpl.get("1", fields=('groups'))
+            except :
+                exec_shell("ALTER TABLE `tpl` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
+                                
         return 

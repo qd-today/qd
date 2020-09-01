@@ -14,7 +14,8 @@ class SiteDB(_SiteDB, BaseDB):
         self.path = path
         self._execute('''CREATE TABLE IF NOT EXISTS `%s` (
           `id` INTEGER NOT NULL PRIMARY KEY,
-          `regEn` INT UNSIGNED NOT NULL DEFAULT 1
+          `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
+          `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0
         )''' % self.__tablename__)
 
         

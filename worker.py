@@ -207,7 +207,7 @@ class MainWorker(object):
             self.db.tpl.incr_success(tpl['id'])
             if (notice['noticeflg'] & 0x2 != 0):
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-                title = u"签到任务 {0} 成功".format(tpl['sitename'])
+                title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
                 logtemp = new_env['variables'].get('__log__')
                 if (notice['noticeflg'] & 0x2 != 0) and (pushsw['pushen']):
                     if (pusher["barksw"]):pushno2b.send2bark(title, u"{0} 运行成功".format(t))
@@ -219,7 +219,7 @@ class MainWorker(object):
             next_time_delta = self.failed_count_to_time(task['last_failed_count'], tpl['interval'])
                         
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-            title = u"签到任务 {0} 失败".format(tpl['sitename'])
+            title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
             content = u"日志：{log}".format(log=e)
             if next_time_delta:
                 # 每次都推送通知

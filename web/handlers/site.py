@@ -23,8 +23,9 @@ class SiteManagerHandler(BaseHandler):
         user = self.db.user.get(userid, fields=('role'))
         if user and user['role'] == "admin":
             adminflg = True
-            site = self.db.site.get(1, fields=('regEn'))
+            site = self.db.site.get(1, fields=('regEn', 'MustVerifyEmailEn'))
             site['regEn'] = False if site['regEn'] == 1 else True
+            site['MustVerifyEmailEn'] = False if site['MustVerifyEmailEn'] == 0 else True
 
         self.render("site_manage.html", userid=userid, adminflg=adminflg, site=site)
         return
@@ -46,6 +47,15 @@ class SiteManagerHandler(BaseHandler):
                         self.db.site.mod(1, regEn=1)
                         if (self.db.site.get(1, fields=('regEn'))['regEn'] != 1):
                             raise Exception(u"开启注册失败")
+                    
+                    if ("site.MustVerifyEmailEn" in envs):
+                        self.db.site.mod(1, MustVerifyEmailEn=1)
+                        if (self.db.site.get(1, fields=('MustVerifyEmailEn'))['MustVerifyEmailEn'] != 1):
+                            raise Exception(u"开启 强制邮箱验证 失败")
+                    else:
+                        self.db.site.mod(1, MustVerifyEmailEn=0)
+                        if (self.db.site.get(1, fields=('MustVerifyEmailEn'))['MustVerifyEmailEn'] != 0):
+                            raise Exception(u"关闭 强制邮箱验证 失败")
                 else:
                     raise Exception(u"账号/密码错误")
             else:

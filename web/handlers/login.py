@@ -31,6 +31,7 @@ class LoginHandler(BaseHandler):
     def post(self):
         email = self.get_argument('email')
         password = self.get_argument('password')
+        siteconfig = self.db.site.get(1, fields=('MustVerifyEmailEn'))
         if not email or not password:
             self.render('login.html', password_error=u'请输入用户名和密码', email=email)
             return
@@ -45,9 +46,13 @@ class LoginHandler(BaseHandler):
             return
 
         if self.db.user.challenge(email, password):
-            user = self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role'))
+            user = self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role', 'email_verified'))
             if not user:
                 self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email)
+                return
+            
+            if (siteconfig['MustVerifyEmailEn'] != 0) and (user['email_verified'] == 0):
+                self.render('login.html', password_error=u'未验证邮箱，请验证后登陆', email=email)
                 return
 
             setcookie = dict(

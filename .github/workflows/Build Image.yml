@@ -15,6 +15,6 @@ jobs:
               publish: true
               imageName: asdaragon/qiandao # dockerid/imageName
               platform: linux/arm64,linux/amd64 # 你准备构建的镜像平台
-              tag: 20200709,latest
+              tag: 20200901,latest
               dockerHubUser: ${{ secrets.DOCKER_USERNAME }} # docker hub userid 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
               dockerHubPassword: ${{ secrets.DOCKER_PASSWORD }} # docker hub password,在setting创建secrets name=DOCKER_PASSWORD  value=dockerpassword
