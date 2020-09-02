@@ -219,7 +219,7 @@ class MainWorker(object):
             next_time_delta = self.failed_count_to_time(task['last_failed_count'], tpl['interval'])
                         
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-            title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
+            title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
             content = u"日志：{log}".format(log=e)
             if next_time_delta:
                 # 每次都推送通知

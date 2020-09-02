@@ -172,7 +172,7 @@ class TaskRunHandler(BaseHandler):
         except Exception as e:
             if (notice['noticeflg'] & 0x4 != 0) and (taskpushsw['pushen']):
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-                title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
+                title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
                 if pusher["barksw"]:
                     pushno2b.send2bark(title, u"{0} 请排查原因".format(e))
                 if pusher["schansw"]:
