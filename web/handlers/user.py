@@ -10,6 +10,7 @@ import time
 import datetime
 from tornado import gen
 import re
+import os
 
 import config
 from base import *
@@ -20,6 +21,8 @@ import send2phone
 from web.handlers.task import calNextTimestamp
 
 from backup import DBnew
+
+import codecs
 
 def tostr(s):
     if isinstance(s, bytearray):
@@ -289,13 +292,62 @@ class UserDBHandler(BaseHandler):
                         return
                     else:
                         raise Exception(u"管理员才能备份数据库") 
+
+                if ('backuptplsbtn' in envs):
+                    tpls = []
+                    for tpl in self.db.tpl.list(userid=userid, fields=('siteurl', 'sitename', 'banner', 'note','fork', 'groups', 'har', 'tpl', 'variables'), limit=None):
+                        tpl['tpl'] = self.db.user.decrypt(userid, tpl['tpl'])
+                        tpl['har'] = self.db.user.decrypt(userid, tpl['har'])
+                        tpls.append(tpl)
+                    backupdata = {}
+                    backupdata['tpls'] = tpls
+                    savename = "./tmp_{mail}_{now}.json".format(mail = user['email'], now=now)
+                    fp = codecs.open(savename, 'w', 'utf-8')
+                    fp.write(json.dumps(backupdata, ensure_ascii=False, indent=4 ))
+                    fp.close()
+                    self.set_header ('Content-Type', 'application/octet-stream')
+                    self.set_header ('Content-Disposition', 'attachment; filename='+savename)
+                    with open(savename, 'rb') as f:
+                        while True:
+                            data = f.read(1024)
+                            if not data:
+                                break
+                            self.write(data)
+                    os.remove(savename)
+                    self.finish()
+                    return
+                    
+                if ('recoverytplsbtn' in envs):
+                    if ('recfile' in envs):
+                        tpls = json.loads(envs['recfile'][0])
+                        ids = []
+                        for newtpl in tpls["tpls"]:
+                            userid2 = int(userid)
+                            har = self.db.user.encrypt(userid2, newtpl['har'])
+                            tpl = self.db.user.encrypt(userid2, newtpl['tpl'])
+                            variables = newtpl['variables']
+                            id = self.db.tpl.add(userid2, har, tpl, variables)
+                            ids.append(id)
+                        tplcnt = 0
+                        for id in ids:
+                            tpl = tpls["tpls"][tplcnt]
+                            self.db.tpl.mod(id, fork = tpl['fork'],
+                                                siteurl = tpl['siteurl'],
+                                                sitename = tpl['sitename'],
+                                                note = tpl['note'],
+                                                groups = u'备份还原',
+                                                banner = tpl['banner']
+                                                )
+                            tplcnt = tplcnt + 1
+                        self.render('tpl_run_success.html', log=u"设置完成")
+                        return
+                    else:
+                        raise Exception(u"请上传文件")
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
             self.render('tpl_run_failed.html', log=e)
             return
-            
-        self.redirect('/my/')
         return
      
 handlers = [

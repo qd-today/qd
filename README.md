@@ -16,6 +16,9 @@ docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qian
 
 数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
 
+## 2020.09.07 更新
+1. 在数据库管理中增加一键备份/恢复所有模板的功能
+
 ## 2020.09.01 更新
 1. 正则提取支持post方式
 2. 取消getcookie插件提示(By powersee)

@@ -1,9 +1,15 @@
 {% import "utils.html" as utils %}
 <form method="POST" action="/user/{{ userid }}/database">
 
-  <h2 class="text-center">用户列表</h2>
+  <h2 class="text-center">数据库管理</h2>
   <hr>
-    
+
+  <div id="run-result"></div>
+
+  <div>
+      <input type="file" id="recfile" />
+  </div>
+
   <div class="form-group">
     <label class="control-label" for="note">必须输入账号密码验证！！！</label>
     <label class="control-label" for="note">邮箱</label>
@@ -13,10 +19,91 @@
   </div>
 
   <div class="text-right">
-    <button id="backup" name="backupbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">备份</button>
-    <button id="recovery" name="recoverybtn" type="submit" data-loading-text="loading..." class="btn btn-primary">恢复</button>
+    <button id="backup" name="backupbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">备份数据库</button>
+    <button id="backuptpls" name="backuptplsbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">备份模板</button>
+    <button id="recoverytpls" name="recoverytplsbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">恢复模板</button>
   </div>
 
   {{ utils.submit_loading() }}
+
+  <script>
+    $(function() {
+      $('#recoverytpls').on('click', function() {
+        var fileObj = document.getElementById("recfile").files[0];
+        var reader = new FileReader();
+        reader.onload = function(event) {
+
+          var env = {};
+          var data = {}
+          for (var _env=$('form').serializeArray(), i=_env.length-1; i>=0; i--) {
+            env[_env[i].name] = _env[i].value;
+          }
+          env["recoverytplsbtn"] = "";
+          env["recfile"] = event.target.result;
+
+          $this = $('#recoverytpls')
+          $this.button('loading');
+          $.ajax("/user/{{ userid }}/database", {
+            type: 'POST',
+            data: env,
+          })
+          .done(function(data) {
+            $('#run-result').html(data).show()
+          })
+          .fail(function(jxhr) {
+            $('#run-result').html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+          })
+          .always(function() {
+            $this.button('reset');
+          });
+          return false;
+          };
+        reader.onprogress = function(event) {
+          $('#recoverytpls').button('reset');
+        }
+        reader.readAsText(fileObj);
+        return false;
+      });
+    })
+
+  </script>
+
+<script>
+  $(function() {
+    // run test
+    $('#backup, #backuptpls').on('click', function() {
+      var env = {};
+      for (var _env=$('form').serializeArray(), i=_env.length-1; i>=0; i--) {
+        env[_env[i].name] = env[i].value;
+      }
+      var data = {}
+      if (this.name == "backup"){
+        env['backup'] = "";
+      }else{
+        env['backuptpls'] = "";
+      }
+      var $this = $(this);
+      $this.button('loading');
+      $.ajax("/user/{{ userid }}/database", {
+        type: 'POST',
+        data: data,
+      })
+      .done(function(data) {
+        $('#run-result').html(data).show()
+      })
+      .fail(function(jxhr) {
+        $('#run-result').html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+      })
+      .always(function() {
+        $this.button('reset');
+      });
+
+      return false;
+    });
+  })
+</script>
+
 </form>
+
+
 
