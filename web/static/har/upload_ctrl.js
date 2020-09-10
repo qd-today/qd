@@ -201,7 +201,8 @@
       if (HARDATA != ""){
         element.find('button').button('loading');
         reader = new FileReader();
-        data =  window.atob(HARDATA)
+        
+        data = Base64.decode(HARDATA)   // 解码
         $scope.load_file(angular.fromJson(data));
         element.find('button').button('reset');
         return true

@@ -14,6 +14,7 @@ import base64
 import json
 import os
 import codecs
+import urllib
 
 def my_status(task):
     if task['disabled']:
@@ -73,7 +74,7 @@ class SubscribeHandler(BaseHandler):
                         pass
                     else:
                         tpl["date"] = hjson[harurl]["date"]
-                        tpl['content'] = base64.b64encode(requests.get(harurl, verify=False).content)
+                        tpl['content'] = base64.b64encode(requests.get(harurl, verify=False).content.decode('utf-8', 'replace'))
                         tpl["update"] = True
                         hjson[harurl] = tpl
 
@@ -81,7 +82,8 @@ class SubscribeHandler(BaseHandler):
                             if (tpl_temp['tplurl'] == harurl) and (tpl_temp['updateable'] != 1):
                                 self.db.tpl.mod(tpl_temp['id'],updateable=1)
                 else:
-                    tpl['content'] = base64.b64encode(requests.get(harurl, verify=False).content)
+                    tmp = requests.get(harurl, verify=False).content.decode('utf-8', 'replace')
+                    tpl['content'] = base64.b64encode(tmp)
                     hjson[harurl] = tpl
                 
             for key in hjson:
