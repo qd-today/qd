@@ -16,6 +16,14 @@ docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qian
 
 数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
 
+## 2020.09.10 更新
+1. 鉴于github 污染严重，使用gitee代替作为订阅源，地址：[https://gitee.com/qiandao-today/templates](https://gitee.com/qiandao-today/templates)
+2. 首页的检查模板更新取消，打开公共模板仓库会自动检查更新
+3. 修复邮箱验证，注册后未验证可以再次点击注册验证
+4. 修改任务时显示前值
+
+本次更新有js脚本更新，请开启chrome 的 “disable cache”功能更新js脚本
+
 ## 2020.09.07 更新
 1. 在数据库管理中增加一键备份/恢复所有模板的功能
 

@@ -52,7 +52,7 @@ class LoginHandler(BaseHandler):
                 return
             
             if (siteconfig['MustVerifyEmailEn'] != 0) and (user['email_verified'] == 0):
-                self.render('login.html', password_error=u'未验证邮箱，请验证后登陆', email=email)
+                self.render('login.html', password_error=u'未验证邮箱，请点击注册重新验证邮箱', email=email)
                 return
 
             setcookie = dict(
@@ -83,48 +83,67 @@ class RegisterHandler(BaseHandler):
         return self.render('register.html')
 
     def post(self):
-        siteconfig = self.db.site.get(1, fields=('regEn'))
+        siteconfig = self.db.site.get(1, fields=('regEn', 'MustVerifyEmailEn'))
         regEn = siteconfig['regEn']
-        if (regEn == 1):
-            self.evil(+5)
-
-            email = self.get_argument('email')
-            password = self.get_argument('password')
-
-            if not email:
-                self.render('register.html', email_error=u'请输入邮箱')
-                return
-            if email.count('@') != 1 or email.count('.') == 0:
-                self.render('register.html', email_error=u'邮箱格式不正确')
-                return
-            if len(password) < 6:
-                self.render('register.html', password_error=u'密码需要大于6位', email=email)
-                return
-
-            try:
-                self.db.user.add(email=email, password=password, ip=self.ip2int)
-            except self.db.user.DeplicateUser as e:
-                self.evil(+3)
-                self.render('register.html', email_error=u'email地址已注册')
-                return
-            user = self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role'))
-
-            setcookie = dict(
-                    expires_days=config.cookie_days,
-                    httponly=True,
-                    )
-            if config.https:
-                setcookie['secure'] = True
-            self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
-
-            next = self.get_argument('next', '/my/')
-            self.redirect(next)
-            future = self.send_mail(user)
-            if future:
-                IOLoop.current().add_future(future, lambda x: x)
-        else:
-            self.render('register.html', email_error=u'管理员关闭注册')
+        MustVerifyEmailEn = siteconfig['MustVerifyEmailEn']
+        email = self.get_argument('email')
+        password = self.get_argument('password')
+        
+        if not email:
+            self.render('register.html', email_error=u'请输入邮箱')
             return
+        if email.count('@') != 1 or email.count('.') == 0:
+            self.render('register.html', email_error=u'邮箱格式不正确')
+            return
+        if len(password) < 6:
+            self.render('register.html', password_error=u'密码需要大于6位', email=email)
+            return
+
+        user = self.db.user.get(email = email, fields=('id', 'email', 'email_verified', 'nickname', 'role'))
+        if (user == None):
+            if (regEn == 1):
+                self.evil(+5)
+                try:
+                    self.db.user.add(email=email, password=password, ip=self.ip2int)
+                except self.db.user.DeplicateUser as e:
+                    self.evil(+3)
+                    self.render('register.html', email_error=u'email地址已注册')
+                    return
+                user = self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role'))
+
+                setcookie = dict(
+                        expires_days=config.cookie_days,
+                        httponly=True,
+                        )
+                if config.https:
+                    setcookie['secure'] = True
+                self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
+
+                
+                if siteconfig['MustVerifyEmailEn'] != 1:
+                    next = self.get_argument('next', '/my/')
+                    self.redirect(next)
+                else:
+                    self.render('register.html', email_error=u'请验证邮箱后再登陆')
+                future = self.send_mail(user)
+                if future:
+                    IOLoop.current().add_future(future, lambda x: x)
+                
+            else:
+                self.render('register.html', email_error=u'管理员关闭注册')
+            return
+        else:
+            if (MustVerifyEmailEn == 1):
+                if (user['email_verified'] != 1):
+                    self.render('register.html', email_error=u'email地址未验证，邮件已发送，请验证邮件后登陆')
+                    future = self.send_mail(user)
+                    if future:
+                        IOLoop.current().add_future(future, lambda x: x)
+                else:
+                    self.render('register.html', email_error=u'email地址已注册')
+            else:
+                self.render('register.html', email_error=u'email地址已注册')
+        return
 
     def send_mail(self, user):
         verified_code = [user['email'], time.time()]

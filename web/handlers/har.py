@@ -18,7 +18,8 @@ class HAREditor(BaseHandler):
     def get(self, id=None):
         harurl = self.get_argument("tplurl", "")
         harname = self.get_argument("name", "")
-        return self.render('har/editor.html', tplid=id, harpath=harurl, harname=harname)
+        hardata = self.get_argument("tpldata", "")
+        return self.render('har/editor.html', tplid=id, harpath=harurl, harname=harname, hardata=hardata)
 
     def post(self, id):
         user = self.current_user

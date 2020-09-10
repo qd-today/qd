@@ -113,7 +113,6 @@
       我的模板
       <a href="/har/edit" class="btn btn-default btn-xs glyphicon glyphicon-plus" target="_blank"></a>
       <span type="span" class="btn btn-default"><a href="/subscribe" target="_blank" title="查看公共模板">公共模板</a></span>
-      <span type="span" class="btn btn-default"><a href="/my/checkupdate" target="_blank" title="检查公共模板更新">检查模板更新</a></span>
     </h2>
     <table class="table table-hover">
       <thead>
@@ -141,7 +140,10 @@
           <tr class="{{ tplgroup }} tplgroups" >
             <td>
               {% if  tpl.updateable == 1 %}
-              <span type="span" class="btn btn-default"><a href="/tpl/{{ tpl.id }}/edit?tplurl={{ tpl.tplurl | urlencode }}" target="_blank" title="更新模板">更新</a></span>
+              <span type="span" class="btn btn-default">
+                <a href="/tpl/{{ tpl.id }}/edit?tplurl={{ tpl.tplurl | urlencode }}?tpldata={{ tpl.tpldata | urlencode }}" target="_blank" title="更新模板">更新
+                </a>
+              </span>
               {% endif %}
               {{ utils.tplname(tpl) }}
       

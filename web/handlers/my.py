@@ -12,6 +12,8 @@ import urllib
 
 import requests
 import re
+import os
+import json
 
 def my_status(task):
     if task['disabled']:
@@ -35,8 +37,19 @@ class MyHandler(BaseHandler):
             if  self.db.user.get(user['id'], fields=('role'))['role'] == 'admin':
                 adminflg = True
 
+            hfile = "./tpls_history.json"
+
+            if (True == os.path.isfile(hfile)):
+                hjson = json.loads(open(hfile, 'r').read())
+            else:
+                hjson = {}
             tpls = []
-            for tpl in self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'groups'), limit=None):
+
+            for tpl in self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'groups', 'updateable', 'tplurl'), limit=None):
+                tplurl = tpl['tplurl']
+                if (tpl['updateable'] == 1) and (tplurl in hjson):
+                    if (hjson[tplurl]['update']):
+                        tpl['tpldata'] = hjson[tplurl]['content']
                 tpls.append(tpl)
 
             tasks = []
@@ -66,7 +79,7 @@ class CheckUpdateHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         user = self.current_user
-        tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable"), limit=None)
+        tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable",), limit=None)
         
         tasks = []
         for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'groups'), limit=None):

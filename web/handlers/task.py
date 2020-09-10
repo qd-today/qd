@@ -125,6 +125,13 @@ class TaskEditHandler(TaskNewHandler):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid',
             'tplid', 'disabled', 'note')), 'w')
+        task['init_env'] = self.db.user.decrypt(user['id'], self.db.task.get(taskid, 'init_env')['init_env'])
+        envs = []
+        for key, value in task['init_env'].items():
+            tmp = {'init_env_name':key}
+            tmp['data'] = value
+            envs.append(tmp)
+        task['init_env'] = envs
 
         tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'note',
             'sitename', 'siteurl', 'variables')))
