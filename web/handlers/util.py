@@ -115,6 +115,27 @@ class UtilRegexHandler(BaseHandler):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
 
+    @gen.coroutine
+    def post(self):
+        Rtv = {}
+        try:
+            res_data = request_parse(self.request)
+            p = res_data["p"][0].decode('utf8') if 'p' in  res_data else None
+            data = res_data["data"][0].decode('utf8') if "data" in  res_data else None 
+            temp = {}
+            ds = re.findall(p, data, re.IGNORECASE)
+            for cnt in range (0, len(ds)):
+                temp[cnt+1] = ds[cnt]
+            Rtv[u"数据"] = temp
+            Rtv[u"状态"] = "OK"
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+
+        return
+
 class UtilStrReplaceHandler(BaseHandler):
     @gen.coroutine
     def get(self):

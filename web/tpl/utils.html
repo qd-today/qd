@@ -1,7 +1,7 @@
 {% macro header(current_user=True) %}
 <header>
   <div class="container">
-    <h2 class="text-center">私有签到框架<sup>alpha</sup></h2>
+    <h2 class="text-center">私有签到框架<sup>20200910</sup></h2>
     <div class="buttons">
       <a href="/" class="btn btn-default pull-left">首页</a>
       <a href="/about" class="btn btn-default pull-left">常用API/过滤器</a>
@@ -151,7 +151,7 @@ $(function() {
 
     if ($('body').attr('get-cookie') === undefined) {
       alert('尚未安装GetCookie插件，请安装插件或手动获取！');
-      $this.attr('href', 'https://chrome.google.com/webstore/detail/cookies-get-assistant/ljjpkibacifkfolehlgaolibbnlapkme').attr('target', '_blank');
+      // $this.attr('href', 'https://chrome.google.com/webstore/detail/cookies-get-assistant/ljjpkibacifkfolehlgaolibbnlapkme').attr('target', '_blank');
       return;
     }
   });

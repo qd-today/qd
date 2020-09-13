@@ -16,10 +16,10 @@
       我的签到
       <a href="/task/new" class="btn btn-default btn-xs modal_load glyphicon glyphicon-plus"></a>
       <span type="span" class="btn btn-default">
-        <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/regpush" title="注册BarkURL">推送注册</a>
+        <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/regpush" title="注册推送工具">推送注册</a>
       </span>
       <span type="span" class="btn btn-default">
-        <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/pushsw" title="推送通知开关">推送通知开关</a>
+        <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/pushsw" title="推送设置">推送设置</a>
       </span>
       {% if adminflg %}
       <span type="span" class="btn btn-default">
@@ -115,7 +115,6 @@
       我的模板
       <a href="/har/edit" class="btn btn-default btn-xs glyphicon glyphicon-plus" target="_blank"></a>
       <span type="span" class="btn btn-default"><a href="/subscribe" target="_blank" title="查看公共模板">公共模板</a></span>
-      <span type="span" class="btn btn-default"><a href="/my/checkupdate" target="_blank" title="检查公共模板更新">检查模板更新</a></span>
     </h2>
     <table class="table table-hover">
       <thead>
@@ -128,40 +127,58 @@
         </tr>
       </thead>
       <tbody>
-        {% for tpl in tpls | sort(reverse=True, attribute="mtime") %}
-        <tr>
-          <td>
-            {% if  tpl.updateable == 1 %}
-            <span type="span" class="btn btn-default"><a href="/tpl/{{ tpl.id }}/edit?tplurl={{ tpl.tplurl | urlencode }}" target="_blank" title="更新模板">更新</a></span>
-            {% endif %}
-            {{ utils.tplname(tpl) }}
-		
-            {% if tpl.fork %}<span>[fork]</span>{% endif %}-<kbd>{{ tpl.siteurl }}</kbd>
-          </td>
-
-          <td><span data-toggle="popover" data-content="{{ format_date(tpl.ctime,-8*60,True,False,True)}}">{{ format_date(tpl.ctime) }}</span></td>         
-          <td><span data-toggle="popover" data-content="{{ format_date(tpl.mtime,-8*60,True,False,True)}}">{{ format_date(tpl.mtime) }}</span></td>
-		  
-          <td>
-            {% if tpl.last_success %}
-            <span class="last_success" data-toggle="popover" data-content="{{ format_date(tpl.last_success,-8*60,True,False,True)}} ">{{ format_date(tpl.last_success) }}</span>
-            {% else %}
-            从未
-            {% endif %}
-          </td>
-
-          <td style="text-align:center">
-            <div class="btn-group btn-group-xs" role="group" aria-label="...">
-              {% if tpl.lock %}
-              [锁定]
-              {% else %}
-              <span type="span" class="btn btn-default"><a href="/tpl/{{ tpl.id }}/edit" target="_blank" title="编辑模板数据">编辑</a></span>
-              <span type="span" class="btn btn-default"><a data-method="POST" href="/tpl/{{ tpl.id }}/del" data-confirm="是否要删除模板?" title="删除模板数据">删除</a></span>
+        {% for tplgroup in tplgroups | sort(reverse=True) %}
+        <tr name="{{tplgroup}} tplgroups">
+          <tr>
+            <td colspan="5">
+              <text>{{ tplgroup }}</text> 
+              <label>
+                <input type="checkbox"  name="{{ tplgroup }} tplgroups" onchange="checkboxOnclick(this)"> 
+              </label>
+            </td> 
+          </tr>
+          {% for tpl in tpls | sort(reverse=True, attribute="mtime") %}
+          {% if tplgroup == tpl.groups %}
+          <tr class="{{ tplgroup }} tplgroups" >
+            <td>
+              {% if  tpl.updateable == 1 %}
+              <span type="span" class="btn btn-default">
+                <a href="/tpl/{{ tpl.id }}/edit?tplurl={{ tpl.tplurl | urlencode }}?tpldata={{ tpl.tpldata | urlencode }}" target="_blank" title="更新模板">更新
+                </a>
+              </span>
               {% endif %}
-              <span type="span" class="btn btn-default"><a class="modal_load" href="/task/new?tplid={{ tpl.id }}" title="通过此模板新建签到">新建</a></span>
-              <span type="span" class="btn btn-default"><a class="modal_load" href="/tpl/{{ tpl.id }}/push" title="发布自己创建的模板">发布</a></span>
-			      </div>
-          </td>
+              {{ utils.tplname(tpl) }}
+      
+              {% if tpl.fork %}<span>[fork]</span>{% endif %}-<kbd>{{ tpl.siteurl }}</kbd>
+            </td>
+  
+            <td><span data-toggle="popover" data-content="{{ format_date(tpl.ctime,-8*60,True,False,True)}}">{{ format_date(tpl.ctime) }}</span></td>         
+            <td><span data-toggle="popover" data-content="{{ format_date(tpl.mtime,-8*60,True,False,True)}}">{{ format_date(tpl.mtime) }}</span></td>
+        
+            <td>
+              {% if tpl.last_success %}
+              <span class="last_success" data-toggle="popover" data-content="{{ format_date(tpl.last_success,-8*60,True,False,True)}} ">{{ format_date(tpl.last_success) }}</span>
+              {% else %}
+              从未
+              {% endif %}
+            </td>
+  
+            <td style="text-align:center">
+              <div class="btn-group btn-group-xs" role="group" aria-label="...">
+                {% if tpl.lock %}
+                [锁定]
+                {% else %}
+                <span type="span" class="btn btn-default"><a href="/tpl/{{ tpl.id }}/edit" target="_blank" title="编辑模板数据">编辑</a></span>
+                <span type="span" class="btn btn-default"><a data-method="POST" href="/tpl/{{ tpl.id }}/del" data-confirm="是否要删除模板?" title="删除模板数据">删除</a></span>
+                {% endif %}
+                <span type="span" class="btn btn-default"><a class="modal_load" href="/task/new?tplid={{ tpl.id }}" title="通过此模板新建签到">新建</a></span>
+                <span type="span" class="btn btn-default"><a class="modal_load" href="/tpl/{{ tpl.id }}/push" title="发布自己创建的模板">发布</a></span>
+                <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/tpl/{{ tpl.id }}/group" title="将模板分组">分组</a></span>
+              </div>
+            </td>
+          
+          {% endif %}
+          {% endfor %}
         </tr>
         {% endfor %}
       </tbody>

@@ -12,6 +12,8 @@ import urllib
 
 import requests
 import re
+import os
+import json
 
 def my_status(task):
     if task['disabled']:
@@ -34,20 +36,41 @@ class MyHandler(BaseHandler):
         if (self.db.user.get(user['id'], fields=('id'))):
             if  self.db.user.get(user['id'], fields=('role'))['role'] == 'admin':
                 adminflg = True
-            tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork'), limit=None)
+
+            hfile = "./tpls_history.json"
+
+            if (True == os.path.isfile(hfile)):
+                hjson = json.loads(open(hfile, 'r').read())
+            else:
+                hjson = {}
+            tpls = []
+
+            for tpl in self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'groups', 'updateable', 'tplurl'), limit=None):
+                tplurl = tpl['tplurl']
+                if (tpl['updateable'] == 1) and (tplurl in hjson):
+                    if (hjson[tplurl]['update']):
+                        tpl['tpldata'] = hjson[tplurl]['content']
+                tpls.append(tpl)
 
             tasks = []
             for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'groups'), limit=None):
                 tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
                 task['tpl'] = tpl
                 tasks.append(task)
+
             groups = []
             for task in tasks:
                 temp = task['groups']
                 if (temp not  in groups):
                     groups.append(temp)
+
+            tplgroups = []
+            for tpl in tpls:
+                temp = tpl['groups']
+                if (temp not  in tplgroups):
+                    tplgroups.append(temp)
                     
-            self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=groups, adminflg=adminflg)
+            self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=groups,  tplgroups=tplgroups, adminflg=adminflg)
         else:
             return self.redirect('/login')
 
@@ -56,7 +79,7 @@ class CheckUpdateHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self):
         user = self.current_user
-        tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable"), limit=None)
+        tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable",), limit=None)
         
         tasks = []
         for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'groups'), limit=None):
@@ -100,9 +123,15 @@ class CheckUpdateHandler(BaseHandler):
                         if (tpl['mtime'] < common_tpl['update_time_ts']):
                             self.db.tpl.mod(tpl["id"], updateable=1)
                             
-        tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable"), limit=None)
-            
-        self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=groups)
+        tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable", 'groups'), limit=None)
+        
+        tplgroups = []
+        for tpl in tpls:
+            temp = tpl['groups']
+            if (temp not  in tplgroups):
+                groups.append(temp)
+
+        self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=groups, tplgroups=tplgroups)
 
 handlers = [
         ('/my/?', MyHandler),

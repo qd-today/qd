@@ -15,6 +15,9 @@ from web.app import Application
 from worker import MainWorker
 
 import sqlite3_db_task_converter
+import requests
+
+requests.packages.urllib3.disable_warnings()
 
 if __name__ == "__main__":
     if sys.getdefaultencoding() != 'utf-8':

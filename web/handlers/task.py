@@ -125,6 +125,13 @@ class TaskEditHandler(TaskNewHandler):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid',
             'tplid', 'disabled', 'note')), 'w')
+        task['init_env'] = self.db.user.decrypt(user['id'], self.db.task.get(taskid, 'init_env')['init_env'])
+        envs = []
+        for key, value in task['init_env'].items():
+            tmp = {'init_env_name':key}
+            tmp['data'] = value
+            envs.append(tmp)
+        task['init_env'] = envs
 
         tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'note',
             'sitename', 'siteurl', 'variables')))
@@ -140,7 +147,7 @@ class TaskRunHandler(BaseHandler):
 
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'init_env',
-            'env', 'session', 'last_success', 'last_failed', 'success_count',
+            'env', 'session', 'last_success', 'last_failed', 'success_count', 'note',
             'failed_count', 'last_failed_count', 'next', 'disabled', 'ontime', 'ontimeflg', 'pushsw','newontime')), 'w')
 
         tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename',
@@ -172,7 +179,7 @@ class TaskRunHandler(BaseHandler):
         except Exception as e:
             if (notice['noticeflg'] & 0x4 != 0) and (taskpushsw['pushen']):
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-                title = u"签到任务 {0} 手动运行失败".format(tpl['sitename'])
+                title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
                 if pusher["barksw"]:
                     pushno2b.send2bark(title, u"{0} 请排查原因".format(e))
                 if pusher["schansw"]:
@@ -200,7 +207,7 @@ class TaskRunHandler(BaseHandler):
         
         if (notice['noticeflg'] & 0x8 != 0) and (taskpushsw['pushen']):
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-            title = u"签到任务 {0} 手动运行成功".format(tpl['sitename'])
+            title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
             if pusher["barksw"]:
                 pushno2b.send2bark(title, u"{0} 成功".format(t))
             if pusher["schansw"]:

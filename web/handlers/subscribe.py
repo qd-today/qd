@@ -10,6 +10,11 @@ from base import *
 
 import requests
 import re
+import base64
+import json
+import os
+import codecs
+import urllib
 
 def my_status(task):
     if task['disabled']:
@@ -28,28 +33,69 @@ class SubscribeHandler(BaseHandler):
     def get(self):
         user = self.current_user
         tpls = []
-        url = "https://github.com/qiandao-today/templates"
+        tpls2 = []
+        for tpl in  self.db.tpl.list(userid=user['id'], fields=('id', 'tplurl', "updateable"), limit=None):
+            tpls2.append(tpl)
+
+        url = "https://gitee.com/api/v5/repos/qiandao-today/templates/readme"
         
         res = requests.get(url, verify=False)
-        if (res.status_code == 200):
-            content = res.content.decode(res.encoding, 'replace')
-            README_content = re.findall(r"<article([\w\W]+?)</article", content)[0]
-            tpls_temp = re.findall(r"tr>([\w\W]+?)</tr", README_content)
+        if (res.status_code == 200):            
+            content = json.loads(res.content)['content']
+            content = base64.b64decode(content)
+            README_content = re.findall(r":-: \| :-: \| :-: \| :-: \|:-:([\w\W]*)", content)[0]
+            tpls_temp = re.findall(r"(.*?)\n", README_content)
+            old_hjson = {}
+            hfile = "./tpls_history.json"
+
+            if (True == os.path.isfile(hfile)):
+                hjson = json.loads(open(hfile, 'r').read())
+            else:
+                hjson = {}
+
+            old_hjson = hjson.copy() 
             
             for cnt in range(1, len(tpls_temp)):
-                tpl_temp = re.findall(r"center\">(.+?)</td", tpls_temp[cnt])
-                harurl = re.findall(r"href=\"(.+?)\"", tpl_temp[2])[0]
-                filename = re.findall(r">(.+?)<", tpl_temp[2])[0]
-                
-                tpls.append ({
-                                "name":tpl_temp[0],
-                                "author":tpl_temp[1],
+                temp = tpls_temp[cnt].split("|")
+                author = re.findall("\[(.*?)\]", temp[1])[0]
+                filename = re.findall("\[(.*?)\]", temp[2])[0]
+                harurl = re.findall("\]\((.*)\)", temp[2])[0]
+                tpl = {
+                                "name":temp[0],
+                                "author":author,
                                 "filename":filename,
                                 "url":harurl,
-                                "vars":tpl_temp[3],
-                                "comments":tpl_temp[4]
-                            })
+                                "date":temp[3],
+                                "comments":temp[4],
+                                "update":False
+                        }
+                if (harurl in hjson):
+                    if (tpl["date"] == hjson[harurl]["date"]):
+                        pass
+                    else:
+                        tpl["date"] = hjson[harurl]["date"]
+                        tpl['content'] = base64.b64encode(requests.get(harurl, verify=False).content.decode('utf-8', 'replace'))
+                        tpl["update"] = True
+                        hjson[harurl] = tpl
+
+                        for tpl_temp in tpls2:
+                            if (tpl_temp['tplurl'] == harurl) and (tpl_temp['updateable'] != 1):
+                                self.db.tpl.mod(tpl_temp['id'],updateable=1)
+                else:
+                    tmp = requests.get(harurl, verify=False).content.decode('utf-8', 'replace')
+                    tpl['content'] = base64.b64encode(tmp)
+                    hjson[harurl] = tpl
                 
+            for key in hjson:
+                tpls.append(hjson[key])
+                
+            if (cmp(old_hjson, hjson) == 0):
+                pass
+            else:
+                fp = codecs.open(hfile, 'w', 'utf-8')
+                fp.write(json.dumps(hjson, ensure_ascii=False, indent=4 ))
+                fp.close()
+
         self.render('tpl_subscribe.html', tpls=tpls, userid=user['id'])
 
 handlers = [

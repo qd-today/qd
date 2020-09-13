@@ -132,9 +132,9 @@ class MainWorker(object):
 
     @gen.coroutine
     def do(self, task):
+        task['note'] = self.db.task.get(task['id'], fields=('note'))['note']
         user = self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname'))
-        tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl',
-            'interval', 'last_success'))
+        tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl', 'interval', 'last_success'))
         ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg', 'pushsw', 'newontime'))
         newontime = json.loads(ontime["newontime"])
         pushsw = json.loads(ontime['pushsw'])
@@ -148,7 +148,9 @@ class MainWorker(object):
         pusher =  {}
         pusher["barksw"] = False if (notice['noticeflg'] & 0x40) == 0 else True 
         pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True 
-        pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True 
+        pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True
+        logtime = json.loads(self.db.user.get(task['userid'], fields=('logtime'))['logtime'])
+        if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0 
 
         if task['disabled']:
             self.db.tasklog.add(task['id'], False, msg='task disabled.')
@@ -205,7 +207,7 @@ class MainWorker(object):
             self.db.tpl.incr_success(tpl['id'])
             if (notice['noticeflg'] & 0x2 != 0):
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-                title = u"签到任务 {0} 成功".format(tpl['sitename'])
+                title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
                 logtemp = new_env['variables'].get('__log__')
                 if (notice['noticeflg'] & 0x2 != 0) and (pushsw['pushen']):
                     if (pusher["barksw"]):pushno2b.send2bark(title, u"{0} 运行成功".format(t))
@@ -217,14 +219,15 @@ class MainWorker(object):
             next_time_delta = self.failed_count_to_time(task['last_failed_count'], tpl['interval'])
                         
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-            title = u"签到任务 {0} 失败".format(tpl['sitename'])
+            title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
             content = u"日志：{log}".format(log=e)
             if next_time_delta:
                 # 每次都推送通知
-                if (notice['noticeflg'] & 0x1 == 1) and (pushsw['pushen']):
-                    if (pusher["barksw"]):pushno2b.send2bark(title, u"请自行排查")
-                    if (pusher["schansw"]):pushno2s.send2s(title, content)
-                    if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"  "+content)
+                if (logtime['ErrTolerateCnt'] <= task['last_failed_count']):
+                    if (notice['noticeflg'] & 0x1 == 1) and (pushsw['pushen']):
+                        if (pusher["barksw"]):pushno2b.send2bark(title, u"请自行排查")
+                        if (pusher["schansw"]):pushno2s.send2s(title, content)
+                        if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"  "+content)
                 disabled = False
                 next = time.time() + next_time_delta
             else:

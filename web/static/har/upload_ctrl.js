@@ -198,14 +198,14 @@
         return reader.readAsText($scope.file);
       }
       
-      if (HARPATH != ""){
+      if (HARDATA != ""){
         element.find('button').button('loading');
-        $.get(HARPATH,function(data){
-          reader = new FileReader();
-          $scope.load_file(angular.fromJson(data));
-          element.find('button').button('reset');
-          return true
-        });
+        reader = new FileReader();
+        
+        data = Base64.decode(HARDATA)   // 解码
+        $scope.load_file(angular.fromJson(data));
+        element.find('button').button('reset');
+        return true
       }
       else{
         return $scope.upload = function() {

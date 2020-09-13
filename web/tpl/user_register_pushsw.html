@@ -39,27 +39,10 @@
     </label>
   </div>
 
-  <!-- <label>定时日志设置：</label>
-  <div class="checkbox">
-    <label>
-      <input type="checkbox" id="logensw" name="logensw" {% if logtime.en %}  checked="" {% endif %}>总开关
-    </label>
+  <div class="form-group">
+    <label class="control-label" for="note">自动几次错误后提醒：</label>
+    <select id="ErrTolerateCnt" NAME="ErrTolerateCnt" ></select>
   </div>
-  
-  
-  <label>定时日志推送设备：</label>
-  <div class="checkbox">
-    <label>
-      <input type="checkbox" id="schanlogsw" name="schanlogsw" {% if logtime.schanEn %}  checked="" {% endif %}> S酱
-    </label>
-    <label>
-      <input type="checkbox" id="wxpusherlogsw" name="wxpusherlogsw" {% if logtime.WXPEn %}  checked="" {% endif %}> WXPusher
-    </label>
-  </div>
-
-  <div>定时日志推送时间：
-    <input type="time" id="timevalue" value="{{ logtime.time }}" name='timevalue', step="1" />
-  </div> -->
 
   <div id="taskpushsw">
     <table class="table table-hover">
@@ -67,7 +50,6 @@
         <tr>
           <th title="签到网站平台名称">任务名称</th>
           <th style="text-align:center" title="签到成功/失败次数">任务推送开关</th>
-          <!-- <th title="上次签到成功时间">定时日志开关</th> -->
         </tr>
       </thead>
       <tbody>
@@ -138,6 +120,17 @@
         return false;
       });
     })
+  </script>
+
+  <script LANGUAGE="JavaScript">
+      var select = document.getElementById("ErrTolerateCnt");
+      for(var i=0;i<=8;i++){
+      var opt = document.createElement("option");
+      opt.value=i;
+      opt.innerHTML=i;
+      select.appendChild(opt);
+      }
+      document.getElementById("ErrTolerateCnt")[{{ logtime.ErrTolerateCnt }}].selected=true;
   </script>
 
   {{ utils.submit_loading() }}
