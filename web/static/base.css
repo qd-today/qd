@@ -41,26 +41,41 @@ h1 > a:focus {
 }
 
 .autowrap {
-    word-wrap: break-word;
-    word-break: break-all;
-    position: relative;
+  word-wrap: break-word;
+  word-break: break-all;
 }
 
-.autowrap:hover .hljs-button {
-	display: block
+.showbut {
+  position: relative;
+}
+
+.showbut:hover .hljs-button {
+  display: block
 }
 
 .hljs-button {
-	display: none;
-	position: absolute;
-	right: 4px;
-	top: 4px;
-	font-size: 12px;
-	color: #4d4d4d;
-	background-color: white;
-	padding: 2px 8px;
-	margin: 8px;
-	border-radius: 4px;
-	cursor: pointer;
-	box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.05);
+  display: none;
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  font-size: 12px;
+  color: #4d4d4d;
+  background-color: white;
+  padding: 2px 8px;
+  margin: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.05);
+}
+
+th,.apitable td{
+  text-align: center;
+  vertical-align:middle !important;
+}
+
+.apitable td div{
+  max-width: 400px;
+  max-height: 80px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

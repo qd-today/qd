@@ -26,8 +26,8 @@ class AboutHandler(BaseHandler):
             
             for cnt in range(1, len(tpls_temp)):
                 tpl_temp = re.findall(r"center\">(.+?)</td", tpls_temp[cnt])
-                apiurl = re.findall(r"href=\"(.+?)\"", tpl_temp[1])[0]
-                example = re.findall(r">(.+?)<", tpl_temp[5])[0]
+                apiurl = re.findall(r"href=\"http://localhost(.+?)\"", tpl_temp[1])[0]
+                example = re.findall(r"href=\"http://localhost(.+?)\"", tpl_temp[5])[0]
                 
                 tpls.append ({
                                 "api":tpl_temp[0],
