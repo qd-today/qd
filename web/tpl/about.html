@@ -15,7 +15,7 @@
     <h2>
       常用Api
     </h2>
-    <table class="table apitable">
+    <table class="table table-hover apitable">
       <thead>
         <tr>
           <th>api</th>
@@ -56,10 +56,22 @@
     <table class="table table-hover">
       <thead>
         <tr>
-          <th style="text-align:center">参数</th>
-          <th style="text-align:center">说明</th>
+          <th>参数/过滤器</th>
+          <th>说明</th>
+          <th>用例</th>
+          <th>参考值</th>
         </tr>
       </thead>
+      <tbody style="text-align:center">
+        {% for api in apis %}
+        <tr>
+          <td>{{ api.name | safe}}</td>
+          <td>{{ api.explain | safe }}</td>
+          <td>{{ api.example }}</td>
+          <td class="autowrap">{{ api.val }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
   </div>
 </section>
