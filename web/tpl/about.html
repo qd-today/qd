@@ -15,26 +15,37 @@
     <h2>
       常用Api
     </h2>
-    <table class="table table-hover">
+    <table class="table table-hover apitable">
       <thead>
         <tr>
-          <th style="text-align:center">api</th>
-          <th style="text-align:center">地址</th>
-          <th style="text-align:center">参数</th>
-          <th style="text-align:center">参数是否必须</th>
-          <th style="text-align:center">说明</th>
-          <th style="text-align:center">用例</th>
+          <th>api</th>
+          <th>地址</th>
+          <th>参数</th>
+          <th>参数是否必须</th>
+          <th>说明</th>
+          <th>用例</th>
         </tr>
       </thead>
-      <tbody>
+      <tbody style="text-align:center">
         {% for tpl in tpls %}
         <tr>
-          <td style="text-align:center">{{ tpl.api }}</td>
-          <td style="text-align:center">{{ tpl.url }}</td>
-          <td style="text-align:center">{{ tpl.vars | safe }}</td>
-          <td style="text-align:center">{{ tpl.varsreq }}</td>
-          <td style="text-align:center">{{ tpl.comments | safe }}</td>
-          <td style="text-align:center">{{ tpl.examples | safe }}</td>
+          <td>{{ tpl.api }}</td>
+            <td id="api_url{{loop.index}}" class="showbut">
+              <a href={{ tpl.url }} rel="nofollow">http://localhost{{tpl.url}}</a>
+            <button class="btn hljs-button" data-clipboard-target="#api_url{{loop.index}}" >复制</button>
+          </td>
+          <td>{{ tpl.vars | safe }}</td>
+          <td>{{ tpl.varsreq }}</td>
+          <td>{{ tpl.comments | safe }}</td>
+
+            <td id="api_exam{{loop.index}}" class="showbut">
+              <div class="autowrap">
+                <a href={{tpl.examples}} rel="nofollow"> 
+            http://localhost{{ tpl.examples | safe }}
+                </a>
+              </div>
+            <button class="btn hljs-button" data-clipboard-target="#api_exam{{loop.index}}" >复制</button>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -45,10 +56,22 @@
     <table class="table table-hover">
       <thead>
         <tr>
-          <th style="text-align:center">参数</th>
-          <th style="text-align:center">说明</th>
+          <th>参数/过滤器</th>
+          <th>说明</th>
+          <th>用例</th>
+          <th>参考值</th>
         </tr>
       </thead>
+      <tbody style="text-align:center">
+        {% for api in apis %}
+        <tr>
+          <td>{{ api.name | safe}}</td>
+          <td>{{ api.explain | safe }}</td>
+          <td>{{ api.example }}</td>
+          <td class="autowrap">{{ api.val }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
   </div>
 </section>

@@ -188,7 +188,7 @@ class TaskRunHandler(BaseHandler):
                     pushno2w.send2wxpusher(title+u"{0} 日志：{1}".format(t, e))
                 
             self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
-            self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % e)
+            self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % e)
             return
 
         self.db.tasklog.add(task['id'], success=True, msg=new_env['variables'].get('__log__'))

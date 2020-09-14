@@ -126,6 +126,9 @@ def utf8(string):
         return string.encode('utf8')
     return string
 
+def conver2unicode(string):
+    return string.decode('unicode_escape')
+
 import urllib
 import config
 from tornado import httpclient
@@ -254,7 +257,12 @@ def get_random(min_num, max_mun, unit):
 
 import datetime
 def get_date_time(date=True, time=True, time_difference=0):
-    time_difference = time_difference + 12
+    if isinstance(date,unicode):
+        date=int(date)
+    if isinstance(time,unicode):
+        time=int(time)
+    if isinstance(time_difference,unicode):
+        time_difference = int(time_difference)
     now_date = datetime.datetime.today() + datetime.timedelta(hours=time_difference)
     if date:
         if time:
@@ -264,7 +272,7 @@ def get_date_time(date=True, time=True, time_difference=0):
     elif time:
         return str(now_date.time()).split('.')[0]
     else:
-        return
+        return ""
 
 
 import time
@@ -272,6 +280,7 @@ jinja_globals = {
     'md5': md5string,
     'quote_chinese': quote_chinese,
     'utf8': utf8,
+    'unicode': conver2unicode,
     'timestamp': time.time,
     'random': get_random,
     'date_time': get_date_time,

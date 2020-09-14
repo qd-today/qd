@@ -61,10 +61,12 @@
   
             {% if task.note %}
             -
-              <code>{% if task.note | length > 15 %}</code>
-              <span data-toggle="popover" data-content="{{ task.note }}">{{ task.note or '' | truncate(10, True) }}</span>
-              {% else %} {{ task.note }} {% endif %}
-            {% endif %}
+                <code>
+                  {% if task.note | length > 15 %}
+                <span data-toggle="popover" data-content="{{ task.note }}">{{ task.note | truncate(10, True) }}</span>
+                {% else %} {{ task.note }} {% endif %}
+                  {% endif %}
+                </code>
           </td>
           <td>
             <label>
@@ -132,6 +134,14 @@
       }
       document.getElementById("ErrTolerateCnt")[{{ logtime.ErrTolerateCnt }}].selected=true;
   </script>
+
+<script>
+  $(function() {
+    $('[data-toggle=popover]').popover({
+      trigger: 'hover'
+    });
+  })
+</script>
 
   {{ utils.submit_loading() }}
 </form>

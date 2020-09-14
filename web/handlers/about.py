@@ -16,18 +16,19 @@ class AboutHandler(BaseHandler):
     def get(self):
         user = self.current_user
         tpls = []
+        apis = []
         url = "https://github.com/qiandao-today/templates/blob/master/about.md"
         
         res = requests.get(url, verify=False)
         if (res.status_code == 200):
             content = res.content.decode(res.encoding, 'replace')
             About_content = re.findall(r"<article([\w\W]+?)</article", content)[0]
-            tpls_temp = re.findall(r"tr>([\w\W]+?)</tr", About_content)
+            tpls_temp = re.findall(r"tr>([\w\W]+?)</tr", About_content)[1:]
             
-            for cnt in range(1, len(tpls_temp)):
-                tpl_temp = re.findall(r"center\">(.+?)</td", tpls_temp[cnt])
-                apiurl = re.findall(r"href=\"(.+?)\"", tpl_temp[1])[0]
-                example = re.findall(r">(.+?)<", tpl_temp[5])[0]
+            for now in tpls_temp:
+                tpl_temp = re.findall(r"center\">(.+?)</td", now)
+                apiurl = re.findall(r"href=\"http://localhost(.+?)\"", tpl_temp[1])[0]
+                example = re.findall(r"href=\"http://localhost(.+?)\"", tpl_temp[5])[0]
                 
                 tpls.append ({
                                 "api":tpl_temp[0],
@@ -38,7 +39,25 @@ class AboutHandler(BaseHandler):
                                 "examples":example
                             })
                 
-        self.render('about.html', tpls=tpls)
+        url = "https://gitee.com/buzhibujuelb/templates/blob/master/functions.md"
+
+        res = requests.get(url, verify=False)
+        if (res.status_code == 200):
+            content = res.content.decode(res.encoding, 'replace')
+            cur = re.findall(r"<table>.*</table>", content)[0]
+            cur = re.findall(r"<tr>.*?<\/tr>",cur)[1:]
+
+            for now in cur:
+                tmp = re.findall(r"(?<=<td>).*?(?=<\/td>)", now)
+
+                apis.append ({
+                                "name":tmp[0],
+                                "explain":tmp[1],
+                                "example":tmp[2],
+                                "val":tmp[3]
+                            })
+                
+        self.render('about.html', tpls=tpls, apis=apis)
 
 handlers = [
         ('/about/?', AboutHandler),

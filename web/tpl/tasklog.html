@@ -30,15 +30,15 @@
       <tbody>
         {% for log in tasklog | sort(reverse=True, attribute="ctime") %}
         <tr>
-          <td>{{ format_date(log.ctime) }}</td>
-          <td>
+          <td style="white-space:nowrap">{{ format_date(log.ctime) }}</td>
+          <td style="white-space:nowrap">
             {% if log.success %}
             <span class="text-success">成功</span>
             {% else %}
             <span class="text-danger">失败</span>
             {% endif %}
           </td>
-          <td class="autowrap">{{ log.msg }}<button class="btn hljs-button" data-clipboard-text="{{ log.msg }}">复制</button></td>
+          <td class="autowrap showbut" id="log{{loop.index}}">{{ log.msg }}<button class="btn hljs-button" data-clipboard-target="#log{{ loop.index }}">复制</button></td>
         </tr>
         {% endfor %}
       </tbody>
