@@ -70,6 +70,9 @@
         if ($scope.entry == null) {
           return;
         }
+        if ($scope.entry.request.url.substring(0, 2) == "{{") {
+          return;
+        }
         try {
           queryString = utils.dict2list(utils.querystring_parse_with_variables(utils.url_parse($scope.entry.request.url).query));
         } catch (error1) {
@@ -90,6 +93,11 @@
         if ($scope.entry == null) {
           return;
         }
+
+        if ($scope.entry.request.url.substring(0, 2) == "{{") {
+          return;
+        }
+
         url = utils.url_parse($scope.entry.request.url);
         query = utils.list2dict($scope.entry.request.queryString);
         query = utils.querystring_unparse_with_variables(query);

@@ -295,13 +295,21 @@ class UserDBHandler(BaseHandler):
 
                 if ('backuptplsbtn' in envs):
                     tpls = []
-                    for tpl in self.db.tpl.list(userid=userid, fields=('siteurl', 'sitename', 'banner', 'note','fork', 'groups', 'har', 'tpl', 'variables'), limit=None):
+                    for tpl in self.db.tpl.list(userid=userid, fields=('id', 'siteurl', 'sitename', 'banner', 'note','fork', 'groups', 'har', 'tpl', 'variables'), limit=None):
                         tpl['tpl'] = self.db.user.decrypt(userid, tpl['tpl'])
                         tpl['har'] = self.db.user.decrypt(userid, tpl['har'])
                         tpls.append(tpl)
+
+                    tasks = []
+                    for task in self.db.task.list(userid, fields=('id', 'tplid', 'note', 'disabled', 'groups', 'init_env', 'env', 'ontimeflg', 'ontime', 'pushsw', 'newontime'), limit=None):
+                        task['init_env'] = self.db.user.decrypt(userid, task['init_env'])
+                        task['env'] = self.db.user.decrypt(userid, task['env']) if task['env'] else None
+                        tasks.append(task)
+
                     backupdata = {}
                     backupdata['tpls'] = tpls
-                    savename = "./tmp_{mail}_{now}.json".format(mail = user['email'], now=now)
+                    backupdata['tasks'] = tasks
+                    savename = "{mail}_{now}.json".format(mail = user['email'], now=now)
                     fp = codecs.open(savename, 'w', 'utf-8')
                     fp.write(json.dumps(backupdata, ensure_ascii=False, indent=4 ))
                     fp.close()
@@ -319,26 +327,42 @@ class UserDBHandler(BaseHandler):
                     
                 if ('recoverytplsbtn' in envs):
                     if ('recfile' in envs):
-                        tpls = json.loads(envs['recfile'][0])
+                        tpls = json.loads(envs['recfile'][0])['tpls']
+                        tasks = json.loads(envs['recfile'][0])['tasks']
                         ids = []
-                        for newtpl in tpls["tpls"]:
+                        for newtpl in tpls:
                             userid2 = int(userid)
                             har = self.db.user.encrypt(userid2, newtpl['har'])
                             tpl = self.db.user.encrypt(userid2, newtpl['tpl'])
                             variables = newtpl['variables']
-                            id = self.db.tpl.add(userid2, har, tpl, variables)
-                            ids.append(id)
-                        tplcnt = 0
-                        for id in ids:
-                            tpl = tpls["tpls"][tplcnt]
-                            self.db.tpl.mod(id, fork = tpl['fork'],
-                                                siteurl = tpl['siteurl'],
-                                                sitename = tpl['sitename'],
-                                                note = tpl['note'],
+                            newid = self.db.tpl.add(userid2, har, tpl, variables)
+                            self.db.tpl.mod(newid, fork = newtpl['fork'],
+                                                siteurl = newtpl['siteurl'],
+                                                sitename = newtpl['sitename'],
+                                                note = newtpl['note'],
                                                 groups = u'备份还原',
-                                                banner = tpl['banner']
-                                                )
-                            tplcnt = tplcnt + 1
+                                                banner = newtpl['banner']
+                                            )
+                            for task in tasks:
+                                if (task['tplid'] == newtpl['id']):
+                                    task['tplid'] = newid
+
+                        for newtask in tasks:
+                            userid2 = int(userid)
+                            newtask['init_env'] = self.db.user.encrypt(userid2, newtask['init_env'])
+                            newtask['env'] = self.db.user.encrypt(userid2, newtask['env'])
+                            taskid = self.db.task.add(newtask['tplid'], userid, newtask['env'])
+                            self.db.task.mod(taskid, disabled = newtask['disabled'],
+                                                     init_env = newtask['init_env'],
+                                                     session = None,
+                                                     note = newtask['note'],
+                                                     groups = u'备份还原',
+                                                     ontimeflg = newtask['ontimeflg'],
+                                                     ontime = newtask['ontime'],
+                                                     pushsw = newtask['pushsw'],
+                                                     newontime = newtask['newontime']
+                                            )
+
                         self.render('tpl_run_success.html', log=u"设置完成")
                         return
                     else:

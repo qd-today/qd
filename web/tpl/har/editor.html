@@ -20,13 +20,14 @@
 </script>
 
 <script src="/static/base64.js"></script>
+<!-- <script src="/static/draggable-polyfill.js"></script> -->
 
 {% raw %}
 <div class="container">
   <div class="row" ng-controller="EntryList">
     <div class="col-md-3" id="editor-switch">
       <a class="h1-index" href="/">
-        <h1 class="text-center">签到<sup>alpha</sup></h1>
+        <h1 class="text-center">签到<sup>20200918</sup></h1>
       </a>
       
       <!--checked switch-->
@@ -105,7 +106,8 @@
         </div>
       </div>
 
-      <div class="list-group">
+      <div class="list-group" allowdrop id="droplist" ondragover="droplistFunc(event)">
+        <!-- <input type="checkbox"  name="drawBtn" id="drawBtn" onchange="checkboxOnclick(this)">允许拖拽 -->
 
         <li class="list-group-item pageref"
           ng-repeat-start="entry in har.log.entries | filter: filter | filter: track_item()"
@@ -113,7 +115,7 @@
           {{ entry.pageref }}
         </li>
 
-        <a href="javascript:void(0);" class="list-group-item entry" ng-repeat-end>
+        <a href="javascript:void(0);" class="list-group-item entry"  ng-repeat-end draggable="true" ondragstart="dragstartFunc(event)" ondragend="dragendFunc(event)">
           <div class="entry-checked">
             <input ng-model="entry.checked" ng-click="save_change()" type="checkbox">
           </div>
@@ -318,6 +320,61 @@
   seajs.use('/static/har/editor', function(main) {
     main.init()
   });
+</script>
+<script>
+  function resortEntryList() {
+    DragIndex = 0;
+    document.querySelectorAll('#droplist>a.list-group-item.entry').forEach(function(el){
+      el.setAttribute('dragid',DragIndex);
+      DragIndex += 1;
+    });
+  };
+
+  var currentDragItem = null;
+  var StartY = 0;
+  var startIndex = 0;
+  var offsetY = 0;
+
+  function dragstartFunc(ev) {
+    resortEntryList()
+    StartY = parseInt(ev.clientY);
+    startIndex = parseInt(ev.srcElement.getAttribute('dragid'));
+    currentDragItem = ev.srcElement;
+    offsetY = ev.offsetY;
+  }
+
+  function dragendFunc(ev) {
+    var C_height = parseInt(ev.srcElement.clientHeight);
+    var EndY = parseInt(ev.clientY)
+    var EndIndex = 0;
+    if (EndY > StartY)
+    {
+      EndIndex = (parseInt(startIndex + ((EndY-StartY)/C_height)));
+    }
+    else
+    {
+      EndIndex = (parseInt(startIndex + ((EndY-StartY)/C_height) + 1));
+    }
+    var tmp = window.global_har.har.log.entries[startIndex];
+    var tmp2 = window.global_har.har.log.entries[EndIndex]
+    window.global_har.har.log.entries.splice(startIndex, 1, tmp2);
+    window.global_har.har.log.entries.splice(EndIndex, 1, tmp);
+    resortEntryList()
+    currentDragItem = null;
+  }
+
+  function droplistFunc (ev) {
+      ev.preventDefault();
+      if(!currentDragItem){ return }
+      var dragitem = ev.target.closest('.list-group-item.entry');
+      if(dragitem){
+          if(ev.offsetY>offsetY){
+              dragitem.after(currentDragItem);
+          }else{
+              dragitem.before(currentDragItem);
+          }
+      }
+  }
 </script>
 {% endraw %}
 {% endblock %}

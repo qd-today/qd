@@ -16,6 +16,22 @@ docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qian
 
 数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
 
+## 2020.09.18 更新
+1. 允许备份/恢复 用户的所有任务和模板
+2. 修复模板编辑时，变量作为url会自动url转码的bug
+3. 模板编辑时允许拖拽请求
+4. 模板订阅添加错误显示，避免500
+
+## 2020.09.14 更新(By liubei121212)
+1. 添加 unicode 函数
+2. 优化 api 页样式
+3. 在模板编辑页中测试时也可以复制错误信息了
+4. 优化日志页复制错误信息的实现方式
+5. 添加常用 api/过滤器
+6. 修复主页和推送设置中长用户名的显示
+7. 前值、edit 页面的错误信息增加复制按钮
+
+
 ## 2020.09.10 更新
 1. 鉴于github 污染严重，使用gitee代替作为订阅源，地址：[https://gitee.com/qiandao-today/templates](https://gitee.com/qiandao-today/templates)
 2. 首页的检查模板更新取消，打开公共模板仓库会自动检查更新

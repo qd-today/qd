@@ -31,72 +31,76 @@ class SubscribeHandler(BaseHandler):
     @tornado.web.addslash
     @tornado.web.authenticated
     def get(self):
-        user = self.current_user
-        tpls = []
-        tpls2 = []
-        for tpl in  self.db.tpl.list(userid=user['id'], fields=('id', 'tplurl', "updateable"), limit=None):
-            tpls2.append(tpl)
+        try:
+            user = self.current_user
+            tpls = []
+            tpls2 = []
+            for tpl in  self.db.tpl.list(userid=user['id'], fields=('id', 'tplurl', "updateable"), limit=None):
+                tpls2.append(tpl)
 
-        url = "https://gitee.com/api/v5/repos/qiandao-today/templates/readme"
-        
-        res = requests.get(url, verify=False)
-        if (res.status_code == 200):            
-            content = json.loads(res.content)['content']
-            content = base64.b64decode(content)
-            README_content = re.findall(r":-: \| :-: \| :-: \| :-: \|:-:([\w\W]*)", content)[0]
-            tpls_temp = re.findall(r"(.*?)\n", README_content)
-            old_hjson = {}
-            hfile = "./tpls_history.json"
-
-            if (True == os.path.isfile(hfile)):
-                hjson = json.loads(open(hfile, 'r').read())
-            else:
-                hjson = {}
-
-            old_hjson = hjson.copy() 
+            url = "https://gitee.com/api/v5/repos/qiandao-today/templates/readme"
             
-            for cnt in range(1, len(tpls_temp)):
-                temp = tpls_temp[cnt].split("|")
-                author = re.findall("\[(.*?)\]", temp[1])[0]
-                filename = re.findall("\[(.*?)\]", temp[2])[0]
-                harurl = re.findall("\]\((.*)\)", temp[2])[0]
-                tpl = {
-                                "name":temp[0],
-                                "author":author,
-                                "filename":filename,
-                                "url":harurl,
-                                "date":temp[3],
-                                "comments":temp[4],
-                                "update":False
-                        }
-                if (harurl in hjson):
-                    if (tpl["date"] == hjson[harurl]["date"]):
-                        pass
-                    else:
-                        tpl["date"] = hjson[harurl]["date"]
-                        tpl['content'] = base64.b64encode(requests.get(harurl, verify=False).content.decode('utf-8', 'replace'))
-                        tpl["update"] = True
-                        hjson[harurl] = tpl
+            res = requests.get(url, verify=False)
+            if (res.status_code == 200):            
+                content = json.loads(res.content)['content']
+                content = base64.b64decode(content)
+                README_content = re.findall(r":-: \| :-: \| :-: \| :-: \|:-:([\w\W]*)", content)[0]
+                tpls_temp = re.findall(r"(.*?)\n", README_content)
+                old_hjson = {}
+                hfile = "./tpls_history.json"
 
-                        for tpl_temp in tpls2:
-                            if (tpl_temp['tplurl'] == harurl) and (tpl_temp['updateable'] != 1):
-                                self.db.tpl.mod(tpl_temp['id'],updateable=1)
+                if (True == os.path.isfile(hfile)):
+                    hjson = json.loads(open(hfile, 'r').read())
                 else:
-                    tmp = requests.get(harurl, verify=False).content.decode('utf-8', 'replace')
-                    tpl['content'] = base64.b64encode(tmp)
-                    hjson[harurl] = tpl
-                
-            for key in hjson:
-                tpls.append(hjson[key])
-                
-            if (cmp(old_hjson, hjson) == 0):
-                pass
-            else:
-                fp = codecs.open(hfile, 'w', 'utf-8')
-                fp.write(json.dumps(hjson, ensure_ascii=False, indent=4 ))
-                fp.close()
+                    hjson = {}
 
-        self.render('tpl_subscribe.html', tpls=tpls, userid=user['id'])
+                old_hjson = hjson.copy() 
+                
+                for cnt in range(1, len(tpls_temp)):
+                    temp = tpls_temp[cnt].split("|")
+                    author = re.findall("\[(.*?)\]", temp[1])[0]
+                    filename = re.findall("\[(.*?)\]", temp[2])[0]
+                    harurl = re.findall("\]\((.*)\)", temp[2])[0]
+                    tpl = {
+                                    "name":temp[0],
+                                    "author":author,
+                                    "filename":filename,
+                                    "url":harurl,
+                                    "date":temp[3],
+                                    "comments":temp[4],
+                                    "update":False
+                            }
+                    if (harurl in hjson):
+                        if (tpl["date"] == hjson[harurl]["date"]):
+                            pass
+                        else:
+                            tpl["date"] = hjson[harurl]["date"]
+                            tpl['content'] = base64.b64encode(requests.get(harurl, verify=False).content.decode('utf-8', 'replace'))
+                            tpl["update"] = True
+                            hjson[harurl] = tpl
+
+                            for tpl_temp in tpls2:
+                                if (tpl_temp['tplurl'] == harurl) and (tpl_temp['updateable'] != 1):
+                                    self.db.tpl.mod(tpl_temp['id'],updateable=1)
+                    else:
+                        tmp = requests.get(harurl, verify=False).content.decode('utf-8', 'replace')
+                        tpl['content'] = base64.b64encode(tmp)
+                        hjson[harurl] = tpl
+                    
+                for key in hjson:
+                    tpls.append(hjson[key])
+                    
+                if (cmp(old_hjson, hjson) == 0):
+                    pass
+                else:
+                    fp = codecs.open(hfile, 'w', 'utf-8')
+                    fp.write(json.dumps(hjson, ensure_ascii=False, indent=4 ))
+                    fp.close()
+
+            self.render('tpl_subscribe.html', tpls=tpls, userid=user['id'])
+        except Exception as e:
+            self.render('tpl_run_failed.html', log=e)
+            return
 
 handlers = [
         ('/subscribe/?', SubscribeHandler),
