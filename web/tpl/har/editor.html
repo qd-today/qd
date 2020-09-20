@@ -357,9 +357,18 @@
       EndIndex = (parseInt(startIndex + ((EndY-StartY)/C_height) + 1));
     }
     var tmp = window.global_har.har.log.entries[startIndex];
-    var tmp2 = window.global_har.har.log.entries[EndIndex]
-    window.global_har.har.log.entries.splice(startIndex, 1, tmp2);
-    window.global_har.har.log.entries.splice(EndIndex, 1, tmp);
+    if (EndIndex > startIndex)
+    {
+      window.global_har.har.log.entries.splice(EndIndex+1, 0, tmp);
+      window.global_har.har.log.entries.splice(startIndex, 1);
+    }
+    else
+    {
+      window.global_har.har.log.entries.splice(EndIndex, 0, tmp);
+      window.global_har.har.log.entries.splice(startIndex+1, 1);
+    }
+    
+
     resortEntryList()
     currentDragItem = null;
   }
