@@ -132,7 +132,7 @@
           <span class="entry-url" ng-click="edit(entry)">{{ entry.request.url || ":empty" }}</span>
         </a>
 
-        <li href="javascript:void(0);" class="list-group-item entry" ng-if="filted.length > 0">
+        <li href="javascript:void(0);" class="list-group-item entry" ng-if="filted.length > 0" draggable="false">
           <div class="entry-checked">
             <input ng-model="is_check_all" ng-click="check_all(!is_check_all)" type="checkbox">
           </div>
@@ -322,19 +322,20 @@
   });
 </script>
 <script>
+    var currentDragItem = null;
+  var StartY = 0;
+  var startIndex = 0;
+  var offsetY = 0;
+  var maxIndex = 0;
+
   function resortEntryList() {
     DragIndex = 0;
     document.querySelectorAll('#droplist>a.list-group-item.entry').forEach(function(el){
       el.setAttribute('dragid',DragIndex);
       DragIndex += 1;
     });
+    maxIndex = DragIndex;
   };
-
-  var currentDragItem = null;
-  var StartY = 0;
-  var startIndex = 0;
-  var offsetY = 0;
-
   function dragstartFunc(ev) {
     resortEntryList()
     StartY = parseInt(ev.clientY);
@@ -369,7 +370,10 @@
       var dragitem = ev.target.closest('.list-group-item.entry');
       if(dragitem){
           if(ev.offsetY>offsetY){
+            tmp = ev.srcElement.getAttribute('dragid')
+            if (tmp){
               dragitem.after(currentDragItem);
+            }
           }else{
               dragitem.before(currentDragItem);
           }
