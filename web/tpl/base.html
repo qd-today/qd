@@ -56,7 +56,25 @@
   </head>
 
   <body>
-<script>var clipboard = new ClipboardJS('.btn');clipboard.on('success', function(e) {alert("复制成功");});clipboard.on('error', function(e) {alert("复制失败");});</script>
+<script>
+  var clipboard = new ClipboardJS('.btn');
+var cur;
+clipboard.on('success', function(e) {
+      //onsole.info('Action:', e.action);
+      //onsole.info('Text:', e.text);
+      //console.info('Trigger:', e.trigger);
+      e.clearSelection();
+      cur=e.trigger;
+      cur.innerHTML="复制成功";
+      setTimeout(function(){cur.innerHTML="复制";
+      }, 1000);
+});
+clipboard.on('error', function(e) {
+
+      console.error('Action:', e.action);
+      console.error('Trigger:', e.trigger);
+});
+</script>
     {% block body %}{% endblock %}
     {% block foot %}
     <footer>
