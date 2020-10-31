@@ -354,8 +354,47 @@ class TaskGroupHandler(TaskNewHandler):
                     target_group = 'None'
             
         self.db.task.mod(taskid, groups=target_group)
-   
+
         self.redirect('/my/')
+        
+class TasksDelHandler(BaseHandler):
+    @tornado.web.authenticated
+    def post(self, userid):
+        try:
+            user = self.current_user
+            body_arguments = self.request.body_arguments
+            if ('taskids' in body_arguments):
+                taskids = json.loads(self.request.body_arguments['taskids'][0])
+            if (body_arguments['func'][0] == 'Del'):
+                for taskid in taskids:
+                    task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid', )), 'w')
+                    logs = self.db.tasklog.list(taskid = taskid, fields=('id'))
+                    for log in logs:
+                        self.db.tasklog.delete(log['id'])
+                    self.db.task.delete(taskid)
+            elif (body_arguments['func'][0] == 'setGroup'):
+                New_group = body_arguments['groupValue'][0].strip().decode("utf-8").encode("utf-8")
+                if(New_group == ''):
+                    New_group = u'None'
+                for taskid in taskids:
+                    self.db.task.mod(taskid, groups=New_group)
+                    
+            self.finish('<h1 class="alert alert-success text-center">操作成功</h1>')
+        except Exception as e:
+            self.render('tpl_run_failed.html', log=str(e))
+            return
+
+class GetGroupHandler(TaskNewHandler):
+    @tornado.web.authenticated
+    def get(self, taskid):
+        user = self.current_user      
+        groups = {}
+        for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
+            groups[task['groups']] = ""
+        
+        self.write(json.dumps(groups, ensure_ascii=False, indent=4))
+        return
+
         
         
 handlers = [
@@ -368,4 +407,6 @@ handlers = [
         ('/task/(\d+)/log/del', TaskLogDelHandler),
         ('/task/(\d+)/run', TaskRunHandler),
         ('/task/(\d+)/group', TaskGroupHandler),
+        ('/tasks/(\d+)', TasksDelHandler), 
+        ('/getgroups/(\d+)', GetGroupHandler), 
         ]
