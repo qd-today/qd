@@ -28,10 +28,10 @@
       <span type="span" class="btn btn-default">
         <a data-load-method="GET" class="modal_load" href="/site/{{ userid }}/manage" title="管理网站">管理网站</a>
       </span>
+      {% endif %}
       <span type="span" class="btn btn-default">
         <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/database" title="备份数据库">数据库</a>
       </span>
-      {% endif %}
     </h2>
     <table class="table table-hover">
       <thead>
@@ -46,13 +46,10 @@
       </thead>
       <tbody>
         {% for group in taskgroups | sort(reverse=True) %}
-        <tr name="{{group}} taskgroups">
+        <tr name="{{group}} taskgroups" onClick="groups_click(this)" title="{{group}} taskgroup">
           <tr>
-            <td colspan="6">
+            <td colspan="6" onClick="groups_click(this)" title="{{group}} taskgroup" >
               <text>{{group}}</text> 
-              <label>
-                <input type="checkbox"  name="{{group}} taskgroup" onchange="checkboxOnclick(this)"> 
-              </label>
             </td> 
           </tr>
           
@@ -60,7 +57,7 @@
           {% if group == task.groups %}
           <tr class="{{group}} taskgroup " >
             <td>
-              <text>----></text> 
+              <input type="checkbox"  name="{{task.id}}" >
               {% if task.disabled %}<span title="任务处于禁用状态,使用 (立即执行) 成功签到一次,即可解除." style="color:#ff7600;border-left:5px solid #ff7600;padding-left:5px;">[禁用]</span>{% endif %}
               {{ utils.tplname(task.tpl) if task.tpl else "[已删除]" }}
 
@@ -103,6 +100,13 @@
         {% endfor %}
       </tbody>
     </table>
+    <div class="text-left">
+      <div id="multi_op-result"></div>
+      <span >
+        <button name="delbtn" type="button" onClick='del_confirm()'>删除</button>
+        <button name="setGroupbtn" type="button"  onClick="Get_Groups()">分组</button>
+      </span>
+    </div>
     <div class="text-right">
       <a href="/tpls/public" class="btn btn-default">所有公开模板</a>
     </div>
@@ -197,7 +201,6 @@
   })
 </script>
 
-
 <script>
   function checkboxOnclick(checkbox){
     var tasknodes = document.getElementsByClassName(checkbox.name);
@@ -210,6 +213,78 @@
     }
   }
 </script>
+<script src="/static/mutil_op.js"></script>
+<script>
+function Del_tasks () {
+  var Indexs = {};
+  var es = document.querySelectorAll('tr[class*=taskgroup]');
+  es.forEach(function(entry){
+    var tmp = entry.getElementsByTagName('td')[0].getElementsByTagName('input')[0]
+    if (tmp.checked){
+      Indexs[tmp.name] = ''
+    }
+  });
+  var $this = $(this);
+  var data = {taskids: JSON.stringify(Indexs), func: "Del"}
+  $.ajax('/tasks/{{ userid }}', {
+      type: 'POST',
+      data: data,
+    })
+    .done(function(data) {
+      goto_my()
+    })
+    .fail(function(jxhr) {
+      $("del_confirm-result").html('<h1 class="alert alert-danger text-center">失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+    })
+    .always(function() {
+      $this.button('reset');});
+
+  return false;
+}
+function setTasksGroup() {
+    var Indexs = {};
+    var es = document.querySelectorAll('tr[class*=taskgroup]');
+    var tmp = ""
+    var groupValue = ''
+    es.forEach(function(entry){
+    var tmp = entry.getElementsByTagName('td')[0].getElementsByTagName('input')[0]
+    if (tmp.checked){
+        Indexs[tmp.name] = ''
+    }
+    });
+    
+    tmp = document.querySelectorAll('#NewGroupValue')[0]
+    if(tmp.value == ''){
+    es = document.querySelectorAll('#oneCheck input[type=checkbox]');
+    es.forEach(function (e){
+        if (e.checked) {
+        groupValue = e.name;
+        }
+    });
+    }
+    else {
+    groupValue = tmp.value
+    }
+    var $this = $(this);
+    var data = {taskids: JSON.stringify(Indexs), func: "setGroup", groupValue: groupValue}
+    $.ajax('/tasks/{{ userid }}', {
+        type: 'POST',
+        data: data,
+    })
+    .done(function(data) {
+        window.location.replace("/my/")
+    })
+    .fail(function(jxhr) {
+        $('#run-result').html('<h1 class="alert alert-danger text-center">失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+    })
+    .always(function() {
+        $this.button('reset');});
+
+    return false;
+}
+</script>
+
+
 {% include 'LeftFuncBtn.html' %}
 {{ utils.modal_load() }}
 {{ utils.apost() }}

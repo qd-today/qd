@@ -45,7 +45,7 @@
     {% for group in groups %}
     <div class="checkbox">
       <label>
-        <input type="checkbox" id="select_group" name="group-select-{{ group }} "  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
+        <input type="checkbox" name="group-select-{{ group }} "  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
       </label>
     </div>
     {% endfor %}

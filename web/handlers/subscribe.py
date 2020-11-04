@@ -99,7 +99,13 @@ class SubscribeHandler(BaseHandler):
 
             self.render('tpl_subscribe.html', tpls=tpls, userid=user['id'])
         except Exception as e:
-            self.render('tpl_run_failed.html', log=e)
+            print(str(e))
+            user = self.current_user
+            tpls = []
+            hjson = json.loads(open("./tpls_history.json", 'r').read())
+            for key in hjson:
+                tpls.append(hjson[key])
+            self.render('tpl_subscribe.html', tpls=tpls, userid=user['id'])
             return
 
 handlers = [

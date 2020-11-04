@@ -134,6 +134,7 @@ class UserRegPushSw(BaseHandler):
         if 'schanEN' not in logtime:logtime['schanEN'] = False
         if 'WXPEn' not in logtime:logtime['WXPEn'] = False
         if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0
+        
 
         self.render('user_register_pushsw.html', userid=userid, flg=flg, tasks=tasks, logtime=logtime)
 
@@ -264,7 +265,11 @@ class UserManagerHandler(BaseHandler):
 class UserDBHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, userid):
-        self.render("DB_manage.html", userid=userid)
+        adminflg = False
+        user = self.db.user.get(userid, fields=('role'))
+        if user and user['role'] == "admin":
+            adminflg = True 
+        self.render("DB_manage.html", userid=userid, adminflg=adminflg)
         return
     
     @tornado.web.authenticated

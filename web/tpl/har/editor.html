@@ -27,7 +27,7 @@
   <div class="row" ng-controller="EntryList">
     <div class="col-md-3" id="editor-switch">
       <a class="h1-index" href="/">
-        <h1 class="text-center">签到<sup>20200918</sup></h1>
+        <h1 class="text-center">签到<sup>20201031</sup></h1>
       </a>
       
       <!--checked switch-->
@@ -107,7 +107,8 @@
       </div>
 
       <div class="list-group" allowdrop id="droplist" ondragover="droplistFunc(event)">
-        <!-- <input type="checkbox"  name="drawBtn" id="drawBtn" onchange="checkboxOnclick(this)">允许拖拽 -->
+        <input type="checkbox"  name="sortBtn" id="sortBtn" onchange="sortRequest(this)">显示序号
+        <button type="button" name="Delete_seleted_Btn" id="Delete_seleted_Btn" >删除</button>
 
         <li class="list-group-item pageref"
           ng-repeat-start="entry in har.log.entries | filter: filter | filter: track_item()"
@@ -322,7 +323,25 @@
   });
 </script>
 <script>
-    var currentDragItem = null;
+  function sortRequest(checkbox){
+      var RequestIndex = 1;
+      document.querySelectorAll('#droplist>a.list-group-item.entry').forEach(function(el){
+      var tmp = el.getElementsByClassName('entry-checked')[0]
+      if (tmp.getElementsByTagName('input')[0].checked)
+      {
+        if (checkbox.checked) {
+            tmp.childNodes[2].data = RequestIndex.toString();
+            RequestIndex += 1;
+        }
+        else {
+          tmp.childNodes[2].data = ""
+        }
+      }
+    });
+  }
+</script>
+<script>
+  var currentDragItem = null;
   var StartY = 0;
   var startIndex = 0;
   var offsetY = 0;
@@ -388,6 +407,25 @@
           }
       }
   }
+</script>
+<script>
+  $(function() {
+    $('#Delete_seleted_Btn').on('click', function() {
+      var RequestIndex = 0;
+      var Indexs = new Array();
+      var es = document.querySelectorAll('#droplist>a.list-group-item.entry');
+      window.global_har.har.log.entries.forEach(function(entry){
+        if (entry.checked){
+          es[RequestIndex].parentNode.removeChild(es[RequestIndex]);
+          Indexs.splice(0, 0, entry);
+        }
+        RequestIndex += 1;
+      });
+      Indexs.forEach(function(entry){
+        window.global_har.har.log.entries.splice(window.global_har.har.log.entries.indexOf(entry), 1)
+      });
+    });
+  })
 </script>
 {% endraw %}
 {% endblock %}
