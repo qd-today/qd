@@ -61,6 +61,8 @@ class SiteManagerHandler(BaseHandler):
             else:
                 raise Exception(u"非管理员，不可操作")
         except Exception as e:
+            if (str(e).find('get user need id or email') > -1):
+                e = u'请输入用户名/密码'
             self.render('tpl_run_failed.html', log=e)
             return
             

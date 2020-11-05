@@ -16,6 +16,9 @@ docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qian
 
 数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
 
+## 2020.11.05 更新
+1. 用户管理，备份，网站管理，密码不显示明文，不输入账号密码返回页面显示中文
+
 ## 2020.10.31 更新
 1. 允许普通用户备份/恢复
 2. 模板编辑页显示请求排序
