@@ -19,7 +19,11 @@ RUN apk update \
     && pip install --no-cache-dir -r requirements.txt
    
 ENV PORT 80
-EXPOSE $PORT/tcp
+ENV HTTPS_PORT 443
+EXPOSE $PORT/tcp $HTTPS_PORT/tcp
+
+ENV SSL_CERT_FILE ./config/server.crt
+ENV SSL_KEY_FILE ./config/server.key
 
 # timezone
 ENV TZ=CST-8

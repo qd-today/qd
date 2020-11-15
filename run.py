@@ -5,6 +5,7 @@
 # Copyright © 2016 Binux <roy@binux.me>
 
 import sys
+import os.path
 import logging
 import tornado.log
 from tornado.ioloop import IOLoop, PeriodicCallback
@@ -45,6 +46,16 @@ if __name__ == "__main__":
     http_server.bind(port, config.bind)
     http_server.start()
 
+    https_enable = False
+    if os.path.exists(config.certfile) & os.path.exists(config.keyfile):
+        https_enable = True
+        https_server = HTTPServer(Application(), ssl_options={
+            "certfile": os.path.abspath(config.certfile),
+            "keyfile": os.path.abspath(config.keyfile),
+        }, xheaders=True)
+        https_server.bind(config.https_port, config.bind)
+        https_server.start()
+
     converter = sqlite3_db_task_converter.DBconverter()
     converter.ConvertNewType() 
     
@@ -53,4 +64,7 @@ if __name__ == "__main__":
     worker()
 
     logging.info("http server started on %s:%s", config.bind, port)
+    if https_enable:
+        logging.info("https server started on %s:%s", config.bind, config.https_port)
+
     IOLoop.instance().start()

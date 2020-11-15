@@ -6,6 +6,7 @@
 # Created on 2014-07-30 12:38:34
 
 import sys
+import os.path
 import logging
 import tornado.log
 from tornado.ioloop import IOLoop
@@ -37,5 +38,18 @@ if __name__ == "__main__":
     http_server.bind(port, config.bind)
     http_server.start()
 
+    https_enable = False
+    if os.path.exists(config.certfile) & os.path.exists(config.keyfile):
+        https_enable = True
+        https_server = HTTPServer(Application(), ssl_options={
+            "certfile": os.path.abspath(config.certfile),
+            "keyfile": os.path.abspath(config.keyfile),
+        }, xheaders=True)
+        https_server.bind(config.https_port, config.bind)
+        https_server.start()
+
     logging.info("http server started on %s:%s", config.bind, port)
+    if https_enable:
+        logging.info("https server started on %s:%s", config.bind, config.https_port)
+
     IOLoop.instance().start()
