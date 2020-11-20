@@ -21,9 +21,9 @@
     </h2>
     <div>
       <span type="span" class="btn btn-default">
-        <a data-method="POST" href="/task/{{ task.id }}/log/del" title="清空任务日志">保留</a>
+        <a href="javascript:void(0);" onClick="deldaylog()">保留</a>
       </span>   
-      <input type="text"  name="tasklog.logDay"  oninput = "value=value.replace(/[^\d]/g,'')">天的日志 
+      <input type="text" id='day' name="tasklog.logDay"  oninput = "value=value.replace(/[^\d]/g,'')">天的日志 
     </div>
 	<table class="table">
       <thead>
@@ -51,4 +51,23 @@
     </table>
   </div>
 </section>
+<script>
+function deldaylog(){
+  var data = {}
+  data['day'] = document.getElementById("day").value;
+  if (data['day'] != ""){
+    $.ajax("/task/{{ task.id }}/log/del", {
+          type: 'POST',
+          data: data,
+        })
+        .done(function(data) {
+          window.location.replace("/task/{{ task.id }}/log")
+        })
+        .fail(function(jxhr) {
+          $('#run-result').html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+        })
+  }
+  return false;
+}
+</script>
 {% endblock %}

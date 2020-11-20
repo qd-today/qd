@@ -246,6 +246,22 @@ class TaskLogDelHandler(BaseHandler):
         self.redirect("/task/{0}/log".format(taskid))
         return
 
+    @tornado.web.authenticated
+    def post(self, taskid):
+        user = self.current_user
+        body_arguments = self.request.body_arguments
+        day = 365
+        if ('day' in body_arguments):
+            day = int(json.loads(body_arguments['day'][0]))
+        tasklog = self.db.tasklog.list(taskid = taskid, fields=('id', 'success', 'ctime', 'msg'))
+        for log in tasklog:
+            if (time.time() - log['ctime']) > (day * 24 * 60 * 60):
+                self.db.tasklog.delete(log['id'])
+        tasklog = self.db.tasklog.list(taskid = taskid, fields=('id', 'success', 'ctime', 'msg'))
+
+        self.redirect("/task/{0}/log".format(taskid))
+        return
+
 class TaskDelHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self, taskid):
