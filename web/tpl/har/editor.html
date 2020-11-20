@@ -27,7 +27,7 @@
   <div class="row" ng-controller="EntryList">
     <div class="col-md-3" id="editor-switch">
       <a class="h1-index" href="/">
-        <h1 class="text-center">签到<sup>20201105</sup></h1>
+        <h1 class="text-center">签到<sup>20201120</sup></h1>
       </a>
       
       <!--checked switch-->
@@ -138,7 +138,7 @@
             <input ng-model="is_check_all" ng-click="check_all(!is_check_all)" type="checkbox">
           </div>
           <a href="javascript:void(0);" ng-click="check_all()">全选</a> |
-          <a href="javascript:void(0);" ng-click="check_all(false)">反选</a>
+          <a href="javascript:void(0);" onClick="reserve_check()">反选</a>
         </li>
 
         <li class="list-group-item" ng-if="filted.length == 0">过滤条件下没有请求</li>
@@ -427,5 +427,6 @@
     });
   })
 </script>
+<script src="/static/editor_js.js"></script>
 {% endraw %}
 {% endblock %}

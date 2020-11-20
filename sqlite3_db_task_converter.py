@@ -127,7 +127,9 @@ class DBconverter(_TaskDB, BaseDB):
                 );''')
                 self.db.site._execute('''CREATE TABLE IF NOT EXISTS `site` (
                 `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
-                `regEn` INT UNSIGNED NOT NULL DEFAULT 1
+                `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
+                `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0,
+                `LogDay` INT UNSIGNED NOT NULL DEFAULT 365
                 );''' ) 
             
             if config.db_type == 'sqlite3': 
@@ -217,5 +219,10 @@ class DBconverter(_TaskDB, BaseDB):
                 self.db.tpl.get("1", fields=('groups'))
             except :
                 exec_shell("ALTER TABLE `tpl` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
+                
+            try:
+                self.db.site.get("1", fields=('logDay'))
+            except :
+                exec_shell("ALTER TABLE `site` ADD `logDay`  INT UNSIGNED NOT NULL DEFAULT 365 " )  
                                 
         return 

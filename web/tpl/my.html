@@ -284,6 +284,24 @@ function setTasksGroup() {
 }
 </script>
 
+<script>
+  if (typeof(window.localStorage.Groups) != "undefined"){
+    var groupsTmp = JSON.parse(window.localStorage.Groups)
+    for (var key in groupsTmp){
+      var tasknodes = document.getElementsByClassName(key);
+      if (tasknodes.length > 0){
+      for (i = 0; i < tasknodes.length; i++) { 
+          if (groupsTmp[key]){
+          $(tasknodes[i]).hide();
+          }else{
+          $(tasknodes[i]).show();
+          }
+      }
+      }
+    }
+  }
+</script>
+
 
 {% include 'LeftFuncBtn.html' %}
 {{ utils.modal_load() }}

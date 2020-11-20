@@ -217,6 +217,10 @@ class TaskRunHandler(BaseHandler):
         
         self.db.tpl.incr_success(tpl['id'])
         self.finish('<h1 class="alert alert-success text-center">签到成功</h1>')
+        logDay = int(self.db.site.get(1, fields=('logDay'))['logDay'])
+        for log in self.db.tasklog.list(taskid = taskid, fields=('id', 'ctime')):
+            if (time.time() - log['ctime']) > (logDay * 24 * 60 * 60):
+                self.db.tasklog.delete(log['id'])
         return
 
 class TaskLogHandler(BaseHandler):
