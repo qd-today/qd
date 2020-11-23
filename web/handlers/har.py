@@ -18,7 +18,15 @@ class HAREditor(BaseHandler):
     def get(self, id=None):
         harurl = self.get_argument("tplurl", "")
         harname = self.get_argument("name", "")
-        hardata = self.get_argument("tpldata", "")
+        hjson = json.loads(open("./tpls_history.json", 'r').read())
+        if (harurl != '') and (harname != ''):
+            if (harurl in hjson):
+                hardata = hjson[harurl]["content"]
+            else:
+                self.render('tpl_run_failed.html', log=u'此模板不存在')
+                return
+        else:
+            hardata = ''
         return self.render('har/editor.html', tplid=id, harpath=harurl, harname=harname, hardata=hardata)
 
     def post(self, id):
