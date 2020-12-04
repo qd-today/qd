@@ -129,7 +129,7 @@ class DBconverter(_TaskDB, BaseDB):
                 `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
                 `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
                 `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0,
-                `LogDay` INT UNSIGNED NOT NULL DEFAULT 365
+                `logDay` INT UNSIGNED NOT NULL DEFAULT 365
                 );''' ) 
             
             if config.db_type == 'sqlite3': 

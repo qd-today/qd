@@ -16,7 +16,7 @@ class SiteDB(_SiteDB, BaseDB):
           `id` INTEGER NOT NULL PRIMARY KEY,
           `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
           `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0,
-          `LogDay` INT UNSIGNED NOT NULL DEFAULT 365
+          `logDay` INT UNSIGNED NOT NULL DEFAULT 365
         )''' % self.__tablename__)
 
         

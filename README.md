@@ -16,6 +16,9 @@ docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qian
 
 数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
 
+## 20202.12.04 更新
+1. 修复任务运行结束后'logDay'报错
+
 ## 20202.11.20 更新
 1. 修复模板订阅时url太长报错的问题，模板按照修改时间来排序
 2. 支持网站设置仅保留一定天数的日志，日志清理时间在任务成功完成之后,默认365天
