@@ -15,6 +15,10 @@
       <input type="checkbox"  name="site.MustVerifyEmailEn" {% if site.MustVerifyEmailEn %} checked="" {% endif %} > 必须验证邮箱
     </label>
   </div>
+  <div>
+    <label class="control-label" for="note">日志保留天数:</label>
+    <input type="text"  name="site.logDay" value="{{ logDay }}" placeholder="{{ logDay }}" oninput = "value=value.replace(/[^\d]/g,'')"> 
+  </div>
 
   <div class="form-group">
     <label class="control-label" for="note" ><font color='red'>必须输入账号密码验证！！！</font></label>

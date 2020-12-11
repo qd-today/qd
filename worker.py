@@ -37,6 +37,7 @@ class MainWorker(object):
             tpl = db.TPLDB()
             task = db.TaskDB()
             tasklog = db.TaskLogDB()
+            site = db.SiteDB()
         self.db = DB
         self.fetcher = Fetcher()
 
@@ -51,6 +52,12 @@ class MainWorker(object):
                 logger.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
             return
         self.running.add_done_callback(done)
+        
+    def ClearLog(self, taskid):
+        logDay = int(self.db.site.get(1, fields=('logDay'))['logDay'])
+        for log in self.db.tasklog.list(taskid = taskid, fields=('id', 'ctime')):
+            if (time.time() - log['ctime']) > (logDay * 24 * 60 * 60):
+                self.db.tasklog.delete(log['id'])
       
     @gen.coroutine
     def run(self):
@@ -214,6 +221,8 @@ class MainWorker(object):
                     if (pusher["schansw"]):pushno2s.send2s(title, u"{0}  日志：{1}".format(t, logtemp))
                     if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"{0}  日志：{1}".format(t, logtemp))
             logger.info('taskid:%d tplid:%d successed! %.4fs', task['id'], task['tplid'], time.time()-start)
+            # delete log
+            self.ClearLog(task['id'])
         except Exception as e:
             # failed feedback
             next_time_delta = self.failed_count_to_time(task['last_failed_count'], tpl['interval'])

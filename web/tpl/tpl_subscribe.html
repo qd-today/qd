@@ -27,12 +27,12 @@
         </tr>
       </thead>
       <tbody>
-        {% for tpl in tpls %}
+        {% for tpl in tpls | sort(attribute='date', reverse=True)%}
         <tr>
           <td style="text-align:center">
             <div class="btn-group btn-group-xs" role="group" aria-label="...">
                   <span type="span" class="btn btn-default">
-                    <a href="/har/edit?tplurl={{ tpl.url | urlencode }}&name={{ tpl.filename | urlencode }}&tpldata={{ tpl.content | urlencode }}" target="_blank" id="{{ tpl.name }}" title="订阅此模板">订阅</a>
+                    <a href="/har/edit?tplurl={{ tpl.url | urlencode }}&name={{ tpl.filename | urlencode }}" target="_blank" id="{{ tpl.name }}" title="订阅此模板">订阅</a>
                   </span>
             </div>
           </td>

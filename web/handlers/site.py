@@ -23,11 +23,11 @@ class SiteManagerHandler(BaseHandler):
         user = self.db.user.get(userid, fields=('role'))
         if user and user['role'] == "admin":
             adminflg = True
-            site = self.db.site.get(1, fields=('regEn', 'MustVerifyEmailEn'))
+            site = self.db.site.get(1, fields=('regEn', 'MustVerifyEmailEn', 'logDay'))
             site['regEn'] = False if site['regEn'] == 1 else True
             site['MustVerifyEmailEn'] = False if site['MustVerifyEmailEn'] == 0 else True
 
-        self.render("site_manage.html", userid=userid, adminflg=adminflg, site=site)
+        self.render("site_manage.html", userid=userid, adminflg=adminflg, site=site, logDay=site['logDay'])
         return
 
     @tornado.web.authenticated
@@ -56,6 +56,13 @@ class SiteManagerHandler(BaseHandler):
                         self.db.site.mod(1, MustVerifyEmailEn=0)
                         if (self.db.site.get(1, fields=('MustVerifyEmailEn'))['MustVerifyEmailEn'] != 0):
                             raise Exception(u"关闭 强制邮箱验证 失败")
+                        
+                    if ("site.logDay" in envs):
+                        tmp = int(envs["site.logDay"][0])
+                        if (tmp != self.db.site.get(1, fields=('logDay'))['logDay']):
+                            self.db.site.mod(1, logDay=tmp)
+                            if (self.db.site.get(1, fields=('logDay'))['logDay'] != tmp):
+                                raise Exception(u"设置日志保留天数失败")
                 else:
                     raise Exception(u"账号/密码错误")
             else:
