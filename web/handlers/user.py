@@ -125,7 +125,8 @@ class UserRegPushSw(BaseHandler):
         flg = {}
         flg['barksw']        = False if ((temp & 0x40) == 0) else True 
         flg['schansw']       = False if ((temp & 0x20) == 0) else True 
-        flg['wxpushersw']    = False if ((temp & 0x10) == 0) else True 
+        flg['wxpushersw']    = False if ((temp & 0x10) == 0) else True
+        flg['mailpushersw']    = False if ((temp & 0x80) == 0) else True 
         flg['handpush_succ'] = False if ((temp & 0x08) == 0) else True 
         flg['handpush_fail'] = False if ((temp & 0x04) == 0) else True 
         flg['autopush_succ'] = False if ((temp & 0x02) == 0) else True 
@@ -161,13 +162,15 @@ class UserRegPushSw(BaseHandler):
 
             barksw_flg        = 1 if ("barksw" in env) else 0 
             schansw_flg       = 1 if ("schansw" in env) else 0 
-            wxpushersw_flg    = 1 if ("wxpushersw" in env) else 0 
+            wxpushersw_flg    = 1 if ("wxpushersw" in env) else 0
+            mailpushersw_flg    = 1 if ("mailpushersw" in env) else 0 
             handpush_succ_flg = 1 if ("handpush_succ" in env) else 0
             handpush_fail_flg = 1 if ("handpush_fail" in env) else 0
             autopush_succ_flg = 1 if ("autopush_succ" in env) else 0
             autopush_fail_flg = 1 if ("autopush_fail" in env) else 0
             
-            flg = (barksw_flg << 6) \
+            flg = (mailpushersw_flg << 7) \
+                | (barksw_flg << 6) \
                 | (schansw_flg << 5) \
                 | (wxpushersw_flg << 4) \
                 | (handpush_succ_flg << 3) \
