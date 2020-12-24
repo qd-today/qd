@@ -15,6 +15,9 @@
     <label>
       <input type="checkbox" id="wxpushersw" name="wxpushersw" {% if flg.wxpushersw %}  checked="" {% endif %}> WXPusher
     </label>
+    <label>
+      <input type="checkbox" id="mailpushersw" name="mailpushersw" {% if flg.mailpushersw %}  checked="" {% endif %}> 邮箱
+    </label>
   </div>
 
   <label>任务结果通知时间选择</label>
@@ -73,11 +76,6 @@
               <input type="checkbox" name="{{ task.id }} pushen" {% if task.pushsw.pushen %}  checked="" {% endif %} value="1">
             </label>
           </td>
-          <!-- <td>
-            <label>
-              <input type="checkbox" name="{{ task.id }} logen" {% if task.pushsw.logen %}  checked="" {% endif %} value="1">
-            </label>
-          </td> -->
         </tr>
         {% endfor %}
       </tbody>
@@ -98,7 +96,6 @@
         for (var _env=$('form').serializeArray(), i=_env.length-1; i>=0; i--) {
           env[_env[i].name] = _env[i].value;
         }
-
         var data = {
           env: JSON.stringify(env)
           }

@@ -47,15 +47,15 @@ download_size_limit = 1*1024*1024
 proxies = []
 
 # 域名
-domain = 'qiandao.today'
+domain = os.getenv('DOMAIN', 'qiandao.today')
 
 # mailgun 邮件发送, 域名和 apikey
-mail_smtp = ""
-mail_port = 465
+mail_smtp = os.getenv('MAIL_SMTP',"")
+mail_port = int(os.getenv('MAIL_PORT', 465))
 mail_ssl = True
-mail_user = ""
-mail_password = ""
-mail_domain = "mail.qiandao.today"
+mail_user = os.getenv('MAIL_USER', '')
+mail_password = os.getenv('MAIL_PASSWORD', '')
+mail_domain = os.getenv('MAIL_DOMAIN', "mail.qiandao.today")
 mailgun_key = ""
 
 # google analytics
