@@ -16,6 +16,9 @@ docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qian
 
 数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
 
+## 20202.12.24 更新
+1. 修复模板编辑中'{{变量}}'自动urlencode的问题
+
 ## 20202.12.23 更新
 1. 添加EMAIL发送开关
 

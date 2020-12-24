@@ -97,8 +97,13 @@
         if ($scope.entry.request.url.substring(0, 2) == "{{") {
           return;
         }
-
         url = utils.url_parse($scope.entry.request.url);
+        if (url.path.indexOf('%7B%7B') > -1){
+          url.path = url.path.replace('%7B%7B', '{{')
+          url.path = url.path.replace('%7D%7D', '}}')
+          url.pathname = url.pathname.replace('%7B%7B', '{{')
+          url.pathname = url.pathname.replace('%7D%7D', '}}')
+        }
         query = utils.list2dict($scope.entry.request.queryString);
         query = utils.querystring_unparse_with_variables(query);
         if (query) {
