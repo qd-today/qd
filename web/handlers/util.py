@@ -43,16 +43,22 @@ class TimeStampHandler(BaseHandler):
             ts = self.get_argument("ts", "")
             type = self.get_argument("form", "%Y-%m-%d %H:%M:%S")
             cst_tz = pytz.timezone('Asia/Shanghai')
+            utc_tz = pytz.timezone("UTC")
+            GMT_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
 
             if not ts:
                 # 当前本机时间戳，本机时间和北京时间
                 Rtv[u"时间戳"] = int(time.time())
                 Rtv[u"本机时间"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"]).strftime(type)
                 Rtv[u"北京时间"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"], cst_tz).strftime(type)
+                Rtv[u"GMT格式"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"], utc_tz).strftime(GMT_FORMAT)
+                Rtv[u"ISO格式"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"], utc_tz).isoformat().split("+")[0] + "Z"
             else:
                 # 用户时间戳转北京时间
                 Rtv[u"时间戳"] = ts
                 Rtv[u"北京时间"]  = datetime.datetime.fromtimestamp(int(ts), cst_tz).strftime(type)
+                Rtv[u"GMT格式"] = datetime.datetime.fromtimestamp(int(ts), utc_tz).strftime(GMT_FORMAT)
+                Rtv[u"ISO格式"] = datetime.datetime.fromtimestamp(int(ts), utc_tz).isoformat().split("+")[0] + "Z"
             Rtv[u"状态"] = "200"
         except Exception as e:
                 Rtv[u"状态"] = str(e)
