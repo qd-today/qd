@@ -22,10 +22,10 @@ class send2phone:
     def send2bark(self, title, content):
         if (self.barklink):
             try:
-                if (self.barklink[-1:] == u"/"):
-                    self.barklink = self.barklink[0: len(self.barklink)-1]
-                msg = u"{0}/推送标题/{1}/{2}?isArchive=1".format(self.barklink, title, content)
-                res = requests.get(msg,verify=False)
+                if (self.barklink[-1:] != u"/"):
+                    self.barklink = self.barklink + u'/'
+                msg = {"title":title,"body":content}
+                res = requests.post(self.barklink, data=msg, verify=False)
             except Exception as e:
                 print('Reason:', e)
         return
@@ -44,7 +44,6 @@ class send2phone:
     def send2wxpusher(self, content):
         if (self.wxpusher_token != "") and (self.wxpusher_uid != ""):
             try:
-                self.wxpusher = self.skey.replace(".send", "")
                 link = "http://wxpusher.zjiecode.com/api/send/message"
                 d = {
                         "appToken":self.wxpusher_token,

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}签到日志{% endblock %}
+
+{% block header %}
+{{ super() }}
+<link href="{{ static_url('my.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+{{ utils.header(current_user) }}
+
+<section>
+  <div class="container">
+    <h2>
+      记事本
+    </h2>
+    <div id="run-result"></div>
+    <div>
+        <pre id='notepad_value'>
+            {{ text_data }}
+        </pre>
+    </div>
+    <div class="form-group">
+      <label class="control-label" for="note" ><font color='red'>必须输入账号密码验证！！！</font></label>
+      <div>
+      <label class="control-label" for="note">邮箱</label>
+      </div>
+      <input type="text" class="form-control" name="adminmail" value="" id="adminmail" placeholder="必须输入账号密码验证">
+      <label class="control-label" for="note">密码</label>
+      <input type='password' class="form-control" name="adminpwd" value="" id="adminpwd" placeholder="必须输入账号密码验证">
+      <input type="text" class="form-control" name="New_notepad_content" value="" id="New_notepad_content" >
+    </div>
+  
+    <div class="text-right">
+      <button id="ban" name="banbtn" type="submit" data-loading-text="loading..." class="btn btn-primary" onclick="send2notepad('append')">追加</button>
+      <button id="activate" name="activatebtn" type="submit" data-loading-text="loading..." class="btn btn-primary"  onclick="send2notepad('write')">复写</button>
+    </div>
+  </div>
+  
+<script>
+function send2notepad(mode){
+  data = {}
+  data['mode'] = mode
+  data['adminmail'] = $('#adminmail')[0].value;
+  data['adminpwd'] = $('#adminpwd')[0].value;
+  data['content'] = $('#New_notepad_content')[0].value;
+  $.ajax("/util/toolbox/{{ userid }}/notepad", {
+        type: 'POST',
+        data: data,
+      })
+      .success(function(jxhr) {
+          window.location.reload();
+        })
+      .fail(function(jxhr) {
+        $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+      })
+}
+</script>
+{% endblock %}

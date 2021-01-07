@@ -12,14 +12,14 @@ import datetime
 import pytz
 import send2phone
 import random
+from funcs import tools
 
 from base import *
 
-def calNextTimestamp(etime, todayflg):
+def calNextTimestamp(etime, todayflg, start_ts):
     tz = pytz.timezone('Asia/Shanghai')
-    now = datetime.datetime.now()
-    now_ts = int(time.time())
-    zero = datetime.datetime(year=now.year, month=now.month, day=now.day,  hour=0,  minute=0, second=0, tzinfo=tz)
+    start = datetime.datetime.fromtimestamp(start_ts)
+    zero = datetime.datetime(year=start.year, month=start.month, day=start.day,  hour=0,  minute=0, second=0, tzinfo=tz)
     zero_ts = int(time.mktime(zero.timetuple()) + zero.microsecond/1e6)
     temp = etime["time"].split(":")
     e_ts = int(temp[0]) * 3600 + int(temp[1]) * 60 + int(temp[2])
@@ -30,7 +30,7 @@ def calNextTimestamp(etime, todayflg):
         r_ts = 0
         
     next_ts = zero_ts + e_ts
-    if  (now_ts > next_ts) or (todayflg):
+    if  (start_ts > next_ts) or (todayflg):
         next_ts = next_ts + (24 * 60 * 60)
         
     next_ts = next_ts + r_ts
@@ -144,7 +144,7 @@ class TaskRunHandler(BaseHandler):
     @gen.coroutine
     def post(self, taskid):
         self.evil(+2)
-
+        start_ts = int(time.time())
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'init_env',
             'env', 'session', 'last_success', 'last_failed', 'success_count', 'note',
@@ -170,9 +170,14 @@ class TaskRunHandler(BaseHandler):
         pusher =  {}
         pusher["barksw"] = False if (notice['noticeflg'] & 0x40) == 0 else True 
         pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True 
-        pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True 
+        pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True
+        pusher["mailpushersw"] = False if (notice['noticeflg'] & 0x80) == 0 else True  
+        pusher["cuspushersw"] = False if (notice['noticeflg'] & 0x100) == 0 else True 
         taskpushsw = json.loads(task['pushsw'])
         newontime = json.loads(task['newontime'])
+        diypusher = self.db.user.get(task['userid'], fields=('diypusher'))['diypusher']
+        if (diypusher != ''):diypusher = json.loads(diypusher) 
+        cuspusher = tools()
 
         try:
             new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
@@ -180,12 +185,16 @@ class TaskRunHandler(BaseHandler):
             if (notice['noticeflg'] & 0x4 != 0) and (taskpushsw['pushen']):
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
                 title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
+                logtmp = u"{0} 日志：{1}".format(t, e)
                 if pusher["barksw"]:
-                    pushno2b.send2bark(title, u"{0} 请排查原因".format(e))
+                    pushno2b.send2bark(title, logtmp)
                 if pusher["schansw"]:
-                    pushno2s.send2s(title, u"{0} 日志：{1}".format(t, e))
+                    pushno2s.send2s(title, logtmp)
                 if pusher["wxpushersw"]:
-                    pushno2w.send2wxpusher(title+u"{0} 日志：{1}".format(t, e))
+                    pushno2w.send2wxpusher(title+logtmp)
+                if (pusher["cuspushersw"]):
+                    if (diypusher != ''):
+                        cuspusher.cus_pusher_send(diypusher, title, logtmp)
                 
             self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
             self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % e)
@@ -193,7 +202,7 @@ class TaskRunHandler(BaseHandler):
 
         self.db.tasklog.add(task['id'], success=True, msg=new_env['variables'].get('__log__'))
         if (newontime["sw"]):
-            nextTime = calNextTimestamp(newontime, True)
+            nextTime = calNextTimestamp(newontime, True, start_ts)
         else:
             nextTime = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)
             
@@ -208,12 +217,16 @@ class TaskRunHandler(BaseHandler):
         if (notice['noticeflg'] & 0x8 != 0) and (taskpushsw['pushen']):
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
+            logtmp = u"{0} 成功".format(t)
             if pusher["barksw"]:
-                pushno2b.send2bark(title, u"{0} 成功".format(t))
+                pushno2b.send2bark(title, logtmp)
             if pusher["schansw"]:
-                pushno2s.send2s(title, u"{0} 成功".format(t))
+                pushno2s.send2s(title, logtmp)
             if pusher["wxpushersw"]:
-                pushno2w.send2wxpusher(title+u"{0}".format(t))
+                pushno2w.send2wxpusher(title+logtmp)
+            if (pusher["cuspushersw"]):
+                if (diypusher != ''):
+                    cuspusher.cus_pusher_send(diypusher, title, logtmp)
         
         self.db.tpl.incr_success(tpl['id'])
         self.finish('<h1 class="alert alert-success text-center">签到成功</h1>')
@@ -300,6 +313,7 @@ class TaskSetTimeHandler(TaskNewHandler):
     @tornado.web.authenticated
     def post(self, taskid):
         try:
+            start_ts = int(time.time())
             form = json.loads(self.request.body_arguments["env"][0])
             task = self.db.task.get(taskid, fields=('tplid', "newontime"))
             tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename',
@@ -327,7 +341,7 @@ class TaskSetTimeHandler(TaskNewHandler):
                 else:
                     ontime_new['randsw'] = False
                 todayflg = True if ('todayflg' in form) else False
-                next_ts = calNextTimestamp(ontime_new, todayflg)
+                next_ts = calNextTimestamp(ontime_new, todayflg, start_ts)
             else :
                 ontime_new['sw'] = False
                 next_ts = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)

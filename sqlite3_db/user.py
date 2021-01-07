@@ -31,7 +31,9 @@ class UserDB(_UserDB, BaseDB):
           `wxpusher` VARBINARY(128) NOT NULL DEFAULT '',
           `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1,
           `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}',
-          `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable'
+          `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
+          `notepad` TEXT NOT NULL DEFAULT '',
+          `diypisher` VARBINARY(1024) NOT NULL DEFAULT ''
         )''' % self.__tablename__)
 
         for each in ('email', 'nickname'):

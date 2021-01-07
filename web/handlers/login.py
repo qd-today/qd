@@ -25,8 +25,9 @@ class LoginHandler(BaseHandler):
         if (self.current_user) and (self.db.user.get(self.current_user['id'], fields=('id'))):
             self.redirect('/my/')
             return
-
-        return self.render('login.html')
+        regFlg = False if  self.db.site.get(1, fields=('regEn'))['regEn'] == 0 else True
+        
+        return self.render('login.html', regFlg=regFlg)
 
     def post(self):
         email = self.get_argument('email')

@@ -23,6 +23,9 @@ from web.handlers.task import calNextTimestamp
 from backup import DBnew
 
 import codecs
+import requests
+import traceback
+from funcs import tools
 
 def tostr(s):
     if isinstance(s, bytearray):
@@ -76,7 +79,7 @@ class UserRegPush(BaseHandler):
                 self.render('tpl_run_failed.html', log=e)
                 return
             
-            self.render('tpl_run_success.html', log=log)
+            self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
             return
 
         else:
@@ -107,8 +110,8 @@ class UserRegPush(BaseHandler):
             except Exception as e:
                 self.render('tpl_run_failed.html', log=e)
                 return
-            
-            self.render('tpl_run_success.html', log=log)
+
+            self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
             return
 
 class UserRegPushSw(BaseHandler):
@@ -123,14 +126,15 @@ class UserRegPushSw(BaseHandler):
         temp = self.db.user.get(userid, fields=('noticeflg'))
         temp = temp['noticeflg']
         flg = {}
-        flg['barksw']        = False if ((temp & 0x40) == 0) else True 
-        flg['schansw']       = False if ((temp & 0x20) == 0) else True 
-        flg['wxpushersw']    = False if ((temp & 0x10) == 0) else True
-        flg['mailpushersw']    = False if ((temp & 0x80) == 0) else True 
-        flg['handpush_succ'] = False if ((temp & 0x08) == 0) else True 
-        flg['handpush_fail'] = False if ((temp & 0x04) == 0) else True 
-        flg['autopush_succ'] = False if ((temp & 0x02) == 0) else True 
-        flg['autopush_fail'] = False if ((temp & 0x01) == 0) else True
+        flg['barksw']        = False if ((temp & 0x040) == 0) else True 
+        flg['schansw']       = False if ((temp & 0x020) == 0) else True 
+        flg['wxpushersw']    = False if ((temp & 0x010) == 0) else True
+        flg['mailpushersw']  = False if ((temp & 0x080) == 0) else True
+        flg['cuspushersw']   = False if ((temp & 0x100) == 0) else True  
+        flg['handpush_succ'] = False if ((temp & 0x008) == 0) else True 
+        flg['handpush_fail'] = False if ((temp & 0x004) == 0) else True 
+        flg['autopush_succ'] = False if ((temp & 0x002) == 0) else True 
+        flg['autopush_fail'] = False if ((temp & 0x001) == 0) else True
         logtime = json.loads(self.db.user.get(userid, fields=('logtime'))['logtime'])
         if 'schanEN' not in logtime:logtime['schanEN'] = False
         if 'WXPEn' not in logtime:logtime['WXPEn'] = False
@@ -163,13 +167,15 @@ class UserRegPushSw(BaseHandler):
             barksw_flg        = 1 if ("barksw" in env) else 0 
             schansw_flg       = 1 if ("schansw" in env) else 0 
             wxpushersw_flg    = 1 if ("wxpushersw" in env) else 0
-            mailpushersw_flg    = 1 if ("mailpushersw" in env) else 0 
+            mailpushersw_flg  = 1 if ("mailpushersw" in env) else 0
+            cuspushersw_flg  = 1 if ("cuspushersw" in env) else 0  
             handpush_succ_flg = 1 if ("handpush_succ" in env) else 0
             handpush_fail_flg = 1 if ("handpush_fail" in env) else 0
             autopush_succ_flg = 1 if ("autopush_succ" in env) else 0
             autopush_fail_flg = 1 if ("autopush_fail" in env) else 0
             
-            flg = (mailpushersw_flg << 7) \
+            flg = (cuspushersw_flg << 8) \
+                | (mailpushersw_flg << 7) \
                 | (barksw_flg << 6) \
                 | (schansw_flg << 5) \
                 | (wxpushersw_flg << 4) \
@@ -193,8 +199,7 @@ class UserRegPushSw(BaseHandler):
         except Exception as e:
             self.render('tpl_run_failed.html', log=e)
             return
-            
-        self.render('tpl_run_success.html', log=u"设置完成")
+        self.render('utils_run_result.html', log=u"设置完成", title=u'设置成功', flg='success')
         return
     
 class UserManagerHandler(BaseHandler):
@@ -372,8 +377,7 @@ class UserDBHandler(BaseHandler):
                                                      pushsw = newtask['pushsw'],
                                                      newontime = newtask['newontime']
                                             )
-
-                        self.render('tpl_run_success.html', log=u"设置完成")
+                        self.render('utils_run_result.html', log=u"设置完成", title=u'设置成功', flg='success')
                         return
                     else:
                         raise Exception(u"请上传文件")
@@ -384,11 +388,112 @@ class UserDBHandler(BaseHandler):
                 e = u'请输入用户名/密码'
             self.render('tpl_run_failed.html', log=e)
             return
-        return
+        return 
      
+class toolbox_notpad_Handler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self,userid):
+        user = self.current_user
+        text_data = self.db.user.get(userid, fields=('notepad'))['notepad']
+        self.render('toolbox-notepad.html', text_data = text_data, userid=userid)
+        return
+
+    @tornado.web.authenticated
+    def post(self,userid):
+        try:
+            user = self.db.user.get(userid, fields=('role', 'email'))
+            envs = self.request.body_arguments
+            mail = envs['adminmail'][0]
+            pwd = u"{0}".format(envs['adminpwd'][0])
+            if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
+                if ('mode' in envs) and ('content' in envs):
+                    if (envs['mode'][0] == 'write'):
+                        new_data =  envs['content'][0]
+                    else:
+                        data = self.db.user.get(userid, fields=('notepad'))['notepad']
+                        new_data = data + "\r\n" +envs['content'][0]
+
+                    self.db.user.mod(userid, notepad=new_data)
+
+                else:
+                    raise Exception(u"参数错误")   
+            else:
+                raise Exception(u"账号/密码错误")   
+        except Exception as e:
+            if (str(e).find('get user need id or email') > -1):
+                e = u'请输入用户名/密码'
+            self.render('tpl_run_failed.html', log=e)
+            return
+        return
+
+class UserPushShowPvar(BaseHandler):
+    @tornado.web.authenticated
+    def post(self,userid):
+        try:
+            user = self.db.user.get(userid, fields=('role', 'email'))
+            envs = self.request.body_arguments
+            mail = envs['adminmail'][0]
+            pwd = u"{0}".format(envs['adminpwd'][0])
+            if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
+                key = self.db.user.get(userid, fields=("barkurl", 'skey', 'wxpusher'))
+                log = u"""barkurl 前值：{bark}\r\nskey 前值：{skey}\r\nwxpusher 前值：{wxpusher}""".format(
+                          bark = key['barkurl'],
+                          skey = key['skey'],
+                          wxpusher = key['wxpusher'])
+                self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
+                return log
+            else:
+                raise Exception(u"账号/密码错误")   
+        except Exception as e:
+            if (str(e).find('get user need id or email') > -1):
+                e = u'请输入用户名/密码'
+            self.render('tpl_run_failed.html', log=e)
+            return
+        return
+
+class custom_pusher_Handler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self,userid):
+        diypusher = self.db.user.get(userid, fields=('diypusher'))['diypusher']
+        diypusher = json.loads(diypusher) if (diypusher != '') else {'mode':'GET'}
+        self.render('user_register_cus_pusher.html', userid=userid, diypusher=diypusher)
+        return
+        
+    @tornado.web.authenticated
+    def post(self,userid):
+        try:
+            envs = self.request.body_arguments
+            for env in envs.keys():
+                envs[env] = envs[env][0]
+            req = tools()
+            log = ''
+            now = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            tmp = req.cus_pusher_send(envs ,u'推送测试', now)
+            if ('True' == tmp):
+                if (envs['btn'] == 'regbtn'):
+                    self.db.user.mod(userid, diypusher=json.dumps(envs))
+            else:
+                raise Exception(tmp)
+            
+            log = u'运行成功，请检查是否收到推送'
+        except Exception as e:
+            if (str(e).find('get user need id or email') > -1):
+                e = u'请输入用户名/密码'
+            traceback.print_exc()
+            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            return
+
+        self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
+        return
+
+
+
 handlers = [
         ('/user/(\d+)/pushsw', UserRegPushSw),
         ('/user/(\d+)/regpush', UserRegPush),
+        ('/user/(\d+)/UserPushShowPvar', UserPushShowPvar),
         ('/user/(\d+)/manage', UserManagerHandler),
         ('/user/(\d+)/database', UserDBHandler),
+        ('/util/toolbox/(\d+)/notepad', toolbox_notpad_Handler),
+        ('/util/custom/(\d+)/pusher', custom_pusher_Handler),
         ]

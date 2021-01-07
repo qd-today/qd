@@ -1,5 +1,5 @@
 {% import "utils.html" as utils %}
-<form method="POST" action="/user/{{ userid }}/regpush">
+<form method="POST" action="/user/{{ userid }}/pushsw">
   <h2 class="text-center">注册推送</h2>
   <hr>
 
@@ -18,11 +18,18 @@
     <input type="text" class="form-control" name="wxpusher_token" value="" id="wxpusher_token" placeholder="请到 http://wxpusher.zjiecode.com/admin 扫码新建app">
     <label class="control-label" for="note">wxpusher 的 uid</label>
     <input type="text" class="form-control" name="wxpusher_uid" value="" id="wxpusher_uid" placeholder="wxpusher 用户必须要订阅app才能收到推送">
-	  <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+  </div>
+  <div class="form-group">
+    <label class="control-label" for="note" ><font color='red'>注册不需要填写账号密码，查看前值需要</font></label><br>
+    <label class="control-label" for="note">邮箱</label>
+    <input type="text" class="form-control" name="adminmail" value="" id="adminmail" placeholder="注册不需要填写账号密码">
+    <label class="control-label" for="note">密码</label>
+    <input type='password' class="form-control" name="adminpwd" value="" id="adminpwd" placeholder="注册不需要填写账号密码">
   </div>
   {% endif %}
 
   <div class="text-right">
+    <button id="showpvar" name="showpvarbtn" data-loading-text="loading..." class="btn btn-default" >前值</button>
     <button id="test" name="testbtn" data-loading-text="loading..." class="btn btn-default">测试</button>
     <button id="register" name="regbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">提交</button>
   </div>
@@ -55,10 +62,11 @@
           data: data,
         })
         .done(function(data) {
-          $('#run-result').html(data).show()
+         $('#run-result').html(data).show()
+        
         })
         .fail(function(jxhr) {
-          $('#run-result').html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+          $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
         })
         .always(function() {
           $this.button('reset');
@@ -67,6 +75,30 @@
         return false;
       });
     })
+</script>
+<script>
+$(function() {
+    // run test
+    $('#showpvar').on('click', function() {
+      data = {}
+      data['adminmail'] = $('#adminmail')[0].value;
+      data['adminpwd'] = $('#adminpwd')[0].value;
+      $.ajax("/user/{{ userid }}/UserPushShowPvar", {
+            type: 'POST',
+            data: data,
+          })
+          .done(function(data) {
+            $('#run-result').html(data).show()
+            })
+          .fail(function(jxhr) {
+            $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+          })
+          .always(function() {
+              $this.button('reset');
+            });
+      return false
+    });
+})
   </script>
 
   {{ utils.task_new_scripts() }}

@@ -250,8 +250,35 @@ class UtilRSAHandler(BaseHandler):
             self.write(str(e))
             return
 
-        
+class toolboxHandler(BaseHandler):
+    @gen.coroutine
+    def get(self, userid):
+        user = self.current_user
+        self.render('toolbox.html', userid=userid)
 
+    @gen.coroutine
+    def post(self, userid):
+        try:
+            user = self.db.user.get(userid, fields=('role', 'email'))
+            res_data = request_parse(self.request)
+            email = res_data["email"][0] if "email" in  res_data else None
+            pwd = res_data["pwd"][0] if "pwd" in  res_data else None 
+            f = res_data["f"][0] if "f" in  res_data else None
+            if (email) and (pwd) and (f):
+                if self.db.user.challenge(email, pwd) and (user['email'] == email):
+                    text_data = self.db.user.get(userid, fields=('notepad'))['notepad']
+                    new_data = res_data["data"][0] if "data" in  res_data else ''
+                    if (f.find('write') > -1 ): 
+                        text_data = new_data
+                    elif (f.find('append') > -1):
+                        text_data = text_data + '\r\n' + new_data
+                    self.write(text_data)
+                    return
+            else:
+                self.write(u"参数不完整，请确认")
+        except Exception as e:
+            self.write(str(e))
+            return
 
 handlers = [
     ('/util/delay/(\d+)', UtilDelayHandler),
@@ -261,4 +288,5 @@ handlers = [
     ('/util/regex', UtilRegexHandler),
     ('/util/string/replace', UtilStrReplaceHandler),
     ('/util/rsa', UtilRSAHandler),
+    ('/util/toolbox/(\d+)', toolboxHandler),
 ]

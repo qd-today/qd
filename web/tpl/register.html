@@ -10,7 +10,7 @@
 {% block body %}
 <div class="container">
   <form method="POST">
-    <h2 class="text-center">私有签到框架<sup>alpha</sup></h2>
+    <h2 class="text-center">私有签到框架<sup>20210107</sup></h2>
 	<hr>
     {% block reg %}<p class="alert alert-info">注册签到 (欢迎注册私有签到服务)</p>{% endblock %}
     <div class="form-group {{ 'has-error' if email_error }}">
@@ -31,7 +31,9 @@
     <div class="text-right">
 
       <button type="submit" class="btn btn-default" onclick="document.forms[0].action='/login'+location.search">登录</button>
+      {% if regflg %}
       <button type="submit" class="btn btn-default" onclick="document.forms[0].action='/register'+location.search">注册</button>
+      {% endif %}
 	  <!-- 登录页面-忘记密码增加按钮效果 -->
     <button type="submit" class="btn btn-default" onclick="document.forms[0].action='/password_reset'+location.search">忘记密码?</button>
     </div>

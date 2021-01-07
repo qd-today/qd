@@ -21,6 +21,7 @@ from libs import utils
 from libs.fetcher import Fetcher
 
 from web.handlers.task import calNextTimestamp
+from funcs import tools
 
 logger = logging.getLogger('qiandao.worker')
 
@@ -140,10 +141,11 @@ class MainWorker(object):
 
     @gen.coroutine
     def do(self, task):
+        start_ts = int(time.time())
         task['note'] = self.db.task.get(task['id'], fields=('note'))['note']
         user = self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname'))
         tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl', 'interval', 'last_success'))
-        ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg', 'pushsw', 'newontime'))
+        ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg', 'pushsw', 'newontime', 'next'))
         newontime = json.loads(ontime["newontime"])
         pushsw = json.loads(ontime['pushsw'])
         notice = self.db.user.get(task['userid'], fields=('skey', 'barkurl', 'noticeflg', 'wxpusher'))
@@ -153,12 +155,17 @@ class MainWorker(object):
         pushno2b = send2phone.send2phone(barkurl=notice['barkurl'])
         pushno2s = send2phone.send2phone(skey=notice['skey'])
         pushno2w = send2phone.send2phone(wxpusher_token=wxpusher_token, wxpusher_uid=wxpusher_uid)
+        cuspusher = tools()
         pusher =  {}
         pusher["mailpushersw"] = False if (notice['noticeflg'] & 0x80) == 0 else True
         pusher["barksw"] = False if (notice['noticeflg'] & 0x40) == 0 else True 
         pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True 
         pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True
+        pusher["cuspushersw"] = False if (notice['noticeflg'] & 0x100) == 0 else True
         logtime = json.loads(self.db.user.get(task['userid'], fields=('logtime'))['logtime'])
+        diypusher = self.db.user.get(task['userid'], fields=('diypusher'))['diypusher']
+        if (diypusher != ''):diypusher = json.loads(diypusher) 
+
         if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0 
 
         if task['disabled']:
@@ -197,7 +204,7 @@ class MainWorker(object):
 
             # todo next not mid night
             if (newontime['sw']):
-                next = calNextTimestamp(newontime, True)
+                next = calNextTimestamp(newontime, True, start_ts)
             else:
                 next = time.time() + max((tpl['interval'] if tpl['interval'] else 24 * 60 * 60), 1*60)
                 if tpl['interval'] is None:
@@ -218,13 +225,17 @@ class MainWorker(object):
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
                 title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
                 logtemp = new_env['variables'].get('__log__')
+                logtemp = u"{0}  日志：{1}".format(t, logtemp)
                 if (notice['noticeflg'] & 0x2 != 0) and (pushsw['pushen']):
-                    if (pusher["barksw"]):pushno2b.send2bark(title, u"{0} 运行成功".format(t))
-                    if (pusher["schansw"]):pushno2s.send2s(title, u"{0}  日志：{1}".format(t, logtemp))
-                    if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"{0}  日志：{1}".format(t, logtemp))
+                    if (pusher["barksw"]):pushno2b.send2bark(title, logtemp)
+                    if (pusher["schansw"]):pushno2s.send2s(title, logtemp)
+                    if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+logtemp)
                     if (pusher["mailpushersw"]):
-                            if user['email'] and user['email_verified']:
-                                self.task_send_mail(title, u"{0}  日志：{1}".format(t, logtemp), user['email'])
+                        if user['email'] and user['email_verified']:
+                            self.task_send_mail(title, logtemp, user['email'])
+                    if (pusher["cuspushersw"]):
+                        if (diypusher != ''):
+                            cuspusher.cus_pusher_send(diypusher, t, logtemp)
 
             logger.info('taskid:%d tplid:%d successed! %.4fs', task['id'], task['tplid'], time.time()-start)
             # delete log
@@ -243,12 +254,16 @@ class MainWorker(object):
                 # 每次都推送通知
                 if (logtime['ErrTolerateCnt'] <= task['last_failed_count']):
                     if (notice['noticeflg'] & 0x1 == 1) and (pushsw['pushen']):
-                        if (pusher["barksw"]):pushno2b.send2bark(title, u"请自行排查")
+                        if (pusher["barksw"]):pushno2b.send2bark(title, content)
                         if (pusher["schansw"]):pushno2s.send2s(title, content)
                         if (pusher["wxpushersw"]):pushno2w.send2wxpusher(title+u"  "+content)
                         if (pusher["mailpushersw"]):
                             if user['email'] and user['email_verified']:
                                 self.task_send_mail(title, content, user['email'])
+                        if (pusher["cuspushersw"]):
+                            if (diypusher != ''):
+                                cuspusher.cus_pusher_send(diypusher, title, content)
+
                 disabled = False
             else:
                 disabled = True
@@ -261,6 +276,9 @@ class MainWorker(object):
                     if (pusher["mailpushersw"]):
                         if user['email'] and user['email_verified']:
                             self.task_send_mail(title, u"任务已禁用", user['email'])
+                    if (pusher["cuspushersw"]):
+                        if (diypusher != ''):
+                            cuspusher.cus_pusher_send(diypusher, title, u"任务已禁用")
 
             self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
             self.db.task.mod(task['id'],

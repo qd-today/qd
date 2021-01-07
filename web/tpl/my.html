@@ -15,12 +15,6 @@
     <h2>
       我的签到
       <a href="/task/new" class="btn btn-default btn-xs modal_load glyphicon glyphicon-plus"></a>
-      <span type="span" class="btn btn-default">
-        <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/regpush" title="注册推送工具">推送注册</a>
-      </span>
-      <span type="span" class="btn btn-default">
-        <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/pushsw" title="推送设置">推送设置</a>
-      </span>
       {% if adminflg %}
       <span type="span" class="btn btn-default">
         <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/manage" title="管理用户">管理用户</a>
@@ -31,6 +25,9 @@
       {% endif %}
       <span type="span" class="btn btn-default">
         <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/database" title="备份数据库">数据库</a>
+      </span>
+      <span type="span" class="btn btn-default">
+        <a data-load-method="GET" class="modal_load" href="/util/toolbox/{{ userid }}" title="工具箱">工具箱</a>
       </span>
     </h2>
     <table class="table table-hover">
