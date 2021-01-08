@@ -40,14 +40,13 @@ if __name__ == "__main__":
         port = int(sys.argv[2])
     else:
         port = config.port
+    converter = sqlite3_db_task_converter.DBconverter()
+    converter.ConvertNewType() 
 
     http_server = HTTPServer(Application(), xheaders=True)
     http_server.bind(port, config.bind)
     http_server.start()
 
-    converter = sqlite3_db_task_converter.DBconverter()
-    converter.ConvertNewType() 
-    
     worker = MainWorker()
     PeriodicCallback(worker, config.check_task_loop).start()
     worker()

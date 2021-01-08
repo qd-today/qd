@@ -328,6 +328,55 @@
         });
       };
 
+      $scope.add_read_notepad_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: '读取记事本',
+          request: {
+            method: 'POST',
+            url: 'http://localhost/util/toolbox/1',
+            headers: [],
+            cookies: [],
+            postData:{
+              text: "email={{qd_name|urlencode}}&pwd={{qd_pwd|urlencode}}&f=read"
+            }
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            }
+          ]
+        });
+      };
+      $scope.add_append_notepad_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: '追加记事本',
+          request: {
+            method: 'POST',
+            url: 'http://localhost/util/toolbox/1',
+            headers: [],
+            cookies: [],
+            postData:{
+              text: "email={{qd_name|urlencode}}&pwd={{qd_pwd|urlencode}}&f=read&data="
+            }
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            }
+          ]
+        });
+      };
+
       $scope.copy_request = function() {
         if (!$scope.entry) {
           $scope.alert("can't find position to paste request");

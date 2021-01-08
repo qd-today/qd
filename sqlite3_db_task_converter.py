@@ -56,8 +56,8 @@ class DBconverter(_TaskDB, BaseDB):
             `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1,
             `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{"en":false,"time":"20:00:00","ts":0,"schanEn":false,"WXPEn":false}',
             `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
-            `notepad` TEXT NOT NULL DEFAULT '',
-            `diypisher` VARBINARY(1024) NOT NULL DEFAULT ''
+            `notepad` TEXT NULL,
+            `diypusher` VARBINARY(1024) NOT NULL DEFAULT ''
             );''')
             self.db.site._execute('''CREATE TABLE IF NOT EXISTS `tpl` (
             `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -246,7 +246,12 @@ class DBconverter(_TaskDB, BaseDB):
         try:
             self.db.user.get("1", fields=('notepad'))
         except :
-            exec_shell("ALTER TABLE `user` ADD `notepad` TEXT NOT NULL DEFAULT '' ") 
+            if config.db_type == 'sqlite3':
+                exec_shell("ALTER TABLE `user` ADD `notepad` TEXT NOT NULL DEFAULT '' ") 
+            else:
+                exec_shell("ALTER TABLE `user` ADD `notepad` TEXT NULL") 
+            
+
         
         try:
             self.db.user.get("1", fields=('diypusher'))

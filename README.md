@@ -16,6 +16,34 @@ docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qian
 
 数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
 
+docker配置邮箱(强制使用SSL)：```docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码 --env MAIL_PASSWORD=密码 --env DOMAIN=域名 asdaragon/qiandao ```
+
+docker 使用MySQL：```docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@链接/数据库名 asdaragon/qiandao ```
+
+自定义推送示例：
+```
+WXPusher
+{
+   "url": "http://wxpusher.zjiecode.com/api/send/message", 
+   "headers": "", 
+   "postData":"{"appToken":"你的token","content":"{log}","contentType":3,"uids":["你的UID"]}", 
+   "postMethod": "json"
+}
+bark:
+{
+   "postData": "{"title":"{t}","body":"{log}"}", 
+   "headers": "", 
+   "mode": "POST",
+   "postMethod": "x-www-form-urlencoded", 
+   "curl": "https://barkurl/key/", 
+}
+```
+## 2021.01.08 更新
+1. 修复20210107注册按钮丢失的BUG
+2. 添加记事本访问接口
+3. 添加自定义推送示例
+4. sqlite3_db_task_converter放在web启动之前
+
 ## 2021.01.07 更新
 1. 底部添加本项目链接
 2. 禁止注册时隐藏注册按钮
