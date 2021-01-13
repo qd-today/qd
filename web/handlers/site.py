@@ -33,12 +33,12 @@ class SiteManagerHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self, userid):
         try:
-            user = self.db.user.get(userid, fields=('role'))
+            user = self.db.user.get(userid, fields=('email', 'role', 'email_verified'))
             if user and user['role'] == "admin":
                 envs = self.request.body_arguments
                 mail = envs['adminmail'][0]
                 pwd = u"{0}".format(envs['adminpwd'][0])
-                if self.db.user.challenge(mail, pwd):
+                if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
                     if ("site.regEn" in envs):
                         self.db.site.mod(1, regEn=0)
                         if (self.db.site.get(1, fields=('regEn'))['regEn'] != 0):
@@ -49,9 +49,12 @@ class SiteManagerHandler(BaseHandler):
                             raise Exception(u"开启注册失败")
                     
                     if ("site.MustVerifyEmailEn" in envs):
-                        self.db.site.mod(1, MustVerifyEmailEn=1)
-                        if (self.db.site.get(1, fields=('MustVerifyEmailEn'))['MustVerifyEmailEn'] != 1):
-                            raise Exception(u"开启 强制邮箱验证 失败")
+                        if (user['email_verified'] != 0):
+                            self.db.site.mod(1, MustVerifyEmailEn=1)
+                            if (self.db.site.get(1, fields=('MustVerifyEmailEn'))['MustVerifyEmailEn'] != 1):
+                                raise Exception(u"开启 强制邮箱验证 失败")
+                        else:
+                            raise Exception(u"必须验证 管理员邮箱 才能开启")
                     else:
                         self.db.site.mod(1, MustVerifyEmailEn=0)
                         if (self.db.site.get(1, fields=('MustVerifyEmailEn'))['MustVerifyEmailEn'] != 0):
