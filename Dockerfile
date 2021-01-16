@@ -28,8 +28,5 @@ ENV TZ=CST-8
 # 添加挂载点
 VOLUME ["/usr/src/app/"]
 
-ENTRYPOINT  git config --global credential.helper store && \
-            git fetch --all && \
-            git reset --hard origin/master && \
-            python  /usr/src/app/run.py
+CMD ["python","/usr/src/app/run.py"]
 
