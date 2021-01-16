@@ -33,27 +33,28 @@ class LoginHandler(BaseHandler):
         email = self.get_argument('email')
         password = self.get_argument('password')
         siteconfig = self.db.site.get(1, fields=('MustVerifyEmailEn'))
+        regFlg = False if  self.db.site.get(1, fields=('regEn'))['regEn'] == 0 else True
         if not email or not password:
-            self.render('login.html', password_error=u'请输入用户名和密码', email=email)
+            self.render('login.html', password_error=u'请输入用户名和密码', email=email, regFlg=regFlg)
             return
 
         user_try = self.db.user.get(email=email, fields=('id', 'role', 'status'))
         if (user_try):
             if (user_try['status'] != 'Enable') and (user_try['role'] != 'admin'):
-                self.render('login.html', password_error=u'账号已被禁用，请联系管理员', email=email)
+                self.render('login.html', password_error=u'账号已被禁用，请联系管理员', email=email, regFlg=regFlg)
                 return
         else:
-            self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email)
+            self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
             return
 
         if self.db.user.challenge(email, password):
             user = self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role', 'email_verified'))
             if not user:
-                self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email)
+                self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
                 return
             
             if (siteconfig['MustVerifyEmailEn'] != 0) and (user['email_verified'] == 0):
-                self.render('login.html', password_error=u'未验证邮箱，请点击注册重新验证邮箱', email=email)
+                self.render('login.html', password_error=u'未验证邮箱，请点击注册重新验证邮箱', email=email, regFlg=regFlg)
                 return
 
             setcookie = dict(
@@ -69,7 +70,7 @@ class LoginHandler(BaseHandler):
             self.redirect(next)
         else:
             self.evil(+5)
-            self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email)
+            self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
 
 class LogoutHandler(BaseHandler):
     def get(self):
