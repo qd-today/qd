@@ -14,6 +14,7 @@
           <th>状态</th>
           <th>创建时间</th>
           <th>最后登陆时间</th>
+          <th>功能</th>
         </tr>
       </thead>
       <tbody>
@@ -33,6 +34,12 @@
           </td>
           <td>{{ format_date(user.ctime,-8*60,True,False,True)}}</td>
           <td>{{ format_date(user.atime,-8*60,True,False,True)}}</td>
+          <td>
+            <span type="span" class="btn btn-default">
+              <a data-load-method="GET" class="modal_load" href="/user/{{user.id}}/setnewpwd" title="修改密码">改密
+              </a>
+            </span>
+          </td>
         </tr>
         {% endfor %}
       </tbody>

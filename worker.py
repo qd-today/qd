@@ -148,10 +148,11 @@ class MainWorker(object):
         ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg', 'pushsw', 'newontime', 'next'))
         newontime = json.loads(ontime["newontime"])
         pushsw = json.loads(ontime['pushsw'])
-        notice = self.db.user.get(task['userid'], fields=('skey', 'barkurl', 'noticeflg', 'wxpusher'))
+        notice = self.db.user.get(task['userid'], fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token'))
         temp = notice['wxpusher'].split(";")
         wxpusher_token = temp[0] if (len(temp) >= 2) else ""
         wxpusher_uid = temp[1] if (len(temp) >= 2) else "" 
+        qywx_token = notice['qywx_token']
         pushno2b = send2phone.send2phone(barkurl=notice['barkurl'])
         pushno2s = send2phone.send2phone(skey=notice['skey'])
         pushno2w = send2phone.send2phone(wxpusher_token=wxpusher_token, wxpusher_uid=wxpusher_uid)
@@ -162,6 +163,7 @@ class MainWorker(object):
         pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True 
         pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True
         pusher["cuspushersw"] = False if (notice['noticeflg'] & 0x100) == 0 else True
+        pusher["qywxpushersw"] = False if (notice['noticeflg'] & 0x200) == 0 else True
         logtime = json.loads(self.db.user.get(task['userid'], fields=('logtime'))['logtime'])
         diypusher = self.db.user.get(task['userid'], fields=('diypusher'))['diypusher']
         if (diypusher != ''):diypusher = json.loads(diypusher) 
@@ -235,7 +237,9 @@ class MainWorker(object):
                             self.task_send_mail(title, logtemp, user['email'])
                     if (pusher["cuspushersw"]):
                         if (diypusher != ''):
-                            cuspusher.cus_pusher_send(diypusher, t, logtemp)
+                            cuspusher.cus_pusher_send(diypusher, title, logtemp)
+                    if (pusher["qywxpushersw"]):
+                            cuspusher.qywx_pusher_send(qywx_token, title, logtemp)
 
             logger.info('taskid:%d tplid:%d successed! %.4fs', task['id'], task['tplid'], time.time()-start)
             # delete log
@@ -261,8 +265,9 @@ class MainWorker(object):
                             if user['email'] and user['email_verified']:
                                 self.task_send_mail(title, content, user['email'])
                         if (pusher["cuspushersw"]):
-                            if (diypusher != ''):
-                                cuspusher.cus_pusher_send(diypusher, title, content)
+                            cuspusher.cus_pusher_send(diypusher, title, content)
+                        if (pusher["qywxpushersw"]):
+                            cuspusher.qywx_pusher_send(qywx_token, title, content)
 
                 disabled = False
             else:
@@ -279,6 +284,8 @@ class MainWorker(object):
                     if (pusher["cuspushersw"]):
                         if (diypusher != ''):
                             cuspusher.cus_pusher_send(diypusher, title, u"任务已禁用")
+                    if (pusher["qywxpushersw"]):
+                        cuspusher.qywx_pusher_send(qywx_token, title, u"任务已禁用")
 
             self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
             self.db.task.mod(task['id'],

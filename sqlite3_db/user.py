@@ -33,7 +33,8 @@ class UserDB(_UserDB, BaseDB):
           `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}',
           `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
           `notepad` TEXT NOT NULL DEFAULT '',
-          `diypisher` VARBINARY(1024) NOT NULL DEFAULT ''
+          `diypisher` VARBINARY(1024) NOT NULL DEFAULT '',
+          `qywx_token` VARBINARY(1024) NOT NULL DEFAULT ''
         )''' % self.__tablename__)
 
         for each in ('email', 'nickname'):

@@ -160,10 +160,11 @@ class TaskRunHandler(BaseHandler):
                 session = [],
                 )
         
-        notice = self.db.user.get(task['userid'], fields=('skey', 'barkurl', 'noticeflg', 'wxpusher'))
+        notice = self.db.user.get(task['userid'], fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token'))
         temp = notice['wxpusher'].split(u";")
         wxpusher_token = temp[0] if (len(temp) >= 2) else ""
-        wxpusher_uid = temp[1] if (len(temp) >= 2) else "" 
+        wxpusher_uid = temp[1] if (len(temp) >= 2) else ""
+        qywx_token = notice['qywx_token']
         pushno2b = send2phone.send2phone(barkurl=notice['barkurl'])
         pushno2s = send2phone.send2phone(skey=notice['skey'])
         pushno2w = send2phone.send2phone(wxpusher_token=wxpusher_token, wxpusher_uid=wxpusher_uid)
@@ -172,7 +173,8 @@ class TaskRunHandler(BaseHandler):
         pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True 
         pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True
         pusher["mailpushersw"] = False if (notice['noticeflg'] & 0x80) == 0 else True  
-        pusher["cuspushersw"] = False if (notice['noticeflg'] & 0x100) == 0 else True 
+        pusher["cuspushersw"] = False if (notice['noticeflg'] & 0x100) == 0 else True
+        pusher["qywxpushersw"] = False if (notice['noticeflg'] & 0x200) == 0 else True 
         taskpushsw = json.loads(task['pushsw'])
         newontime = json.loads(task['newontime'])
         diypusher = self.db.user.get(task['userid'], fields=('diypusher'))['diypusher']
@@ -195,6 +197,8 @@ class TaskRunHandler(BaseHandler):
                 if (pusher["cuspushersw"]):
                     if (diypusher != ''):
                         cuspusher.cus_pusher_send(diypusher, title, logtmp)
+                if (pusher["qywxpushersw"]):
+                    cuspusher.qywx_pusher_send(qywx_token, title, logtmp)
                 
             self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
             self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % e)
@@ -227,6 +231,8 @@ class TaskRunHandler(BaseHandler):
             if (pusher["cuspushersw"]):
                 if (diypusher != ''):
                     cuspusher.cus_pusher_send(diypusher, title, logtmp)
+            if (pusher["qywxpushersw"]):
+                cuspusher.qywx_pusher_send(qywx_token, title, logtmp)
         
         self.db.tpl.incr_success(tpl['id'])
         self.finish('<h1 class="alert alert-success text-center">签到成功</h1>')

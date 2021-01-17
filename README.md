@@ -4,11 +4,38 @@ __操作前请一定要记得备份数据库__<br>
 __操作前请一定要记得备份数据库__<br>
 __操作前请一定要记得备份数据库__<br>
 
+鸣谢
+====
+
+[Mark  https://www.quchao.net/](https://www.quchao.net/) 
+
+[戏如人生 https://49594425.xyz/](https://49594425.xyz/)
+
+[AragonSnow https://hexo.aragon.wang/](https://hexo.aragon.wang/)
+
 个人项目精力有限，仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request让我修改。
 
 因为需要测试，docker镜像会晚于gitHub几天更新
 
 docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.com/r/asdaragon/qiandao)
+
+变量名|是否必须|默认值|说明
+:-: | :-: | :-: | :-: 
+BIND|否|0.0.0.0|监听地址
+PORT|否|8923|监听端口
+ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS，非程序使用HTTPS，需要HTTPS需要使用反向代理
+DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
+JAWSDB_MARIA_URL|否|''|需要使用MySQL时设置为 mysql://用户名:密码@链接/数据库名
+REDISCLOUD_URL|否|''|不懂
+REDIS_DB_INDEX|否|1|不懂
+DOMAIN|否|qiandao.today|指定域名，建议修改，不然邮件重置密码之类的功能无效
+MAIL_SMTP|否|""|邮箱SMTP服务器
+MAIL_PORT|否|""|邮箱SMTP服务器端口
+MAIL_USER|否|""|邮箱用户名
+MAIL_PASSWORD|否|""|邮箱密码
+MAIL_DOMAIN|否|mail.qiandao.today|邮箱域名,没啥用，使用的DOMAIN
+AES_KEY|否|binux|AES加密密钥，强烈建议修改
+COOKIE_SECRET|否|binux|cookie加密密钥，强烈建议修改
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
@@ -38,6 +65,10 @@ bark:
    "curl": "https://barkurl/key/", 
 }
 ```
+## 2021.01.17 更新
+1. 添加企业微信支持
+2. 支持在用户管理里修改密码
+
 ## 2021.01.16 更新
 1. 修复点击登陆失败后注册按钮消失的问题
 
@@ -45,7 +76,7 @@ bark:
 1. 开启邮箱验证前必须验证管理员邮箱
 
 ## 2021.01.08 更新
-1. 修复20210116注册按钮丢失的BUG
+1. 修复20210117注册按钮丢失的BUG
 2. 添加记事本访问接口
 3. 添加自定义推送示例
 4. sqlite3_db_task_converter放在web启动之前
@@ -354,15 +385,6 @@ mail_passowrd = ""   # 邮件密码
 mail_domain = "mail.qiandao.today"
 mailgun_key = ""
 ```
-
-鸣谢
-====
-
-[Mark  https://www.quchao.net/](https://www.quchao.net/) 
-
-[戏如人生 https://49594425.xyz/](https://49594425.xyz/)
-
-[AragonSnow https://hexo.aragon.wang/](https://hexo.aragon.wang/)
 
 许可
 ====
