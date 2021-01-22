@@ -19,26 +19,6 @@ from funcs import cal
 
 from base import *
 
-def calNextTimestamp(etime, todayflg, start_ts):
-    tz = pytz.timezone('Asia/Shanghai')
-    start = datetime.datetime.fromtimestamp(start_ts)
-    zero = datetime.datetime(year=start.year, month=start.month, day=start.day,  hour=0,  minute=0, second=0, tzinfo=tz)
-    zero_ts = int(time.mktime(zero.timetuple()) + zero.microsecond/1e6)
-    temp = etime["time"].split(":")
-    e_ts = int(temp[0]) * 3600 + int(temp[1]) * 60 + int(temp[2])
-    
-    if (etime['sw'] and etime['randsw']):
-        r_ts = random.randint(etime['tz1'], etime['tz2'])
-    else:
-        r_ts = 0
-        
-    next_ts = zero_ts + e_ts
-    if  (start_ts > next_ts) or (todayflg):
-        next_ts = next_ts + (24 * 60 * 60)
-        
-    next_ts = next_ts + r_ts
-    return next_ts
-
 class TaskNewHandler(BaseHandler):    
     def get(self):
         user = self.current_user
@@ -182,6 +162,9 @@ class TaskRunHandler(BaseHandler):
 
         self.db.tasklog.add(task['id'], success=True, msg=new_env['variables'].get('__log__'))
         if (newontime["sw"]):
+            if ('mode' not in newontime):
+                newontime['mode'] = 'ontime'
+
             if (newontime['mode'] == 'ontime'):
                 newontime['date'] = (datetime.datetime.now()+datetime.timedelta(days=1)).strftime("%Y-%m-%d")
             nextTime = caltool.calNextTs(newontime)['ts']

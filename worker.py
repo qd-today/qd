@@ -190,6 +190,8 @@ class MainWorker(object):
 
             # todo next not mid night
             if (newontime['sw']):
+                if ('mode' not in newontime):
+                    newontime['mode'] = 'ontime'
                 if (newontime['mode'] == 'ontime'):
                     newontime['date'] = (datetime.datetime.now()+datetime.timedelta(days=1)).strftime("%Y-%m-%d")
                 next = caltool.calNextTs(newontime)['ts']
