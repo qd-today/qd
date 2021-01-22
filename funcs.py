@@ -5,15 +5,113 @@
 import sys
 import json
 import logging
-import datetime
-import time
+import croniter
 import requests
 import traceback
-import urllib
+import random
+import time
+import datetime
 
-class tools(object):
+import config
+from libs import utils
+
+
+class pusher(object):
     def __init__(self):
-        pass
+        if config.db_type == 'sqlite3':
+            import sqlite3_db as db
+        else:
+            import db
+            
+        class DB(object):
+            user = db.UserDB()
+            tpl = db.TPLDB()
+            task = db.TaskDB()
+            tasklog = db.TaskLogDB()
+            site = db.SiteDB()
+
+        self.db = DB
+    
+    def pusher(self, userid, pushsw, flg, title, content):
+        notice = self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'diypusher'))
+
+        if (notice['noticeflg'] & flg != 0):
+            user = self.db.user.get(userid, fields=('id', 'email', 'email_verified', 'nickname'))
+            diypusher = notice['diypusher']
+            if (diypusher != ''):diypusher = json.loads(diypusher)
+            self.barklink =  notice['barkurl']
+            pusher =  {}
+            pusher["mailpushersw"] = False if (notice['noticeflg'] & 0x80) == 0 else True
+            pusher["barksw"] = False if (notice['noticeflg'] & 0x40) == 0 else True 
+            pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True 
+            pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True
+            pusher["cuspushersw"] = False if (notice['noticeflg'] & 0x100) == 0 else True
+            pusher["qywxpushersw"] = False if (notice['noticeflg'] & 0x200) == 0 else True
+        
+            if (pushsw['pushen']):
+                if (pusher["barksw"]):
+                    self.send2bark(notice['barkurl'], title, content)
+                if (pusher["schansw"]):
+                    self.send2s(notice['skey'], title, content)
+                if (pusher["wxpushersw"]):
+                    self.send2wxpusher(notice['wxpusher'], title+u"  "+content)
+                if (pusher["mailpushersw"]):
+                        self.sendmail(user['email'], title, content)
+                if (pusher["cuspushersw"]):
+                    self.cus_pusher_send(diypusher, title, content)
+                if (pusher["qywxpushersw"]):
+                    self.qywx_pusher_send(notice['qywx_token'], title, content)
+
+
+    def send2bark(self, barklink, title, content):
+        r = 'False'
+        try:
+            msg = {"title":title,"body":content}
+            res = requests.post(barklink, data=msg, verify=False)
+            r = 'True'
+        except Exception as e:
+            r = traceback.format_exc()
+            print(r)
+        
+        return r
+        
+    def send2s(self, skey, title, content):
+        r = 'False'
+        if (skey != ""):
+            try:
+                link = u"https://sc.ftqq.com/{0}.send".format(skey.replace(".send", ""))
+                d = {'text': title, 'desp': content}
+                res = requests.post(link, data=d , verify=False)
+                r = 'True'
+            except Exception as e:
+                r = traceback.format_exc()
+                print(r)
+        return r   
+    
+    def send2wxpusher(self, wxpusher, content):
+        r = 'False'
+        temp = wxpusher.split(";")
+        wxpusher_token = temp[0] if (len(temp) >= 2) else ""
+        wxpusher_uid = temp[1] if (len(temp) >= 2) else "" 
+        if (wxpusher_token != "") and (wxpusher_uid != ""):
+            try:
+                link = "http://wxpusher.zjiecode.com/api/send/message"
+                d = {
+                        "appToken":wxpusher_token,
+                        "content":content,
+                        "contentType":3,
+                        "uids":[
+                            wxpusher_uid
+                        ]
+                    }
+                res = requests.post(link, json=d , verify=False)
+                r = 'True'
+            except Exception as e:
+                r = traceback.format_exc()
+                print(r)
+
+        return  r  
+
 
     def cus_pusher_send(self, diypusher, t, log):
         r = 'False'
@@ -85,4 +183,47 @@ class tools(object):
         except Exception as e:
             r = traceback.format_exc()
             print(r)
+        return r
+
+    def sendmail(self, email, title, content):
+        user = self.db.user.get(email=email, fields=('id', 'email', 'email_verified', 'nickname'))
+        if user['email'] and user['email_verified']:
+            try:
+                utils.send_mail(to = email, 
+                                subject = u"在网站{0} {1}".format(config.domain, title),
+                                text = content,
+                                async=True)
+            except Exception as e:
+                logging.error('tasend mail error: %r', e)
+
+class cal(object):
+    def __init__(self):
+        pass
+    
+    def calNextTs(self, envs):
+        r = {"r":"True"}
+        try:
+            if (envs['mode'] == 'ontime'): 
+                t = '{0} {1}'.format(envs['date'], envs['time'])
+            elif (envs['mode'] == 'cron'):
+                cron = croniter.croniter(envs['cron_val'], datetime.datetime.now())
+                t = cron.get_next(datetime.datetime).strftime("%Y-%m-%d %H:%M:%S")
+            else:
+                raise Exception(u'参数错误')
+
+            d = datetime.datetime.strptime(t, "%Y-%m-%d %H:%M:%S").timetuple()
+            ts = int(time.mktime(d))
+
+            if ('randsw' in envs):
+                if (envs['sw'] and envs['randsw']):
+                    r_ts = random.randint(int(envs['randtz1']), int(envs['randtz2']))
+                    ts = ts + r_ts
+
+            if ('cron_sec' in envs):
+                ts = ts + int(envs['cron_sec'])
+                
+            r['ts'] = ts
+        except Exception :
+            r['r'] = traceback.format_exc()
+            print(r['r'] )
         return r

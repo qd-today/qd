@@ -13,6 +13,12 @@ __操作前请一定要记得备份数据库__<br>
 
 [AragonSnow https://hexo.aragon.wang/](https://hexo.aragon.wang/)
 
+[buzhibujuelb](https://github.com/buzhibujuelb) 
+
+[billypon](https://github.com/billypon) 
+
+[powersee](https://github.com/powersee) 
+
 个人项目精力有限，仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request让我修改。
 
 因为需要测试，docker镜像会晚于gitHub几天更新
@@ -65,6 +71,10 @@ bark:
    "curl": "https://barkurl/key/", 
 }
 ```
+## 2021.01.22 更新
+1. 整合推送模块
+2. 添加定时cron支持
+
 ## 2021.01.17 更新
 1. 添加企业微信支持
 2. 支持在用户管理里修改密码
@@ -76,7 +86,7 @@ bark:
 1. 开启邮箱验证前必须验证管理员邮箱
 
 ## 2021.01.08 更新
-1. 修复20210117注册按钮丢失的BUG
+1. 修复20210122注册按钮丢失的BUG
 2. 添加记事本访问接口
 3. 添加自定义推送示例
 4. sqlite3_db_task_converter放在web启动之前

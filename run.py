@@ -16,7 +16,6 @@ from worker import MainWorker
 
 import sqlite3_db_task_converter
 import requests
-from  funcs import tools
 
 requests.packages.urllib3.disable_warnings()
 

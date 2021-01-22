@@ -25,7 +25,7 @@ from backup import DBnew
 import codecs
 import requests
 import traceback
-from funcs import tools
+from funcs import pusher
 
 def tostr(s):
     if isinstance(s, bytearray):
@@ -118,7 +118,7 @@ class UserRegPush(BaseHandler):
                     log = log+u"Bark 未填写完整\r\n"
                 
                 if (qywx_token != ""):
-                    f = tools()
+                    f = pusher()
                     f.qywx_pusher_send(qywx_token, "正在测试企业微信", u"{t} 发送测试".format(t=t))
                     log = log+u"企业微信 已推送\r\n"
                 else:
@@ -485,7 +485,7 @@ class custom_pusher_Handler(BaseHandler):
             envs = self.request.body_arguments
             for env in envs.keys():
                 envs[env] = envs[env][0]
-            req = tools()
+            req = pusher()
             log = ''
             now = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             tmp = req.cus_pusher_send(envs ,u'推送测试', now)
@@ -523,8 +523,6 @@ class UserSetNewPWDHandler(BaseHandler):
 
             adminuser = self.db.user.get(email=envs['管理员邮箱'], fields=('role', 'email'))
             newPWD = envs['新密码']
-            # adminmail = u'{0}'.format(envs['管理员邮箱'])
-            # adminpwd = u'{0}'.format(envs['管理员密码'])
             if self.db.user.challenge(envs['管理员邮箱'], envs['管理员密码']) and (adminuser['role'] == 'admin'):
                 if (len(newPWD) >= 6):
                     self.db.user.mod(userid, password=newPWD)
