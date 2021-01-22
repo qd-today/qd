@@ -12,7 +12,6 @@ import logging
 import tornado.log
 import tornado.ioloop
 from tornado import gen
-import send2phone
 import json
 import pytz
 
@@ -20,7 +19,6 @@ import config
 from libs import utils
 from libs.fetcher import Fetcher
 
-from web.handlers.task import calNextTimestamp
 from funcs import pusher
 from funcs import cal
 

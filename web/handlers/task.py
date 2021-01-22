@@ -10,7 +10,6 @@ import time
 from tornado import gen
 import datetime 
 import pytz
-import send2phone
 import random
 import traceback
 

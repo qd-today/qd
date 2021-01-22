@@ -18,7 +18,6 @@ from base import *
 import sqlite3
 
 import send2phone 
-from web.handlers.task import calNextTimestamp
 
 from backup import DBnew
 
