@@ -263,11 +263,9 @@ class TaskSetTimeHandler(TaskNewHandler):
             'tplid', 'disabled', 'note', 'ontime', 'ontimeflg', 'newontime')), 'w')
         
         newontime = json.loads(task['newontime'])
-        ontime = {}
+        ontime = newontime
         if ('mode' not in newontime):
             ontime['mode'] = 'ontime'
-            ontime['data'] = newontime
-            ontime['sw'] = newontime['sw']
         else:
             ontime = newontime
         today_date = time.strftime("%Y-%m-%d",time.localtime())
@@ -281,6 +279,10 @@ class TaskSetTimeHandler(TaskNewHandler):
             for env in envs.keys():
                 envs[env] = u'{0}'.format(envs[env][0])
             c = cal()
+            if ('time' in envs):
+                if (len(envs['time'].split(':')) < 3):
+                    envs['time'] = envs['time'] + ':00'
+                    
             tmp = c.calNextTs(envs)
             if (tmp['r'] == 'True'):
                 self.db.task.mod(taskid,
@@ -295,7 +297,7 @@ class TaskSetTimeHandler(TaskNewHandler):
             self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
             return
         
-        self.render('tpl_run_success.html', log=u"设置完成")
+        self.render('utils_run_result.html', log=u'设置成功，下次执行时间', title=u'设置成功', flg='success')
         return
         
         
@@ -369,8 +371,6 @@ class GetGroupHandler(TaskNewHandler):
         self.write(json.dumps(groups, ensure_ascii=False, indent=4))
         return
 
-        
-        
 handlers = [
         ('/task/new', TaskNewHandler),
         ('/task/(\d+)/edit', TaskEditHandler),

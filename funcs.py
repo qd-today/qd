@@ -216,11 +216,12 @@ class cal(object):
 
             if ('randsw' in envs):
                 if (envs['sw'] and envs['randsw']):
-                    r_ts = random.randint(int(envs['randtz1']), int(envs['randtz2']))
+                    r_ts = random.randint(int(envs['tz1']), int(envs['tz2']))
                     ts = ts + r_ts
 
             if ('cron_sec' in envs):
-                ts = ts + int(envs['cron_sec'])
+                r_ts = 0 if (envs['cron_sec'] == '') else int(envs['cron_sec'])
+                ts = ts + r_ts
                 
             r['ts'] = ts
         except Exception :
