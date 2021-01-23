@@ -277,7 +277,10 @@ class TaskSetTimeHandler(TaskNewHandler):
         try:
             envs = self.request.body_arguments
             for env in envs.keys():
-                envs[env] = u'{0}'.format(envs[env][0])
+                if (envs[env][0] == u'true' or envs[env][0] == u'false'):
+                    envs[env] = True if envs[env][0] == u'true' else False
+                else:
+                    envs[env] = u'{0}'.format(envs[env][0])
             c = cal()
             if ('time' in envs):
                 if (len(envs['time'].split(':')) < 3):
@@ -296,10 +299,9 @@ class TaskSetTimeHandler(TaskNewHandler):
             traceback.print_exc()
             self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
             return
-        
-        self.render('utils_run_result.html', log=u'设置成功，下次执行时间', title=u'设置成功', flg='success')
+
+        self.render('utils_run_result.html', log=u'设置成功，下次执行时间：{0}'.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(tmp['ts']))), title=u'设置成功', flg='success')
         return
-        
         
 class TaskGroupHandler(TaskNewHandler):
     @tornado.web.authenticated

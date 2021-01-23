@@ -67,10 +67,10 @@
       if (sendData['mode'] == 'ontime'){
         sendData['date'] = $('#ontime_run_date')[0].value;
         sendData['time'] = $('#ontime_val')[0].value;
-        sendData['tz1'] = $('#randtimezone1')[0].value;
-        sendData['tz2'] = $('#randtimezone2')[0].value;
-        if ($('#randtimezone1')[0].value == $('#randtimezone2')[0].value){
-          if (sendData['tz1'] < sendData['tz2']){
+        sendData['tz1'] = parseInt($('#randtimezone1')[0].value);
+        sendData['tz2'] = parseInt($('#randtimezone2')[0].value);
+        if ($('#randtimezonesw')[0].checked == true){
+          if (sendData['tz1'] > sendData['tz2']){
               $('#run-result').html("<h1 class=\"alert alert-danger text-center\">随机值错误</h1><div><pre>开启随机时tz1 不能小于 tz2</pre></div>").show();
               return false;
           }
