@@ -17,8 +17,6 @@ from base import *
 
 import sqlite3
 
-import send2phone 
-
 from backup import DBnew
 
 import codecs
@@ -67,6 +65,8 @@ class UserRegPush(BaseHandler):
                     log = log+u"skey 未填写完整\r\n"
                     
                 if (barkurl != ""):
+                    if (barkurl[-1] != '/'): 
+                        barkurl=barkurl+'/'
                     self.db.user.mod(userid, barkurl = barkurl)
                     if (self.db.user.get(userid, fields=("barkurl"))["barkurl"] == barkurl):
                         log = log+u"注册 Bark 成功\r\n"
@@ -93,33 +93,31 @@ class UserRegPush(BaseHandler):
 
         else:
             try:
+                f = pusher()
                 t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
 
                 if  (token != "") and (uid != ""):
-                    push = send2phone.send2phone(wxpusher_token=token, wxpusher_uid=uid)
-                    push.send2wxpusher(u"{t} 发送测试".format(t=t))
-                    log = u"wxpusher 已推送\r\n"
+                    f.send2wxpusher("{0};{1}".format(token, uid),u"{t} 发送测试".format(t=t))
+                    log = u"wxpusher 已推送,请检查是否收到\r\n"
                 else:
                     log = u"wxpusher 未填写完整\r\n"
 
                 if (skey != ""):
-                    push = send2phone.send2phone(skey=skey)
-                    push.send2s(u"正在测试S酱", u"{t} 发送测试".format(t=t))
-                    log = log+u"S酱 已推送\r\n"
+                    f.send2s(skey, u"正在测试S酱", u"{t} 发送测试".format(t=t))
+                    log = log+u"S酱 已推送,请检查是否收到\r\n"
                 else:
                     log = log+u"skey 未填写完整\r\n"
 
                 if  (barkurl != ""):
-                    push = send2phone.send2phone(barkurl=barkurl)
-                    push.send2bark(u"正在测试Bark", u"{t} 发送测试".format(t=t))
-                    log = log+u"Bark 已推送\r\n"
+                    f.send2bark(barkurl, u"正在测试Bark", u"{t} 发送测试".format(t=t))
+                    log = log+u"Bark 已推送,请检查是否收到\r\n"
                 else:
                     log = log+u"Bark 未填写完整\r\n"
                 
                 if (qywx_token != ""):
-                    f = pusher()
+                    
                     f.qywx_pusher_send(qywx_token, "正在测试企业微信", u"{t} 发送测试".format(t=t))
-                    log = log+u"企业微信 已推送\r\n"
+                    log = log+u"企业微信 已推送,请检查是否收到\r\n"
                 else:
                     log = log+u"企业微信 未填写完整\r\n"
 

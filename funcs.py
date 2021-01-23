@@ -66,8 +66,10 @@ class pusher(object):
     def send2bark(self, barklink, title, content):
         r = 'False'
         try:
+            link = barklink
+            if (link[-1] != '/'): link=link+'/'
             msg = {"title":title,"body":content}
-            res = requests.post(barklink, data=msg, verify=False)
+            res = requests.post(link, data=msg, verify=False)
             r = 'True'
         except Exception as e:
             r = traceback.format_exc()
