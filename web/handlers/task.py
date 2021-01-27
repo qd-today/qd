@@ -274,6 +274,7 @@ class TaskSetTimeHandler(TaskNewHandler):
     
     @tornado.web.authenticated
     def post(self, taskid):
+        log = u'设置成功'
         try:
             envs = self.request.body_arguments
             for env in envs.keys():
@@ -281,26 +282,33 @@ class TaskSetTimeHandler(TaskNewHandler):
                     envs[env] = True if envs[env][0] == u'true' else False
                 else:
                     envs[env] = u'{0}'.format(envs[env][0])
-            c = cal()
-            if ('time' in envs):
-                if (len(envs['time'].split(':')) < 3):
-                    envs['time'] = envs['time'] + ':00'
-                    
-            tmp = c.calNextTs(envs)
-            if (tmp['r'] == 'True'):
-                self.db.task.mod(taskid,
-                    disabled = False,
-                    newontime = json.dumps(envs),
-                    next = tmp['ts'])
+
+            if (envs['sw']):
+                c = cal()
+                if ('time' in envs):
+                    if (len(envs['time'].split(':')) < 3):
+                        envs['time'] = envs['time'] + ':00'
+                tmp = c.calNextTs(envs)
+                if (tmp['r'] == 'True'):
+                    self.db.task.mod(taskid,
+                        disabled = False,
+                        newontime = json.dumps(envs),
+                        next = tmp['ts'])
+
+                    log = u'设置成功，下次执行时间：{0}'.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(tmp['ts'])))
+                else:
+                    raise Exception(tmp)
             else:
-                raise Exception(tmp)
-  
+                tmp = json.loads(self.db.task.get(taskid, fields=('newontime'))['newontime'])
+                tmp['sw'] = False
+                self.db.task.mod(taskid, newontime = json.dumps(tmp))
+
         except Exception:
             traceback.print_exc()
             self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
             return
 
-        self.render('utils_run_result.html', log=u'设置成功，下次执行时间：{0}'.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(tmp['ts']))), title=u'设置成功', flg='success')
+        self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
         return
         
 class TaskGroupHandler(TaskNewHandler):

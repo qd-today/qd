@@ -55,37 +55,38 @@
   </script>
   <script>
     $('#send').on('click', function() {
-      if ($('#ontime_flg')[0].checked == false){
-        $('#run-result').html("<h1 class=\"alert alert-danger text-center\">请打开开关</h1><div><pre>如果要设置，请打开开关</pre></div>").show();
-        return false;
-      }
-
       sendData = {}
       data = {}
-      sendData['mode'] = $('#ontime_method')[0].value;
-      sendData['sw'] = true;
-      if (sendData['mode'] == 'ontime'){
-        sendData['date'] = $('#ontime_run_date')[0].value;
-        sendData['time'] = $('#ontime_val')[0].value;
-        sendData['tz1'] = parseInt($('#randtimezone1')[0].value);
-        sendData['tz2'] = parseInt($('#randtimezone2')[0].value);
-        if ($('#randtimezonesw')[0].checked == true){
-          if (sendData['tz1'] > sendData['tz2']){
-              $('#run-result').html("<h1 class=\"alert alert-danger text-center\">随机值错误</h1><div><pre>开启随机时tz1 不能小于 tz2</pre></div>").show();
-              return false;
-          }
-          sendData['randsw'] = true;
-        }else{
-          sendData['randsw'] = false;
-        }
 
-      } else if (sendData['mode'] == 'cron'){
-        sendData['cron_val'] = $('#cron_val')[0].value;
-        sendData['cron_sec'] = $('#cron_sec')[0].value;
-      } else{
-        $('#run-result').html("<h1 class=\"alert alert-danger text-center\">模式错误</h1><div><pre>模式错误</pre></div>").show();
-        return false;
+      if ($('#ontime_flg')[0].checked == true){
+        sendData['mode'] = $('#ontime_method')[0].value;
+        sendData['sw'] = true;
+        if (sendData['mode'] == 'ontime'){
+          sendData['date'] = $('#ontime_run_date')[0].value;
+          sendData['time'] = $('#ontime_val')[0].value;
+          sendData['tz1'] = parseInt($('#randtimezone1')[0].value);
+          sendData['tz2'] = parseInt($('#randtimezone2')[0].value);
+          if ($('#randtimezonesw')[0].checked == true){
+            if (sendData['tz1'] > sendData['tz2']){
+                $('#run-result').html("<h1 class=\"alert alert-danger text-center\">随机值错误</h1><div><pre>开启随机时tz1 不能小于 tz2</pre></div>").show();
+                return false;
+            }
+            sendData['randsw'] = true;
+          }else{
+            sendData['randsw'] = false;
+          }
+
+        } else if (sendData['mode'] == 'cron'){
+          sendData['cron_val'] = $('#cron_val')[0].value;
+          sendData['cron_sec'] = $('#cron_sec')[0].value;
+        } else{
+          $('#run-result').html("<h1 class=\"alert alert-danger text-center\">模式错误</h1><div><pre>模式错误</pre></div>").show();
+          return false;
+        }
+      } else {
+        sendData['sw'] = false;
       }
+
       var $this = $(this);
       $.ajax("/task/{{task.id}}/settime", {
             type: 'POST',
