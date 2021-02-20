@@ -172,7 +172,7 @@ class pusher(object):
                                             "title" : t,
                                             "description" : log,
                                             "url" : "URL",
-                                            "picurl" : "https://i.loli.net/2021/01/17/m15J86CEZnqKF9U.png" if qywx[u'图片'] == '' else qywx[u'图片']
+                                            "picurl" : "https://i.loli.net/2021/02/18/gYV2EswCOlLmPSD.png" if qywx[u'图片'] == '' else qywx[u'图片']
                                         }
                                     ]
                             }

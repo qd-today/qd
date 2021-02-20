@@ -82,23 +82,26 @@ class RegisterHandler(BaseHandler):
         if self.current_user:
             self.redirect('/my/')
             return
-        return self.render('register.html')
+
+        regFlg = False if  self.db.site.get(1, fields=('regEn'))['regEn'] == 0 else True
+        return self.render('register.html', regFlg=regFlg)
 
     def post(self):
         siteconfig = self.db.site.get(1, fields=('regEn', 'MustVerifyEmailEn'))
         regEn = siteconfig['regEn']
+        regFlg = False if regEn == 0 else True
         MustVerifyEmailEn = siteconfig['MustVerifyEmailEn']
         email = self.get_argument('email')
         password = self.get_argument('password')
         
         if not email:
-            self.render('register.html', email_error=u'请输入邮箱')
+            self.render('register.html', email_error=u'请输入邮箱', regFlg=regFlg)
             return
         if email.count('@') != 1 or email.count('.') == 0:
-            self.render('register.html', email_error=u'邮箱格式不正确')
+            self.render('register.html', email_error=u'邮箱格式不正确', regFlg=regFlg)
             return
         if len(password) < 6:
-            self.render('register.html', password_error=u'密码需要大于6位', email=email)
+            self.render('register.html', password_error=u'密码需要大于6位', email=email, regFlg=regFlg)
             return
 
         user = self.db.user.get(email = email, fields=('id', 'email', 'email_verified', 'nickname', 'role'))
@@ -109,7 +112,7 @@ class RegisterHandler(BaseHandler):
                     self.db.user.add(email=email, password=password, ip=self.ip2int)
                 except self.db.user.DeplicateUser as e:
                     self.evil(+3)
-                    self.render('register.html', email_error=u'email地址已注册')
+                    self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
                     return
                 user = self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role'))
 
@@ -126,13 +129,13 @@ class RegisterHandler(BaseHandler):
                     next = self.get_argument('next', '/my/')
                     self.redirect(next)
                 else:
-                    self.render('register.html', email_error=u'请验证邮箱后再登陆')
+                    self.render('register.html', email_error=u'请验证邮箱后再登陆', regFlg=regFlg)
                 future = self.send_mail(user)
                 if future:
                     IOLoop.current().add_future(future, lambda x: x)
                 
             else:
-                self.render('register.html', email_error=u'管理员关闭注册')
+                self.render('register.html', email_error=u'管理员关闭注册', regFlg=regFlg)
             return
         else:
             if (MustVerifyEmailEn == 1):
@@ -142,9 +145,9 @@ class RegisterHandler(BaseHandler):
                     if future:
                         IOLoop.current().add_future(future, lambda x: x)
                 else:
-                    self.render('register.html', email_error=u'email地址已注册')
+                    self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
             else:
-                self.render('register.html', email_error=u'email地址已注册')
+                self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
         return
 
     def send_mail(self, user):

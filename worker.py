@@ -230,12 +230,13 @@ class MainWorker(object):
             if next_time_delta:
                 next = time.time() + next_time_delta
                 content = content + u"下次运行时间：{0}".format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(next)))
+                if (logtime['ErrTolerateCnt'] <= task['last_failed_count']):
+                    pushtool.pusher(user['id'], pushsw, 0x1, title, content)
             else:
                 disabled = True
                 next = None
                 content = u"任务已禁用"
-
-            pushtool.pusher(user['id'], pushsw, 0x1, title, content)
+                pushtool.pusher(user['id'], pushsw, 0x1, title, content)
 
             self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
             self.db.task.mod(task['id'],

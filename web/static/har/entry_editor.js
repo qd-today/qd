@@ -104,6 +104,7 @@
           url.pathname = url.pathname.replace('%7B%7B', '{{')
           url.pathname = url.pathname.replace('%7D%7D', '}}')
         }
+        url.path = url.path.replace('https:///', 'https://')
         query = utils.list2dict($scope.entry.request.queryString);
         query = utils.querystring_unparse_with_variables(query);
         if (query) {
