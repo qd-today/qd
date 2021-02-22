@@ -1,6 +1,6 @@
 {% import "utils.html" as utils %}
 <form method="POST" action="/task/{{ '%s/edit' % task.id if task else 'new' }}">
-  <h2 class="text-center">私有签到框架<sup>20210122</sup></h2>
+  <h2 class="text-center">私有签到框架<sup>20210222</sup></h2>
   <hr>
   {% if task.disabled %}
   <p class="alert alert-danger">任务处于禁用状态，使用 <a class="modal_load alert-link" href="/task/{{ task.id }}/run">立即执行</a> 成功签到一次，即可解除。</p>

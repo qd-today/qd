@@ -1,9 +1,10 @@
 {% import "utils.html" as utils %}
 <form method="POST" action="/user/{{ userid }}/manage">
-
+  <script src="/static/md5.js"></script>
+  <div id="run-result"></div>
   <h2 class="text-center">用户列表</h2>
   <hr>
-
+  
   {% if adminflg %}      
   <div id="userlist">
     <table class="table">
@@ -22,10 +23,10 @@
         <tr>
           <td>
             <label>
-              <input type="checkbox"  name="{{user.id}}"> 
+              <input type="checkbox"  name="{{user.id}}" class="userlist-chkbox"> 
             </label>
           </td>
-          <td>{{ user.email }}</td>
+          <td>{{ user.email }}{% if user.role == 'admin' %}[管理员]{% endif %}</td>
           <td>
               {{ user.status }}<br>
               {% if user.email_verified %} 已验证邮箱
@@ -65,6 +66,47 @@
   {% else %}
   <div style="text-align:center"> 非管理员,不可查看 </div>
   {% endif %}
+
+  <script>
+    $(function() {
+      $('#ban,#activate,#del').on('click', function() {
+        var env = {};
+        chkflg = false;
+        tmp = document.querySelectorAll('.userlist-chkbox').forEach(function(el){
+            if (el.checked) {
+              env[el.name] = 'on'
+              chkflg = true;
+            }
+          });
+        if (!chkflg){
+          $('#run-result').html("<h1 class=\"alert alert-danger text-center\">错误</h1><div><pre>请至少选择一个成员</pre></div>").show();
+          return false;
+        }
+        env["adminpwd"] = md5($('#adminpwd')[0].value);
+        env["adminmail"] = $('#adminmail')[0].value;
+        env[this.name] = ''
+        
+        var $this = $(this);
+        $this.button('loading');
+        $.ajax("/user/{{ userid }}/manage", {
+          type: 'POST',
+          data: env,
+        })
+        .done(function(response, status, xhr) {
+          if (response.indexOf('alert alert-success text-center') > -1){
+            refresh_modal_load("/user/{{ userid }}/manage")
+          }else{
+            $('#run-result').html(response).show()
+          }
+        })
+        .always(function() {
+          $this.button('reset');
+        });
+  
+        return false;
+      });
+    })
+  </script>
 
   {{ utils.submit_loading() }}
 </form>

@@ -1,6 +1,7 @@
 {% import "utils.html" as utils %}
 <form method="POST" action="/user/{{ userid }}/pushsw">
   <h2 class="text-center">注册推送</h2>
+  <script src="/static/md5.js"></script>
   <hr>
 
   <div id="run-result"></div>
@@ -85,7 +86,7 @@ $(function() {
     $('#showpvar').on('click', function() {
       data = {}
       data['adminmail'] = $('#adminmail')[0].value;
-      data['adminpwd'] = $('#adminpwd')[0].value;
+      data['adminpwd'] = md5($('#adminpwd')[0].value);
       $.ajax("/user/{{ userid }}/UserPushShowPvar", {
             type: 'POST',
             data: data,

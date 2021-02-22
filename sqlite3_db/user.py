@@ -17,6 +17,7 @@ class UserDB(_UserDB, BaseDB):
           `email` VARCHAR(256) NOT NULL,
           `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
           `password` VARBINARY(128) NOT NULL,
+          `password_md5` VARBINARY(128) NOT NULL DEFAULT '',
           `userkey` VARBINARY(128) NOT NULL,
           `nickname` VARCHAR(64) NULL,
           `role` VARCHAR(128) NULL,

@@ -11,6 +11,7 @@ import base64
 import umsgpack
 from tornado import gen
 from tornado.ioloop import IOLoop
+from Crypto.Hash import MD5
 
 import config
 from base import *
@@ -66,6 +67,13 @@ class LoginHandler(BaseHandler):
             self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
             self.db.user.mod(user['id'], atime=time.time(), aip=self.ip2int)
             
+            # 如果用户MD5不一致就更新MD5
+            hash = MD5.new()
+            hash.update(password.encode('utf-8'))
+            tmp = hash.hexdigest()
+            if (self.db.user.get(email=email, fields=('password_md5'))['password_md5'] != tmp):
+                self.db.user.mod(user['id'], password_md5=tmp)
+
             next = self.get_argument('next', '/my/')
             self.redirect(next)
         else:

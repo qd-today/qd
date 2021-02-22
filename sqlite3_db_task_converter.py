@@ -41,6 +41,7 @@ class DBconverter(_TaskDB, BaseDB):
             `email` VARCHAR(256) NOT NULL,
             `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
             `password` VARBINARY(128) NOT NULL,
+            `password_md5` VARBINARY(128) NOT NULL DEFAULT '',
             `userkey` VARBINARY(128) NOT NULL,
             `nickname` VARCHAR(64) NULL,
             `role` VARCHAR(128) NULL,
@@ -261,5 +262,10 @@ class DBconverter(_TaskDB, BaseDB):
             self.db.user.get("1", fields=('qywx_token'))
         except :
             exec_shell("ALTER TABLE `user` ADD `qywx_token`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
+        
+        try:
+            self.db.user.get("1", fields=('password_md5'))
+        except :
+            exec_shell("ALTER TABLE `user` ADD  `password_md5` VARBINARY(128) NOT NULL DEFAULT '' ") 
                                 
         return 

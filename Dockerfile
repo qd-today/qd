@@ -16,7 +16,7 @@ WORKDIR /usr/src/app
 
 # 基础镜像已经包含pip组件
 RUN apk update \
-    && apk add bash git autoconf g++ \
+    && apk add bash git autoconf g++ tzdata\
     && pip install --no-cache-dir -r requirements.txt
    
 ENV PORT 80

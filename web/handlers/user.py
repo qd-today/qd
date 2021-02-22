@@ -246,7 +246,7 @@ class UserManagerHandler(BaseHandler):
                 envs = self.request.body_arguments
                 mail = envs['adminmail'][0]
                 pwd = u"{0}".format(envs['adminpwd'][0])
-                if self.db.user.challenge(mail, pwd):
+                if self.db.user.challenge_MD5(mail, pwd):
                     Target_users = []
                     for key, value in envs.items():
                         if value[0] == "on":
@@ -282,10 +282,9 @@ class UserManagerHandler(BaseHandler):
         except Exception as e:
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('tpl_run_failed.html', log=e)
+            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
             return
             
-        self.redirect('/my/')
         return
 
 class UserDBHandler(BaseHandler):
@@ -306,8 +305,9 @@ class UserDBHandler(BaseHandler):
             mail = envs['adminmail'][0]
             pwd = u"{0}".format(envs['adminpwd'][0])
             now=datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-            if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
-                if ('backupbtn' in envs):
+
+            if ('backupbtn' in envs):
+                if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
                     if user and user['role'] == "admin":
                         filename = config.sqlite3.path
                         savename = "database_{now}.db".format(now=now)
@@ -323,7 +323,10 @@ class UserDBHandler(BaseHandler):
                         return
                     else:
                         raise Exception(u"管理员才能备份数据库") 
-
+                else:
+                    raise Exception(u"账号/密码错误")
+ 
+            if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
                 if ('backuptplsbtn' in envs):
                     tpls = []
                     for tpl in self.db.tpl.list(userid=userid, fields=('id', 'siteurl', 'sitename', 'banner', 'note','fork', 'groups', 'har', 'tpl', 'variables'), limit=None):
@@ -450,7 +453,7 @@ class UserPushShowPvar(BaseHandler):
             envs = self.request.body_arguments
             mail = envs['adminmail'][0]
             pwd = u"{0}".format(envs['adminpwd'][0])
-            if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
+            if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
                 key = self.db.user.get(userid, fields=("barkurl", 'skey', 'wxpusher', 'qywx_token'))
                 log = u"""barkurl 前值：{bark}\r\nskey 前值：{skey}\r\nwxpusher 前值：{wxpusher}\r\n企业微信 前值：{qywx_token}""".format(
                           bark = key['barkurl'],
@@ -520,7 +523,7 @@ class UserSetNewPWDHandler(BaseHandler):
 
             adminuser = self.db.user.get(email=envs['管理员邮箱'], fields=('role', 'email'))
             newPWD = envs['新密码']
-            if self.db.user.challenge(envs['管理员邮箱'], envs['管理员密码']) and (adminuser['role'] == 'admin'):
+            if self.db.user.challenge_MD5(envs['管理员邮箱'], envs['管理员密码']) and (adminuser['role'] == 'admin'):
                 if (len(newPWD) >= 6):
                     self.db.user.mod(userid, password=newPWD)
                     if not (self.db.user.challenge(envs['用户名'], newPWD)):
@@ -530,8 +533,6 @@ class UserSetNewPWDHandler(BaseHandler):
             else:
                 raise Exception(u'管理员用户名/密码错误')
         except Exception as e:
-            if (str(e).find('get user need id or email') > -1):
-                e = u'请输入用户名/密码'
             traceback.print_exc()
             self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
             return

@@ -1,6 +1,7 @@
 {% import "utils.html" as utils %}
 <form method="POST" action="/user/{{ userid }}/setnewpwd">
   <h2 class="text-center">用户列表</h2>
+  <script src="/static/md5.js"></script>
   <hr>
   <div id="run-result"></div>
 
@@ -28,7 +29,7 @@
       if (NewPWD == reNewPWD){
         if (NewPWD.length >= 6){
           data['管理员邮箱'] = $('#adminmail')[0].value;
-          data['管理员密码'] = $('#adminpwd')[0].value;
+          data['管理员密码'] = md5($('#adminpwd')[0].value);
           data['新密码'] = NewPWD;
           data['用户名'] = "{{usermail}}";
         } else {
