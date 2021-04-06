@@ -14,6 +14,7 @@ import send2phone
 import random
 
 from base import *
+from libs import utils
 
 def calNextTimestamp(etime, todayflg):
     tz = pytz.timezone('Asia/Shanghai')
@@ -73,6 +74,7 @@ class TaskNewHandler(BaseHandler):
         tplid = int(self.get_body_argument('_binux_tplid'))
         tested = self.get_body_argument('_binux_tested', False)
         note = self.get_body_argument('_binux_note')
+        proxy = self.get_body_argument('_binux_proxy')
 
         tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'interval')))
 
@@ -83,6 +85,7 @@ class TaskNewHandler(BaseHandler):
             if not value:
                 continue
             env[key] = self.get_body_argument(key)
+        env['_proxy'] = proxy
 
         if ('New_group' in self.request.body_arguments):
             New_group = self.request.body_arguments['New_group'][0].strip()
@@ -175,7 +178,15 @@ class TaskRunHandler(BaseHandler):
         newontime = json.loads(task['newontime'])
 
         try:
-            new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
+            url = utils.parse_url(env['variables'].get('_proxy'))
+            if not url:
+                new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
+            else:
+                proxy = {
+                    'host': url['host'],
+                    'port': url['port'],
+                }
+                new_env = yield self.fetcher.do_fetch(fetch_tpl, env, [proxy])
         except Exception as e:
             if (notice['noticeflg'] & 0x4 != 0) and (taskpushsw['pushen']):
                 t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
