@@ -180,7 +180,15 @@ class MainWorker(object):
                     session = [],
                     )
 
-            new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
+            url = utils.parse_url(env['variables'].get('_proxy'))
+            if not url:
+                new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
+            else:
+                proxy = {
+                    'host': url['host'],
+                    'port': url['port'],
+                }
+                new_env = yield self.fetcher.do_fetch(fetch_tpl, env, [proxy])
 
             variables = self.db.user.encrypt(task['userid'], new_env['variables'])
             session = self.db.user.encrypt(task['userid'],

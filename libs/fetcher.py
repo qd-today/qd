@@ -364,7 +364,7 @@ class Fetcher(object):
         """
         req, rule, env = self.build_request(obj, self.download_size_limit)
 
-        if proxy:
+        if proxy and pycurl:
             for key in proxy:
                 setattr(req, 'proxy_%s' % key, proxy[key])
 

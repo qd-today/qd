@@ -285,3 +285,16 @@ jinja_globals = {
     'random': get_random,
     'date_time': get_date_time,
 }
+
+import re
+def parse_url(url):
+    if not url:
+        return None
+    result = re.match('((?P<scheme>(https?|socks5)+)://)?((?P<username>[^:@/]+)(:(?P<password>[^@/]+))?@)?(?P<host>[^:@/]+):(?P<port>\d+)', url)
+    return None if not result else {
+        'scheme': result.group('scheme'),
+        'host': result.group('host'),
+        'port': int(result.group('port')),
+        'username': result.group('username'),
+        'password': result.group('password'),
+    }

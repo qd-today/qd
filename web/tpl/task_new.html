@@ -33,6 +33,16 @@
 	
   </div>
   {% endif %}
+
+  {% if current_user %}
+  <div class="form-group">
+    <label class="control-label" for="proxy">代理</label>
+    <!-- MY页面-添加签到-增加提示语 -->
+    <input type="text" class="form-control" name="_binux_proxy" value="{{ init_env._proxy or '' }}" id="proxy" placeholder="http://127.0.0.1:8080" pattern="((https?|socks5)+://)?([^:@/]+(:[^@/]+)?@)?[^:@/]+:\d+">
+    <!-- MY页面-添加签到-增加备注图标 -->
+    <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+  </div>
+  {% endif %}
   
   {% if not task and current_user %}
   <div class="checkbox">

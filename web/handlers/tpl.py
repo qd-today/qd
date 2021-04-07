@@ -109,7 +109,14 @@ class TPLRunHandler(BaseHandler):
                 raise HTTPError(400)
 
         try:
-            if self.current_user:
+            url = utils.parse_url(env['variables'].get('_binux_proxy'))
+            if url:
+                proxy = {
+                    'host': url['host'],
+                    'port': url['port'],
+                }
+                result = yield self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+            elif self.current_user:
                 result = yield self.fetcher.do_fetch(fetch_tpl, env)
             else:
                 result = yield self.fetcher.do_fetch(fetch_tpl, env, proxies=[])
