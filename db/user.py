@@ -9,6 +9,7 @@ import time
 import logging
 import umsgpack
 
+
 import config
 from libs import mcrypto as crypto, utils
 from basedb import BaseDB
@@ -72,6 +73,19 @@ class UserDB(BaseDB):
         password_hash = self.decrypt(user['id'], user['password'])
         if password_hash == crypto.password_hash(password, password_hash):
             return True
+
+        return False
+
+    def challenge_MD5(self, email, password):
+        user = self.get(email=email, fields=('id', 'password_md5'))
+        if not user:
+            return False
+        else:
+            if (user['password_md5'] == ''):
+                pass
+            else:
+                if password == user['password_md5']:
+                    return True
         return False
 
     def mod(self, id, **kwargs):

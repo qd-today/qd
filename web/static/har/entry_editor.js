@@ -104,6 +104,7 @@
           url.pathname = url.pathname.replace('%7B%7B', '{{')
           url.pathname = url.pathname.replace('%7D%7D', '}}')
         }
+        url.path = url.path.replace('https:///', 'https://')
         query = utils.list2dict($scope.entry.request.queryString);
         query = utils.querystring_unparse_with_variables(query);
         if (query) {
@@ -317,6 +318,55 @@
             url: 'http://localhost/util/rsa?key=&data=&f=encode',
             headers: [],
             cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            }
+          ]
+        });
+      };
+
+      $scope.add_read_notepad_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: '读取记事本',
+          request: {
+            method: 'POST',
+            url: 'http://localhost/util/toolbox/1',
+            headers: [],
+            cookies: [],
+            postData:{
+              text: "email={{qd_name|urlencode}}&pwd={{qd_pwd|urlencode}}&f=read"
+            }
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            }
+          ]
+        });
+      };
+      $scope.add_append_notepad_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: '追加记事本',
+          request: {
+            method: 'POST',
+            url: 'http://localhost/util/toolbox/1',
+            headers: [],
+            cookies: [],
+            postData:{
+              text: "email={{qd_name|urlencode}}&pwd={{qd_pwd|urlencode}}&f=read&data="
+            }
           },
           response: {},
           success_asserts: [

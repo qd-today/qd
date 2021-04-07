@@ -17,6 +17,7 @@ class UserDB(_UserDB, BaseDB):
           `email` VARCHAR(256) NOT NULL,
           `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
           `password` VARBINARY(128) NOT NULL,
+          `password_md5` VARBINARY(128) NOT NULL DEFAULT '',
           `userkey` VARBINARY(128) NOT NULL,
           `nickname` VARCHAR(64) NULL,
           `role` VARCHAR(128) NULL,
@@ -31,7 +32,10 @@ class UserDB(_UserDB, BaseDB):
           `wxpusher` VARBINARY(128) NOT NULL DEFAULT '',
           `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1,
           `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}',
-          `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable'
+          `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
+          `notepad` TEXT NOT NULL DEFAULT '',
+          `diypisher` VARBINARY(1024) NOT NULL DEFAULT '',
+          `qywx_token` VARBINARY(1024) NOT NULL DEFAULT ''
         )''' % self.__tablename__)
 
         for each in ('email', 'nickname'):

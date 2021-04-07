@@ -41,6 +41,7 @@ class DBconverter(_TaskDB, BaseDB):
             `email` VARCHAR(256) NOT NULL,
             `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
             `password` VARBINARY(128) NOT NULL,
+            `password_md5` VARBINARY(128) NOT NULL DEFAULT '',
             `userkey` VARBINARY(128) NOT NULL,
             `nickname` VARCHAR(64) NULL,
             `role` VARCHAR(128) NULL,
@@ -55,7 +56,10 @@ class DBconverter(_TaskDB, BaseDB):
             `wxpusher` VARBINARY(128) NOT NULL DEFAULT '',
             `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1,
             `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{"en":false,"time":"20:00:00","ts":0,"schanEn":false,"WXPEn":false}',
-            `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable'
+            `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
+            `notepad` TEXT NULL,
+            `diypusher` VARBINARY(1024) NOT NULL DEFAULT '',
+            `qywx_token` VARBINARY(1024) NOT NULL DEFAULT ''
             );''')
             self.db.site._execute('''CREATE TABLE IF NOT EXISTS `tpl` (
             `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -240,5 +244,28 @@ class DBconverter(_TaskDB, BaseDB):
                 exec_shell("DROP TABLE `site`" )
                 exec_shell('CREATE TABLE `site` as select * from `newsite`')
                 exec_shell("DROP TABLE `newsite`" )
+
+        try:
+            self.db.user.get("1", fields=('notepad'))
+        except :
+            if config.db_type == 'sqlite3':
+                exec_shell("ALTER TABLE `user` ADD `notepad` TEXT NOT NULL DEFAULT '' ") 
+            else:
+                exec_shell("ALTER TABLE `user` ADD `notepad` TEXT NULL") 
+            
+        try:
+            self.db.user.get("1", fields=('diypusher'))
+        except :
+            exec_shell("ALTER TABLE `user` ADD `diypusher`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
+
+        try:
+            self.db.user.get("1", fields=('qywx_token'))
+        except :
+            exec_shell("ALTER TABLE `user` ADD `qywx_token`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
+        
+        try:
+            self.db.user.get("1", fields=('password_md5'))
+        except :
+            exec_shell("ALTER TABLE `user` ADD  `password_md5` VARBINARY(128) NOT NULL DEFAULT '' ") 
                                 
         return 

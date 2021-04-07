@@ -1,4 +1,4 @@
-*.idea
+﻿*.idea
 *.pyc
 database.db
 config.json
@@ -8,3 +8,7 @@ env27/
 .vscode
 database - 副本.db
 *.un~
+qiandao.rar
+压缩.bat
+.ssh/
+database*.db

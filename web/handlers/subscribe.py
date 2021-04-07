@@ -107,8 +107,15 @@ class SubscribeHandler(BaseHandler):
                 tpls.append(hjson[key])
             self.render('tpl_subscribe.html', tpls=tpls, userid=user['id'])
             return
+class SubscribeRefreshHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self):
+        os.remove("./tpls_history.json")
+        self.redirect('/subscribe')
+        return
 
 handlers = [
         ('/subscribe/?', SubscribeHandler),
+        ('/subscribe/refresh', SubscribeRefreshHandler),
         ]
 

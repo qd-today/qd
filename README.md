@@ -4,11 +4,44 @@ __操作前请一定要记得备份数据库__<br>
 __操作前请一定要记得备份数据库__<br>
 __操作前请一定要记得备份数据库__<br>
 
+鸣谢
+====
+
+[Mark  https://www.quchao.net/](https://www.quchao.net/) 
+
+[戏如人生 https://49594425.xyz/](https://49594425.xyz/)
+
+[AragonSnow https://hexo.aragon.wang/](https://hexo.aragon.wang/)
+
+[buzhibujuelb](https://github.com/buzhibujuelb) 
+
+[billypon](https://github.com/billypon) 
+
+[powersee](https://github.com/powersee) 
+
 个人项目精力有限，仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request让我修改。
 
 因为需要测试，docker镜像会晚于gitHub几天更新
 
 docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.com/r/asdaragon/qiandao)
+
+变量名|是否必须|默认值|说明
+:-: | :-: | :-: | :-: 
+BIND|否|0.0.0.0|监听地址
+PORT|否|8923|监听端口
+ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS，非程序使用HTTPS，需要HTTPS需要使用反向代理
+DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
+JAWSDB_MARIA_URL|否|''|需要使用MySQL时设置为 mysql://用户名:密码@链接/数据库名
+REDISCLOUD_URL|否|''|不懂
+REDIS_DB_INDEX|否|1|不懂
+DOMAIN|否|qiandao.today|指定域名，建议修改，不然邮件重置密码之类的功能无效
+MAIL_SMTP|否|""|邮箱SMTP服务器
+MAIL_PORT|否|""|邮箱SMTP服务器端口
+MAIL_USER|否|""|邮箱用户名
+MAIL_PASSWORD|否|""|邮箱密码
+MAIL_DOMAIN|否|mail.qiandao.today|邮箱域名,没啥用，使用的DOMAIN
+AES_KEY|否|binux|AES加密密钥，强烈建议修改
+COOKIE_SECRET|否|binux|cookie加密密钥，强烈建议修改
 
 docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
 
@@ -16,20 +49,85 @@ docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qian
 
 数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
 
-## 20202.12.24 更新
+docker配置邮箱(强制使用SSL)：```docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码  --env DOMAIN=域名 asdaragon/qiandao ```
+
+docker 使用MySQL：```docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@链接/数据库名 asdaragon/qiandao ```
+
+自定义推送示例：
+```
+WXPusher
+{
+   "url": "http://wxpusher.zjiecode.com/api/send/message", 
+   "headers": "", 
+   "postData":"{"appToken":"你的token","content":"{log}","contentType":3,"uids":["你的UID"]}", 
+   "postMethod": "json"
+}
+bark:
+{
+   "postData": "{"title":"{t}","body":"{log}"}", 
+   "headers": "", 
+   "mode": "POST",
+   "postMethod": "x-www-form-urlencoded", 
+   "curl": "https://barkurl/key/", 
+}
+```
+## 2021.02.20 更新
+1. 完善MD5
+2. 修复部分站点500的问题
+3. 公共模板添加清缓存功能
+
+## 2021.02.20 更新
+1. 修复容忍错误推送的失效的BUG
+2. 主循环修改为0.5s，使定时运行更准确
+3. 修复/register没有注册按钮的BUG
+4. 密码验证修改为md5
+5. 更换默认微信推送图片
+
+## 2021.01.22 更新
+1. 整合推送模块
+2. 添加定时cron支持
+3. ENABLE_HTTPS 使能时邮件链接为https
+
+## 2021.01.17 更新
+1. 添加企业微信支持
+2. 支持在用户管理里修改密码
+
+## 2021.01.16 更新
+1. 修复点击登陆失败后注册按钮消失的问题
+
+## 2021.01.13 更新
+1. 开启邮箱验证前必须验证管理员邮箱
+
+## 2021.01.08 更新
+1. 修复20210122注册按钮丢失的BUG
+2. 添加记事本访问接口
+3. 添加自定义推送示例
+4. sqlite3_db_task_converter放在web启动之前
+
+## 2021.01.07 更新
+1. 底部添加本项目链接
+2. 禁止注册时隐藏注册按钮
+3. 显示注册推送的前值
+4. 添加记事本功能，用户可以将数据保存在本地
+5. 推送注册和推送设置按钮移动到工具箱
+6. 定时时间以任务起始时间为依据
+7. 新增自定义推送功能
+8. bark推送改为POST，可以推送日志
+
+## 2020.12.24 更新
 1. 修复模板编辑中'{{变量}}'自动urlencode的问题
 
-## 20202.12.23 更新
+## 2020.12.23 更新
 1. 添加EMAIL发送开关
 
-## 20202.12.22 更新
+## 2020.12.22 更新
 1. 修复任务运行结束后'logDay'报错
 2. 邮箱变量设置为环境变量获取
 
-## 20202.12.04 更新
+## 2020.12.04 更新
 1. 修复任务运行结束后'logDay'报错
 
-## 20202.11.20 更新
+## 2020.11.20 更新
 1. 修复模板订阅时url太长报错的问题，模板按照修改时间来排序
 2. 支持网站设置仅保留一定天数的日志，日志清理时间在任务成功完成之后,默认365天
 3. 手动清除一定天数的日志
@@ -310,15 +408,6 @@ mail_passowrd = ""   # 邮件密码
 mail_domain = "mail.qiandao.today"
 mailgun_key = ""
 ```
-
-鸣谢
-====
-
-[Mark  https://www.quchao.net/](https://www.quchao.net/) 
-
-[戏如人生 https://49594425.xyz/](https://49594425.xyz/)
-
-[AragonSnow https://hexo.aragon.wang/](https://hexo.aragon.wang/)
 
 许可
 ====

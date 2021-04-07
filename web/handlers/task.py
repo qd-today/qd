@@ -10,32 +10,13 @@ import time
 from tornado import gen
 import datetime 
 import pytz
-import send2phone
 import random
+import traceback
 
 from base import *
 from libs import utils
-
-def calNextTimestamp(etime, todayflg):
-    tz = pytz.timezone('Asia/Shanghai')
-    now = datetime.datetime.now()
-    now_ts = int(time.time())
-    zero = datetime.datetime(year=now.year, month=now.month, day=now.day,  hour=0,  minute=0, second=0, tzinfo=tz)
-    zero_ts = int(time.mktime(zero.timetuple()) + zero.microsecond/1e6)
-    temp = etime["time"].split(":")
-    e_ts = int(temp[0]) * 3600 + int(temp[1]) * 60 + int(temp[2])
-    
-    if (etime['sw'] and etime['randsw']):
-        r_ts = random.randint(etime['tz1'], etime['tz2'])
-    else:
-        r_ts = 0
-        
-    next_ts = zero_ts + e_ts
-    if  (now_ts > next_ts) or (todayflg):
-        next_ts = next_ts + (24 * 60 * 60)
-        
-    next_ts = next_ts + r_ts
-    return next_ts
+from funcs import pusher
+from funcs import cal
 
 class TaskNewHandler(BaseHandler):    
     def get(self):
@@ -147,7 +128,7 @@ class TaskRunHandler(BaseHandler):
     @gen.coroutine
     def post(self, taskid):
         self.evil(+2)
-
+        start_ts = int(time.time())
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'init_env',
             'env', 'session', 'last_success', 'last_failed', 'success_count', 'note',
@@ -163,19 +144,10 @@ class TaskRunHandler(BaseHandler):
                 session = [],
                 )
         
-        notice = self.db.user.get(task['userid'], fields=('skey', 'barkurl', 'noticeflg', 'wxpusher'))
-        temp = notice['wxpusher'].split(u";")
-        wxpusher_token = temp[0] if (len(temp) >= 2) else ""
-        wxpusher_uid = temp[1] if (len(temp) >= 2) else "" 
-        pushno2b = send2phone.send2phone(barkurl=notice['barkurl'])
-        pushno2s = send2phone.send2phone(skey=notice['skey'])
-        pushno2w = send2phone.send2phone(wxpusher_token=wxpusher_token, wxpusher_uid=wxpusher_uid)
-        pusher =  {}
-        pusher["barksw"] = False if (notice['noticeflg'] & 0x40) == 0 else True 
-        pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True 
-        pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True 
-        taskpushsw = json.loads(task['pushsw'])
+        pushsw = json.loads(task['pushsw'])
         newontime = json.loads(task['newontime'])
+        pushertool = pusher()
+        caltool = cal()
 
         try:
             url = utils.parse_url(env['variables'].get('_proxy'))
@@ -188,23 +160,23 @@ class TaskRunHandler(BaseHandler):
                 }
                 new_env = yield self.fetcher.do_fetch(fetch_tpl, env, [proxy])
         except Exception as e:
-            if (notice['noticeflg'] & 0x4 != 0) and (taskpushsw['pushen']):
-                t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-                title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
-                if pusher["barksw"]:
-                    pushno2b.send2bark(title, u"{0} 请排查原因".format(e))
-                if pusher["schansw"]:
-                    pushno2s.send2s(title, u"{0} 日志：{1}".format(t, e))
-                if pusher["wxpushersw"]:
-                    pushno2w.send2wxpusher(title+u"{0} 日志：{1}".format(t, e))
-                
+            t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
+            title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
+            logtmp = u"{0} 日志：{1}".format(t, e)
+            pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
+
             self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
             self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % e)
             return
 
         self.db.tasklog.add(task['id'], success=True, msg=new_env['variables'].get('__log__'))
         if (newontime["sw"]):
-            nextTime = calNextTimestamp(newontime, True)
+            if ('mode' not in newontime):
+                newontime['mode'] = 'ontime'
+
+            if (newontime['mode'] == 'ontime'):
+                newontime['date'] = (datetime.datetime.now()+datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+            nextTime = caltool.calNextTs(newontime)['ts']
         else:
             nextTime = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)
             
@@ -216,18 +188,14 @@ class TaskRunHandler(BaseHandler):
                 mtime = time.time(),
                 next = nextTime)
         
-        if (notice['noticeflg'] & 0x8 != 0) and (taskpushsw['pushen']):
-            t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-            title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
-            if pusher["barksw"]:
-                pushno2b.send2bark(title, u"{0} 成功".format(t))
-            if pusher["schansw"]:
-                pushno2s.send2s(title, u"{0} 成功".format(t))
-            if pusher["wxpushersw"]:
-                pushno2w.send2wxpusher(title+u"{0}".format(t))
-        
+        t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
+        title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
+        logtmp = new_env['variables'].get('__log__')
+        logtmp = u"{0}  日志：{1}".format(title, logtmp)
+        pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
+
         self.db.tpl.incr_success(tpl['id'])
-        self.finish('<h1 class="alert alert-success text-center">签到成功</h1>')
+        self.finish('<h1 class="alert alert-success text-center">签到成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp)
         logDay = int(self.db.site.get(1, fields=('logDay'))['logDay'])
         for log in self.db.tasklog.list(taskid = taskid, fields=('id', 'ctime')):
             if (time.time() - log['ctime']) > (logDay * 24 * 60 * 60):
@@ -304,57 +272,54 @@ class TaskSetTimeHandler(TaskNewHandler):
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid',
             'tplid', 'disabled', 'note', 'ontime', 'ontimeflg', 'newontime')), 'w')
         
-        newonetime = json.loads(task['newontime'])
-        
-        self.render('task_setTime.html', task=task, newonetime=newonetime)
+        newontime = json.loads(task['newontime'])
+        ontime = newontime
+        if ('mode' not in newontime):
+            ontime['mode'] = 'ontime'
+        else:
+            ontime = newontime
+        today_date = time.strftime("%Y-%m-%d",time.localtime())
+
+        self.render('task_setTime.html', task=task, ontime=ontime, today_date=today_date)
     
     @tornado.web.authenticated
     def post(self, taskid):
+        log = u'设置成功'
         try:
-            form = json.loads(self.request.body_arguments["env"][0])
-            task = self.db.task.get(taskid, fields=('tplid', "newontime"))
-            tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename',
-            'siteurl', 'tpl', 'interval', 'last_success')))
-            ontime_new = json.loads(task["newontime"])
-            
-            if  ('flg' in form):
-                ontime_new['sw'] = True
-                ontime = form['ontimevalue']
-                ontimetemp = ontime.split(":")
-                if (len(ontimetemp) < 3):
-                    ontime = ontime + ":00"     # 没有秒自动补零
-                    ontimetemp.append("00")
-                ontime_new['time'] = ontime
-
-                if  ('randtimezonesw' in form):
-                    ontime_new['randsw'] = True
-                    tz1 = int(form['timezone1'])
-                    tz2 = int(form['timezone2'])
-                    if (tz1 <= tz2):
-                        ontime_new['tz1'] = tz1
-                        ontime_new['tz2'] = tz2
-                    else:
-                        raise Exception(u"随机时间开始要大于结束")
+            envs = self.request.body_arguments
+            for env in envs.keys():
+                if (envs[env][0] == u'true' or envs[env][0] == u'false'):
+                    envs[env] = True if envs[env][0] == u'true' else False
                 else:
-                    ontime_new['randsw'] = False
-                todayflg = True if ('todayflg' in form) else False
-                next_ts = calNextTimestamp(ontime_new, todayflg)
-            else :
-                ontime_new['sw'] = False
-                next_ts = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)
-                    
-            self.db.task.mod(taskid,
-                    disabled = False,
-                    newontime = json.dumps(ontime_new),
-                    next = next_ts)
-            
-        except Exception as e:
-            self.render('tpl_run_failed.html', log=e)
+                    envs[env] = u'{0}'.format(envs[env][0])
+
+            if (envs['sw']):
+                c = cal()
+                if ('time' in envs):
+                    if (len(envs['time'].split(':')) < 3):
+                        envs['time'] = envs['time'] + ':00'
+                tmp = c.calNextTs(envs)
+                if (tmp['r'] == 'True'):
+                    self.db.task.mod(taskid,
+                        disabled = False,
+                        newontime = json.dumps(envs),
+                        next = tmp['ts'])
+
+                    log = u'设置成功，下次执行时间：{0}'.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(tmp['ts'])))
+                else:
+                    raise Exception(tmp)
+            else:
+                tmp = json.loads(self.db.task.get(taskid, fields=('newontime'))['newontime'])
+                tmp['sw'] = False
+                self.db.task.mod(taskid, newontime = json.dumps(tmp))
+
+        except Exception:
+            traceback.print_exc()
+            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
             return
-        
-        self.render('tpl_run_success.html', log=u"设置完成")
+
+        self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
         return
-        
         
 class TaskGroupHandler(TaskNewHandler):
     @tornado.web.authenticated
@@ -426,8 +391,6 @@ class GetGroupHandler(TaskNewHandler):
         self.write(json.dumps(groups, ensure_ascii=False, indent=4))
         return
 
-        
-        
 handlers = [
         ('/task/new', TaskNewHandler),
         ('/task/(\d+)/edit', TaskEditHandler),

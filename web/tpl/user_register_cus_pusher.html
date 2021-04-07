@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}签到日志{% endblock %}
+
+{% block header %}
+{{ super() }}
+<link href="{{ static_url('my.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+{{ utils.header(current_user) }}
+
+<section>
+  <div class="container">
+    <h2>
+      自定义推送
+    </h2>
+    <div id="run-result"></div>
+
+    {% if current_user %}
+    <div class="form-group">
+      请求方法：
+      <select id="pusher_method">
+      <option {% if diypusher.mode == 'GET' %} selected="selected" {% endif %} value="GET">GET</option>
+      <option {% if diypusher.mode == 'POST' %} selected="selected" {% endif %} value="POST">POST</option>
+      </select>
+      <div id='pusher_get_content' {% if diypusher.mode == 'GET' %} style="display: block;" {% else %} style="display: none;" {% endif %}>
+        <label class="control-label" for="pusher_get_url" ><font color='red'>{log}和{t}表示要替换的日志和标题</font></label><br>
+        <label class="control-label" for="pusher_get_url" >URL:</label><br>
+        <input type="text" class="form-control" name="pusher_get_url" {% if diypusher.curl and diypusher.mode == 'GET'%} value="{{diypusher.curl}}" {% endif %} id="pusher_get_url" placeholder="Example：https://Bark链接/推送标题/{t}/{log}" >
+        <label class="control-label" for="pusher_get_header" >Header 使用json格式，如{'a':'{log}','c':'{t}'}</label><br>
+        <input type="text" class="form-control" name="pusher_get_header" {% if diypusher.headers and diypusher.mode == 'GET' %} value="{{ diypusher.headers }}" {% endif %} id="pusher_get_header" placeholder="Example：{'a':'{log}','c':'{t}'}">
+      </div>
+      <div id='pusher_post_content' {% if diypusher.mode == 'POST' %} style="display: block;" {% else %} style="display: none;" {% endif %}>
+        <label class="control-label" for="note" ><font color='red'>{log}和{t}表示要替换的日志和标题</font></label><br>
+        <input type="text" class="form-control" name="pusher_post_url"  {% if diypusher.curl and diypusher.mode == 'POST' %} value="{{diypusher.curl}}" {% endif %} id="pusher_post_url" placeholder="URL">
+        <input type="text" class="form-control" name="pusher_post_header" {% if diypusher.headers and diypusher.mode == 'POST' %} value="{{ diypusher.headers }}" {% endif %} id="pusher_post_header" placeholder="使用json格式，如{'a':'{log}','c':'{t}'}">
+        <select id="pusher_post_data_method">
+          <option {% if diypusher.postMethod == 'json' %} selected="selected" {% endif %} value="json">application/json</option>
+          <option {% if diypusher.postMethod == 'x-www-form-urlencoded' %} selected="selected" {% endif %} value="x-www-form-urlencoded">application/x-www-form-urlencoded</option>
+        </select><br>
+        <label class="control-label" for="note" >POST Data</label><br>
+        <input type="text" class="form-control" name="pusher_post_data" {% if diypusher.postData and diypusher.mode == 'POST' %} value="{{ diypusher.postData }}" {% endif %} id="pusher_post_data" placeholder="使用json格式，如{'a':'{log}','c':'{t}'}">
+      </div>
+    {% endif %}
+  
+    <div class="text-right">
+      <button id="test" name="testbtn" data-loading-text="loading..." class="btn btn-default">测试</button>
+      <button id="register" name="regbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">提交</button>
+    </div>
+  
+
+  </div>
+<script>
+  $('#pusher_method').change(function() {
+    if (this.value == 'GET') {
+      document.getElementById('pusher_get_content').style.display='block';
+      document.getElementById('pusher_post_content').style.display='none';
+    } else if (this.value == 'POST') {
+      document.getElementById('pusher_get_content').style.display='none';
+      document.getElementById('pusher_post_content').style.display='block';
+    } else{
+      document.getElementById('pusher_get_content').style.display='none';
+      document.getElementById('pusher_post_content').style.display='none';
+    }
+
+    return false;
+  });
+</script>
+<script>
+  $('#test, #register').on('click', function() {
+    data = {}
+    mode = $('#pusher_method')[0].value;
+    data['mode'] = mode;
+    data['btn'] = this.name;
+    if (mode == 'GET'){
+      data['curl'] = $('#pusher_get_url')[0].value;
+      data['headers'] = $('#pusher_get_header')[0].value;
+    } else if (mode == 'POST'){
+      data['curl'] = $('#pusher_post_url')[0].value;
+      data['headers'] = $('#pusher_post_header')[0].value;
+      data['postMethod'] = $('#pusher_post_data_method')[0].value;
+      data['postData'] = $('#pusher_post_data')[0].value;
+    } else{
+      alert('请选择请求模式')
+      return false
+    }
+
+    $.ajax("/util/custom/{{ userid }}/pusher", {
+          type: 'POST',
+          data: data,
+        })
+        .success(function(data) {
+          $('#run-result').html(data).show()
+          })
+        .fail(function(data) {
+          $('#run-result').html(data).show()
+        })
+    return false;
+  });
+</script>
+{% endblock %}
+
