@@ -47,7 +47,7 @@ class TaskNewHandler(BaseHandler):
             if (temp not  in groups):
                 groups.append(temp)
         
-        self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, groups=groups)
+        self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, groups=groups, init_env=tpl['variables'])
 
     @tornado.web.authenticated
     def post(self, taskid=None):
@@ -121,7 +121,7 @@ class TaskEditHandler(TaskNewHandler):
             'sitename', 'siteurl', 'variables')))
 
         variables = json.loads(tpl['variables'])
-        self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task)
+        self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=task['init_env'])
 
 class TaskRunHandler(BaseHandler):
     @tornado.web.authenticated
