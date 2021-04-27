@@ -16,7 +16,18 @@ from base import *
 
 class HAREditor(BaseHandler):
     def get(self, id=None):
-        return self.render('har/editor.html', tplid=id)
+        harurl = self.get_argument("tplurl", "")
+        harname = self.get_argument("name", "")
+        hjson = json.loads(open("./tpls_history.json", 'r').read())
+        if (harurl != '') and (harname != ''):
+            if (harurl in hjson):
+                hardata = hjson[harurl]["content"]
+            else:
+                self.render('tpl_run_failed.html', log=u'此模板不存在')
+                return
+        else:
+            hardata = ''
+        return self.render('har/editor.html', tplid=id, harpath=harurl, harname=harname, hardata=hardata)
 
     def post(self, id):
         user = self.current_user
@@ -99,14 +110,14 @@ class HARSave(BaseHandler):
     @tornado.web.authenticated
     def post(self, id):
         self.evil(+1)
-
+        tplurl = self.get_argument("tplurl", "")
         userid = self.current_user['id']
         data = json.loads(self.request.body)
 
         har = self.db.user.encrypt(userid, data['har'])
         tpl = self.db.user.encrypt(userid, data['tpl'])
         variables = json.dumps(list(self.get_variables(data['tpl'])))
-
+        groupName = 'None'
         if id:
             _tmp = self.check_permission(self.db.tpl.get(id, fields=('id', 'userid', 'lock')), 'w')
             if not _tmp['userid']:
@@ -119,6 +130,7 @@ class HARSave(BaseHandler):
                 return
 
             self.db.tpl.mod(id, har=har, tpl=tpl, variables=variables)
+            groupName = self.db.tpl.get(id, fields=('groups'))['groups']
         else:
             id = self.db.tpl.add(userid, har, tpl, variables)
             if not id:
@@ -126,11 +138,14 @@ class HARSave(BaseHandler):
 
         setting = data.get('setting', {})
         self.db.tpl.mod(id,
+                tplurl = tplurl,
                 sitename=setting.get('sitename'),
                 siteurl=setting.get('siteurl'),
                 note=setting.get('note'),
                 interval=setting.get('interval') or None,
-                mtime=time.time())
+                mtime=time.time(),
+                updateable=0,
+                groups=groupName)
         self.finish({
             'id': id
             })

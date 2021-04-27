@@ -12,15 +12,18 @@ import logging
 import tornado.log
 import tornado.ioloop
 from tornado import gen
-import send2phone
+import json
+import pytz
 
 import config
 from libs import utils
 from libs.fetcher import Fetcher
 
-from web.handlers.task import calNextTimestamp
+from funcs import pusher
+from funcs import cal
 
 logger = logging.getLogger('qiandao.worker')
+
 class MainWorker(object):
     def __init__(self):
         self.running = False
@@ -35,6 +38,7 @@ class MainWorker(object):
             tpl = db.TPLDB()
             task = db.TaskDB()
             tasklog = db.TaskLogDB()
+            site = db.SiteDB()
         self.db = DB
         self.fetcher = Fetcher()
 
@@ -49,7 +53,13 @@ class MainWorker(object):
                 logger.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
             return
         self.running.add_done_callback(done)
-
+        
+    def ClearLog(self, taskid):
+        logDay = int(self.db.site.get(1, fields=('logDay'))['logDay'])
+        for log in self.db.tasklog.list(taskid = taskid, fields=('id', 'ctime')):
+            if (time.time() - log['ctime']) > (logDay * 24 * 60 * 60):
+                self.db.tasklog.delete(log['id'])
+      
     @gen.coroutine
     def run(self):
         running = []
@@ -130,19 +140,18 @@ class MainWorker(object):
 
     @gen.coroutine
     def do(self, task):
-        user = self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname'))
-        tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl',
-            'interval', 'last_success'))
-        ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg'))
-        
-        notice = self.db.user.get(task['userid'], fields=('skey', 'barkurl', 'noticeflg', 'wxpusher'))
-        temp = notice['wxpusher'].split(";")
-        wxpusher_token = temp[0] if (len(temp) >= 2) else ""
-        wxpusher_uid = temp[1] if (len(temp) >= 2) else "" 
-        pushno2b = send2phone.send2phone(barkurl=notice['barkurl'])
-        pushno2s = send2phone.send2phone(skey=notice['skey'])
-        pushno2w = send2phone.send2phone(wxpusher_token=wxpusher_token, wxpusher_uid=wxpusher_uid)               
-        
+        task['note'] = self.db.task.get(task['id'], fields=('note'))['note']
+        user = self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname', 'logtime'))
+        tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl', 'interval', 'last_success'))
+        ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg', 'pushsw', 'newontime', 'next'))
+        newontime = json.loads(ontime["newontime"])
+        pushtool = pusher()
+        caltool = cal()
+        logtime = json.loads(user['logtime'])
+        pushsw = json.loads(ontime['pushsw'])
+
+        if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0 
+
         if task['disabled']:
             self.db.tasklog.add(task['id'], False, msg='task disabled.')
             self.db.task.mod(task['id'], next=None, disabled=1)
@@ -171,15 +180,27 @@ class MainWorker(object):
                     session = [],
                     )
 
-            new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
+            url = utils.parse_url(env['variables'].get('_proxy'))
+            if not url:
+                new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
+            else:
+                proxy = {
+                    'host': url['host'],
+                    'port': url['port'],
+                }
+                new_env = yield self.fetcher.do_fetch(fetch_tpl, env, [proxy])
 
             variables = self.db.user.encrypt(task['userid'], new_env['variables'])
             session = self.db.user.encrypt(task['userid'],
                     new_env['session'].to_json() if hasattr(new_env['session'], 'to_json') else new_env['session'])
 
             # todo next not mid night
-            if (ontime['ontimeflg'] == 1):
-                next = calNextTimestamp(ontime['ontime'], todayflg=False)
+            if (newontime['sw']):
+                if ('mode' not in newontime):
+                    newontime['mode'] = 'ontime'
+                if (newontime['mode'] == 'ontime'):
+                    newontime['date'] = (datetime.datetime.now()+datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+                next = caltool.calNextTs(newontime)['ts']
             else:
                 next = time.time() + max((tpl['interval'] if tpl['interval'] else 24 * 60 * 60), 1*60)
                 if tpl['interval'] is None:
@@ -196,36 +217,34 @@ class MainWorker(object):
                     mtime=time.time(),
                     next=next)
             self.db.tpl.incr_success(tpl['id'])
-            if (notice['noticeflg'] & 0x2 != 0):
-                t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-                title = u"签到任务 {0} 成功".format(tpl['sitename'])
-                logtemp = new_env['variables'].get('__log__')
-                pushno2b.send2bark(title, u"{0} 运行成功".format(t))
-                pushno2s.send2s(title, u"{0}  日志：{1}".format(t, logtemp))
-                pushno2w.send2wxpusher(title+u"{0}  日志：{1}".format(t, logtemp))
+
+            t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
+            title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
+            logtemp = new_env['variables'].get('__log__')
+            logtemp = u"{0}  日志：{1}".format(t, logtemp)
+            pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
+
             logger.info('taskid:%d tplid:%d successed! %.4fs', task['id'], task['tplid'], time.time()-start)
+            # delete log
+            self.ClearLog(task['id'])
         except Exception as e:
             # failed feedback
             next_time_delta = self.failed_count_to_time(task['last_failed_count'], tpl['interval'])
                         
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
-            title = u"签到任务 {0} 失败".format(tpl['sitename'])
+            title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
+            content = u"日志：{log}".format(log=e)
+            disabled = False
             if next_time_delta:
-                # 每次都推送通知
-                if (notice['noticeflg'] & 1 == 1):
-                    pushno2b.send2bark(title, u"{0} 请检查状态".format(t))
-                    pushno2s.send2s(title, u"{0} 请进行排查".format(t))
-                    pushno2w.send2wxpusher(title+u"{0}  请进行排查".format(t))
-                disabled = False
                 next = time.time() + next_time_delta
+                content = content + u"下次运行时间：{0}".format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(next)))
+                if (logtime['ErrTolerateCnt'] <= task['last_failed_count']):
+                    pushtool.pusher(user['id'], pushsw, 0x1, title, content)
             else:
                 disabled = True
                 next = None
-                # 任务禁用时发送通知
-                if (notice['noticeflg'] & 1 == 1):
-                    pushno2b.send2bark(title, u"任务已禁用")
-                    pushno2s.send2s(title, u"任务已禁用")
-                    pushno2w.send2wxpusher(title+u"任务已禁用")
+                content = u"任务已禁用"
+                pushtool.pusher(user['id'], pushsw, 0x1, title, content)
 
             self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
             self.db.task.mod(task['id'],
@@ -237,40 +256,9 @@ class MainWorker(object):
                     next=next)
             self.db.tpl.incr_failed(tpl['id'])
 
-            if task['success_count'] and task['last_failed_count'] and user['email_verified'] and user['email']:
-                    #and self.is_tommorrow(next):
-                try:
-                    _ = yield utils.send_mail(to=user['email'], subject=u"%s - 签到失败%s" % (
-                        tpl['sitename'], u' 已停止' if disabled else u""),
-                    text=u"""
-您的 %(sitename)s [ %(siteurl)s ] 签到任务，执行 %(cnt)d次 失败。%(disable)s
-
-下一次重试在一天之后，为防止签到中断，给您发送这份邮件。
-
-访问： http://%(domain)s/task/%(taskid)s/log 查看日志。
-                    """ % dict(
-                        sitename=tpl['sitename'] or u'未命名',
-                        siteurl=tpl['siteurl'] or u'',
-                        cnt=task['last_failed_count'] + 1,
-                        disable=u"因连续多次失败，已停止。" if disabled else u"",
-                        domain=config.domain,
-                        taskid=task['id'],
-                        ), async=True)
-                except Exception as e:
-                    logging.error('send mail error: %r', e)
-
             logger.error('taskid:%d tplid:%d failed! %r %.4fs', task['id'], task['tplid'], e, time.time()-start)
             raise gen.Return(False)
         raise gen.Return(True)
-
-    def task_failed(self, task, user, tpl, e):
-        pass
-        #if user['email'] and user['email_verified']:
-            #return utils.send_mail(to=user['email'],
-                    #subject=u"%s - 签到失败提醒" % (tpl['sitename']),
-                    #text=u"""
-                    #您在 签到.today ( http://qiandao.today )
-                    #""")
 
 if __name__ == '__main__':
     tornado.log.enable_pretty_logging()

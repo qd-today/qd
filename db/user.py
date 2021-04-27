@@ -9,6 +9,7 @@ import time
 import logging
 import umsgpack
 
+
 import config
 from libs import mcrypto as crypto, utils
 from basedb import BaseDB
@@ -72,6 +73,19 @@ class UserDB(BaseDB):
         password_hash = self.decrypt(user['id'], user['password'])
         if password_hash == crypto.password_hash(password, password_hash):
             return True
+
+        return False
+
+    def challenge_MD5(self, email, password):
+        user = self.get(email=email, fields=('id', 'password_md5'))
+        if not user:
+            return False
+        else:
+            if (user['password_md5'] == ''):
+                pass
+            else:
+                if password == user['password_md5']:
+                    return True
         return False
 
     def mod(self, id, **kwargs):
@@ -81,6 +95,9 @@ class UserDB(BaseDB):
 
         if 'password' in kwargs:
             kwargs['password'] = self.encrypt(id, crypto.password_hash(kwargs['password']))
+            
+        if 'token' in kwargs:
+            kwargs['token'] = self.encrypt(id, crypto.password_hash(kwargs['token']))
 
         return self._update(where="id=%s" % self.placeholder, where_values=(id, ), **kwargs)
 
@@ -125,3 +142,18 @@ class UserDB(BaseDB):
 
         for user in self._select2dic(what=fields, where=where, where_values=value):
             return user
+    
+    def list(self, fields=None, limit=None, **kwargs):
+        where = '1=1'
+        where_values = []
+        for key, value in kwargs.iteritems():
+            if value is None:
+                where += ' and %s is %s' % (self.escape(key), self.placeholder)
+            else:
+                where += ' and %s = %s' % (self.escape(key), self.placeholder)
+            where_values.append(value)
+        for tpl in self._select2dic(what=fields, where=where, where_values=where_values, limit=limit):
+            yield tpl
+
+    def delete(self, id):
+        self._delete(where="id=%s" % self.placeholder, where_values=(id, ))

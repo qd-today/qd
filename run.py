@@ -15,8 +15,14 @@ from web.app import Application
 from worker import MainWorker
 
 import sqlite3_db_task_converter
+import requests
+
+requests.packages.urllib3.disable_warnings()
 
 if __name__ == "__main__":
+    if sys.getdefaultencoding() != 'utf-8':
+        reload(sys)
+        sys.setdefaultencoding('utf-8')
     # init logging
     logger = logging.getLogger()
     logger.setLevel(logging.DEBUG if config.debug else logging.INFO)
@@ -34,14 +40,13 @@ if __name__ == "__main__":
         port = int(sys.argv[2])
     else:
         port = config.port
+    converter = sqlite3_db_task_converter.DBconverter()
+    converter.ConvertNewType() 
 
     http_server = HTTPServer(Application(), xheaders=True)
     http_server.bind(port, config.bind)
     http_server.start()
 
-    converter = sqlite3_db_task_converter.DBconverter()
-    converter.ConvertNewType() 
-    
     worker = MainWorker()
     PeriodicCallback(worker, config.check_task_loop).start()
     worker()

@@ -298,10 +298,21 @@
             <button type=button class="btn btn-default btn-xs" ng-click="add_request(0)">前面</button>
             <button type=button class="btn btn-default btn-xs" ng-click="add_request(1)">后面</button>
             插入一个请求，
-            <button type=button class="btn btn-default btn-xs" ng-click="add_delay_request()">插入延时</button>
+           
             <button type=button class="btn btn-default btn-xs" ng-click="copy_request()">复制</button>
             <button type=button ng-if="copy_entry" class="btn btn-default btn-xs" ng-click="paste_request(0)">粘帖到前面</button>
             <button type=button ng-if="copy_entry" class="btn btn-default btn-xs" ng-click="paste_request(1)">粘帖到后面</button>
+            <button type=button class="btn btn-default btn-xs" ng-click="del_request(0)">删除</button>
+          </div>
+          <div >
+            <button type=button class="btn btn-default btn-xs" ng-click="add_delay_request()">插入延时</button>
+            <button type=button class="btn btn-default btn-xs" ng-click="add_unicode_request()">插入unicode转换</button>
+            <button type=button class="btn btn-default btn-xs" ng-click="add_urldecode_request()">插入url解码</button>
+            <button type=button class="btn btn-default btn-xs" ng-click="add_regex_request()">插入正则表达式</button>
+            <button type=button class="btn btn-default btn-xs" ng-click="add_string_replace_request()">插入字符串替换</button>
+            <button type=button class="btn btn-default btn-xs" ng-click="add_RSA_Encrypt_request()">插入RSA加密</button>
+            <button type=button class="btn btn-default btn-xs" ng-click="add_read_notepad_request()">读取记事本</button>
+            <button type=button class="btn btn-default btn-xs" ng-click="add_append_notepad_request()">追加记事本</button>
           </div>
           <button type="button" class="btn btn-success do-test" data-loading-test="Loading..."
             ng-show="panel=='test' || panel=='preview' || panel=='preview-headers'"

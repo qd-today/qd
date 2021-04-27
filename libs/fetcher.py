@@ -97,6 +97,7 @@ class Fetcher(object):
                 allow_nonstandard_methods = True,
                 allow_ipv6 = True,
                 prepare_curl_callback = set_size_limit_callback,
+                validate_cert=False,
                 )
 
         session = cookie_utils.CookieSession()
@@ -210,8 +211,9 @@ class Fetcher(object):
             if _from == 'content':
                 if content[0] == -1:
                     content[0] = utils.decode(response.body)
-                if 'image' in response.headers.get('content-type'):
-                    return base64.b64encode(response.body)
+                if ('content-type' in response.headers):
+                    if 'image' in response.headers.get('content-type'):
+                        return base64.b64encode(response.body)
                 return content[0]
             elif _from == 'status':
                 return '%s' % response.code
@@ -233,7 +235,7 @@ class Fetcher(object):
         for r in rule.get('failed_asserts') or '':
             if re.search(r['re'], getdata(r['from'])):
                 success = False
-                msg = 'fail assert: %s' % r
+                msg = 'fail assert: %s' % json.dumps(r, encoding="UTF-8", ensure_ascii=False)
                 break
 
         for r in rule.get('extract_variables') or '':
@@ -362,7 +364,7 @@ class Fetcher(object):
         """
         req, rule, env = self.build_request(obj, self.download_size_limit)
 
-        if proxy:
+        if proxy and pycurl:
             for key in proxy:
                 setattr(req, 'proxy_%s' % key, proxy[key])
 

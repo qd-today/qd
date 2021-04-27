@@ -1,0 +1,87 @@
+<!-- 参考了 鹦鹉 的代码，在此致谢 -->
+<!-- https://ezbox.idv.tw/131/back-to-top-button-without-images -->
+<div class="btn-group btn-group-xs" role="group" aria-label="...">
+<button type="button" id="BackTop" class="toTop-arrow glyphicon glyphicon-chevron-up" style="z-index: 100;"></button>
+<button type="button" id="Back2tpl" class="toTop-arrow-down glyphicon glyphicon-chevron-down" style="z-index: 100;"></button>
+<button type="button" id="newtplbtn" class="newtplclss glyphicon glyphicon-plus" style="z-index: 100;"></button>
+</div>
+<script>
+    // 向上滚动的函数
+    $(function () {
+        $('#BackTop').click(function () {
+            $('html,body').animate({scrollTop: 0}, 500);
+        });
+    });
+</script>
+
+<script>
+    Back2tpl.onclick = function(){
+    $('html,body').animate({scrollTop: $("#tplsection").offset().top }, {duration: 500,easing: "swing"});
+    }
+</script>
+
+<script>
+    newtplbtn.onclick = function(){
+        window.open('/har/edit','_blank',);
+    }
+</script>
+
+<style>
+    /* 按钮边框的大小、位置、样式 */
+    .toTop-arrow {
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        position: fixed;
+        left: 1.5rem;
+        top: 12.5rem;
+        display: block;
+		padding: 1px 5px;
+        color: #5f5f5f;
+        background-color: #fff;
+        border-color: #ccc;
+        background-image: linear-gradient(to bottom,#fff 0,#f5f5f5 100%);
+        font-size: 12px;
+        line-height: 1.5;
+        border-radius: 3px;
+    }
+
+    /* 按钮边框的大小、位置、样式 */
+    .toTop-arrow-down {
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        position: fixed;
+        left: 1.5rem;
+        top: 16rem;
+        display: block;
+		padding: 1px 5px;
+        color: #5f5f5f;
+        background-color: #fff;
+        border-color: #ccc;
+        background-image: linear-gradient(to bottom,#fff 0,#f5f5f5 100%);
+        font-size: 12px;
+        line-height: 1.5;
+        border-radius: 3px;
+    }
+
+    
+    /* 按钮边框的大小、位置、样式 */
+    .newtplclss {
+        padding: 0;
+        margin: 0;
+        cursor: pointer;
+        position: fixed;
+        left: 1.5rem;
+        top: 19.5rem;
+        display: block;
+		padding: 1px 5px;
+        color: #5f5f5f;
+        background-color: #fff;
+        border-color: #ccc;
+        background-image: linear-gradient(to bottom,#fff 0,#f5f5f5 100%);
+        font-size: 12px;
+        line-height: 1.5;
+        border-radius: 3px;
+    }
+</style>

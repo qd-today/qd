@@ -1,6 +1,6 @@
 {% import "utils.html" as utils %}
 <form method="POST" action="/task/{{ '%s/edit' % task.id if task else 'new' }}">
-  <h2 class="text-center">私有签到框架<sup>alpha</sup></h2>
+  <h2 class="text-center">私有签到框架<sup>20210222</sup></h2>
   <hr>
   {% if task.disabled %}
   <p class="alert alert-danger">任务处于禁用状态，使用 <a class="modal_load alert-link" href="/task/{{ task.id }}/run">立即执行</a> 成功签到一次，即可解除。</p>
@@ -34,17 +34,47 @@
   </div>
   {% endif %}
 
+  {% if current_user %}
+  <div class="form-group">
+    <label class="control-label" for="proxy">代理</label>
+    <!-- MY页面-添加签到-增加提示语 -->
+    <input type="text" class="form-control" name="_binux_proxy" value="{{ init_env._proxy or '' }}" id="proxy" placeholder="http://127.0.0.1:8080" pattern="((https?|socks5)+://)?([^:@/]+(:[^@/]+)?@)?[^:@/]+:\d+">
+    <!-- MY页面-添加签到-增加备注图标 -->
+    <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+  </div>
+  {% endif %}
+  
   {% if not task and current_user %}
   <div class="checkbox">
     <label>
       <input type="checkbox" name="_binux_tested" id="tested" value="1"> 我今天已经签过到了
     </label>
   </div>
+  <label class="control-label" >设置任务分组</label>
+  <div class="use_redpackets_content" id="oneCheck">
+    {% for group in groups %}
+    <div class="checkbox">
+      <label>
+        <input type="checkbox" name="group-select-{{ group }} "  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
+      </label>
+    </div>
+    {% endfor %}
+  </div>
+  <div class="form-group">
+    <label class="control-label" for="note">设置新分组</label>
+	<!-- MY页面-添加签到-增加提示语 -->
+    <input type="text" class="form-control" name="New_group" value="" id="New_group" placeholder="尽可能填写15个字符以内">
+	<!-- MY页面-添加签到-增加备注图标 -->
+	  <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+  </div>
   {% endif %}
+
+
 
   <div class="text-right">
     {% if task %}
     <a class="btn btn-default" data-method="POST" href="/task/{{ task.id }}/del" data-confirm="是否要删除任务?">删除</a>
+    <a class="btn btn-default" data-method="POST" href="/task/{{ task.id }}/disable" data-confirm="是否禁用任务?">禁用</a>
     {% else %}
     <button id="run" data-loading-text="loading..." class="btn btn-default">测试</button>
     {% endif %}
@@ -86,6 +116,19 @@
       });
     })
   </script>
+
+  <script type="text/javascript">
+    $(function () {
+                var fanxiBox = $("#oneCheck input:checkbox");
+                fanxiBox.click(function () {
+                  if(this.checked || this.checked=='checked'){
+                      fanxiBox.removeAttr("checked");
+                      $(this).prop("checked", true);
+                    }
+                });
+            });   
+  </script>
+
   {{ utils.task_new_scripts() }}
   {{ utils.submit_loading() }}
 </form>

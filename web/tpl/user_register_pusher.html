@@ -1,0 +1,110 @@
+{% import "utils.html" as utils %}
+<form method="POST" action="/user/{{ userid }}/pushsw">
+  <h2 class="text-center">注册推送</h2>
+  <script src="/static/md5.js"></script>
+  <hr>
+
+  <div id="run-result"></div>
+
+  {% if current_user %}
+  <div class="form-group">
+    <!-- 注册barkurl -->
+    <label class="control-label" for="note">BarkURL</label>
+    <input type="text" class="form-control" name="barkurl" value="" id="barkurl" placeholder="最后不要带 / 符号">
+    <!-- 注册S酱 -->
+    <label class="control-label" for="note">S酱 的 Skey</label>
+    <input type="text" class="form-control" name="skey" value="" id="skey" placeholder="最后不要带.send">
+    <!-- 注册wxpusher -->
+    <label class="control-label" for="note">wxpusher 的 apptoken</label>
+    <input type="text" class="form-control" name="wxpusher_token" value="" id="wxpusher_token" placeholder="请到 http://wxpusher.zjiecode.com/admin 扫码新建app">
+    <label class="control-label" for="note">wxpusher 的 uid</label>
+    <input type="text" class="form-control" name="wxpusher_uid" value="" id="wxpusher_uid" placeholder="wxpusher 用户必须要订阅app才能收到推送">
+    <!-- 注册企业微信 -->
+    <label class="control-label" for="note">企业微信，用;来分割，企业ID;应用ID;应用密钥;自定推送图片(非必需)</label>
+    <input type="text" class="form-control" name="qywx_token" value="" id="qywx_token" placeholder="用;来分割，企业ID;应用ID;应用密钥;自定推送图片(非必需)">
+  </div>
+  <div class="form-group">
+    <label class="control-label" for="note" ><font color='red'>注册不需要填写账号密码，查看前值需要</font></label><br>
+    <label class="control-label" for="note">邮箱</label>
+    <input type="text" class="form-control" name="adminmail" value="" id="adminmail" placeholder="注册不需要填写账号密码">
+    <label class="control-label" for="note">密码</label>
+    <input type='password' class="form-control" name="adminpwd" value="" id="adminpwd" placeholder="注册不需要填写账号密码">
+  </div>
+  {% endif %}
+
+  <div class="text-right">
+    <button id="showpvar" name="showpvarbtn" data-loading-text="loading..." class="btn btn-default" >前值</button>
+    <button id="test" name="testbtn" data-loading-text="loading..." class="btn btn-default">测试</button>
+    <button id="register" name="regbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">提交</button>
+  </div>
+
+  <script>
+    $(function() {
+      // run test
+      $('#test, #register').on('click', function() {
+        var env = {};
+        for (var _env=$('form').serializeArray(), i=_env.length-1; i>=0; i--) {
+          env[_env[i].name] = _env[i].value;
+        }
+        var data = {}
+        if (this.name == "regbtn"){
+          data = {
+          env: JSON.stringify(env),
+          func: "reg",
+          }
+        }else{
+          data = {
+          env: JSON.stringify(env),
+          func: "test",
+          }
+        }
+
+        var $this = $(this);
+        $this.button('loading');
+        $.ajax("/user/{{ userid }}/regpush", {
+          type: 'POST',
+          data: data,
+        })
+        .done(function(data) {
+         $('#run-result').html(data).show()
+        
+        })
+        .fail(function(jxhr) {
+          $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+        })
+        .always(function() {
+          $this.button('reset');
+        });
+
+        return false;
+      });
+    })
+</script>
+<script>
+$(function() {
+    // run test
+    $('#showpvar').on('click', function() {
+      data = {}
+      data['adminmail'] = $('#adminmail')[0].value;
+      data['adminpwd'] = md5($('#adminpwd')[0].value);
+      $.ajax("/user/{{ userid }}/UserPushShowPvar", {
+            type: 'POST',
+            data: data,
+          })
+          .done(function(data) {
+            $('#run-result').html(data).show()
+            })
+          .fail(function(jxhr) {
+            $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+          })
+          .always(function() {
+              $this.button('reset');
+            });
+      return false
+    });
+})
+  </script>
+
+  {{ utils.task_new_scripts() }}
+  {{ utils.submit_loading() }}
+</form>

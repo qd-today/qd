@@ -50,7 +50,7 @@ def method_cache(fn):
 import datetime
 
 #full_format=True，的时候是具体时间，full_format=False就是几秒钟几分钟几小时时间格式----此处为模糊时间格式模式
-def format_date(date, gmt_offset=-8*60, relative=True, shorter=False, full_format=False):
+def format_date(date, gmt_offset=-8*60, relative=True, shorter=False, full_format=True):
     """Formats the given date (which should be GMT).
 
     By default, we return a relative time (e.g., "2 minutes ago"). You
@@ -125,6 +125,9 @@ def utf8(string):
     if isinstance(string, unicode):
         return string.encode('utf8')
     return string
+
+def conver2unicode(string):
+    return string.decode('unicode_escape')
 
 import urllib
 import config
@@ -254,7 +257,12 @@ def get_random(min_num, max_mun, unit):
 
 import datetime
 def get_date_time(date=True, time=True, time_difference=0):
-    time_difference = time_difference + 12
+    if isinstance(date,unicode):
+        date=int(date)
+    if isinstance(time,unicode):
+        time=int(time)
+    if isinstance(time_difference,unicode):
+        time_difference = int(time_difference)
     now_date = datetime.datetime.today() + datetime.timedelta(hours=time_difference)
     if date:
         if time:
@@ -264,7 +272,7 @@ def get_date_time(date=True, time=True, time_difference=0):
     elif time:
         return str(now_date.time()).split('.')[0]
     else:
-        return
+        return ""
 
 
 import time
@@ -272,7 +280,21 @@ jinja_globals = {
     'md5': md5string,
     'quote_chinese': quote_chinese,
     'utf8': utf8,
+    'unicode': conver2unicode,
     'timestamp': time.time,
     'random': get_random,
     'date_time': get_date_time,
 }
+
+import re
+def parse_url(url):
+    if not url:
+        return None
+    result = re.match('((?P<scheme>(https?|socks5)+)://)?((?P<username>[^:@/]+)(:(?P<password>[^@/]+))?@)?(?P<host>[^:@/]+):(?P<port>\d+)', url)
+    return None if not result else {
+        'scheme': result.group('scheme'),
+        'host': result.group('host'),
+        'port': int(result.group('port')),
+        'username': result.group('username'),
+        'password': result.group('password'),
+    }

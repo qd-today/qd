@@ -1,2 +1,6 @@
+<link href="{{ static_url('base.css') }}" rel="stylesheet" type="text/css">
 <h1 class="alert alert-danger text-center">签到失败</h1>
-<div class="well">{{ log }}</div>
+<div class="well showbut" id="errmsg">
+  <button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button>
+  {{ log }}
+</div>

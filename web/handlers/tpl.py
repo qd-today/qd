@@ -109,7 +109,14 @@ class TPLRunHandler(BaseHandler):
                 raise HTTPError(400)
 
         try:
-            if self.current_user:
+            url = utils.parse_url(env['variables'].get('_binux_proxy'))
+            if url:
+                proxy = {
+                    'host': url['host'],
+                    'port': url['port'],
+                }
+                result = yield self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+            elif self.current_user:
                 result = yield self.fetcher.do_fetch(fetch_tpl, env)
             else:
                 result = yield self.fetcher.do_fetch(fetch_tpl, env, proxies=[])
@@ -129,10 +136,44 @@ class PublicTPLHandler(BaseHandler):
 
         self.render('tpls_public.html', tpls=tpls)
 
+class TPLGroupHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, tplid):
+        user = self.current_user      
+        groupNow = self.db.tpl.get(tplid, fields=('groups'))['groups']
+        tasks = []
+        groups = []
+        tpls = self.db.tpl.list(userid=user['id'], fields=('groups'), limit=None)
+        for tpl in tpls:
+            temp = tpl['groups']
+            if (temp not  in groups):
+                groups.append(temp)
+
+        self.render('tpl_setgroup.html', tplid=tplid, groups=groups, groupNow=groupNow)
+    
+    @tornado.web.authenticated
+    def post(self, tplid):        
+        New_group = self.request.body_arguments['New_group'][0].strip()
+        
+        if New_group != "" :
+            target_group = New_group.decode("utf-8").encode("utf-8")
+        else:
+            for value in self.request.body_arguments:
+                if self.request.body_arguments[value][0] == 'on':
+                    target_group = value.strip()
+                    break
+                else:
+                    target_group = 'None'
+            
+        self.db.tpl.mod(tplid, groups=target_group)
+   
+        self.redirect('/my/')
+
 handlers = [
         ('/tpl/(\d+)/push', TPLPushHandler),
         ('/tpl/(\d+)/var', TPLVarHandler),
         ('/tpl/(\d+)/del', TPLDelHandler),
         ('/tpl/?(\d+)?/run', TPLRunHandler),
         ('/tpls/public', PublicTPLHandler),
+        ('/tpl/(\d+)/group', TPLGroupHandler),
         ]

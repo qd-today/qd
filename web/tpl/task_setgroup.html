@@ -3,19 +3,11 @@
   <h2 class="text-center">设置分组</h2>
   <hr>
 
-  <!-- {% for group in groups %}
-  <div class="checkbox">
-    <label>
-      <input type="checkbox" id="select_group" name="select_group"  {% if group == groupNow %}  checked="{{ group }}" {% endif %}> {{ group }}
-    </label>
-  </div>
-  {% endfor %} -->
-
   <div class="use_redpackets_content" id="oneCheck">
     {% for group in groups %}
     <div class="checkbox">
       <label>
-        <input type="checkbox" id="select_group" name="{{ group }} "  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
+        <input type="checkbox" name="{{ group }}"  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
       </label>
     </div>
     {% endfor %}

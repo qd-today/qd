@@ -14,13 +14,20 @@
 <script>
   TPLID={{ tplid or 0 }};
   HASUSER={{ 1 if current_user else 0 }};
+  HARPATH = "{{ harpath }}";
+  HARNAME = "{{ harname }}";
+  HARDATA= "{{ hardata }}";
 </script>
+
+<script src="/static/base64.js"></script>
+<!-- <script src="/static/draggable-polyfill.js"></script> -->
+
 {% raw %}
 <div class="container">
   <div class="row" ng-controller="EntryList">
     <div class="col-md-3" id="editor-switch">
       <a class="h1-index" href="/">
-        <h1 class="text-center">签到<sup>alpha</sup></h1>
+        <h1 class="text-center">签到<sup>20210222</sup></h1>
       </a>
       
       <!--checked switch-->
@@ -99,7 +106,9 @@
         </div>
       </div>
 
-      <div class="list-group">
+      <div class="list-group" allowdrop id="droplist" ondragover="droplistFunc(event)">
+        <input type="checkbox"  name="sortBtn" id="sortBtn" onchange="sortRequest(this)">显示序号
+        <button type="button" name="Delete_seleted_Btn" id="Delete_seleted_Btn" >删除</button>
 
         <li class="list-group-item pageref"
           ng-repeat-start="entry in har.log.entries | filter: filter | filter: track_item()"
@@ -107,7 +116,7 @@
           {{ entry.pageref }}
         </li>
 
-        <a href="javascript:void(0);" class="list-group-item entry" ng-repeat-end>
+        <a href="javascript:void(0);" class="list-group-item entry"  ng-repeat-end draggable="true" ondragstart="dragstartFunc(event)" ondragend="dragendFunc(event)">
           <div class="entry-checked">
             <input ng-model="entry.checked" ng-click="save_change()" type="checkbox">
           </div>
@@ -124,12 +133,12 @@
           <span class="entry-url" ng-click="edit(entry)">{{ entry.request.url || ":empty" }}</span>
         </a>
 
-        <li href="javascript:void(0);" class="list-group-item entry" ng-if="filted.length > 0">
+        <li href="javascript:void(0);" class="list-group-item entry" ng-if="filted.length > 0" draggable="false">
           <div class="entry-checked">
             <input ng-model="is_check_all" ng-click="check_all(!is_check_all)" type="checkbox">
           </div>
           <a href="javascript:void(0);" ng-click="check_all()">全选</a> |
-          <a href="javascript:void(0);" ng-click="check_all(false)">反选</a>
+          <a href="javascript:void(0);" onClick="reserve_check()">反选</a>
         </li>
 
         <li class="list-group-item" ng-if="filted.length == 0">过滤条件下没有请求</li>
@@ -137,6 +146,7 @@
       <!-- ./entries list -->
 
       <div class="text-right">
+        <button class="btn btn-default" data-toggle="modal" data-target="#upload-har" >追加HAR</button>
         <a id="download-har" target="_blank" class="btn btn-default" ng-click="download()">下载</a>
         <button class="btn btn-default" data-toggle="modal" data-target="#test-har" ng-click="pre_save()">测试</button>
         <button ng-if="!readonly" class="btn btn-primary" data-toggle="modal" data-target="#save-har" ng-click="pre_save()">保存</button>
@@ -274,7 +284,7 @@
           <div class="alert alert-info" role="alert" ng-if="local_har">
             您有一个正在编辑的 HAR 文件（{{ local_har }}），是否打开？
             <a href="javascript:void(0);" ng-click="load_local_har()">[ 打开 ]</a> /
-            <a href="javascript:void(0);" ng-click="delete_local()">[ 删除 ]</a>
+            <a href="javascript:void(0);" ng-click="delete_local()">[ 删除 ]</a> 
           </div>
           <div class="form-horizontal" role="form">
             <div class="form-group">
@@ -300,6 +310,7 @@
           </div>
         </div>
         <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-loading-text="Loading..." ng-click="add_local()">追加</button>
           <button type="button" class="btn btn-primary" data-loading-text="Loading..." ng-click="upload()">上传</button>
         </div>
       </div>
@@ -311,5 +322,111 @@
     main.init()
   });
 </script>
+<script>
+  function sortRequest(checkbox){
+      var RequestIndex = 1;
+      document.querySelectorAll('#droplist>a.list-group-item.entry').forEach(function(el){
+      var tmp = el.getElementsByClassName('entry-checked')[0]
+      if (tmp.getElementsByTagName('input')[0].checked)
+      {
+        if (checkbox.checked) {
+            tmp.childNodes[2].data = RequestIndex.toString();
+            RequestIndex += 1;
+        }
+        else {
+          tmp.childNodes[2].data = ""
+        }
+      }
+    });
+  }
+</script>
+<script>
+  var currentDragItem = null;
+  var StartY = 0;
+  var startIndex = 0;
+  var offsetY = 0;
+  var maxIndex = 0;
+
+  function resortEntryList() {
+    DragIndex = 0;
+    document.querySelectorAll('#droplist>a.list-group-item.entry').forEach(function(el){
+      el.setAttribute('dragid',DragIndex);
+      DragIndex += 1;
+    });
+    maxIndex = DragIndex;
+  };
+  function dragstartFunc(ev) {
+    resortEntryList()
+    StartY = parseInt(ev.clientY);
+    startIndex = parseInt(ev.srcElement.getAttribute('dragid'));
+    currentDragItem = ev.srcElement;
+    offsetY = ev.offsetY;
+  }
+
+  function dragendFunc(ev) {
+    var C_height = parseInt(ev.srcElement.clientHeight);
+    var EndY = parseInt(ev.clientY)
+    var EndIndex = 0;
+    if (EndY > StartY)
+    {
+      EndIndex = (parseInt(startIndex + ((EndY-StartY)/C_height)));
+    }
+    else
+    {
+      EndIndex = (parseInt(startIndex + ((EndY-StartY)/C_height) + 1));
+    }
+    var tmp = window.global_har.har.log.entries[startIndex];
+    if (EndIndex > startIndex)
+    {
+      window.global_har.har.log.entries.splice(EndIndex+1, 0, tmp);
+      window.global_har.har.log.entries.splice(startIndex, 1);
+    }
+    else
+    {
+      window.global_har.har.log.entries.splice(EndIndex, 0, tmp);
+      window.global_har.har.log.entries.splice(startIndex+1, 1);
+    }
+    
+
+    resortEntryList()
+    currentDragItem = null;
+  }
+
+  function droplistFunc (ev) {
+      ev.preventDefault();
+      if(!currentDragItem){ return }
+      var dragitem = ev.target.closest('.list-group-item.entry');
+      if(dragitem){
+          if(ev.offsetY>offsetY){
+            tmp = ev.srcElement.getAttribute('dragid')
+            if (tmp){
+              dragitem.after(currentDragItem);
+            }
+          }else{
+              dragitem.before(currentDragItem);
+          }
+      }
+  }
+</script>
+<script>
+  $(function() {
+    $('#Delete_seleted_Btn').on('click', function() {
+      var RequestIndex = 0;
+      var Indexs = new Array();
+      var es = document.querySelectorAll('#droplist>a.list-group-item.entry');
+      window.global_har.har.log.entries.forEach(function(entry){
+        if (entry.checked){
+          es[RequestIndex].parentNode.removeChild(es[RequestIndex]);
+          Indexs.splice(0, 0, entry);
+        }
+        RequestIndex += 1;
+      });
+      Indexs.forEach(function(entry){
+        window.global_har.har.log.entries.splice(window.global_har.har.log.entries.indexOf(entry), 1)
+      });
+    });
+  })
+</script>
+<script src="/static/editor_js.js"></script>
 {% endraw %}
 {% endblock %}

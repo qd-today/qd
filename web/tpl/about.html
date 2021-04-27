@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}关于{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="{{ static_url('my.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+{{ utils.header(current_user) }}
+
+<section class="tpl">
+  <div class="container">
+    <h2>
+      常用Api
+    </h2>
+    <table class="table table-hover apitable">
+      <thead>
+        <tr>
+          <th>api</th>
+          <th>地址</th>
+          <th>参数</th>
+          <th>参数是否必须</th>
+          <th>说明</th>
+          <th>用例</th>
+        </tr>
+      </thead>
+      <tbody style="text-align:center">
+        {% for tpl in tpls %}
+        <tr>
+          <td>{{ tpl.api }}</td>
+            <td id="api_url{{loop.index}}" class="showbut">
+              <a href={{ tpl.url }} rel="nofollow">http://localhost{{tpl.url}}</a>
+            <button class="btn hljs-button" data-clipboard-target="#api_url{{loop.index}}" >复制</button>
+          </td>
+          <td>{{ tpl.vars | safe }}</td>
+          <td>{{ tpl.varsreq }}</td>
+          <td>{{ tpl.comments | safe }}</td>
+
+            <td id="api_exam{{loop.index}}" class="showbut">
+              <div class="autowrap">
+                <a href={{tpl.examples}} rel="nofollow"> 
+            http://localhost{{ tpl.examples | safe }}
+                </a>
+              </div>
+            <button class="btn hljs-button" data-clipboard-target="#api_exam{{loop.index}}" >复制</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h2>
+      常用参数及过滤器
+    </h2>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>参数/过滤器</th>
+          <th>说明</th>
+          <th>用例</th>
+          <th>参考值</th>
+        </tr>
+      </thead>
+      <tbody style="text-align:center">
+        {% for api in apis %}
+        <tr>
+          <td>{{ api.name | safe}}</td>
+          <td>{{ api.explain | safe }}</td>
+          <td>{{ api.example }}</td>
+          <td class="autowrap">{{ api.val }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+  $(function() {
+    $('[data-toggle=popover]').popover({
+      trigger: 'hover'
+    });
+  })
+</script>
+
+{{ utils.modal_load() }}
+{{ utils.apost() }}
+{% endblock %}

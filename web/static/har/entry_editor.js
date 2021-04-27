@@ -70,6 +70,9 @@
         if ($scope.entry == null) {
           return;
         }
+        if ($scope.entry.request.url.substring(0, 2) == "{{") {
+          return;
+        }
         try {
           queryString = utils.dict2list(utils.querystring_parse_with_variables(utils.url_parse($scope.entry.request.url).query));
         } catch (error1) {
@@ -90,7 +93,18 @@
         if ($scope.entry == null) {
           return;
         }
+
+        if ($scope.entry.request.url.substring(0, 2) == "{{") {
+          return;
+        }
         url = utils.url_parse($scope.entry.request.url);
+        if (url.path.indexOf('%7B%7B') > -1){
+          url.path = url.path.replace('%7B%7B', '{{')
+          url.path = url.path.replace('%7D%7D', '}}')
+          url.pathname = url.pathname.replace('%7B%7B', '{{')
+          url.pathname = url.pathname.replace('%7D%7D', '}}')
+        }
+        url.path = url.path.replace('https:///', 'https://')
         query = utils.list2dict($scope.entry.request.queryString);
         query = utils.querystring_unparse_with_variables(query);
         if (query) {
@@ -129,6 +143,7 @@
         re = /{{\s*([\w]+)[^}]*?\s*}}/g;
         return $sce.trustAsHtml(string.replace(re, '<span class="label label-primary">$&</span>'));
       };
+
       $scope.insert_request = function(pos, entry) {
         var current_pos;
         if (pos == null) {
@@ -141,8 +156,10 @@
         current_pos += pos;
         $scope.$parent.har.log.entries.splice(current_pos, 0, entry);
         $rootScope.$broadcast('har-change');
-        return angular.element('#edit-entry').modal('hide');
+        angular.element('#edit-entry').modal('hide');
+        return true
       };
+
       $scope.add_request = function(pos) {
         return $scope.insert_request(pos, {
           checked: false,
@@ -160,6 +177,7 @@
           response: {}
         });
       };
+
       $scope.add_delay_request = function() {
         return $scope.insert_request(1, {
           checked: true,
@@ -168,7 +186,7 @@
           comment: '延时3秒',
           request: {
             method: 'GET',
-            url: location.origin + '/util/delay/3',
+            url: 'http://localhost/util/delay/3',
             postData: {
               test: ''
             },
@@ -184,6 +202,182 @@
           ]
         });
       };
+
+      $scope.add_unicode_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: 'unicode转换',
+          request: {
+            method: 'GET',
+            url: 'http://localhost/util/unicode?content=',
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            },
+            {
+              re: "\"状态\": \"200\"",
+              from: "content"
+            }
+          ]
+        });
+      };
+
+      $scope.add_urldecode_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: 'url解码',
+          request: {
+            method: 'GET',
+            url: 'http://localhost/util/urldecode?content=',
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            },
+            {
+              re: "\"状态\": \"200\"",
+              from: "content"
+            }
+          ]
+        });
+      };
+
+      $scope.add_regex_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: '正则提取',
+          request: {
+            method: 'GET',
+            url: 'http://localhost/util/regex?p=&data=',
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            },
+            {
+              re: "\"状态\": \"OK\"",
+              from: "content"
+            }
+          ]
+        });
+      };
+
+      $scope.add_string_replace_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: '字符串替换',
+          request: {
+            method: 'GET',
+            url: 'http://localhost/util/string/replace?r=json&p=&s=&t=',
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            },
+            {
+              re: "\"状态\": \"OK\"",
+              from: "content"
+            }
+          ]
+        });
+      };
+
+      $scope.add_RSA_Encrypt_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: 'RSA加密',
+          request: {
+            method: 'GET',
+            url: 'http://localhost/util/rsa?key=&data=&f=encode',
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            }
+          ]
+        });
+      };
+
+      $scope.add_read_notepad_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: '读取记事本',
+          request: {
+            method: 'POST',
+            url: 'http://localhost/util/toolbox/1',
+            headers: [],
+            cookies: [],
+            postData:{
+              text: "email={{qd_name|urlencode}}&pwd={{qd_pwd|urlencode}}&f=read"
+            }
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            }
+          ]
+        });
+      };
+      $scope.add_append_notepad_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: '追加记事本',
+          request: {
+            method: 'POST',
+            url: 'http://localhost/util/toolbox/1',
+            headers: [],
+            cookies: [],
+            postData:{
+              text: "email={{qd_name|urlencode}}&pwd={{qd_pwd|urlencode}}&f=read&data="
+            }
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            }
+          ]
+        });
+      };
+
       $scope.copy_request = function() {
         if (!$scope.entry) {
           $scope.alert("can't find position to paste request");
@@ -197,7 +391,7 @@
         if ((base = $scope.copy_entry).comment == null) {
           base.comment = '';
         }
-		$scope.copy_entry.comment = 'Copy_' + $scope.copy_entry.comment;
+		    $scope.copy_entry.comment = 'Copy_' + $scope.copy_entry.comment;
         $scope.copy_entry.pageref = $scope.entry.pageref;
         return $scope.insert_request(pos, $scope.copy_entry);
 		
@@ -208,6 +402,23 @@
         return $scope.copy_entry = null; */
 		// 老版本用于粘贴完释放粘贴板的功能
       };
+
+      $scope.del_request = function(pos) {
+        var current_pos;
+        if (pos == null) {
+          pos = 1;
+        }
+        if ((current_pos = $scope.$parent.har.log.entries.indexOf($scope.entry)) === -1) {
+          $scope.alert("can't find position to add request");
+          return;
+        }
+        current_pos += pos;
+        $scope.$parent.har.log.entries.splice(current_pos, 1);
+        $rootScope.$broadcast('har-change');
+        return angular.element('#edit-entry').modal('hide');
+      };
+
+
       return $scope.do_test = function() {
         var c, h, ref, ref1;
         angular.element('.do-test').button('loading');
@@ -285,14 +496,18 @@
           if (!from) {
             return null;
           } else if (from === 'content') {
-            content = (ref2 = $scope.preview.response) != null ? ref2.content : void 0;
-            if ((content == null) || (content.text == null)) {
-              return null;
-            }
-            if (!content.decoded) {
-              content.decoded = atob(content.text);
-            }
-            data = content.decoded;
+              if (typeof($scope.preview) == 'undefined'){
+                return false
+              }
+              content = (ref2 = $scope.preview.response) != null ? ref2.content : void 0;
+              
+              if ((content == null) || (content.text == null)) {
+                return null;
+              }
+              if (!content.decoded) {
+                content.decoded = atob(content.text);
+              }
+              data = content.decoded;
           } else if (from === 'status') {
             data = '' + $scope.preview.response.status;
           } else if (from.indexOf('header-') === 0) {

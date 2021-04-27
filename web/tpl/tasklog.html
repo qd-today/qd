@@ -14,7 +14,17 @@
   <div class="container">
     <h2>
       任务执行日志
+      <span type="span" class="btn btn-default">
+        <a data-method="GET" href="/task/{{ task.id }}/log/del" title="清空任务日志">清空</a>
+      </span>
+   
     </h2>
+    <div>
+      <span type="span" class="btn btn-default">
+        <a href="javascript:void(0);" onClick="deldaylog()">保留</a>
+      </span>   
+      <input type="text" id='day' name="tasklog.logDay"  oninput = "value=value.replace(/[^\d]/g,'')">天的日志 
+    </div>
 	<table class="table">
       <thead>
         <tr>
@@ -26,19 +36,38 @@
       <tbody>
         {% for log in tasklog | sort(reverse=True, attribute="ctime") %}
         <tr>
-          <td>{{ format_date(log.ctime) }}</td>
-          <td>
+          <td style="white-space:nowrap">{{ format_date(log.ctime) }}</td>
+          <td style="white-space:nowrap">
             {% if log.success %}
             <span class="text-success">成功</span>
             {% else %}
             <span class="text-danger">失败</span>
             {% endif %}
           </td>
-          <td>{{ log.msg }}</td>
+          <td class="autowrap showbut" id="log{{loop.index}}">{{ log.msg }}<button class="btn hljs-button" data-clipboard-target="#log{{ loop.index }}">复制</button></td>
         </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </section>
+<script>
+function deldaylog(){
+  var data = {}
+  data['day'] = document.getElementById("day").value;
+  if (data['day'] != ""){
+    $.ajax("/task/{{ task.id }}/log/del", {
+          type: 'POST',
+          data: data,
+        })
+        .done(function(data) {
+          window.location.replace("/task/{{ task.id }}/log")
+        })
+        .fail(function(jxhr) {
+          $('#run-result').html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+        })
+  }
+  return false;
+}
+</script>
 {% endblock %}

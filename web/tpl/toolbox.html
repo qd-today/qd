@@ -1,0 +1,21 @@
+{% import "utils.html" as utils %}
+<form >
+  <h2 class="text-center">工具箱</h2>
+  <hr>
+  {% if current_user %}
+  <span type="span" class="btn btn-default">
+    <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/regpush" title="注册推送工具">推送注册</a>
+  </span>
+  <span type="span" class="btn btn-default">
+    <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/pushsw" title="推送设置">推送设置</a>
+  </span>
+  <span type="span" class="btn btn-default">
+    <a  target="_blank" href="/util/custom/{{ userid }}/pusher" title="自定义推送">自定义推送</a>
+  </span>
+  <span type="span" class="btn btn-default">
+    <a href="/util/toolbox/{{ userid }}/notepad" target="_blank" title="查看记事本">记事本</a>
+  </span>
+  {% endif %}
+
+  {{ utils.submit_loading() }}
+</form>

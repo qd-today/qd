@@ -1,0 +1,110 @@
+{% import "utils.html" as utils %}
+<form method="POST" action="/user/{{ userid }}/database">
+  <h2 class="text-center">数据库管理</h2>
+  <hr>
+  <script src="/static/md5.js"></script>
+  <script src="/static/download.js"></script>
+  <div id="run-result"></div>
+
+  <div>
+      <input type="file" id="recfile" />
+  </div>
+
+  <div class="form-group">
+    <label class="control-label" for="note" ><font color='red'>必须输入账号密码验证！！！</font></label>
+    <div>
+    <label class="control-label" for="note">邮箱</label>
+    </div>
+    <input type="text" class="form-control" name="adminmail" value="" id="adminmail" placeholder="邮箱">
+    <label class="control-label" for="note">密码</label>
+    <input type='password' class="form-control" name="adminpwd" value="" id="adminpwd" placeholder="密码">
+  </div>
+
+  <div class="text-right">
+    {% if adminflg %}
+    <button id="backup" name="backupbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">备份数据库</button>
+    {% endif %}
+    <button id="backuptpls" name="backuptplsbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">备份</button>
+    <button id="recoverytpls" name="recoverytplsbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">恢复</button>
+  </div>
+
+  {{ utils.submit_loading() }}
+
+  <script>
+    $(function() {
+      $('#recoverytpls').on('click', function() {
+        var fileObj = document.getElementById("recfile").files[0];
+        var reader = new FileReader();
+        reader.onload = function(event) {
+          var env = {};
+          var data = {}
+          env["adminpwd"] = md5($('#adminpwd')[0].value);
+          env["adminmail"] = $('#adminmail')[0].value;
+          env["recoverytplsbtn"] = "";
+          env["recfile"] = event.target.result;
+
+          $this = $('#recoverytpls')
+          $this.button('loading');
+          $.ajax("/user/{{ userid }}/database", {
+            type: 'POST',
+            data: env,
+          })
+          .done(function(data) {
+            $('#run-result').html(data).show()
+          })
+          .fail(function(jxhr) {
+            $('#run-result').html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+          })
+          .always(function() {
+            $this.button('reset');
+          });
+          return false;
+          };
+        reader.onprogress = function(event) {
+          $('#recoverytpls').button('reset');
+        }
+        reader.readAsText(fileObj);
+        return false;
+      });
+    })
+
+  </script>
+
+<script>
+  $(function() {
+    // run test
+    $('#backuptpls').on('click', function() {
+      var env = {};
+      env["adminpwd"] = md5($('#adminpwd')[0].value);
+      env["adminmail"] = $('#adminmail')[0].value;
+      if (this.name == "backupbtn"){
+        env['backupbtn'] = "";
+      }else{
+        env['backuptplsbtn'] = "";
+      }
+      var $this = $(this);
+      $this.button('loading');
+      $.ajax("/user/{{ userid }}/database", {
+        type: 'POST',
+        data: env,
+      })
+      .done(function(response, status, xhr) {
+        if (response.indexOf('<h1 class="alert') > -1) {
+          $('#run-result').html(response).show()
+        }else{
+          AjaxPosSaveFile(response, xhr)
+        }
+      })
+      .always(function() {
+        $this.button('reset');
+      });
+
+      return false;
+    });
+  })
+</script>
+
+</form>
+
+
+
