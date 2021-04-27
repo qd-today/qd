@@ -11,14 +11,15 @@ import umsgpack
 from tornado import gen
 from jinja2 import Environment, meta
 from libs import utils
-
+import os 
 from base import *
 
 class HAREditor(BaseHandler):
     def get(self, id=None):
         harurl = self.get_argument("tplurl", "")
         harname = self.get_argument("name", "")
-        hjson = json.loads(open("./tpls_history.json", 'r').read())
+        tpls_history_path = os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))+os.path.sep+"tpls_history.json")
+        hjson = json.loads(open(tpls_history_path, 'r').read())
         if (harurl != '') and (harname != ''):
             if (harurl in hjson):
                 hardata = hjson[harurl]["content"]
