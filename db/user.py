@@ -9,6 +9,7 @@ import time
 import logging
 import umsgpack
 
+from Crypto.Hash import MD5
 
 import config
 from libs import mcrypto as crypto, utils
@@ -49,6 +50,10 @@ class UserDB(BaseDB):
             ip = utils.ip2int(ip)
         userkey = umsgpack.unpackb(crypto.password_hash(password))[0]
 
+        hash = MD5.new()
+        hash.update(password.encode('utf-8'))
+        password_md5 = hash.hexdigest()
+
         insert = dict(
                 email = email,
                 email_verified = 0,
@@ -63,6 +68,7 @@ class UserDB(BaseDB):
                 cip = ip,
                 mip = ip,
                 aip = ip,
+                password_md5 = password_md5,
                 )
         return self._insert(**insert)
 
