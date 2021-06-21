@@ -119,14 +119,20 @@ class TaskMultiOperateHandler(BaseHandler):
 class GetTasksInfoHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self, userid):
-        user = self.current_user
-        tasks = []
-        for taskid, selected  in self.request.body_arguments.items():
-            if (selected[0] == 'true'):
-                task = self.db.task.get(taskid, fields=('id',  'note', 'tplid'))
-                sitename = self.db.tpl.get(task['tplid'], fields=('sitename'))['sitename']
-                task['sitename'] = sitename
-                tasks.append(task)
+        try:
+            user = self.current_user
+            tasks = []
+            for taskid, selected  in self.request.body_arguments.items():
+                if (selected[0] == 'true'):
+                    task = self.db.task.get(taskid, fields=('id',  'note', 'tplid'))
+                    if (task):
+                        sitename = self.db.tpl.get(task['tplid'], fields=('sitename'))['sitename']
+                        task['sitename'] = sitename
+                        tasks.append(task)
+        except Exception:
+            traceback.print_exc()
+            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'获取信息失败', flg='danger')
+            return
 
         self.render('taskmulti_tasksinfo.html',  tasks=tasks)
         return
