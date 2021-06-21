@@ -29,7 +29,7 @@ class pusher(object):
             task = db.TaskDB()
             tasklog = db.TaskLogDB()
             site = db.SiteDB()
-
+            pubtpl = db.PubTplDB()
         self.db = DB
     
     def pusher(self, userid, pushsw, flg, title, content):

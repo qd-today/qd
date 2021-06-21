@@ -27,6 +27,7 @@ class DBconverter(_TaskDB, BaseDB):
             task = db.TaskDB()
             tasklog = db.TaskLogDB()
             site = db.SiteDB()
+            pubtpl = db.PubTplDB()
         self.db = DB
             
         if config.db_type == 'sqlite3':
@@ -132,8 +133,23 @@ class DBconverter(_TaskDB, BaseDB):
             `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
             `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
             `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0,
-            `logDay` INT UNSIGNED NOT NULL DEFAULT 365
+            `logDay` INT UNSIGNED NOT NULL DEFAULT 365,
+            `repos` TEXT NOT NULL DEFAULT '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}'
             );''' ) 
+
+            self.db.site._execute('''CREATE TABLE IF NOT EXISTS `pubtpl` (
+                `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+                `name` TEXT NOT NULL DEFAULT '',
+                `author` TEXT NOT NULL DEFAULT ',
+                `comments` TEXT NOT NULL DEFAULT '',
+                `content` TEXT NOT NULL DEFAULT '' 
+                `filename` TEXT NOT NULL DEFAULT '',
+                `date` TEXT NOT NULL DEFAULT '',
+                `version` TEXT NOT NULL DEFAULT '',
+                `reponame` TEXT NOT NULL DEFAULT '',
+                `repourl` TEXT NOT NULL DEFAULT '',
+                `repobranch` TEXT NOT NULL DEFAULT ''
+            )''' ) 
                     
         if config.db_type == 'sqlite3': 
             exec_shell = self._execute
@@ -267,5 +283,10 @@ class DBconverter(_TaskDB, BaseDB):
             self.db.user.get("1", fields=('password_md5'))
         except :
             exec_shell("ALTER TABLE `user` ADD  `password_md5` VARBINARY(128) NOT NULL DEFAULT '' ") 
+
+        try:
+            self.db.site.get("1", fields=('repos'))
+        except :
+            exec_shell('''ALTER TABLE `site` ADD  `repos` TEXT NOT NULL DEFAULT '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' ''') 
                                 
         return 

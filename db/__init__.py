@@ -12,3 +12,4 @@ from tasklog import TaskLogDB
 from push_request import PRDB
 from redisdb import RedisDB
 from site import SiteDB
+from pubtpl import PubTplDB

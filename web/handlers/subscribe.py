@@ -5,117 +5,199 @@
 #         http://binux.me
 # Created on 2014-08-08 21:06:02
 
-import time
-from base import *
-
-import requests
-import re
-import base64
 import json
 import os
-import codecs
-import urllib
+import traceback
+import time
+import requests
+import base64
 
-def my_status(task):
-    if task['disabled']:
-        return u'停止'
-    if task['last_failed_count']:
-        return u'已失败%d次，重试中...' % task['last_failed_count']
-    if task['last_failed'] > task['last_success']:
-        return u'失败'
-    if task['success_count'] == 0 and task['failed_count'] == 0 and task['next'] and (task['next'] - time.time() < 60):
-        return u'正在准备为您签到'
-    return u'正常'
+from base import *
 
 class SubscribeHandler(BaseHandler):
     @tornado.web.addslash
     @tornado.web.authenticated
-    def get(self):
+    def get(self, userid):
+        msg = ''
+        user = self.current_user
+        adminflg = False
+        if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+            adminflg = True
+
+        repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
         try:
-            user = self.current_user
-            tpls = []
-            tpls2 = []
-            for tpl in  self.db.tpl.list(userid=user['id'], fields=('id', 'tplurl', "updateable"), limit=None):
-                tpls2.append(tpl)
-
-            url = "https://gitee.com/api/v5/repos/qiandao-today/templates/readme"
-            
-            res = requests.get(url, verify=False)
-            if (res.status_code == 200):            
-                content = json.loads(res.content)['content']
-                content = base64.b64decode(content)
-                README_content = re.findall(r":-: \| :-: \| :-: \| :-: \|:-:([\w\W]*)", content)[0]
-                tpls_temp = re.findall(r"(.*?)\n", README_content)
-                old_hjson = {}
-                hfile = "./tpls_history.json"
-
-                if (True == os.path.isfile(hfile)):
-                    hjson = json.loads(open(hfile, 'r').read())
-                else:
-                    hjson = {}
-
-                old_hjson = hjson.copy() 
-                
-                for cnt in range(1, len(tpls_temp)):
-                    temp = tpls_temp[cnt].split("|")
-                    author = re.findall("\[(.*?)\]", temp[1])[0]
-                    filename = re.findall("\[(.*?)\]", temp[2])[0]
-                    harurl = re.findall("\]\((.*)\)", temp[2])[0]
-                    tpl = {
-                                    "name":temp[0],
-                                    "author":author,
-                                    "filename":filename,
-                                    "url":harurl,
-                                    "date":temp[3],
-                                    "comments":temp[4],
-                                    "update":False
-                            }
-                    if (harurl in hjson):
-                        if (tpl["date"] == hjson[harurl]["date"]):
-                            pass
-                        else:
-                            tpl["date"] = hjson[harurl]["date"]
-                            tpl['content'] = base64.b64encode(requests.get(harurl, verify=False).content.decode('utf-8', 'replace'))
-                            tpl["update"] = True
-                            hjson[harurl] = tpl
-
-                            for tpl_temp in tpls2:
-                                if (tpl_temp['tplurl'] == harurl) and (tpl_temp['updateable'] != 1):
-                                    self.db.tpl.mod(tpl_temp['id'],updateable=1)
+            now_ts = int(time.time())
+            # 如果上次更新时间大于1天则更新模板仓库
+            if (now_ts - int(repos['lastupdate']) > 24 * 3600):
+                for repo in repos['repos']:
+                    if repo['repoacc']:
+                        url = '{0}@{1}'.format(repo['repourl'].replace('https://github.com/', 'https://cdn.jsdelivr.net/gh/'), repo['repobranch'])
                     else:
-                        tmp = requests.get(harurl, verify=False).content.decode('utf-8', 'replace')
-                        tpl['content'] = base64.b64encode(tmp)
-                        hjson[harurl] = tpl
-                    
-                for key in hjson:
-                    tpls.append(hjson[key])
-                    
-                if (cmp(old_hjson, hjson) == 0):
-                    pass
-                else:
-                    fp = codecs.open(hfile, 'w', 'utf-8')
-                    fp.write(json.dumps(hjson, ensure_ascii=False, indent=4 ))
-                    fp.close()
+                        if (repo['repourl'].find('https://github.com/') > -1):
+                            url = '{0}/{1}'.format(repo['repourl'].replace('https://github.com/', 'https://raw.githubusercontent.com/'), repo['repobranch'])
+                        else:
+                            url = repo['repourl']
 
-            self.render('tpl_subscribe.html', tpls=tpls, userid=user['id'])
-        except Exception as e:
-            print(str(e))
+                    hfile_link = url + '/tpls_history.json'
+                    res = requests.get(hfile_link, verify=False)
+                    if res.status_code == 200:
+                        hfile = json.loads(res.content.decode(res.encoding, 'replace'))
+                        for har in hfile['har'].values():
+                            if (har['content'] == ''):
+                                harfile_link = "{0}/{1}".format(url, har['filename'])
+                                har_res = requests.get(harfile_link, verify=False)
+                                if har_res.status_code == 200:
+                                    har['content'] = base64.b64encode(har_res.content.decode(har_res.encoding or 'utf-8', 'replace'))
+                                else:
+                                    msg = '{pre}\r\n打开链接错误{link}'.format(pre=msg, link=harfile_link)
+
+                            for k, v in repo.items():
+                                har[k] = v
+                            tpl = self.db.pubtpl.list(name = har['name'], 
+                                                      reponame=har['reponame'],
+                                                      repourl=har['repourl'], 
+                                                      repobranch=har['repobranch'], 
+                                                      fields=('id', 'name', 'version'))
+
+                            if (len(tpl) > 0):
+                                if (int(tpl[0]['version']) < int(har['version'])):
+                                    self.db.pubtpl.mod(tpl['id'], **har)
+                            else:
+                                self.db.pubtpl.add(har)
+                    else:
+                        msg = '{pre}\r\n打开链接错误{link}'.format(pre=msg, link=hfile_link)
+                if msg == '':
+                    repos["lastupdate"] = now_ts
+                    self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
+
+            tpls = self.db.pubtpl.list()
+
+            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
+
+        except Exception:
+            traceback.print_exc()
             user = self.current_user
-            tpls = []
-            hjson = json.loads(open("./tpls_history.json", 'r').read())
-            for key in hjson:
-                tpls.append(hjson[key])
-            self.render('tpl_subscribe.html', tpls=tpls, userid=user['id'])
+            tpls = self.db.pubtpl.list()
+            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=traceback.format_exc())
             return
+
 class SubscribeRefreshHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self):
-        os.remove("./tpls_history.json")
-        self.redirect('/subscribe')
+    def post(self, userid):
+        try:
+            user = self.current_user
+            if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+                repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
+                repos["lastupdate"] = 0
+                self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
+            else:
+                raise Exception('没有权限操作')
+        except Exception:
+            traceback.print_exc()
+            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            return
+
+        self.redirect('/subscribe/{0}/'.format(userid) ) 
+        return
+
+class Subscrib_signup_repos_Handler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, userid):
+        user = self.current_user
+        if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+            self.render('pubtpl_register.html', userid=userid)
+        else:
+            self.render('utils_run_result.html', log='非管理员用户，不可设置', title=u'设置失败', flg='danger')
+        return
+
+    @tornado.web.authenticated
+    def post(self, userid):
+        try:
+            user = self.current_user
+            if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+                env = {}
+                for k, v  in self.request.body_arguments.items():
+                    if (v[0] == 'false') or (v[0] == 'true'):
+                        env[k] = True if v == 'true' else False
+                    else:
+                        env[k] = v[0]
+
+                if (env['reponame'] != '') and (env['repourl'] != '') and (env['repobranch'] != ''):
+                    repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
+                    tmp = repos['repos']
+                    inflg = False
+
+                    # 检查是否存在同名仓库
+                    for repo in repos['repos']:
+                        if repo['reponame'] == env['reponame']:
+                            inflg = True
+                            break
+
+                    if inflg:
+                        raise Exception('已存在同名仓库')
+                    else:
+                        tmp.append(env)
+                        repos['repos'] = tmp
+                        self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
+                else:
+                    raise Exception('仓库名/url/分支不能为空')
+            else:
+                raise Exception('非管理员用户，不可设置')
+
+        except Exception:
+            traceback.print_exc()
+            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            return
+
+        self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')
+        return
+
+class unsubscribe_repos_Handler(BaseHandler):
+    @tornado.web.authenticated
+    def post(self, userid):
+        try:
+            user = self.current_user
+            if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+                env = {}
+                for k, v  in self.request.body_arguments.items():
+                    env[k] = v[0]
+
+                if (env['reponame'] != ''):
+                    repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
+                    tmp = repos['repos']
+                    inflg = False
+                    repoindex = 99
+                    # 检查是否存在同名仓库
+                    for i in range(0, len(tmp)):
+                        if tmp[i]['reponame'] == env['reponame']:
+                            repoindex = i
+                            del tmp[repoindex]
+                            repos['repos'] = tmp
+                            pubtpls = self.db.pubtpl.list(reponame=env['reponame'], fields=('id'))
+                            for pubtpl in pubtpls:
+                                self.db.pubtpl.delete(pubtpl['id'])
+                            self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
+                            break
+                    else:
+                        raise Exception('不存在此仓库')
+
+                else:
+                    raise Exception('仓库名不能为空')
+            else:
+                raise Exception('非管理员用户，不可设置')
+
+        except Exception:
+            traceback.print_exc()
+            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            return
+
+        self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')
         return
 
 handlers = [
-        ('/subscribe/?', SubscribeHandler),
-        ('/subscribe/refresh', SubscribeRefreshHandler),
+        ('/subscribe/(\d+)/', SubscribeHandler),
+        ('/subscribe/refresh/(\d+)/', SubscribeRefreshHandler),
+        ('/subscribe/signup_repos/(\d+)/', Subscrib_signup_repos_Handler),
+        ('/subscribe/unsubscribe_repos/(\d+)/', unsubscribe_repos_Handler),
         ]
 

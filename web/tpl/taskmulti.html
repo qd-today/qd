@@ -1,0 +1,167 @@
+<form method="POST" action="/task/{{user.id}}/multi?={{tasktype}}">
+<h2 class="text-center">多任务操作</h2>
+<script>
+  var selectedtasks = {};
+  if (typeof(sessionStorage.selectedtask) != "undefined") {
+    selectedtasks = JSON.parse(sessionStorage['selectedtask'])
+    $.ajax("/task/{{user.id}}/get_tasksinfo", {
+          type: 'POST',
+          data: selectedtasks,
+        })
+        .done(function(data) {
+          $('#tasktable').html(data).show()
+        })
+        .fail(function(jxhr) {
+          $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+        })
+  } else {
+    $('#run-result').html('请选择任务').show()
+  }
+</script>
+<hr>
+  <div id="run-result"></div>
+  <div id="tasktable"></div>
+  {% if current_user %}
+
+  {% if tasktype == 'settime' %}
+  <select id="ontime_method">
+    <option value="ontime" selected="selected">定时</option>
+    <option value="cron">cron</option>
+  </select>
+  <div id='ontime_content'  style="display: block;">
+    <input id="ontime_run_date" type="date" min="" value="">
+    <input type="time" id="ontime_val" value="" name='ontimevalue', step="1" />
+    <div name="randzone readme">
+      <label class="control-label">当天随机延时区间(0-604800)：</label>
+    </div>
+    <div name="randzone">
+      <input type="number" id="randtimezone1" name="randtimezone1" value="" class="modal_input" min="0" max="604800"/>~
+      <input type="number" id="randtimezone2" name="randtimezone2" value="" class="modal_input" min="0" max="604800"/>秒
+    </div>
+  </div>
+  <div id='cron_content' style="display: none;">
+    <input type="text" class="form-control" id="cron_val" name="cron_val"  id="cron_val" placeholder="仅支持5位标准 cron格式" >
+    <label class="control-label">精确到秒：</label>
+    <input type="number" id="cron_sec" name="cron_sec" value="" class="modal_input" min="0" max="59"/>
+  </div>
+  {% endif %}
+
+  {% if tasktype == 'setgroup' %}
+  <div class="form-group">
+    <label class="control-label" for="note">已有分组</label>
+    <div class="use_redpackets_content" id="oneCheck">
+      {% for group in groups %}
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" name="{{ group }}"  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
+        </label>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="form-group">
+    <label class="control-label" for="note">设置新分组</label>
+	  <!-- MY页面-添加签到-增加提示语 -->
+    <input type="text" class="form-control" name="New_group" value="" id="New_group" placeholder="尽可能填写15个字符以内">
+	  <!-- MY页面-添加签到-增加备注图标 -->
+	  <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+  </div>
+  {% endif %}
+
+  <div class="text-right">
+    <button id="submitbtn" name="submitbtn" type="button" data-loading-text="loading..." class="btn btn-primary">{{ tasktype }}</button>
+  </div>
+
+  <script>
+    $(function() {
+      $('#submitbtn').on('click', function() {
+        var data = {};
+        var tasktype = "{{tasktype}}";
+        data['selectedtasks'] = JSON.stringify(selectedtasks);
+
+        if (tasktype == 'setgroup'){
+          var fanxiBox = $("#oneCheck input:checkbox");
+          var checkgroupname = ''
+          for (i = 0; i < fanxiBox.length; i++) {
+            if (fanxiBox[i].checked) {
+              checkgroupname = fanxiBox[i].name;
+              break;
+            }
+          }
+          var setgrouptmp = {
+            'newgroup':  $('#New_group')[0].value,
+            'checkgroupname' : checkgroupname
+          }
+          data['setgroup'] = JSON.stringify(setgrouptmp);
+        }
+
+        if (tasktype == 'settime') {
+          var settime_tmp = {
+            'ontime_method' : $('#ontime_method')[0].value,
+            'ontime_run_date' : $('#ontime_run_date')[0].value,
+            'ontime_val' : $('#ontime_val')[0].value,
+            'randtimezone1' : $('#randtimezone1')[0].value,
+            'randtimezone2' : $('#randtimezone2')[0].value,
+            'cron_val' : $('#cron_val')[0].value,
+            'cron_sec' : $('#cron_sec')[0].value,
+          }
+          data['settime'] = JSON.stringify(settime_tmp);
+          debugger;
+        }
+
+        var $this = $(this);
+        $this.button('loading');
+        $.ajax("/task/{{user.id}}/multi?op={{tasktype}}", {
+          type: 'POST',
+          data: data,
+        })
+        .done(function(data) {
+          $('#run-result').html(data).show()
+        })
+        .fail(function(jxhr) {
+          $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+        })
+        .always(function() {
+          $this.button('reset');
+        });
+
+      return false;
+      });
+    })
+</script>
+{% endif %}
+
+{% if tasktype == 'setgroup' %}
+<script type="text/javascript">
+  $(function () {
+    var fanxiBox = $("#oneCheck input:checkbox");
+    fanxiBox.click(function () {
+      if(this.checked || this.checked=='checked'){
+
+          fanxiBox.removeAttr("checked");
+          $(this).prop("checked", true);
+        }
+    });
+  });   
+</script>
+{% endif %}
+
+{% if tasktype == 'settime' %}
+<script>
+  $('#ontime_method').change(function() {
+    if (this.value == 'ontime') {
+      document.getElementById('ontime_content').style.display='block';
+      document.getElementById('cron_content').style.display='none';
+    } else if (this.value == 'cron') {
+      document.getElementById('ontime_content').style.display='none';
+      document.getElementById('cron_content').style.display='block';
+    } else{
+      document.getElementById('ontime_content').style.display='none';
+      document.getElementById('cron_content').style.display='none';
+    }
+
+    return false;
+  });
+</script>
+{% endif %}
+</form>

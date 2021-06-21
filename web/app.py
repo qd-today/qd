@@ -47,6 +47,7 @@ class Application(tornado.web.Application):
             push_request = db.PRDB()
             redis = db.RedisDB()
             site = db.SiteDB()
+            pubtpl = db.PubTplDB()
         self.db = DB
 
         self.fetcher = Fetcher()

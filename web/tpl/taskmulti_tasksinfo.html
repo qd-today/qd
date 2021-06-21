@@ -1,0 +1,16 @@
+<table class="table table-hover">
+  <thead>
+    <tr>
+      <th style="text-align:center" title="任务id">任务id</th>
+      <th style="text-align:center" title="任务名">任务名</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for task in tasks %}
+    <tr>
+      <td style="text-align:center">{{ task.id }}</td>
+      <td style="text-align:center">{{ task.sitename }}-{{task.note}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

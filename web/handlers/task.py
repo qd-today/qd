@@ -326,7 +326,6 @@ class TaskGroupHandler(TaskNewHandler):
     def get(self, taskid):
         user = self.current_user      
         groupNow = self.db.task.get(taskid, fields=('groups'))['groups']
-        tasks = []
         groups = []
         for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
             temp = task['groups']

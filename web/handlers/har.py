@@ -7,6 +7,8 @@
 
 import time
 import json
+import os
+
 import umsgpack
 from tornado import gen
 from jinja2 import Environment, meta
@@ -16,18 +18,22 @@ from base import *
 
 class HAREditor(BaseHandler):
     def get(self, id=None):
-        harurl = self.get_argument("tplurl", "")
+        reponame = self.get_argument("reponame", "")
         harname = self.get_argument("name", "")
-        hjson = json.loads(open("./tpls_history.json", 'r').read())
-        if (harurl != '') and (harname != ''):
-            if (harurl in hjson):
-                hardata = hjson[harurl]["content"]
+
+        if (reponame != '') and (harname != ''):
+            tpl = self.db.pubtpl.list(filename = harname, 
+                                      reponame = reponame,
+                                      fields=('id', 'name', 'content'))
+            if (len(tpl) > 0):
+                hardata = tpl[0]['content']
             else:
                 self.render('tpl_run_failed.html', log=u'此模板不存在')
                 return
         else:
             hardata = ''
-        return self.render('har/editor.html', tplid=id, harpath=harurl, harname=harname, hardata=hardata)
+
+        return self.render('har/editor.html', tplid=id, harpath=reponame, harname=harname, hardata=hardata)
 
     def post(self, id):
         user = self.current_user

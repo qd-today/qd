@@ -39,6 +39,7 @@ class MainWorker(object):
             task = db.TaskDB()
             tasklog = db.TaskLogDB()
             site = db.SiteDB()
+            pubtpl = db.PubTplDB()
         self.db = DB
         self.fetcher = Fetcher()
 

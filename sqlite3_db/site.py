@@ -16,7 +16,8 @@ class SiteDB(_SiteDB, BaseDB):
           `id` INTEGER NOT NULL PRIMARY KEY,
           `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
           `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0,
-          `logDay` INT UNSIGNED NOT NULL DEFAULT 365
+          `logDay` INT UNSIGNED NOT NULL DEFAULT 365,
+          `repos` TEXT NOT NULL DEFAULT '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}'
         )''' % self.__tablename__)
 
         

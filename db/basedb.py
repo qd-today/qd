@@ -66,8 +66,11 @@ class BaseDB(object):
         dbcur = self._execute(sql_query, where_values)
         fields = [f[0] for f in dbcur.description]
 
+        rtv = []
         for row in dbcur:
-            yield dict(zip(fields, [tostr(x) for x in row]))
+            rtv.append(dict(zip(fields, [tostr(x) for x in row])))
+            #yield dict(zip(fields, [tostr(x) for x in row]))
+        return rtv
  
     def _replace(self, tablename=None, **values):
         tablename = self.escape(tablename or self.__tablename__)
