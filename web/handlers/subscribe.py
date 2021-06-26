@@ -23,7 +23,6 @@ class SubscribeHandler(BaseHandler):
         adminflg = False
         if (user['id'] == int(userid)) and (user['role'] == u'admin'):
             adminflg = True
-
         repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
         try:
             now_ts = int(time.time())
@@ -61,7 +60,8 @@ class SubscribeHandler(BaseHandler):
 
                             if (len(tpl) > 0):
                                 if (int(tpl[0]['version']) < int(har['version'])):
-                                    self.db.pubtpl.mod(tpl['id'], **har)
+                                    har['update'] = True
+                                    self.db.pubtpl.mod(tpl[0]['id'], **har)
                             else:
                                 self.db.pubtpl.add(har)
                     else:
@@ -86,10 +86,17 @@ class SubscribeRefreshHandler(BaseHandler):
     def post(self, userid):
         try:
             user = self.current_user
+            op = self.request.arguments.get('op', '')
+            if (op == ''):
+                raise Exception('op参数为空')
+
             if (user['id'] == int(userid)) and (user['role'] == u'admin'):
                 repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
                 repos["lastupdate"] = 0
                 self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
+                if (op == 'clear'):
+                    for pubtpl in self.db.pubtpl.list(fields=('id')):
+                        self.db.pubtpl.delete(pubtpl['id'])
             else:
                 raise Exception('没有权限操作')
         except Exception:

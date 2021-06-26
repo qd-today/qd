@@ -116,7 +116,8 @@ class HARSave(BaseHandler):
     @tornado.web.authenticated
     def post(self, id):
         self.evil(+1)
-        tplurl = self.get_argument("tplurl", "")
+        reponame = self.get_argument("reponame", "")
+        harname = self.get_argument("name", "")
         userid = self.current_user['id']
         data = json.loads(self.request.body)
 
@@ -144,7 +145,7 @@ class HARSave(BaseHandler):
 
         setting = data.get('setting', {})
         self.db.tpl.mod(id,
-                tplurl = tplurl,
+                tplurl = '{0}|{1}'.format(harname, reponame),
                 sitename=setting.get('sitename'),
                 siteurl=setting.get('siteurl'),
                 note=setting.get('note'),

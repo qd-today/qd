@@ -257,7 +257,7 @@ var global_har;
         save_btn = angular.element('#save-har .btn').button('loading');
         alert_elem = angular.element('#save-har .alert-danger').hide();
         alert_info_elem = angular.element('#save-har .alert-info').hide();
-        replace_text = 'save?tplurl='+HARPATH
+        replace_text = 'save?reponame='+HARPATH+'&'+'name='+HARPNAME
         return $http.post(location.pathname.replace('edit', replace_text), data).success(function(data, status, headers, config) {
           var pathname;
           utils.storage.del('har_filename');

@@ -59,9 +59,15 @@
       模板
       {% if adminflg %}
       <span type="span" class="btn btn-default">
-        <a data-method="POST" href="/subscribe/refresh/{{userid}}/" title="有任务重复的时候，请尝试重建缓存">清缓存</a>
+        <a data-method="POST" href="/subscribe/refresh/{{userid}}/?op=refresh" title="只更新,不清楚缓存">强制更新</a>
+      </span>
+      <span type="span" class="btn btn-default">
+        <a data-method="POST" href="/subscribe/refresh/{{userid}}/?op=clear" title="有任务重复的时候，请尝试重建缓存">清缓存</a>
       </span>
       {% endif %}
+      <span type="span" class="btn btn-default">
+        <a href="https://github.com/qiandao-today/templates/issues/48" title="求模板链接" target="_blank">求模板</a>
+      </span>
     </h2>
     <table class="table table-hover">
       <thead>
@@ -83,6 +89,13 @@
                     <a href="/har/edit?reponame={{ tpl.reponame | urlencode }}&name={{ tpl.filename | urlencode }}" target="_blank" id="{{ tpl.name }}" title="订阅此模板">订阅</a>
                   </span>
             </div>
+            {% if tpl.commenturl != '' %}
+            <div class="btn-group btn-group-xs" role="group" aria-label="...">
+              <span type="span" class="btn btn-default">
+                <a href="{{tpl.commenturl}}" target="_blank" id="{{ tpl.name }}" title="跳转到评论区">评论</a>
+              </span>
+            </div>
+            {% endif %}
           </td>
           <td style="text-align:center">{{ tpl.reponame }}</td>
           <td style="text-align:center">{{ tpl.name }}</td>

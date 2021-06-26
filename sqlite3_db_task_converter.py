@@ -134,21 +134,25 @@ class DBconverter(_TaskDB, BaseDB):
             `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
             `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0,
             `logDay` INT UNSIGNED NOT NULL DEFAULT 365,
-            `repos` TEXT NOT NULL DEFAULT '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}'
+            `repos` TEXT NOT NULL
             );''' ) 
 
             self.db.site._execute('''CREATE TABLE IF NOT EXISTS `pubtpl` (
                 `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
-                `name` TEXT NOT NULL DEFAULT '',
-                `author` TEXT NOT NULL DEFAULT ',
-                `comments` TEXT NOT NULL DEFAULT '',
-                `content` TEXT NOT NULL DEFAULT '' 
-                `filename` TEXT NOT NULL DEFAULT '',
-                `date` TEXT NOT NULL DEFAULT '',
-                `version` TEXT NOT NULL DEFAULT '',
-                `reponame` TEXT NOT NULL DEFAULT '',
-                `repourl` TEXT NOT NULL DEFAULT '',
-                `repobranch` TEXT NOT NULL DEFAULT ''
+                `name` TEXT ,
+                `author` TEXT ,
+                `comments` TEXT ,
+                `content` TEXT ,
+                `filename` TEXT,
+                `date` TEXT,
+                `version` TEXT,
+                `url` TEXT,
+                `update` TEXT,
+                `reponame` TEXT,
+                `repourl`  TEXT,
+                `repoacc`  TEXT,
+                `repobranch`  TEXT,
+                `commenturl`  TEXT
             )''' ) 
                     
         if config.db_type == 'sqlite3': 
@@ -226,7 +230,7 @@ class DBconverter(_TaskDB, BaseDB):
             if not (temp):
                 raise Exception("new")
         except Exception as e:
-            insert = dict(regEn = 1)
+            insert = dict(regEn = 1, repos='{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}')
             self.db.site._insert(**insert)
             
         try:
@@ -287,6 +291,26 @@ class DBconverter(_TaskDB, BaseDB):
         try:
             self.db.site.get("1", fields=('repos'))
         except :
-            exec_shell('''ALTER TABLE `site` ADD  `repos` TEXT NOT NULL DEFAULT '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' ''') 
-                                
+            if config.db_type == 'sqlite3':
+                exec_shell('''ALTER TABLE `site` ADD  `repos` TEXT NOT NULL DEFAULT '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' ''')
+            else:
+                exec_shell('''ALTER TABLE `site` ADD  `repos` TEXT ''')
+                exec_shell('''UPDATE `site` SET `repos` = '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' WHERE `site`.`id` = 1 ''')
+               
+        try:
+            tmp = self.db.site.get("1", fields=('repos'))['repos']
+            if tmp == None or tmp == '':
+                 exec_shell('''UPDATE `site` SET `repos` = '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' WHERE `site`.`id` = 1 ''')
+        except :
+            pass
+
+        try:
+            self.db.pubtpl.get("1", fields=('commenturl'))
+        except :
+            if config.db_type == 'sqlite3':
+                exec_shell('''ALTER TABLE `pubtpl` ADD  `commenturl` TEXT NOT NULL DEFAULT ''; ''') 
+            else:
+                exec_shell('''ALTER TABLE `pubtpl` ADD  `commenturl` TEXT ''')
+                exec_shell('''UPDATE `pubtpl` SET `commenturl` = '' WHERE 1=1 ''')
+                                    
         return 
