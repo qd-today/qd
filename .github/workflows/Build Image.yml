@@ -7,14 +7,45 @@ jobs:
       runs-on: ubuntu-latest
       name: Build image job
       steps:
-          - name: Checkout master
-            uses: actions/checkout@master
-          - name: Build and publish image
-            uses: ilteoood/docker_buildx@master
-            with:
-              publish: true
-              imageName: asdaragon/qiandao # dockerid/imageName
-              platform: linux/arm64,linux/amd64,linux/arm/v7 # 你准备构建的镜像平台
-              tag: 20210626,latest
-              dockerUser: ${{ secrets.dockerUser }} # docker hub userid 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
-              dockerPassword: ${{ secrets.dockerPassword }} # docker hub password,在setting创建secrets name=DOCKER_PASSWORD  value=dockerpassword
+      -
+        name: Checkout
+        uses: actions/checkout@v2
+      -
+        name: Get repository name
+        run: echo REPOSITORY_NAME=$(echo $GITHUB_REPOSITORY | awk -F / '{print $2}') >> $GITHUB_ENV
+        shell: bash
+        env:
+          GITHUB_REPOSITORY: ${{ github.GITHUB_REPOSITORY }}
+      -
+        name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          # list of Docker images to use as base name for tags
+          images: ${{ secrets.DOCKERUSER }}/${{ env.REPOSITORY_NAME}}
+          # generate Docker tags based on the following events/attributes
+          tags: type=ref,event=tag
+      -
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      -
+        name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERUSER }}
+          password: ${{ secrets.DOCKERPASSWORD }}
+      -
+        name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          platforms: linux/amd64,linux/arm64,linux/arm/v7
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      -
+        name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
