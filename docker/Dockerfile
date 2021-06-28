@@ -10,13 +10,21 @@ LABEL maintainer "asdaragon <aragonchen0@gmail.com>"
 # --------------
 # 基于以上镜像修改了：1、时区设置为上海 2、修改了链接限制 3、加入了send2推送
 # 20210112 添加git模块，实现重启后自动更新镜像
+# 20210628 使用gitee作为代码源，添加密钥用于更新
 
 ADD . /usr/src/app
 WORKDIR /usr/src/app
 
 # 基础镜像已经包含pip组件
 RUN apk update \
-    && apk add bash git autoconf g++ tzdata\
+    && apk add bash git autoconf g++ tzdata nano openssh-client \
+    && mkdir -p /root/.ssh \
+    && cp -f ssh/qiandao_fetch /root/.ssh/id_rsa \
+    && cp -f ssh/qiandao_fetch.pub /root/.ssh/id_rsa.pub \
+    && chmod 600 /root/.ssh/id_rsa \
+    && ssh-keyscan gitee.com > /root/.ssh/known_hosts \
+    && git clone git@gitee.com:asdaragon/qiandao.git /gitclone_tmp \
+    && yes | cp -rf /gitclone_tmp/. /usr/src/app \
     && pip install --no-cache-dir -r requirements.txt
    
 ENV PORT 80
