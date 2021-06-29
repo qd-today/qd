@@ -11,11 +11,12 @@ from base import *
 import requests
 import re
 import codecs
+import os
 
 class AboutHandler(BaseHandler):
     @tornado.web.addslash
     def get(self):
-        with open('./web/tpl/about.html', 'r') as f:
+        with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'tpl','about.html'), 'r') as f:
             html_content = f.read()
 
         self.finish(html_content)
@@ -23,4 +24,3 @@ class AboutHandler(BaseHandler):
 handlers = [
         ('/about/?', AboutHandler),
         ]
-
