@@ -14,7 +14,7 @@ from tornado import gen
 from jinja2 import Environment, meta
 from libs import utils
 
-from base import *
+from .base import *
 
 class HAREditor(BaseHandler):
     def get(self, id=None):

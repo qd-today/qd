@@ -15,7 +15,7 @@ from db.basedb import BaseDB as _BaseDB
 
 
 def to_unicode(string):
-    if isinstance(string, unicode):
+    if isinstance(string, str):
         return string
     try:
         return string.decode('utf8')

@@ -13,7 +13,7 @@ import re
 import os
 
 import config
-from base import *
+from .base import *
 
 import sqlite3
 

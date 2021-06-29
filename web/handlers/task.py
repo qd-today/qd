@@ -13,7 +13,7 @@ import pytz
 import random
 import traceback
 
-from base import *
+from .base import *
 from libs import utils
 from funcs import pusher
 from funcs import cal
@@ -60,7 +60,7 @@ class TaskNewHandler(BaseHandler):
         tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'interval')))
 
         env = {}
-        for key, value in self.request.body_arguments.iteritems():
+        for key, value in self.request.body_arguments.items():
             if key.startswith('_binux_'):
                 continue
             if not value:

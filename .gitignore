@@ -6,6 +6,7 @@ venv/
 env27/
 .python-version
 .vscode
+.history/
 database - 副本.db
 *.un~
 qiandao.rar

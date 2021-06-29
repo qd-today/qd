@@ -122,7 +122,7 @@ def format_date(date, gmt_offset=-8*60, relative=True, shorter=False, full_forma
     }
 
 def utf8(string):
-    if isinstance(string, unicode):
+    if isinstance(string, str):
         return string.encode('utf8')
     return string
 
@@ -134,13 +134,13 @@ import config
 from tornado import httpclient
 
 
-def send_mail(to, subject, text=None, html=None, async=False, _from=u"签到提醒 <noreply@%s>" % config.mail_domain):
+def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提醒 <noreply@{}>".format(config.mail_domain)):
     if not config.mailgun_key:
         subtype = 'html' if html else 'plain'
         return _send_mail(to, subject, html or text or '', subtype)
 
     httpclient.AsyncHTTPClient.configure('tornado.curl_httpclient.CurlAsyncHTTPClient')
-    if async:
+    if shark:
         client = httpclient.AsyncHTTPClient()
     else:
         client = httpclient.HTTPClient()
@@ -200,7 +200,7 @@ from requests.utils import get_encoding_from_headers, get_encodings_from_content
 
 def find_encoding(content, headers=None):
     # content is unicode
-    if isinstance(content, unicode):
+    if isinstance(content, str):
         return 'unicode'
 
     encoding = None
@@ -211,14 +211,14 @@ def find_encoding(content, headers=None):
         if encoding == 'ISO-8859-1':
             encoding = None
 
+    # Fallback to auto-detected encoding.
+    if not encoding and chardet is not None:
+        encoding = chardet.detect(content)['encoding']
+    
     # Try charset from content
     if not encoding:
         encoding = get_encodings_from_content(content)
         encoding = encoding and encoding[0] or None
-
-    # Fallback to auto-detected encoding.
-    if not encoding and chardet is not None:
-        encoding = chardet.detect(content)['encoding']
 
     if encoding and encoding.lower() == 'gb2312':
         encoding = 'gb18030'
@@ -238,7 +238,7 @@ def decode(content, headers=None):
 
 
 def quote_chinese(url, encodeing="utf-8"):
-    if isinstance(url, unicode):
+    if isinstance(url, str):
         return quote_chinese(url.encode("utf-8"))
     res = [b if ord(b) < 128 else '%%%02X' % (ord(b)) for b in url]
     return "".join(res)
@@ -257,11 +257,11 @@ def get_random(min_num, max_mun, unit):
 
 import datetime
 def get_date_time(date=True, time=True, time_difference=0):
-    if isinstance(date,unicode):
+    if isinstance(date,str):
         date=int(date)
-    if isinstance(time,unicode):
+    if isinstance(time,str):
         time=int(time)
-    if isinstance(time_difference,unicode):
+    if isinstance(time_difference,str):
         time_difference = int(time_difference)
     now_date = datetime.datetime.today() + datetime.timedelta(hours=time_difference)
     if date:

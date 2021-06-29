@@ -11,7 +11,7 @@ import datetime
 from tornado import gen
 import re
 
-from base import *
+from .base import *
 
 from sqlite3_db.basedb import BaseDB
     

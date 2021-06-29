@@ -14,7 +14,7 @@ from tornado.ioloop import IOLoop
 from Crypto.Hash import MD5
 
 import config
-from base import *
+from .base import *
 from libs import utils
 
 class ForbiddenHandler(BaseHandler):
@@ -176,7 +176,7 @@ class RegisterHandler(BaseHandler):
         </tr>
         </tbody>
         </table>
-        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), async=True)
+        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True)
 
         def get_result(future):
             try:
@@ -301,7 +301,7 @@ class PasswordResetHandler(BaseHandler):
         </tbody>
         </table>
 
-        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), async=True)
+        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True)
 
         def get_result(future):
             try:

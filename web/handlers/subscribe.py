@@ -12,7 +12,7 @@ import time
 import requests
 import base64
 
-from base import *
+from .base import *
 
 class SubscribeHandler(BaseHandler):
     @tornado.web.addslash
@@ -46,7 +46,7 @@ class SubscribeHandler(BaseHandler):
                                 harfile_link = "{0}/{1}".format(url, har['filename'])
                                 har_res = requests.get(harfile_link, verify=False)
                                 if har_res.status_code == 200:
-                                    har['content'] = base64.b64encode(har_res.content.decode(har_res.encoding or 'utf-8', 'replace'))
+                                    har['content'] = base64.b64encode(har_res.content)
                                 else:
                                     msg = '{pre}\r\n打开链接错误{link}'.format(pre=msg, link=harfile_link)
 

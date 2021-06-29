@@ -11,7 +11,7 @@ import random
 import urllib
 import base64
 import logging
-import urlparse
+import urllib.parse as urlparse
 from datetime import datetime
 
 try:
@@ -145,6 +145,8 @@ class Fetcher(object):
                     bodySize = len(request.body) if request.body else 0,
                     )
             if request.body:
+                if type(request.body)==bytes:
+                    request._body = request.body.decode()
                 ret['postData'] = dict(
                         mimeType = request.headers.get('content-type'),
                         text = request.body,
@@ -179,7 +181,7 @@ class Fetcher(object):
                     content = dict(
                         size = len(response.body),
                         mimeType = response.headers.get('content-type'),
-                        text = base64.b64encode(response.body),
+                        text = base64.b64encode(response.body).decode('ascii'),
                         decoded = utils.decode(response.body, response.headers),
                         ),
                     redirectURL = response.headers.get('Location'),
@@ -198,7 +200,7 @@ class Fetcher(object):
             pageref = "page_0",
             )
         if response.body and 'image' in response.headers.get('content-type'):
-            entry['response']['content']['decoded'] = base64.b64encode(response.body)
+            entry['response']['content']['decoded'] = base64.b64encode(response.body).decode('ascii')
         return entry
 
     @staticmethod
@@ -221,7 +223,7 @@ class Fetcher(object):
                 _from = _from[7:]
                 return response.headers.get(_from, '')
             elif _from == 'header':
-                return unicode(response.headers)
+                return str(response.headers,encoding='utf-8')
             else:
                 return ''
 

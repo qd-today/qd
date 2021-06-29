@@ -13,7 +13,7 @@ from tornado.ioloop import IOLoop
 from libs.fetcher import Fetcher
 
 def usage():
-    print "%s tpl.har [--key=value] [env.json]" % sys.argv[0]
+    print("{} tpl.har [--key=value] [env.json]".format(sys.argv[0]))
     sys.exit(1)
 
 if __name__ == '__main__':
@@ -23,7 +23,7 @@ if __name__ == '__main__':
     # load tpl
     tpl_file = sys.argv[1]
     try:
-        tpl = json.load(open(tpl_file))
+        tpl = json.load(open(tpl_file,encoding='utf-8'))
     except Exception as e:
         logging.error(e)
         usage()
@@ -41,7 +41,7 @@ if __name__ == '__main__':
             env_file = each
     if env_file:
         try:
-            env = json.load(open(env_file))
+            env = json.load(open(env_file,encoding='utf-8'))
         except Exception as e:
             logging.error(e)
             usage()
@@ -66,6 +66,6 @@ if __name__ == '__main__':
     try:
         result = result.result()
     except Exception as e:
-        print 'qiandao failed!', e
+        print('qiandao failed!', e)
     else:
-        print 'qiandao success!', result.get('variables', {}).get('__log__', '')
+        print('qiandao success!', result.get('variables', {}).get('__log__', ''))

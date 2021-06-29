@@ -7,7 +7,7 @@
 
 import time
 import datetime
-from base import *
+from .base import *
 import urllib
 
 import requests
@@ -40,7 +40,7 @@ class MyHandler(BaseHandler):
             hfile = "./tpls_history.json"
 
             if (True == os.path.isfile(hfile)):
-                hjson = json.loads(open(hfile, 'r').read())
+                hjson = json.loads(open(hfile, 'r' ,encoding='utf-8').read())
             else:
                 hjson = {}
             tpls = []

@@ -7,7 +7,7 @@ import datetime
 import time
 import urllib
 import pytz
-from base import *
+from .base import *
 from tornado import gen
 import base64
 from Crypto.PublicKey import RSA
@@ -18,7 +18,7 @@ from Crypto import Random
 def request_parse(req_data):
     '''解析请求数据并以json形式返回'''
     if req_data.method == 'POST':
-            data = req_data.body_arguments
+        data = req_data.body_arguments
     elif req_data.method == 'GET':
         data = req_data.arguments
     return data
@@ -73,13 +73,9 @@ class UniCodeHandler(BaseHandler):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
-            tmp = ""
-            for cr in content:
-                if (cr=="u" or cr=="'"):
-                    tmp = tmp + cr
-                    continue
-                tmp = tmp + repr(cr).replace("u'", "").replace("'","").replace("\\\\", "\\")
-            Rtv[u"转换后"] = tmp.decode("unicode_escape")
+            tmp = bytes(content,'unicode_escape').decode('utf-8').replace(r'\u',r'\\u').replace(r'\\\u',r'\\u')
+            tmp = bytes(tmp,'utf-8').decode('unicode_escape')
+            Rtv[u"转换后"] = tmp.encode('utf-8').decode('unicode_escape')
             Rtv[u"状态"] = "200"
         except Exception as e:
             Rtv[u"状态"] = str(e)
@@ -94,7 +90,7 @@ class UrlDecodeHandler(BaseHandler):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
-            Rtv[u"转换后"] = urllib.unquote(content)
+            Rtv[u"转换后"] = urllib.parse.unquote(content)
             Rtv[u"状态"] = "200"
         except Exception as e:
             Rtv[u"状态"] = str(e)

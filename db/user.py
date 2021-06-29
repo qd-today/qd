@@ -13,7 +13,7 @@ from Crypto.Hash import MD5
 
 import config
 from libs import mcrypto as crypto, utils
-from basedb import BaseDB
+from .basedb import BaseDB
 
 logger = logging.getLogger('qiandao.userdb')
 class UserDB(BaseDB):
@@ -46,7 +46,7 @@ class UserDB(BaseDB):
             raise self.DeplicateUser('duplicate username')
 
         now = time.time()
-        if isinstance(ip, basestring):
+        if isinstance(ip, str):
             ip = utils.ip2int(ip)
         userkey = umsgpack.unpackb(crypto.password_hash(password))[0]
 
@@ -152,7 +152,7 @@ class UserDB(BaseDB):
     def list(self, fields=None, limit=None, **kwargs):
         where = '1=1'
         where_values = []
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if value is None:
                 where += ' and %s is %s' % (self.escape(key), self.placeholder)
             else:

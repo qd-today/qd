@@ -7,7 +7,7 @@
 
 import json
 from tornado import gen
-from base import *
+from .base import *
 from libs import utils
 
 class TPLPushHandler(BaseHandler):

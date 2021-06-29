@@ -6,7 +6,7 @@
 # Created on 2014-08-08 21:06:02
 
 import time
-from base import *
+from .base import *
 
 import requests
 import re
@@ -16,7 +16,7 @@ import os
 class AboutHandler(BaseHandler):
     @tornado.web.addslash
     def get(self):
-        with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'tpl','about.html'), 'r') as f:
+        with open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),'tpl','about.html'), 'r',encoding='utf-8') as f:
             html_content = f.read()
 
         self.finish(html_content)

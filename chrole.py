@@ -19,7 +19,7 @@ else:
 userdb = db.UserDB()
 
 if not 2 <= len(sys.argv) <= 3:
-    print "Usage: %s email [role]" % sys.argv[0]
+    print("Usage: {} email [role]".format(sys.argv[0]))
     sys.exit(1)
 else:
     email = sys.argv[1]
@@ -27,7 +27,7 @@ else:
 
     user = userdb.get(email=email, fields=['id'])
     if not user:
-        print "Cannot find user: ", email
+        print("Cannot find user: ", email)
         sys.exit(1)
     userdb.mod(user['id'], role=role)
-    print "role of %s changed to %s" % (email, role or '[empty]')
+    print("role of {} changed to {}".format(email, role or '[empty]'))

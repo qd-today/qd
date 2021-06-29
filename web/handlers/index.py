@@ -6,7 +6,7 @@
 # Created on 2014-07-30 16:02:08
 
 import json
-from base import *
+from .base import *
 
 class IndexHandlers(BaseHandler):
     def get(self):
