@@ -88,7 +88,7 @@ class DBnew(BaseDB):
                 `mtime` INT UNSIGNED NOT NULL,
                 `ontimeflg` INT UNSIGNED NOT NULL DEFAULT 0,
                 `ontime` VARCHAR(256) NOT NULL DEFAULT '00:10:00',
-                `groups` VARCHAR(256) NOT NULL DEFAULT 'None',
+                `_groups` VARCHAR(256) NOT NULL DEFAULT 'None',
                 `pushsw`  VARBINARY(128) NOT NULL DEFAULT '{"logen":false,"pushen":true}',
                 `newontime`  VARBINARY(256) NOT NULL DEFAULT '{"sw":false,"time":"00:10:10","randsw":false,"tz1":0,"tz2":0}'
                 );
@@ -129,7 +129,7 @@ class DBnew(BaseDB):
             tasks = []
             tasklogs = []
             for task in maindb.db.task.list(userid, fields=('id', 'tplid', 'userid', 'note', 'disabled', 'init_env', 'env', 'session', 'last_success', 'success_count', 
-                                                        'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'mtime', 'ontimeflg', 'ontime',  'groups', 'pushsw', 'newontime'), limit=None):
+                                                        'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'mtime', 'ontimeflg', 'ontime',  '_groups', 'pushsw', 'newontime'), limit=None):
                 if task['userid'] == userid:
                     tasks.append(task)
                     for tasklog in maindb.db.tasklog.list(taskid = task['id'], fields=('id', "taskid", "success", "ctime", "msg")):

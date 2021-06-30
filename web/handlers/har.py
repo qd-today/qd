@@ -137,7 +137,7 @@ class HARSave(BaseHandler):
                 return
 
             self.db.tpl.mod(id, har=har, tpl=tpl, variables=variables)
-            groupName = self.db.tpl.get(id, fields=('groups'))['groups']
+            groupName = self.db.tpl.get(id, fields=('_groups'))['_groups']
         else:
             id = self.db.tpl.add(userid, har, tpl, variables)
             if not id:
@@ -152,7 +152,7 @@ class HARSave(BaseHandler):
                 interval=setting.get('interval') or None,
                 mtime=time.time(),
                 updateable=0,
-                groups=groupName)
+                _groups=groupName)
         self.finish({
             'id': id
             })

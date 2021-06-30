@@ -52,7 +52,7 @@ define (require, exports, module) ->
     for key, value of cookie
       cookie_str += key + '=' + value + '; '
     if cookie_str == ''
-      alert('没有获得cookie，您是否已经登录？')
+      # alert('没有获得cookie，您是否已经登录？')
       return
     cookie_input?.val(cookie_str)
     cookie_input?.scope().$parent.var.value = cookie_str

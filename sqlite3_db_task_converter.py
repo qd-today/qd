@@ -85,7 +85,7 @@ class DBconverter(_TaskDB, BaseDB):
             `atime` INT UNSIGNED NOT NULL,
             `tplurl` VARCHAR(1024) NULL DEFAULT '',
             `updateable` INT UNSIGNED NOT NULL DEFAULT 0,
-            `groups` VARCHAR(256) NOT NULL DEFAULT 'None'
+            `_groups` VARCHAR(256) NOT NULL DEFAULT 'None'
             );''')
             self.db.site._execute('''CREATE TABLE IF NOT EXISTS `task` (
             `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -106,7 +106,7 @@ class DBconverter(_TaskDB, BaseDB):
             `mtime` INT UNSIGNED NOT NULL,
             `ontimeflg` INT UNSIGNED NOT NULL DEFAULT 0,
             `ontime` VARCHAR(256) NOT NULL DEFAULT '00:10:00',
-            `groups` VARCHAR(256) NOT NULL DEFAULT 'None',
+            `_groups` VARCHAR(256) NOT NULL DEFAULT 'None',
             `pushsw`  VARBINARY(128) NOT NULL DEFAULT '{"logen":false,"pushen":true}',
             `newontime`  VARBINARY(256) NOT NULL DEFAULT '{"sw":false,"time":"00:10:10","randsw":false,"tz1":0,"tz2":0}'
             );''')
@@ -191,9 +191,9 @@ class DBconverter(_TaskDB, BaseDB):
             exec_shell("ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1 " ) 
             
         try:
-            self.db.task.get("1", fields=('groups'))
+            self.db.task.get("1", fields=('_groups'))
         except :
-            exec_shell("ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
+            exec_shell("ALTER TABLE `task` ADD `_groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
             
         try:
             self.db.tpl.get("1", fields=('tplurl'))
@@ -239,9 +239,9 @@ class DBconverter(_TaskDB, BaseDB):
             exec_shell("ALTER TABLE `site` ADD `MustVerifyEmailEn`  INT UNSIGNED NOT NULL DEFAULT 0 " )  
 
         try:
-            self.db.tpl.get("1", fields=('groups'))
+            self.db.tpl.get("1", fields=('_groups'))
         except :
-            exec_shell("ALTER TABLE `tpl` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
+            exec_shell("ALTER TABLE `tpl` ADD `_groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
             
         try:
             tmp = self.db.site.get("1", fields=('logDay'))

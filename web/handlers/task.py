@@ -41,13 +41,13 @@ class TaskNewHandler(BaseHandler):
         tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'note', 'sitename', 'siteurl', 'variables')))
         variables = json.loads(tpl['variables'])
 
-        groups = []
-        for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
-            temp = task['groups']
-            if (temp not  in groups):
-                groups.append(temp)
+        _groups = []
+        for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+            temp = task['_groups']
+            if (temp not  in _groups):
+                _groups.append(temp)
         
-        self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, groups=groups, init_env=tpl['variables'])
+        self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=tpl['variables'])
 
     @tornado.web.authenticated
     def post(self, taskid=None):
@@ -99,7 +99,7 @@ class TaskNewHandler(BaseHandler):
             self.db.task.mod(taskid, init_env=init_env, env=None, session=None, note=note)
         
         if ('New_group' in self.request.body_arguments):
-            self.db.task.mod(taskid, groups=target_group)
+            self.db.task.mod(taskid, _groups=target_group)
 
         self.redirect('/my/')
 
@@ -325,14 +325,14 @@ class TaskGroupHandler(TaskNewHandler):
     @tornado.web.authenticated
     def get(self, taskid):
         user = self.current_user      
-        groupNow = self.db.task.get(taskid, fields=('groups'))['groups']
-        groups = []
-        for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
-            temp = task['groups']
-            if (temp not  in groups):
-                groups.append(temp)
+        groupNow = self.db.task.get(taskid, fields=('_groups'))['_groups']
+        _groups = []
+        for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+            temp = task['_groups']
+            if (temp not  in _groups):
+                _groups.append(temp)
 
-        self.render('task_setgroup.html', taskid=taskid, groups=groups, groupNow=groupNow)
+        self.render('task_setgroup.html', taskid=taskid, _groups=_groups, groupNow=groupNow)
     
     @tornado.web.authenticated
     def post(self, taskid):        
@@ -348,7 +348,7 @@ class TaskGroupHandler(TaskNewHandler):
                 else:
                     target_group = 'None'
             
-        self.db.task.mod(taskid, groups=target_group)
+        self.db.task.mod(taskid, _groups=target_group)
 
         self.redirect('/my/')
         
@@ -383,11 +383,11 @@ class GetGroupHandler(TaskNewHandler):
     @tornado.web.authenticated
     def get(self, taskid):
         user = self.current_user      
-        groups = {}
-        for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
-            groups[task['groups']] = ""
+        _groups = {}
+        for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+            _groups[task['_groups']] = ""
         
-        self.write(json.dumps(groups, ensure_ascii=False, indent=4))
+        self.write(json.dumps(_groups, ensure_ascii=False, indent=4))
         return
 
 handlers = [

@@ -10,9 +10,18 @@ import sqlite3
 logger = logging.getLogger('qiandao.basedb')
 
 def tostr(s):
+    if isinstance(s, bytes):
+        try:
+            return s.decode()
+        except :
+            return s
     if isinstance(s, bytearray):
-        return str(s)
+        try:
+            return s.decode()
+        except :
+            return s
     return s
+    
 
 class BaseDB(object):
     '''

@@ -25,8 +25,11 @@ import traceback
 from funcs import pusher
 
 def tostr(s):
-    if isinstance(s, bytearray):
-        return str(s)
+    if isinstance(s, bytes):
+        try:
+            return s.decode()
+        except :
+            return s
     return s
 
 class UserRegPush(BaseHandler):
@@ -244,8 +247,8 @@ class UserManagerHandler(BaseHandler):
             user = self.db.user.get(userid, fields=('role'))
             if user and user['role'] == "admin":
                 envs = self.request.body_arguments
-                mail = envs['adminmail'][0]
-                pwd = u"{0}".format(envs['adminpwd'][0])
+                mail = utils.decode(envs['adminmail'][0])
+                pwd = utils.decode(envs['adminpwd'][0])
                 if self.db.user.challenge_MD5(mail, pwd):
                     Target_users = []
                     for key, value in envs.items():
@@ -302,8 +305,8 @@ class UserDBHandler(BaseHandler):
         try:
             user = self.db.user.get(userid, fields=('role', 'email'))
             envs = self.request.body_arguments
-            mail = envs['adminmail'][0]
-            pwd = u"{0}".format(envs['adminpwd'][0])
+            mail = utils.decode(envs['adminmail'][0])
+            pwd = utils.decode(envs['adminpwd'][0])
             now=datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
             if ('backupbtn' in envs):
@@ -329,13 +332,13 @@ class UserDBHandler(BaseHandler):
             if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
                 if ('backuptplsbtn' in envs):
                     tpls = []
-                    for tpl in self.db.tpl.list(userid=userid, fields=('id', 'siteurl', 'sitename', 'banner', 'note','fork', 'groups', 'har', 'tpl', 'variables'), limit=None):
+                    for tpl in self.db.tpl.list(userid=userid, fields=('id', 'siteurl', 'sitename', 'banner', 'note','fork', '_groups', 'har', 'tpl', 'variables'), limit=None):
                         tpl['tpl'] = self.db.user.decrypt(userid, tpl['tpl'])
                         tpl['har'] = self.db.user.decrypt(userid, tpl['har'])
                         tpls.append(tpl)
 
                     tasks = []
-                    for task in self.db.task.list(userid, fields=('id', 'tplid', 'note', 'disabled', 'groups', 'init_env', 'env', 'ontimeflg', 'ontime', 'pushsw', 'newontime'), limit=None):
+                    for task in self.db.task.list(userid, fields=('id', 'tplid', 'note', 'disabled', '_groups', 'init_env', 'env', 'ontimeflg', 'ontime', 'pushsw', 'newontime'), limit=None):
                         task['init_env'] = self.db.user.decrypt(userid, task['init_env'])
                         task['env'] = self.db.user.decrypt(userid, task['env']) if task['env'] else None
                         tasks.append(task)
@@ -374,7 +377,7 @@ class UserDBHandler(BaseHandler):
                                                 siteurl = newtpl['siteurl'],
                                                 sitename = newtpl['sitename'],
                                                 note = newtpl['note'],
-                                                groups = u'备份还原',
+                                                _groups = u'备份还原',
                                                 banner = newtpl['banner']
                                             )
                             for task in tasks:
@@ -390,7 +393,7 @@ class UserDBHandler(BaseHandler):
                                                      init_env = newtask['init_env'],
                                                      session = None,
                                                      note = newtask['note'],
-                                                     groups = u'备份还原',
+                                                     _groups = u'备份还原',
                                                      ontimeflg = newtask['ontimeflg'],
                                                      ontime = newtask['ontime'],
                                                      pushsw = newtask['pushsw'],
@@ -422,8 +425,8 @@ class toolbox_notpad_Handler(BaseHandler):
         try:
             user = self.db.user.get(userid, fields=('role', 'email'))
             envs = self.request.body_arguments
-            mail = envs['adminmail'][0]
-            pwd = u"{0}".format(envs['adminpwd'][0])
+            mail = utils.decode(envs['adminmail'][0])
+            pwd = utils.decode(envs['adminpwd'][0])
             if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
                 if ('mode' in envs) and ('content' in envs):
                     if (envs['mode'][0] == 'write'):
@@ -451,8 +454,8 @@ class UserPushShowPvar(BaseHandler):
         try:
             user = self.db.user.get(userid, fields=('role', 'email'))
             envs = self.request.body_arguments
-            mail = envs['adminmail'][0]
-            pwd = u"{0}".format(envs['adminpwd'][0])
+            mail = utils.decode(envs['adminmail'][0])
+            pwd = utils.decode(envs['adminpwd'][0])
             if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
                 key = self.db.user.get(userid, fields=("barkurl", 'skey', 'wxpusher', 'qywx_token'))
                 log = u"""barkurl 前值：{bark}\r\nskey 前值：{skey}\r\nwxpusher 前值：{wxpusher}\r\n企业微信 前值：{qywx_token}""".format(

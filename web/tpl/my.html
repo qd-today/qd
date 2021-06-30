@@ -70,7 +70,7 @@
           </tr>
           
           {% for task in tasks | sort(reverse=True, attribute="ctime") %}
-          {% if group == task.groups %}
+          {% if group == task._groups %}
           <tr class="{{group}} taskgroup ">
             <td>
               <input type="checkbox"  name="{{task.id}}" onclick="taskonclick(this)">
@@ -151,7 +151,7 @@
             </td> 
           </tr>
           {% for tpl in tpls | sort(reverse=True, attribute="mtime") %}
-          {% if tplgroup == tpl.groups %}
+          {% if tplgroup == tpl._groups %}
           <tr class="{{ tplgroup }} tplgroups" >
             <td>
               {% if  tpl.updateable == 1 %}

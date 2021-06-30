@@ -36,8 +36,8 @@ class SiteManagerHandler(BaseHandler):
             user = self.db.user.get(userid, fields=('email', 'role', 'email_verified'))
             if user and user['role'] == "admin":
                 envs = self.request.body_arguments
-                mail = envs['adminmail'][0]
-                pwd = u"{0}".format(envs['adminpwd'][0])
+                mail = utils.decode(envs['adminmail'][0])
+                pwd = utils.decode(envs['adminpwd'][0])
                 if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
                     if ("site.regEn" in envs):
                         self.db.site.mod(1, regEn=0)

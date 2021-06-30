@@ -17,6 +17,7 @@ from datetime import datetime
 try:
     import pycurl
 except ImportError as e:
+    print(e)
     pycurl = None
 from jinja2.sandbox import SandboxedEnvironment as Environment
 from tornado import gen, httpclient
@@ -145,7 +146,7 @@ class Fetcher(object):
                     bodySize = len(request.body) if request.body else 0,
                     )
             if request.body:
-                if type(request.body)==bytes:
+                if isinstance(request.body,bytes):
                     request._body = request.body.decode()
                 ret['postData'] = dict(
                         mimeType = request.headers.get('content-type'),
@@ -237,7 +238,7 @@ class Fetcher(object):
         for r in rule.get('failed_asserts') or '':
             if re.search(r['re'], getdata(r['from'])):
                 success = False
-                msg = 'fail assert: %s' % json.dumps(r, encoding="UTF-8", ensure_ascii=False)
+                msg = 'fail assert: %s' % json.dumps(r, ensure_ascii=False)
                 break
 
         for r in rule.get('extract_variables') or '':
@@ -374,7 +375,7 @@ class Fetcher(object):
             response = yield self.client.fetch(req)
         except httpclient.HTTPError as e:
             if not e.response:
-                raise
+                raise e
             response = e.response
 
         env['session'].extract_cookies_to_jar(response.request, response)

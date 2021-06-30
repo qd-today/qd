@@ -336,7 +336,7 @@ ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0;
 
 如果使用mysql 请使用以下命令：
 ```
-ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' ;
+ALTER TABLE `task` ADD `_groups` VARBINARY(128) NOT NULL DEFAULT 'None' ;
 ```
 2. 定时功能显示之前的定时值
 

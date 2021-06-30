@@ -23,23 +23,23 @@ class TaskMultiOperateHandler(BaseHandler):
             tasktype = ''
             user = self.current_user
             op = self.request.arguments.get('op', '')
-            groups = []
+            _groups = []
             if (op != ''):
                 tasktype = op[0]
             else:
                 raise Exception('错误参数')
             if (tasktype == 'setgroup'):
-                for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
-                    temp = task['groups']
-                    if (temp not  in groups):
-                        groups.append(temp)
+                for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+                    temp = task['_groups']
+                    if (temp not  in _groups):
+                        _groups.append(temp)
 
         except Exception:
             traceback.print_exc()
             self.render('utils_run_result.html', log=traceback.format_exc(), title=u'打开失败', flg='danger')
             return
 
-        self.render('taskmulti.html', user=user, tasktype=tasktype, groups=groups)
+        self.render('taskmulti.html', user=user, tasktype=tasktype, _groups=_groups)
         return
     
     @tornado.web.authenticated
@@ -77,7 +77,7 @@ class TaskMultiOperateHandler(BaseHandler):
                                 else:
                                     target_group = group_env['checkgroupname'] or 'None'
 
-                                self.db.task.mod(taskid, groups=target_group)
+                                self.db.task.mod(taskid, _groups=target_group)
 
                             if (tasktype == 'settime'):
                                 time_env = env['settime']

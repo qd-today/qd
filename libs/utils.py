@@ -127,7 +127,12 @@ def utf8(string):
     return string
 
 def conver2unicode(string):
-    return string.decode('unicode_escape')
+    if isinstance(string,str):
+        return string
+    try:
+        return string.decode()
+    except :
+        return str(string)
 
 import urllib
 import config
@@ -201,8 +206,8 @@ from requests.utils import get_encoding_from_headers, get_encodings_from_content
 def find_encoding(content, headers=None):
     # content is unicode
     if isinstance(content, str):
-        return 'unicode'
-
+        return 'utf-8'
+    
     encoding = None
 
     # Try charset from content-type
@@ -217,8 +222,12 @@ def find_encoding(content, headers=None):
     
     # Try charset from content
     if not encoding:
-        encoding = get_encodings_from_content(content)
-        encoding = encoding and encoding[0] or None
+        try:
+            encoding = get_encodings_from_content(content)
+            encoding = encoding and encoding[0] or None
+        except:
+            if isinstance(content,bytes):
+                return encoding or 'utf-8'
 
     if encoding and encoding.lower() == 'gb2312':
         encoding = 'gb18030'
@@ -230,17 +239,20 @@ def decode(content, headers=None):
     encoding = find_encoding(content, headers)
     if encoding == 'unicode':
         return content
-
+    
     try:
         return content.decode(encoding, 'replace')
-    except Exception:
+    except Exception as e:
+        print('utils.decode:',e)
         return None
 
 
 def quote_chinese(url, encodeing="utf-8"):
     if isinstance(url, str):
         return quote_chinese(url.encode("utf-8"))
-    res = [b if ord(b) < 128 else '%%%02X' % (ord(b)) for b in url]
+    if isinstance(url,bytes):
+        url = url.decode()
+    res = [b if ord(b) < 128 else urllib.parse.quote(b) for b in url]
     return "".join(res)
 
 
@@ -274,14 +286,16 @@ def get_date_time(date=True, time=True, time_difference=0):
     else:
         return ""
 
-
 import time
+def timestamp():
+    return int(time.time())
+
 jinja_globals = {
     'md5': md5string,
     'quote_chinese': quote_chinese,
     'utf8': utf8,
     'unicode': conver2unicode,
-    'timestamp': time.time,
+    'timestamp': timestamp,
     'random': get_random,
     'date_time': get_date_time,
 }

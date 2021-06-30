@@ -52,7 +52,7 @@
   </div>
   <label class="control-label" >设置任务分组</label>
   <div class="use_redpackets_content" id="oneCheck">
-    {% for group in groups %}
+    {% for group in _groups %}
     <div class="checkbox">
       <label>
         <input type="checkbox" name="group-select-{{ group }} "  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 

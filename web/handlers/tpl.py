@@ -140,16 +140,16 @@ class TPLGroupHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, tplid):
         user = self.current_user      
-        groupNow = self.db.tpl.get(tplid, fields=('groups'))['groups']
+        groupNow = self.db.tpl.get(tplid, fields=('_groups'))['_groups']
         tasks = []
-        groups = []
-        tpls = self.db.tpl.list(userid=user['id'], fields=('groups'), limit=None)
+        _groups = []
+        tpls = self.db.tpl.list(userid=user['id'], fields=('_groups'), limit=None)
         for tpl in tpls:
-            temp = tpl['groups']
-            if (temp not  in groups):
-                groups.append(temp)
+            temp = tpl['_groups']
+            if (temp not  in _groups):
+                _groups.append(temp)
 
-        self.render('tpl_setgroup.html', tplid=tplid, groups=groups, groupNow=groupNow)
+        self.render('tpl_setgroup.html', tplid=tplid, _groups=_groups, groupNow=groupNow)
     
     @tornado.web.authenticated
     def post(self, tplid):        
@@ -165,7 +165,7 @@ class TPLGroupHandler(BaseHandler):
                 else:
                     target_group = 'None'
             
-        self.db.tpl.mod(tplid, groups=target_group)
+        self.db.tpl.mod(tplid, _groups=target_group)
    
         self.redirect('/my/')
 

@@ -29,7 +29,7 @@ class sqlite3(object):
     path = './config/database.db'
 
 # 数据库类型，修改 sqlite3 为 mysql 使用 mysql
-db_type = os.getenv('DB_TYPE', 'sqlite3')
+db_type = os.getenv('DB_TYPE', 'mysql')
 
 # redis 连接参数，可选
 class redis(object):
