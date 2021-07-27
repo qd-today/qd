@@ -16,7 +16,7 @@ pytz = "*"
 croniter = "*"
 Jinja2 = "*"
 umsgpack = "*"
-pycurl = "==7.43.0.5"
+pycurl = "*"
 redis = "*"
 
 [dev-packages]

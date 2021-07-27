@@ -1,5 +1,5 @@
 # 基础镜像
-FROM python:2.7-alpine
+FROM python:3.8-alpine
 
 # 维护者信息
 LABEL maintainer "asdaragon <aragonchen0@gmail.com>"

@@ -13,3 +13,5 @@ qiandao.rar
 压缩.bat
 .ssh/
 database*.db
+local_config.py
+*.bak

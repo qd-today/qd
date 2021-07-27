@@ -190,7 +190,7 @@ def _send_mail(to, subject, text=None, subtype='html'):
     msg['To'] = to
     try:
         logger.info('send mail to {}'.format(to))
-        s = config.mail_ssl and smtplib.SMTP_SSL() or smtplib.SMTP()
+        s = config.mail_ssl and smtplib.SMTP_SSL(config.mail_smtp) or smtplib.SMTP(config.mail_smtp)
         s.connect(config.mail_smtp)
         s.login(config.mail_user, config.mail_password)
         s.sendmail(config.mail_user, to, msg.as_string())

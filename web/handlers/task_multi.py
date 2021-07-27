@@ -26,6 +26,8 @@ class TaskMultiOperateHandler(BaseHandler):
             _groups = []
             if (op != ''):
                 tasktype = op[0]
+                if type(tasktype)==bytes:
+                    tasktype = tasktype.decode()
             else:
                 raise Exception('错误参数')
             if (tasktype == 'setgroup'):
@@ -50,6 +52,8 @@ class TaskMultiOperateHandler(BaseHandler):
             op = self.request.arguments.get('op', '')
             if (op != ''):
                 tasktype = op[0]
+                if type(tasktype)==bytes:
+                    tasktype = tasktype.decode()
             else:
                 raise Exception('错误参数')
             pass
@@ -73,7 +77,7 @@ class TaskMultiOperateHandler(BaseHandler):
                                 group_env = env['setgroup']
                                 New_group = group_env['newgroup'].strip()
                                 if New_group != "" :
-                                    target_group = New_group.decode("utf-8").encode("utf-8")
+                                    target_group = New_group
                                 else:
                                     target_group = group_env['checkgroupname'] or 'None'
 
@@ -111,7 +115,7 @@ class TaskMultiOperateHandler(BaseHandler):
                             raise Exception('用户id与任务的用户id不一致')
         except Exception:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=Exception, title=u'设置失败', flg='danger')
             return
 
         self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')
@@ -124,6 +128,8 @@ class GetTasksInfoHandler(BaseHandler):
             user = self.current_user
             tasks = []
             for taskid, selected  in self.request.body_arguments.items():
+                if type(selected[0]) == bytes:
+                    selected[0] = selected[0].decode()
                 if (selected[0] == 'true'):
                     task = self.db.task.get(taskid, fields=('id',  'note', 'tplid'))
                     if (task):

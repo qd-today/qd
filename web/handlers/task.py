@@ -36,18 +36,21 @@ class TaskNewHandler(BaseHandler):
                 if tpl.get('id'):
                     tplid = tpl['id']
                     break
-        tplid = int(tplid)
+        if tplid:
+            tplid = int(tplid)
 
-        tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'note', 'sitename', 'siteurl', 'variables')))
-        variables = json.loads(tpl['variables'])
+            tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'note', 'sitename', 'siteurl', 'variables')))
+            variables = json.loads(tpl['variables'])
 
-        _groups = []
-        for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
-            temp = task['_groups']
-            if (temp not  in _groups):
-                _groups.append(temp)
-        
-        self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=tpl['variables'])
+            _groups = []
+            for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+                temp = task['_groups']
+                if (temp not  in _groups):
+                    _groups.append(temp)
+            
+            self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=tpl['variables'])
+        else:
+            self.render('utils_run_result.html', log=u'请先添加模板！', title=u'设置失败', flg='danger')
 
     @tornado.web.authenticated
     def post(self, taskid=None):
@@ -165,7 +168,7 @@ class TaskRunHandler(BaseHandler):
             logtmp = u"{0} 日志：{1}".format(t, e)
             pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
 
-            self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
+            self.db.tasklog.add(task['id'], success=False, msg=str(e))
             self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % e)
             return
 

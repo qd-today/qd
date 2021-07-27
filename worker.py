@@ -247,7 +247,7 @@ class MainWorker(object):
                 content = u"任务已禁用"
                 pushtool.pusher(user['id'], pushsw, 0x1, title, content)
 
-            self.db.tasklog.add(task['id'], success=False, msg=str(e,encoding='utf-8'))
+            self.db.tasklog.add(task['id'], success=False, msg=str(e))
             self.db.task.mod(task['id'],
                     last_failed=time.time(),
                     failed_count=task['failed_count']+1,
