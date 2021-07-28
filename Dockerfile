@@ -2,7 +2,7 @@
 FROM python:3.8-alpine
 
 # 维护者信息
-LABEL maintainer "asdaragon <aragonchen0@gmail.com>"
+LABEL maintainer "a76yyyy <q981331502@163.com>"
 
 # 签到版本 20190220
 # 集成皮蛋0.1.1  https://github.com/cdpidan/qiandaor
@@ -11,6 +11,7 @@ LABEL maintainer "asdaragon <aragonchen0@gmail.com>"
 # 基于以上镜像修改了：1、时区设置为上海 2、修改了链接限制 3、加入了send2推送
 # 20210112 添加git模块，实现重启后自动更新镜像
 # 20210628 使用gitee作为代码源，添加密钥用于更新
+# 20210728 更换python版本为python3.8
 
 ADD . /usr/src/app
 WORKDIR /usr/src/app
@@ -23,8 +24,9 @@ RUN apk update \
     && cp -f ssh/qiandao_fetch.pub /root/.ssh/id_rsa.pub \
     && chmod 600 /root/.ssh/id_rsa \
     && ssh-keyscan gitee.com > /root/.ssh/known_hosts \
-    && git clone git@gitee.com:asdaragon/qiandao.git /gitclone_tmp \
+    && git clone git@gitee.com:a76yyyy/qiandao.git /gitclone_tmp \
     && yes | cp -rf /gitclone_tmp/. /usr/src/app \
+    && pip install --upgrade setuptools \
     && pip install --no-cache-dir -r requirements.txt
    
 ENV PORT 80

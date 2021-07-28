@@ -1,5 +1,7 @@
 name: Build Image
 on:
+  push:
+    branches: [ master ]
   release:
     types: [published]
 jobs:
