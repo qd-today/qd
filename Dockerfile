@@ -16,6 +16,10 @@ LABEL maintainer "a76yyyy <q981331502@163.com>"
 ADD . /usr/src/app
 WORKDIR /usr/src/app
 
+# 安装curl
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+RUN apk add --update curl && rm -rf /var/cache/apk/*
+
 # 基础镜像已经包含pip组件
 RUN apk update \
     && apk add bash git autoconf g++ tzdata nano openssh-client \
