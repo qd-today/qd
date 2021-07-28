@@ -16,6 +16,18 @@ LABEL maintainer "a76yyyy <q981331502@163.com>"
 ADD . /usr/src/app
 WORKDIR /usr/src/app
 
+# 换源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+
+# Install packages
+RUN apk add --no-cache libcurl
+
+# Needed for pycurl
+ENV PYCURL_SSL_LIBRARY=openssl
+
+# Install packages only needed for building, install and clean on a single layer
+RUN apk add --no-cache --virtual .build-dependencies build-base curl-dev 
+
 # 基础镜像已经包含pip组件
 RUN apk update \
     && apk add bash git autoconf g++ tzdata nano openssh-client \
@@ -27,7 +39,8 @@ RUN apk update \
     && git clone git@gitee.com:a76yyyy/qiandao.git /gitclone_tmp \
     && yes | cp -rf /gitclone_tmp/. /usr/src/app \
     && pip install --upgrade setuptools \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r requirements.txt \
+    && apk del .build-dependencies
    
 ENV PORT 80
 EXPOSE $PORT/tcp
