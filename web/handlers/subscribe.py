@@ -74,11 +74,11 @@ class SubscribeHandler(BaseHandler):
 
             self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
 
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
             user = self.current_user
             tpls = self.db.pubtpl.list()
-            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=traceback.format_exc())
+            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
             return
 
 class SubscribeRefreshHandler(BaseHandler):
@@ -99,9 +99,9 @@ class SubscribeRefreshHandler(BaseHandler):
                         self.db.pubtpl.delete(pubtpl['id'])
             else:
                 raise Exception('没有权限操作')
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.redirect('/subscribe/{0}/'.format(userid) ) 
@@ -151,9 +151,9 @@ class Subscrib_signup_repos_Handler(BaseHandler):
             else:
                 raise Exception('非管理员用户，不可设置')
 
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')
@@ -193,9 +193,9 @@ class unsubscribe_repos_Handler(BaseHandler):
             else:
                 raise Exception('非管理员用户，不可设置')
 
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')

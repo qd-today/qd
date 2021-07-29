@@ -316,9 +316,9 @@ class TaskSetTimeHandler(TaskNewHandler):
                 tmp['sw'] = False
                 self.db.task.mod(taskid, newontime = json.dumps(tmp))
 
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')

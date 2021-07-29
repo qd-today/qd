@@ -36,9 +36,9 @@ class TaskMultiOperateHandler(BaseHandler):
                     if (temp not  in _groups):
                         _groups.append(temp)
 
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'打开失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'打开失败', flg='danger')
             return
 
         self.render('taskmulti.html', user=user, tasktype=tasktype, _groups=_groups)
@@ -136,9 +136,9 @@ class GetTasksInfoHandler(BaseHandler):
                         sitename = self.db.tpl.get(task['tplid'], fields=('sitename'))['sitename']
                         task['sitename'] = sitename
                         tasks.append(task)
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'获取信息失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'获取信息失败', flg='danger')
             return
 
         self.render('taskmulti_tasksinfo.html',  tasks=tasks)
