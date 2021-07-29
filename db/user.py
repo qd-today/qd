@@ -37,7 +37,7 @@ class UserDB(BaseDB):
 
     @staticmethod
     def check_nickname(nickname):
-        if isinstance(nickname, unicode):
+        if isinstance(nickname, str):
             nickname = nickname.encode('utf8')
         return len(nickname) < 64
 
