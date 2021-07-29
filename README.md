@@ -1,31 +1,72 @@
-# qiandao
+# qiandao for Python3
+
+## 以下为原镜像说明：
+
+签到 —— 一个自动签到框架 base on an HAR editor
+
+HAR editor 使用指南：https://github.com/binux/qiandao/blob/master/docs/har-howto.md
 
 __操作前请一定要记得备份数据库__<br>
-__操作前请一定要记得备份数据库__<br>
-__操作前请一定要记得备份数据库__<br>
 
-鸣谢
-====
+使用Docker部署站点
+==========
 
-[Mark  https://www.quchao.net/](https://www.quchao.net/) 
+1. docker地址：[https://hub.docker.com/r/a76yyyy/qiandao](https://hub.docker.com/r/a76yyyy/qiandao)
 
-[戏如人生 https://49594425.xyz/](https://49594425.xyz/)
+2. docker部署命令：``` docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config   a76yyyy/qiandao ```
 
-[AragonSnow https://hexo.aragon.wang/](https://hexo.aragon.wang/)
+- Redis随容器启动:  ``` docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config   a76yyyy/qiandao sh -c "redis-server --daemonize yes && python /usr/src/app/run.py" ```
 
-[buzhibujuelb](https://github.com/buzhibujuelb) 
+3. 数据库备份指令：```docker cp 容器名:/usr/src/app/config/database.db . ```
 
-[billypon](https://github.com/billypon) 
+- 数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
 
-[powersee](https://github.com/powersee) 
+4. docker配置邮箱(强制使用SSL)：```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码  --env DOMAIN=域名 a76yyyy/qiandao ```
 
-[a76yyyy/qiandao](https://github.com/a76yyyy/qiandao) 
+5. docker 使用MySQL：```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@链接/数据库名 a76yyyy/qiandao ```
 
-个人项目精力有限，仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request让我修改。
+6. 其余可参考 Wiki [Docker部署签到站教程](https://github.com/binux/qiandao/wiki/Docker%E9%83%A8%E7%BD%B2%E7%AD%BE%E5%88%B0%E7%AB%99%E6%95%99%E7%A8%8B)
 
-因为需要测试，docker镜像会晚于gitHub几天更新
 
-docker地址：[https://hub.docker.com/r/a76yyyy/qiandao](https://hub.docker.com/r/a76yyyy/qiandao)
+Web部署
+=========
+
+## 1. Version: python3.8
+
+```
+pip3 install -r requirements.txt
+```
+
+## 2. 可选 redis, Mysql
+
+```
+mysql < qiandao.sql
+```
+
+## 3. 启动
+
+```
+python ./run.py
+```
+
+数据不随项目分发，去 [https://qiandao.today/tpls/public](https://qiandao.today/tpls/public) 查看你需要的模板，点击下载。
+在你自己的主页中 「我的模板+」 点击 + 上传。模板需要发布才会在「公开模板」中展示，你需要管理员权限在「我的发布请求」中审批通过。
+
+
+## 4. 设置管理员
+
+```
+python ./chrole.py your@email.address admin
+```
+
+## 5. qiandao.py-CMD操作
+
+```
+python ./qiandao.py tpl.har [--key=value]* [env.json]
+```
+
+config.py-配置变量
+=========
 
 变量名|是否必须|默认值|说明
 :-: | :-: | :-: | :-: 
@@ -45,86 +86,6 @@ MAIL_DOMAIN|否|mail.qiandao.today|邮箱域名,没啥用，使用的DOMAIN
 AES_KEY|否|binux|AES加密密钥，强烈建议修改
 COOKIE_SECRET|否|binux|cookie加密密钥，强烈建议修改
 
-docker部署命令：``` docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config   a76yyyy/qiandao ```
-
-数据库备份指令：```docker cp 容器名:/usr/src/app/config/database.db . ```
-
-数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
-
-docker配置邮箱(强制使用SSL)：```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码  --env DOMAIN=域名 a76yyyy/qiandao ```
-
-docker 使用MySQL：```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@链接/数据库名 a76yyyy/qiandao ```
-
-自定义推送示例：
-```
-WXPusher
-{
-   "url": "http://wxpusher.zjiecode.com/api/send/message", 
-   "headers": "", 
-   "postData":"{"appToken":"你的token","content":"{log}","contentType":3,"uids":["你的UID"]}", 
-   "postMethod": "json"
-}
-bark:
-{
-   "postData": "{"title":"{t}","body":"{log}"}", 
-   "headers": "", 
-   "mode": "POST",
-   "postMethod": "x-www-form-urlencoded", 
-   "curl": "https://barkurl/key/", 
-}
-```
-
-## 以下为原镜像说明：
-
-签到 —— 一个自动签到框架 base on an HAR editor
-
-HAR editor 使用指南：https://github.com/binux/qiandao/blob/master/docs/har-howto.md
-
-Web
-===
-
-Version: python3.8
-
-```
-pip3 install -r requirements.txt
-```
-
-可选 redis, Mysql
-
-```
-mysql < qiandao.sql
-```
-
-启动
-
-```
-python ./run.py
-```
-
-数据不随项目分发，去 [https://qiandao.today/tpls/public](https://qiandao.today/tpls/public) 查看你需要的模板，点击下载。
-在你自己的主页中 「我的模板+」 点击 + 上传。模板需要发布才会在「公开模板」中展示，你需要管理员权限在「我的发布请求」中审批通过。
-
-
-设置管理员
-
-```
-python ./chrole.py your@email.address admin
-```
-
-使用Docker部署站点
-==========
-
-可参考 Wiki [Docker部署签到站教程](https://github.com/binux/qiandao/wiki/Docker%E9%83%A8%E7%BD%B2%E7%AD%BE%E5%88%B0%E7%AB%99%E6%95%99%E7%A8%8B)
-
-qiandao.py
-==========
-
-```
-python ./qiandao.py tpl.har [--key=value]* [env.json]
-```
-
-config.py
-=========
 优先用`mailgun`方式发送邮件，如果要用smtp方式发送邮件，请填写mail_smtp, mail_user, mail_password
 ```python
 mail_smtp = ""     # 邮件smtp 地址
@@ -133,7 +94,14 @@ mail_passowrd = ""   # 邮件密码
 mail_domain = "mail.qiandao.today"
 mailgun_key = ""
 ```
-# 更新日志
+
+更新日志
+=========
+
+## 2021.07.29 更新
+1. 修复异常抛出时泄露源码路径的bug
+2. 修复原sql的groups字段bug
+3. 优化DockerFile及配置文件
 
 ## 2021.07.28 更新
 1. 适配python版本至python3.8
@@ -431,8 +399,28 @@ ALTER TABLE `user` ADD `wxpusher` VARBINARY(128) NOT NULL DEFAULT '' ;
 ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1;
 ```
 
+鸣谢
+=========
+
+[Mark  https://www.quchao.net/](https://www.quchao.net/) 
+
+[戏如人生 https://49594425.xyz/](https://49594425.xyz/)
+
+[AragonSnow https://hexo.aragon.wang/](https://hexo.aragon.wang/)
+
+[buzhibujuelb](https://github.com/buzhibujuelb) 
+
+[billypon](https://github.com/billypon) 
+
+[powersee](https://github.com/powersee) 
+
+[AragonSnow/qiandao](https://github.com/aragonsnow/qiandao) 
+
+[a76yyyy/qiandao](https://github.com/a76yyyy/qiandao) 
+
+个人项目精力有限，仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request。
 
 许可
-====
+=========
 
 MIT
