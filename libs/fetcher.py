@@ -104,6 +104,8 @@ class Fetcher(object):
                 )
 
         session = cookie_utils.CookieSession()
+        if req.headers.get('cookie'):
+            req.headers['Cookie'] = req.headers.pop("cookie")
         if req.headers.get('Cookie'):
             session.update(dict(x.strip().split('=', 1) \
                     for x in req.headers['Cookie'].split(';') \

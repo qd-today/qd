@@ -25,7 +25,7 @@ class TaskMultiOperateHandler(BaseHandler):
             op = self.get_argument('op', '')
             _groups = []
             if (op != ''):
-                tasktype = op[0]
+                tasktype = op
                 if isinstance(tasktype,bytes):
                     tasktype = tasktype.decode()
             else:
@@ -54,7 +54,7 @@ class TaskMultiOperateHandler(BaseHandler):
             env = {}
             op = self.get_argument('op', '')
             if (op != ''):
-                tasktype = op[0]
+                tasktype = op
                 if isinstance(tasktype,bytes):
                     tasktype = tasktype.decode()
             else:
