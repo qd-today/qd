@@ -130,7 +130,14 @@ class UserDB(BaseDB):
         else:
             userkey = config.aes_key
         try:
-            return crypto.aes_decrypt(data, userkey)
+            old = tmp = crypto.aes_decrypt(data, userkey)
+            if isinstance(tmp,dict):
+                old = {}
+                for key,value in tmp.items():
+                    if isinstance(key,bytes):
+                        key=key.decode('utf-8')
+                    old[key]=value
+            return old
         except Exception as e:
             raise self.UserDBException('decrypt error')
 
