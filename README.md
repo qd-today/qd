@@ -1,31 +1,39 @@
 # qiandao for Python3
 
-## 以下为原镜像说明：
+## 以下为原镜像说明 : 
 
-签到 —— 一个自动签到框架 base on an HAR editor
+签到 —— 一个**自动签到框架** base on an HAR editor
 
-HAR editor 使用指南：https://github.com/binux/qiandao/blob/master/docs/har-howto.md
+HAR editor 使用指南 : https://github.com/binux/qiandao/blob/master/docs/har-howto.md
 
-__操作前请一定要记得备份数据库__<br>
+**<big>操作前请一定要记得备份数据库</big>**
 
 使用Docker部署站点
 ==========
 
-1. docker地址：[https://hub.docker.com/r/a76yyyy/qiandao](https://hub.docker.com/r/a76yyyy/qiandao)
+1. docker地址 : [https://hub.docker.com/r/a76yyyy/qiandao](https://hub.docker.com/r/a76yyyy/qiandao)
 
-2. docker部署命令：``` docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config   a76yyyy/qiandao ```
+2. docker部署命令
 
-- Redis随容器启动:  ``` docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config   a76yyyy/qiandao sh -c "redis-server --daemonize yes && python /usr/src/app/run.py" ```
+   ``` docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config   a76yyyy/qiandao ```
 
-3. 数据库备份指令：```docker cp 容器名:/usr/src/app/config/database.db . ```
+- 默认Redis已随容器启动: (该命令与上一条命令等效)
 
-- 数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
+   ``` docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config   a76yyyy/qiandao sh -c "redis-server --daemonize yes && python /usr/src/app/run.py" ```
 
-4. docker配置邮箱(强制使用SSL)：```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码  --env DOMAIN=域名 a76yyyy/qiandao ```
+3. 数据库备份指令 : ```docker cp 容器名:/usr/src/app/config/database.db . ```
+ 
+- 数据库恢复指令 : ```docker cp database.db 容器名:/usr/src/app/config/ ```
 
-5. docker 使用MySQL：```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@链接/数据库名 a76yyyy/qiandao ```
+4. docker配置邮箱(强制使用SSL)
 
-6. 其余可参考 Wiki [Docker部署签到站教程](https://github.com/binux/qiandao/wiki/Docker%E9%83%A8%E7%BD%B2%E7%AD%BE%E5%88%B0%E7%AB%99%E6%95%99%E7%A8%8B)
+   ```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码  --env DOMAIN=域名 a76yyyy/qiandao ```
+
+5. docker 使用MySQL
+
+   ```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@链接/数据库名 a76yyyy/qiandao ```
+
+6. 其余可参考 Wiki : [Docker部署签到站教程](https://github.com/binux/qiandao/wiki/Docker%E9%83%A8%E7%BD%B2%E7%AD%BE%E5%88%B0%E7%AB%99%E6%95%99%E7%A8%8B)
 
 
 Web部署
@@ -214,7 +222,7 @@ mailgun_key = ""
 
 
 ## 2020.09.10 更新
-1. 鉴于github 污染严重，使用gitee代替作为订阅源，地址：[https://gitee.com/qiandao-today/templates](https://gitee.com/qiandao-today/templates)
+1. 鉴于github 污染严重，使用gitee代替作为订阅源，地址 : [https://gitee.com/qiandao-today/templates](https://gitee.com/qiandao-today/templates)
 2. 首页的检查模板更新取消，打开公共模板仓库会自动检查更新
 3. 修复邮箱验证，注册后未验证可以再次点击注册验证
 4. 修改任务时显示前值
@@ -269,7 +277,7 @@ mailgun_key = ""
 2. 添加关闭/开启注册功能
 3. 修改主页的'检查更新'为'检查模板更新'
 
-使用前需要进入容器，将对应已注册邮箱设置为管理员：
+使用前需要进入容器，将对应已注册邮箱设置为管理员 : 
 ```
 docker exec -it 容器名 /bin/bash
 python ./chrole.py 邮箱 admin
@@ -277,7 +285,7 @@ python ./chrole.py 邮箱 admin
 被禁用的账户将不能登录网站,所有任务将被禁用。
 被删除的账户，会删除该用户的所有任务，模板和日志
 
-如果使用mysql 在 20200604 请使用以下命令：
+如果使用mysql 在 20200604 请使用以下命令 : 
 ```
 ALTER TABLE `user` ADD `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable';
 CREATE TABLE IF NOT EXISTS `site` (
@@ -288,7 +296,7 @@ INSERT INTO `site` VALUES(1,1);
 ```
 
 ## 2020.6.6 更新
-1. 修复用户不存在依然能登陆的BUG(具体表现为：新用户新建模板保存时500错误，注册推送时提示NoneType) 
+1. 修复用户不存在依然能登陆的BUG(具体表现为 : 新用户新建模板保存时500错误，注册推送时提示NoneType) 
 2. 完善注册推送的注册消息
 3. 修复自动完成不推送的bug
 4. 添加定时 “今日已签过” 选项，可以直接定时第二天
@@ -304,11 +312,11 @@ INSERT INTO `site` VALUES(1,1);
 
 __本次更新会把之前的定时设置全部取消，介意请勿更新__
 
-如果使用mysql 在 20200601 请使用以下命令：
+如果使用mysql 在 20200601 请使用以下命令 : 
 ```
 ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0 }'
 ```
-延时的另一种用法，间隔定时运行：如果要实现每1周定时运行一次，设置最大最小值都是604800，即可
+延时的另一种用法，间隔定时运行 : 如果要实现每1周定时运行一次，设置最大最小值都是604800，即可
 
 ## 2020.6.1 更新
 1. 时间显示修改为具体时间，取消之前的 "1小时后"等模糊显示(By 戏如人生)
@@ -339,7 +347,7 @@ ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":fa
 4. 新增每日日志功能，可以将每日定时前的最后一个日志推送到S酱和WXPusher
 5. 修复“↓”按钮定位不准的bug
 
-如果使用mysql 在 5.22 请使用以下命令：
+如果使用mysql 在 5.22 请使用以下命令 : 
 ```
 ALTER TABLE `task` ADD `pushsw` VARBINARY(128) NOT NULL DEFAULT '{\"logen\":false,\"pushen\":true}';
 ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}';
@@ -353,7 +361,7 @@ ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,
 ## 2020.5.19 更新
 1. 添加手动检查模板更新的按钮。
 
-如果使用mysql 在 5.18 请使用以下命令：
+如果使用mysql 在 5.18 请使用以下命令 : 
 ```
 ALTER TABLE `tpl` ADD `tplurl` VARCHAR(1024) NULL DEFAULT '' ;
 ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0;
@@ -362,13 +370,14 @@ ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0;
 ## 2020.5.18 更新
 1. 定时的 "今日是否运行" 修改 为 "今日运行"
 2. 添加模板订阅功能，仓库地址在[https://github.com/qiandao-today/templates](https://github.com/qiandao-today/templates)
+
    主页打开公共模板按钮，点击订阅后自动导入模板，需要自己确认保存
 3. 模板上传指定格式为.har
 
 ## 2020.5.16 更新
 1. 添加任务分类功能
 
-如果使用mysql 请使用以下命令：
+如果使用mysql 请使用以下命令 : 
 ```
 ALTER TABLE `task` ADD `_groups` VARBINARY(128) NOT NULL DEFAULT 'None' ;
 ```
@@ -383,13 +392,13 @@ ALTER TABLE `task` ADD `_groups` VARBINARY(128) NOT NULL DEFAULT 'None' ;
 http://cordimax.f3322.net:5558/381.html
 
 2. 增加了server酱、bark推送，WXPusher推送，并可以设置推送开关（by AragonSnow）
-需要推送的：登录账号以后点击注册bark/s酱/WXPusher，测试推送没有问题以后,再点击提交
+需要推送的 : 登录账号以后点击注册bark/s酱/WXPusher，测试推送没有问题以后,再点击提交
 
 
 3. 增加定时功能，在新建任务以后会出现定时按钮，设置每天的定时时间。<br>
-__不兼容旧版的数据库， 旧版数据库导入会自动转换，旧版将无法使用__<br>
-__使用SQLite3的，默认路径改为config文件夹里面，方便挂载后备份__<br>
-__使用Mysq的,请使用一下命令更新数据库：__<br>
+**不兼容旧版的数据库， 旧版数据库导入会自动转换，旧版将无法使用**<br>
+**使用SQLite3的，默认路径改为config文件夹里面，方便挂载后备份**<br>
+**使用Mysq的,请使用一下命令更新数据库:**
 ```
 ALTER TABLE `task` ADD `ontimeflg` INT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `task` ADD `ontime` VARCHAR(256) NOT NULL DEFAULT '00:10:00';

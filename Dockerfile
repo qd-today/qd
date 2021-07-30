@@ -29,7 +29,7 @@ ENV PYCURL_SSL_LIBRARY=openssl
 # Install packages only needed for building, install and clean on a single layer
 RUN apk add --no-cache --virtual .build-dependencies build-base curl-dev 
 
-# Setting redis
+# Setting openrc-redis
 RUN rc-status -a \
     && echo -e '#!/bin/sh \nredis-server /etc/redis.conf' > /etc/local.d/redis.start \
     && chmod +x /etc/local.d/redis.start \
@@ -60,5 +60,5 @@ ENV TZ=CST-8
 # 添加挂载点
 VOLUME ["/usr/src/app/","/data"]
 
-CMD ["python","/usr/src/app/run.py"]
+CMD ["sh","-c","redis-server --daemonize yes && python /usr/src/app/run.py"]
 
