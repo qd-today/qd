@@ -102,6 +102,14 @@ mail_passowrd = ""   # 邮件密码
 mail_domain = "mail.qiandao.today"
 mailgun_key = ""
 ```
+## 旧版local_config.py迁移
+|  Line  |  Delete  |  Modify  |
+|  ----  | ----  | ----  |
+|10|~~```import urlparse```~~|```from urllib.parse import urlparse```|
+|18|~~```mysql_url = urlparse.urlparse(os.getenv('JAWSDB_MARIA_URL', ''))```~~|```mysql_url = urlparse(os.getenv('JAWSDB_MARIA_URL', ''))```|
+|19|~~```redis_url = urlparse.urlparse(os.getenv('REDISCLOUD_URL', ''))```~~|```redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))```|
+|43|~~```aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux').encode('utf-8')).digest()```~~|```aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux')).digest()```|
+|44|~~```cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux').encode('utf-8')).digest()```~~|```cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux')).digest()```|
 
 更新日志
 =========
