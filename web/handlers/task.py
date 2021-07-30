@@ -61,9 +61,11 @@ class TaskNewHandler(BaseHandler):
         proxy = self.get_body_argument('_binux_proxy')
 
         tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'interval')))
-
+        envs = {}
+        for key in self.request.body_arguments:
+            envs[key] = self.get_body_arguments(key)
         env = {}
-        for key, value in self.request.body_arguments.items():
+        for key, value in envs.items():
             if key.startswith('_binux_'):
                 continue
             if not value:
@@ -71,14 +73,14 @@ class TaskNewHandler(BaseHandler):
             env[key] = self.get_body_argument(key)
         env['_proxy'] = proxy
 
-        if ('New_group' in self.request.body_arguments):
-            New_group = self.request.body_arguments['New_group'][0].strip()
+        if ('New_group' in envs):
+            New_group = envs['New_group'][0].strip()
             
             if New_group != "" :
-                target_group = New_group.decode("utf-8").encode("utf-8")
+                target_group = New_group
             else:
-                for value in self.request.body_arguments:
-                    if self.request.body_arguments[value][0] == 'on':
+                for value in envs:
+                    if envs[value][0] == 'on':
                         if (value.find("group-select-") > -1):
                             target_group = value.replace("group-select-", "").strip()
                             break
@@ -101,7 +103,7 @@ class TaskNewHandler(BaseHandler):
             init_env = self.db.user.encrypt(user['id'], init_env)
             self.db.task.mod(taskid, init_env=init_env, env=None, session=None, note=note)
         
-        if ('New_group' in self.request.body_arguments):
+        if ('New_group' in envs):
             self.db.task.mod(taskid, _groups=target_group)
 
         self.redirect('/my/')
@@ -231,7 +233,10 @@ class TaskLogDelHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self, taskid):
         user = self.current_user
-        body_arguments = self.request.body_arguments
+        envs = {}
+        for key in self.request.body_arguments:
+            envs[key] = self.get_body_arguments(key)
+        body_arguments = envs
         day = 365
         if ('day' in body_arguments):
             day = int(json.loads(body_arguments['day'][0]))
@@ -289,7 +294,9 @@ class TaskSetTimeHandler(TaskNewHandler):
     def post(self, taskid):
         log = u'设置成功'
         try:
-            envs = self.request.body_arguments
+            envs = {}
+            for key in self.request.body_arguments:
+                envs[key] = self.get_body_arguments(key)
             for env in envs.keys():
                 if (envs[env][0] == u'true' or envs[env][0] == u'false'):
                     envs[env] = True if envs[env][0] == u'true' else False
@@ -339,13 +346,16 @@ class TaskGroupHandler(TaskNewHandler):
     
     @tornado.web.authenticated
     def post(self, taskid):        
-        New_group = self.request.body_arguments['New_group'][0].strip()
+        envs = {}
+        for key in self.request.body_arguments:
+            envs[key] = self.get_body_arguments(key)
+        New_group = envs['New_group'][0].strip()
         
         if New_group != "" :
-            target_group = New_group.decode("utf-8").encode("utf-8")
+            target_group = New_group
         else:
-            for value in self.request.body_arguments:
-                if self.request.body_arguments[value][0] == 'on':
+            for value in envs:
+                if envs[value][0] == 'on':
                     target_group = value.strip()
                     break
                 else:
@@ -360,9 +370,12 @@ class TasksDelHandler(BaseHandler):
     def post(self, userid):
         try:
             user = self.current_user
-            body_arguments = self.request.body_arguments
+            envs = {}
+            for key in self.request.body_arguments:
+                envs[key] = self.get_body_arguments(key)
+            body_arguments = envs
             if ('taskids' in body_arguments):
-                taskids = json.loads(self.request.body_arguments['taskids'][0])
+                taskids = json.loads(envs['taskids'][0])
             if (body_arguments['func'][0] == 'Del'):
                 for taskid in taskids:
                     task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid', )), 'w')
@@ -371,7 +384,7 @@ class TasksDelHandler(BaseHandler):
                         self.db.tasklog.delete(log['id'])
                     self.db.task.delete(taskid)
             elif (body_arguments['func'][0] == 'setGroup'):
-                New_group = body_arguments['groupValue'][0].strip().decode("utf-8").encode("utf-8")
+                New_group = body_arguments['groupValue'][0].strip()
                 if(New_group == ''):
                     New_group = u'None'
                 for taskid in taskids:

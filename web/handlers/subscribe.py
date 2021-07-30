@@ -86,7 +86,7 @@ class SubscribeRefreshHandler(BaseHandler):
     def post(self, userid):
         try:
             user = self.current_user
-            op = self.request.arguments.get('op', '')
+            op = self.get_argument('op', '')
             if (op == ''):
                 raise Exception('op参数为空')
 
@@ -122,8 +122,11 @@ class Subscrib_signup_repos_Handler(BaseHandler):
         try:
             user = self.current_user
             if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+                envs = {}
+                for key in self.request.body_arguments:
+                    envs[key] = self.get_body_arguments(key)
                 env = {}
-                for k, v  in self.request.body_arguments.items():
+                for k, v  in envs.items():
                     if (v[0] == 'false') or (v[0] == 'true'):
                         env[k] = True if v == 'true' else False
                     else:
@@ -165,8 +168,11 @@ class unsubscribe_repos_Handler(BaseHandler):
         try:
             user = self.current_user
             if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+                envs = {}
+                for key in self.request.body_arguments:
+                    envs[key] = self.get_body_arguments(key)
                 env = {}
-                for k, v  in self.request.body_arguments.items():
+                for k, v  in envs.items():
                     env[k] = v[0]
 
                 if (env['reponame'] != ''):

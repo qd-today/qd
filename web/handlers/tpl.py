@@ -153,13 +153,16 @@ class TPLGroupHandler(BaseHandler):
     
     @tornado.web.authenticated
     def post(self, tplid):        
-        New_group = self.request.body_arguments['New_group'][0].strip()
+        envs = {}
+        for key in self.request.body_arguments:
+            envs[key] = self.get_body_arguments(key)
+        New_group = envs['New_group'][0].strip()
         
         if New_group != "" :
-            target_group = New_group.decode("utf-8").encode("utf-8")
+            target_group = New_group
         else:
-            for value in self.request.body_arguments:
-                if self.request.body_arguments[value][0] == 'on':
+            for value in envs:
+                if envs[value][0] == 'on':
                     target_group = value.strip()
                     break
                 else:

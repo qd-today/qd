@@ -45,9 +45,11 @@ class Fetcher(object):
             _cookies = cookie_utils.CookieSession()
             _cookies.from_json(session)
 
+
         def _render(obj, key):
             if not obj.get(key):
                 return
+            
             obj[key] = self.jinja_env.from_string(obj[key]).render(_cookies=_cookies, **env)
 
         _render(request, 'method')

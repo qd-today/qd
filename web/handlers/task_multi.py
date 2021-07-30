@@ -22,11 +22,11 @@ class TaskMultiOperateHandler(BaseHandler):
         try:
             tasktype = ''
             user = self.current_user
-            op = self.request.arguments.get('op', '')
+            op = self.get_argument('op', '')
             _groups = []
             if (op != ''):
                 tasktype = op[0]
-                if type(tasktype)==bytes:
+                if isinstance(tasktype,bytes):
                     tasktype = tasktype.decode()
             else:
                 raise Exception('错误参数')
@@ -48,16 +48,19 @@ class TaskMultiOperateHandler(BaseHandler):
     def post(self, userid):
         user = self.current_user
         try:
+            envs = {}
+            for key in self.request.body_arguments:
+                envs[key] = self.get_body_arguments(key)
             env = {}
-            op = self.request.arguments.get('op', '')
+            op = self.get_argument('op', '')
             if (op != ''):
                 tasktype = op[0]
-                if type(tasktype)==bytes:
+                if isinstance(tasktype,bytes):
                     tasktype = tasktype.decode()
             else:
                 raise Exception('错误参数')
             pass
-            for k, v  in self.request.body_arguments.items():
+            for k, v  in envs.items():
                 env[k] = json.loads(v[0])
             for taskid, selected  in env['selectedtasks'].items():
                 if (selected):
@@ -125,10 +128,13 @@ class GetTasksInfoHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self, userid):
         try:
+            envs = {}
+            for key in self.request.body_arguments:
+                envs[key] = self.get_body_arguments(key)
             user = self.current_user
             tasks = []
-            for taskid, selected  in self.request.body_arguments.items():
-                if type(selected[0]) == bytes:
+            for taskid, selected  in envs.items():
+                if isinstance(selected[0],bytes):
                     selected[0] = selected[0].decode()
                 if (selected[0] == 'true'):
                     task = self.db.task.get(taskid, fields=('id',  'note', 'tplid'))

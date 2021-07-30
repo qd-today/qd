@@ -35,7 +35,9 @@ class SiteManagerHandler(BaseHandler):
         try:
             user = self.db.user.get(userid, fields=('email', 'role', 'email_verified'))
             if user and user['role'] == "admin":
-                envs = self.request.body_arguments
+                envs = {}
+                for key in self.request.body_arguments:
+                    envs[key] = self.get_body_arguments(key)
                 mail = utils.decode(envs['adminmail'][0])
                 pwd = utils.decode(envs['adminpwd'][0])
                 if self.db.user.challenge(mail, pwd) and (user['email'] == mail):

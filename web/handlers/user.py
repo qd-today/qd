@@ -39,7 +39,10 @@ class UserRegPush(BaseHandler):
     
     @tornado.web.authenticated
     def post(self, userid):
-        env = json.loads(self.request.body_arguments['env'][0])
+        envs = {}
+        for key in self.request.body_arguments:
+            envs[key] = self.get_body_arguments(key)
+        env = json.loads(envs['env'][0])
         token = env["wxpusher_token"]
         uid = env["wxpusher_uid"]
         skey = env["skey"]
@@ -173,8 +176,10 @@ class UserRegPushSw(BaseHandler):
                 task['pushsw']["pushen"] = False
                 tasks.append(task)
             temp = self.db.user.get(userid, fields=('noticeflg'))
-
-            env = json.loads(self.request.body_arguments['env'][0])
+            envs = {}
+            for key in self.request.body_arguments:
+                envs[key] = self.get_body_arguments(key)
+            env = json.loads(envs['env'][0])
             
             logtime = json.loads(self.db.user.get(userid, fields=('logtime'))['logtime'])
             if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0
