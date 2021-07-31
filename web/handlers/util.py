@@ -24,6 +24,22 @@ def request_parse(req_data):
         data = req_data.arguments
     return data
 
+class UtilDelayParaHandler(BaseHandler):
+    @gen.coroutine
+    def get(self):
+        try:
+            seconds = float(self.get_argument("seconds", 0))
+        except Exception as e:
+            traceback.print_exc()
+            yield gen.sleep(0.0)
+            self.write(u'Error, delay 0.0 second.')
+        if seconds < 0:
+            seconds = 0.0
+        elif seconds > 30:
+            seconds = 30.0
+        yield gen.sleep(seconds)
+        self.write(u'delay %s second.' % seconds)
+
 class UtilDelayIntHandler(BaseHandler):
     @gen.coroutine
     def get(self, seconds):
@@ -297,6 +313,7 @@ class toolboxHandler(BaseHandler):
             return
 
 handlers = [
+    ('/util/delay', UtilDelayParaHandler),
     ('/util/delay/(\d+)', UtilDelayIntHandler),
     ('/util/delay/(\d+\.\d+)', UtilDelayHandler),
     ('/util/timestamp', TimeStampHandler),
