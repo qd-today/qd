@@ -156,7 +156,7 @@ class Fetcher(object):
                         mimeType = request.headers.get('content-type'),
                         text = request.body,
                         )
-                if ret['postData']['mimeType'] == 'application/x-www-form-urlencoded':
+                if ret['postData']['mimeType'] and 'application/x-www-form-urlencoded' in ret['postData']['mimeType']:
                     ret['postData']['params'] = [
                             {'name': n, 'value': v} for n, v in \
                                 urlparse.parse_qsl(request.body)]
@@ -228,7 +228,7 @@ class Fetcher(object):
                 _from = _from[7:]
                 return response.headers.get(_from, '')
             elif _from == 'header':
-                return str(response.headers,encoding='utf-8')
+                return str(response.headers._dict).replace('\'', '')
             else:
                 return ''
 
@@ -307,10 +307,15 @@ class Fetcher(object):
                         mimeType = en['request'].get('mimeType'),
                         text = en['request'].get('data'),
                         )
-                if en['request'].get('mimeType') == 'application/x-www-form-urlencoded':
+                if request['postData']['mimeType'] and 'application/x-www-form-urlencoded' in request['postData']['mimeType'] :
                     params = [{'name': x[0], 'value': x[1]} \
                         for x in urlparse.parse_qsl(en['request']['data'], True)]
                     request['postData']['params'] = params
+                    try:
+                        _ = json.dumps(request['postData']['params'])
+                    except UnicodeDecodeError:
+                        logger.error('params encoding error')
+                        del request['postData']['params']
             return request
 
         entries = []
