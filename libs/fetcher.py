@@ -11,6 +11,7 @@ import random
 import urllib
 import base64
 import logging
+import traceback
 import urllib.parse as urlparse
 from datetime import datetime
 
@@ -51,15 +52,18 @@ class Fetcher(object):
                 return
             
             obj[key] = self.jinja_env.from_string(obj[key]).render(_cookies=_cookies, **env)
+            return True
 
         _render(request, 'method')
         _render(request, 'url')
         for header in request['headers']:
             _render(header, 'name')
             _render(header, 'value')
+            header['value'] = utils.quote_chinese(header['value'])
         for cookie in request['cookies']:
             _render(cookie, 'name')
             _render(cookie, 'value')
+            cookie['value'] = utils.quote_chinese(cookie['value'])
         _render(request, 'data')
         return request
 
@@ -228,7 +232,14 @@ class Fetcher(object):
                 _from = _from[7:]
                 return response.headers.get(_from, '')
             elif _from == 'header':
-                return str(response.headers._dict).replace('\'', '')
+                try:
+                    return str(response.headers._dict).replace('\'', '')
+                except Exception as e:
+                    traceback.print_exc()
+                try:
+                    return json.dumps(response.headers._dict)
+                except Exception as e:
+                    traceback.print_exc()
             else:
                 return ''
 
