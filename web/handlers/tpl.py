@@ -79,8 +79,13 @@ class TPLRunHandler(BaseHandler):
         self.evil(+5)
         user = self.current_user
         data = {}
-        if 'json' in self.request.headers['Content-Type']:
-            data = json.loads(self.request.body)
+        try:
+            if 'json' in self.request.headers['Content-Type']:
+                self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
+                self.request.body = self.request.body.replace(b'\xa0', b' ')
+                data = json.loads(self.request.body)
+        except :
+            pass
 
         tplid = tplid or data.get('tplid') or self.get_argument('_binux_tplid', None)
         tpl = dict()

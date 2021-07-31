@@ -64,7 +64,12 @@ class HARTest(BaseHandler):
     @gen.coroutine
     def post(self):
         self.evil(+1)
-
+        try:
+            if 'json' in self.request.headers['Content-Type']:
+                self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
+                self.request.body = self.request.body.replace(b'\xa0', b' ')
+        except :
+            pass
         data = json.loads(self.request.body)
         ret = yield self.fetcher.fetch(data)
 
@@ -119,6 +124,12 @@ class HARSave(BaseHandler):
         reponame = self.get_argument("reponame", "")
         harname = self.get_argument("name", "")
         userid = self.current_user['id']
+        try:
+            if 'json' in self.request.headers['Content-Type']:
+                self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
+                self.request.body = self.request.body.replace(b'\xa0', b' ')
+        except :
+            pass
         data = json.loads(self.request.body)
 
         har = self.db.user.encrypt(userid, data['har'])

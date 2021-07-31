@@ -141,7 +141,7 @@ class TaskRunHandler(BaseHandler):
 
         tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename',
             'siteurl', 'tpl', 'interval', 'last_success')))
-        t = 0 if not tpl['userid'] else task['userid'], tpl['tpl']
+
         fetch_tpl = self.db.user.decrypt(
                 0 if not tpl['userid'] else task['userid'], tpl['tpl'])
         env = dict(
