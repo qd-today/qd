@@ -116,9 +116,9 @@ class TaskMultiOperateHandler(BaseHandler):
                                     raise Exception(u'参数错误')
                         else:
                             raise Exception('用户id与任务的用户id不一致')
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=Exception, title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')

@@ -236,7 +236,7 @@ class MainWorker(object):
                         
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
-            content = u"日志：{log}".format(log=e)
+            content = u"日志：{log}".format(log=str(e))
             disabled = False
             if next_time_delta:
                 next = time.time() + next_time_delta

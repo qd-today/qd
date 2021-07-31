@@ -91,7 +91,8 @@ class UserRegPush(BaseHandler):
                     log = log+u"企业微信 未填写完整\r\n"
 
             except Exception as e:
-                self.render('tpl_run_failed.html', log=e)
+                traceback.print_exc()
+                self.render('tpl_run_failed.html', log=str(e))
                 return
             
             self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
@@ -128,7 +129,8 @@ class UserRegPush(BaseHandler):
                     log = log+u"企业微信 未填写完整\r\n"
 
             except Exception as e:
-                self.render('tpl_run_failed.html', log=e)
+                traceback.print_exc()
+                self.render('tpl_run_failed.html', log=str(e))
                 return
 
             self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
@@ -222,7 +224,8 @@ class UserRegPushSw(BaseHandler):
                 self.db.task.mod(task["id"], pushsw=json.dumps(task['pushsw']))
                 
         except Exception as e:
-            self.render('tpl_run_failed.html', log=e)
+            traceback.print_exc()
+            self.render('tpl_run_failed.html', log=str(e))
             return
         self.render('utils_run_result.html', log=u"设置完成", title=u'设置成功', flg='success')
         return
@@ -415,9 +418,10 @@ class UserDBHandler(BaseHandler):
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
+            traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('tpl_run_failed.html', log=e)
+            self.render('tpl_run_failed.html', log=str(e))
             return
         return 
      
@@ -453,9 +457,10 @@ class toolbox_notpad_Handler(BaseHandler):
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
+            traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('tpl_run_failed.html', log=e)
+            self.render('tpl_run_failed.html', log=str(e))
             return
         return
 
@@ -481,9 +486,10 @@ class UserPushShowPvar(BaseHandler):
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
+            traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('tpl_run_failed.html', log=e)
+            self.render('tpl_run_failed.html', log=str(e))
             print(e)
             return
 

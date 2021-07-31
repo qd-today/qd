@@ -392,6 +392,7 @@ class TasksDelHandler(BaseHandler):
                     
             self.finish('<h1 class="alert alert-success text-center">操作成功</h1>')
         except Exception as e:
+            traceback.print_exc()
             self.render('tpl_run_failed.html', log=str(e))
             return
 

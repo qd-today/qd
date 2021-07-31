@@ -9,6 +9,7 @@ import json
 from tornado import gen
 from .base import *
 from libs import utils
+import traceback
 
 class TPLPushHandler(BaseHandler):
     @tornado.web.authenticated
@@ -121,7 +122,8 @@ class TPLRunHandler(BaseHandler):
             else:
                 result = yield self.fetcher.do_fetch(fetch_tpl, env, proxies=[])
         except Exception as e:
-            self.render('tpl_run_failed.html', log=e)
+            traceback.print_exc()
+            self.render('tpl_run_failed.html', log=str(e))
             return
 
         if tpl:
