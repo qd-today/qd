@@ -82,7 +82,6 @@ class TPLRunHandler(BaseHandler):
         try:
             if 'json' in self.request.headers['Content-Type']:
                 self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
-                self.request.body = self.request.body.replace(b'\xa0', b' ')
                 data = json.loads(self.request.body)
         except :
             pass
