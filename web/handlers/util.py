@@ -7,6 +7,7 @@ import datetime
 import time
 import urllib
 import pytz
+import traceback
 from .base import *
 from tornado import gen
 import base64
@@ -23,15 +24,33 @@ def request_parse(req_data):
         data = req_data.arguments
     return data
 
+class UtilDelayIntHandler(BaseHandler):
+    @gen.coroutine
+    def get(self, seconds):
+        try:
+            seconds = float(seconds)
+        except Exception as e:
+            traceback.print_exc()
+            self.write(u'delay %s second.' % seconds)
+        if seconds < 0:
+            seconds = 0.0
+        elif seconds > 30:
+            seconds = 30.0
+        yield gen.sleep(seconds)
+        self.write(u'delay %s second.' % seconds)
 
 class UtilDelayHandler(BaseHandler):
     @gen.coroutine
     def get(self, seconds):
-        seconds = float(seconds)
+        try:
+            seconds = float(seconds)
+        except Exception as e:
+            traceback.print_exc()
+            self.write(u'delay %s second.' % seconds)
         if seconds < 0:
-            seconds = 0
+            seconds = 0.0
         elif seconds > 30:
-            seconds = 30
+            seconds = 30.0
         yield gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
 
@@ -278,7 +297,8 @@ class toolboxHandler(BaseHandler):
             return
 
 handlers = [
-    ('/util/delay/(\d+)', UtilDelayHandler),
+    ('/util/delay/(\d+)', UtilDelayIntHandler),
+    ('/util/delay/(\d+\.\d+)', UtilDelayHandler),
     ('/util/timestamp', TimeStampHandler),
     ('/util/unicode', UniCodeHandler),
     ('/util/urldecode', UrlDecodeHandler),
