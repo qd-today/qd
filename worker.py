@@ -21,6 +21,7 @@ from libs.fetcher import Fetcher
 
 from funcs import pusher
 from funcs import cal
+import traceback
 
 logger = logging.getLogger('qiandao.worker')
 
@@ -230,6 +231,7 @@ class MainWorker(object):
             self.ClearLog(task['id'])
         except Exception as e:
             # failed feedback
+            traceback.print_exc()
             next_time_delta = self.failed_count_to_time(task['last_failed_count'], tpl['interval'])
                         
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')

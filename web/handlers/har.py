@@ -139,7 +139,11 @@ class HARSave(BaseHandler):
             self.db.tpl.mod(id, har=har, tpl=tpl, variables=variables)
             groupName = self.db.tpl.get(id, fields=('_groups'))['_groups']
         else:
-            id = self.db.tpl.add(userid, har, tpl, variables)
+            try:
+                id = self.db.tpl.add(userid, har, tpl, variables)
+            except Exception as e:
+                if "max_allowed_packet" in str(e):
+                    raise Exception('har大小超过MySQL max_allowed_packet 限制; \n'+str(e))
             if not id:
                 raise Exception('create tpl error')
 

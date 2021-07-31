@@ -43,7 +43,7 @@ pbkdf2_iterations = 400
 aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux').encode('utf-8')).digest()
 cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux').encode('utf-8')).digest()
 check_task_loop = 500
-download_size_limit = 1*1024*1024
+download_size_limit = 5*1024*1024
 proxies = []
 
 # 域名
