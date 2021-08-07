@@ -15,6 +15,8 @@ import traceback
 import urllib.parse as urlparse
 from datetime import datetime
 
+from tornado.httputil import HTTPHeaders
+
 try:
     import pycurl
 except ImportError as e:
@@ -221,7 +223,10 @@ class Fetcher(object):
         def getdata(_from):
             if _from == 'content':
                 if content[0] == -1:
-                    content[0] = utils.decode(response.body)
+                    if response.headers and isinstance(response.headers,HTTPHeaders):
+                        content[0] = utils.decode(response.body, headers=response.headers)
+                    else:
+                        content[0] = utils.decode(response.body)
                 if ('content-type' in response.headers):
                     if 'image' in response.headers.get('content-type'):
                         return base64.b64encode(response.body)
