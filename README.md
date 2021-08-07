@@ -4,7 +4,7 @@
 
 签到 —— 一个**自动签到框架** base on an HAR editor
 
-HAR editor 使用指南 : https://github.com/binux/qiandao/blob/master/docs/har-howto.md
+[HAR editor 使用指南](docs/har-howto.md)
 
 **<big>操作前请一定要记得备份数据库</big>**
 
@@ -33,7 +33,9 @@ HAR editor 使用指南 : https://github.com/binux/qiandao/blob/master/docs/har-
 
    ```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@链接/数据库名 a76yyyy/qiandao ```
 
-6. 其余可参考 Wiki : [Docker部署签到站教程](https://github.com/binux/qiandao/wiki/Docker%E9%83%A8%E7%BD%B2%E7%AD%BE%E5%88%B0%E7%AB%99%E6%95%99%E7%A8%8B)
+6. 其余可参考 Wiki : [Docker部署签到站教程](docs/Docker-howto.md)
+
+7. DockerHub : [介绍](http://mirrors.ustc.edu.cn/help/dockerhub.html)
 
 
 Web部署
