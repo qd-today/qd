@@ -85,7 +85,7 @@ class DBconverter(_TaskDB, BaseDB):
             `atime` INT UNSIGNED NOT NULL,
             `tplurl` VARCHAR(1024) NULL DEFAULT '',
             `updateable` INT UNSIGNED NOT NULL DEFAULT 0,
-            `groups` VARCHAR(256) NOT NULL DEFAULT 'None'
+            `_groups` VARCHAR(256) NOT NULL DEFAULT 'None'
             );''')
             self.db.site._execute('''CREATE TABLE IF NOT EXISTS `task` (
             `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -106,7 +106,7 @@ class DBconverter(_TaskDB, BaseDB):
             `mtime` INT UNSIGNED NOT NULL,
             `ontimeflg` INT UNSIGNED NOT NULL DEFAULT 0,
             `ontime` VARCHAR(256) NOT NULL DEFAULT '00:10:00',
-            `groups` VARCHAR(256) NOT NULL DEFAULT 'None',
+            `_groups` VARCHAR(256) NOT NULL DEFAULT 'None',
             `pushsw`  VARBINARY(128) NOT NULL DEFAULT '{"logen":false,"pushen":true}',
             `newontime`  VARBINARY(256) NOT NULL DEFAULT '{"sw":false,"time":"00:10:10","randsw":false,"tz1":0,"tz2":0}'
             );''')
@@ -191,11 +191,6 @@ class DBconverter(_TaskDB, BaseDB):
             exec_shell("ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1 " ) 
             
         try:
-            self.db.task.get("1", fields=('groups'))
-        except :
-            exec_shell("ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
-            
-        try:
             self.db.tpl.get("1", fields=('tplurl'))
         except :
             exec_shell("ALTER TABLE `tpl` ADD `tplurl` VARCHAR(1024) NULL DEFAULT '' " )
@@ -239,9 +234,88 @@ class DBconverter(_TaskDB, BaseDB):
             exec_shell("ALTER TABLE `site` ADD `MustVerifyEmailEn`  INT UNSIGNED NOT NULL DEFAULT 0 " )  
 
         try:
-            self.db.tpl.get("1", fields=('groups'))
+            groups = self.db.task.get("1", fields=('`groups`'))
+            if groups:
+                exec_shell("ALTER TABLE `task` RENAME TO `taskold`")
+                if config.db_type == 'sqlite3':
+                    autokey = 'AUTOINCREMENT'
+                else:
+                    autokey = 'AUTO_INCREMENT'
+                exec_shell('''CREATE TABLE IF NOT EXISTS `task` (
+                `id` INTEGER PRIMARY KEY %s,
+                `tplid` INT UNSIGNED NOT NULL,
+                `userid` INT UNSIGNED NOT NULL,
+                `disabled` TINYINT(1) NOT NULL DEFAULT 0,
+                `init_env` BLOB NULL,
+                `env` BLOB NULL,
+                `session` BLOB NULL,
+                `last_success` INT UNSIGNED NULL,
+                `last_failed` INT UNSIGNED NULL,
+                `success_count` INT UNSIGNED NOT NULL DEFAULT 0,
+                `failed_count` INT UNSIGNED NOT NULL DEFAULT 0,
+                `last_failed_count` INT UNSIGNED NOT NULL DEFAULT 0,
+                `next` INT UNSIGNED NULL DEFAULT NULL,
+                `note` VARCHAR(256) NULL,
+                `ctime` INT UNSIGNED NOT NULL,
+                `mtime` INT UNSIGNED NOT NULL,
+                `ontimeflg` INT UNSIGNED NOT NULL DEFAULT 0,
+                `ontime` VARCHAR(256) NOT NULL DEFAULT '00:10:00',
+                `_groups` VARCHAR(256) NOT NULL DEFAULT 'None',
+                `pushsw`  VARBINARY(128) NOT NULL DEFAULT '{\"logen\":false,\"pushen\":true}',
+                `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0}'
+                );'''% autokey)
+                exec_shell("INSERT INTO `task` SELECT `id`,`tplid`,`userid`,`disabled`,`init_env`,`env`,`session`,`last_success`,`last_failed`,`success_count`,`failed_count`,`last_failed_count`,`next`,`note`,`ctime`,`mtime`,`ontimeflg`,`ontime`,`groups`,`pushsw`,`newontime` FROM `taskold` ")
+                exec_shell("DROP TABLE `taskold` ")
         except :
-            exec_shell("ALTER TABLE `tpl` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
+            pass
+        
+        try:
+            self.db.task.get("1", fields=('_groups'))
+        except :
+            exec_shell("ALTER TABLE `task` ADD `_groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
+
+        try:
+            groups = self.db.tpl.get("1", fields=('`groups`'))
+            if groups:
+                exec_shell("ALTER TABLE `tpl` RENAME TO `tplold`")
+                if config.db_type == 'sqlite3':
+                    autokey = 'AUTOINCREMENT'
+                else:
+                    autokey = 'AUTO_INCREMENT'
+                exec_shell('''CREATE TABLE IF NOT EXISTS `tpl` (
+                `id` INTEGER NOT NULL PRIMARY KEY %s,
+                `userid` INT UNSIGNED NULL,
+                `siteurl` VARCHAR(256) NULL,
+                `sitename` VARCHAR(128) NULL,
+                `banner` VARCHAR(1024) NULL,
+                `disabled` TINYINT(1) NOT NULL DEFAULT 0,
+                `public` TINYINT(1) NOT NULL DEFAULT 0,
+                `lock` TINYINT(1) NOT NULL DEFAULT 0,
+                `fork` INT UNSIGNED NULL,
+                `har` MEDIUMBLOB NULL,
+                `tpl` MEDIUMBLOB NULL,
+                `variables` TEXT NULL,
+                `interval` INT UNSIGNED NULL,
+                `note` VARCHAR(1024) NULL,
+                `success_count` INT UNSIGNED NOT NULL DEFAULT 0,
+                `failed_count` INT UNSIGNED NOT NULL DEFAULT 0,
+                `last_success` INT UNSIGNED NULL,
+                `ctime` INT UNSIGNED NOT NULL,
+                `mtime` INT UNSIGNED NOT NULL,
+                `atime` INT UNSIGNED NOT NULL,
+                `tplurl` VARCHAR(1024) NULL DEFAULT '',
+                `updateable` INT UNSIGNED NOT NULL DEFAULT 0,
+                `_groups` VARCHAR(256) NOT NULL DEFAULT 'None'
+                );'''% autokey)
+                exec_shell("INSERT INTO `tpl` SELECT `id`,`userid`,`siteurl`,`sitename`,`banner`,`disabled`,`public`,`lock`,`fork`,`har`,`tpl`,`variables`,`interval`,`note`,`success_count`,`failed_count`,`last_success`,`ctime`,`mtime`,`atime`,`tplurl`,`updateable`,`groups` FROM `tplold` ")
+                exec_shell("DROP TABLE `tplold` ")
+        except :
+            pass
+
+        try:
+            self.db.tpl.get("1", fields=('_groups'))
+        except :
+            exec_shell("ALTER TABLE `tpl` ADD `_groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
             
         try:
             tmp = self.db.site.get("1", fields=('logDay'))

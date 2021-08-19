@@ -7,10 +7,10 @@
 
 import json
 import time
-import urlparse
+from urllib.parse import urlparse
 from datetime import datetime
 
-from base import *
+from .base import *
 
 class PushListHandler(BaseHandler):
     @tornado.web.authenticated

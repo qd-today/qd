@@ -52,7 +52,7 @@
         cookie_str += key + '=' + value + '; ';
       }
       if (cookie_str === '') {
-        alert('没有获得cookie，您是否已经登录？');
+        // alert('没有获得cookie，您是否已经登录？');
         return;
       }
       if (cookie_input != null) {

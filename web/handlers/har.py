@@ -14,7 +14,7 @@ from tornado import gen
 from jinja2 import Environment, meta
 from libs import utils
 
-from base import *
+from .base import *
 
 class HAREditor(BaseHandler):
     def get(self, id=None):
@@ -64,7 +64,11 @@ class HARTest(BaseHandler):
     @gen.coroutine
     def post(self):
         self.evil(+1)
-
+        try:
+            if 'json' in self.request.headers['Content-Type']:
+                self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
+        except :
+            pass
         data = json.loads(self.request.body)
         ret = yield self.fetcher.fetch(data)
 
@@ -119,6 +123,11 @@ class HARSave(BaseHandler):
         reponame = self.get_argument("reponame", "")
         harname = self.get_argument("name", "")
         userid = self.current_user['id']
+        try:
+            if 'json' in self.request.headers['Content-Type']:
+                self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
+        except :
+            pass
         data = json.loads(self.request.body)
 
         har = self.db.user.encrypt(userid, data['har'])
@@ -137,9 +146,13 @@ class HARSave(BaseHandler):
                 return
 
             self.db.tpl.mod(id, har=har, tpl=tpl, variables=variables)
-            groupName = self.db.tpl.get(id, fields=('groups'))['groups']
+            groupName = self.db.tpl.get(id, fields=('_groups'))['_groups']
         else:
-            id = self.db.tpl.add(userid, har, tpl, variables)
+            try:
+                id = self.db.tpl.add(userid, har, tpl, variables)
+            except Exception as e:
+                if "max_allowed_packet" in str(e):
+                    raise Exception('har大小超过MySQL max_allowed_packet 限制; \n'+str(e))
             if not id:
                 raise Exception('create tpl error')
 
@@ -152,7 +165,7 @@ class HARSave(BaseHandler):
                 interval=setting.get('interval') or None,
                 mtime=time.time(),
                 updateable=0,
-                groups=groupName)
+                _groups=groupName)
         self.finish({
             'id': id
             })

@@ -123,7 +123,7 @@ def format_date(date, gmt_offset=-8*60, relative=True, shorter=False, full_forma
 
 
 def utf8(string):
-    if isinstance(string, unicode):
+    if isinstance(string, str):
         return string.encode('utf8')
     return string
 
@@ -132,13 +132,13 @@ import config
 from tornado import httpclient
 
 
-def send_mail(to, subject, text=None, html=None, async=False, _from=u"签到提醒 <noreply@%s>" % config.mail_domain):
+def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提醒 <noreply@%s>" % config.mail_domain):
     if not config.mailgun_key:
         subtype = 'html' if html else 'plain'
         return _send_mail(to, subject, html or text or '', subtype)
 
     httpclient.AsyncHTTPClient.configure('tornado.curl_httpclient.CurlAsyncHTTPClient')
-    if async:
+    if shark:
         client = httpclient.AsyncHTTPClient()
     else:
         client = httpclient.HTTPClient()
@@ -198,7 +198,7 @@ from requests.utils import get_encoding_from_headers, get_encodings_from_content
 
 def find_encoding(content, headers=None):
     # content is unicode
-    if isinstance(content, unicode):
+    if isinstance(content, str):
         return 'unicode'
 
     encoding = None
@@ -236,7 +236,7 @@ def decode(content, headers=None):
 
 
 def quote_chinese(url, encodeing="utf-8"):
-    if isinstance(url, unicode):
+    if isinstance(url, str):
         return quote_chinese(url.encode("utf-8"))
     res = [b if ord(b) < 128 else '%%%02X' % (ord(b)) for b in url]
     return "".join(res)

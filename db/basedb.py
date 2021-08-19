@@ -6,12 +6,22 @@
 # Created on 2012-08-30 17:43:49
 
 import logging
+import sqlite3
 logger = logging.getLogger('qiandao.basedb')
 
 def tostr(s):
+    if isinstance(s, bytes):
+        try:
+            return s.decode()
+        except :
+            return s
     if isinstance(s, bytearray):
-        return str(s)
+        try:
+            return s.decode()
+        except :
+            return s
     return s
+    
 
 class BaseDB(object):
     '''
@@ -19,7 +29,7 @@ class BaseDB(object):
 
     dbcur should be overwirte
     '''
-    placeholder = '%s'
+    placeholder = "%s"
 
     @staticmethod
     def escape(string):
@@ -75,7 +85,7 @@ class BaseDB(object):
     def _replace(self, tablename=None, **values):
         tablename = self.escape(tablename or self.__tablename__)
         if values:
-            _keys = ", ".join(self.escape(k) for k in values.iterkeys())
+            _keys = ", ".join(self.escape(k) for k in values.keys())
             _values = ", ".join([self.placeholder, ] * len(values))
             sql_query = "REPLACE INTO %s (%s) VALUES (%s)" % (tablename, _keys, _values)
         else:
@@ -83,7 +93,7 @@ class BaseDB(object):
         logger.debug("<sql: %s>", sql_query)
         
         if values:
-            dbcur = self._execute(sql_query, values.values())
+            dbcur = self._execute(sql_query, list(values.values()))
         else:
             dbcur = self._execute(sql_query)
         return dbcur.lastrowid
@@ -91,7 +101,7 @@ class BaseDB(object):
     def _insert(self, tablename=None, **values):
         tablename = self.escape(tablename or self.__tablename__)
         if values:
-            _keys = ", ".join((self.escape(k) for k in values.iterkeys()))
+            _keys = ", ".join((self.escape(k) for k in values.keys()))
             _values = ", ".join([self.placeholder, ] * len(values))
             sql_query = "INSERT INTO %s (%s) VALUES (%s)" % (tablename, _keys, _values)
         else:
@@ -99,18 +109,18 @@ class BaseDB(object):
         logger.debug("<sql: %s>", sql_query)
         
         if values:
-            dbcur = self._execute(sql_query, values.values())
+            dbcur = self._execute(sql_query, list(values.values()))
         else:
             dbcur = self._execute(sql_query)
         return dbcur.lastrowid
 
     def _update(self, tablename=None, where="1=0", where_values=[], **values):
         tablename = self.escape(tablename or self.__tablename__)
-        _key_values = ", ".join(["%s = %s" % (self.escape(k), self.placeholder) for k in values.iterkeys()]) 
+        _key_values = ", ".join(["%s = %s" % (self.escape(k), self.placeholder) for k in values.keys()]) 
         sql_query = "UPDATE %s SET %s WHERE %s" % (tablename, _key_values, where)
         logger.debug("<sql: %s>", sql_query)
         
-        return self._execute(sql_query, values.values()+list(where_values))
+        return self._execute(sql_query, list(values.values())+list(where_values))
     
     def _delete(self, tablename=None, where="1=0", where_values=[]):
         tablename = self.escape(tablename or self.__tablename__)
@@ -121,7 +131,6 @@ class BaseDB(object):
         return self._execute(sql_query, where_values)
 
 if __name__ == "__main__":
-    import sqlite3
     class DB(BaseDB):
         __tablename__ = "test"
         def __init__(self):

@@ -1,0 +1,25 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+grunt = "*"
+tornado = "*"
+u-msgpack-python = "*"
+chardet = "*"
+requests = "*"
+pbkdf2 = "*"
+pycryptodome = "*"
+pytz = "*"
+croniter = "*"
+Jinja2 = "*"
+umsgpack = "*"
+pycurl = "<7.43.0.6"
+redis = "*"
+mysql-connector-python = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"

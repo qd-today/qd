@@ -11,12 +11,16 @@ import random
 import urllib
 import base64
 import logging
-import urlparse
+import traceback
+import urllib.parse as urlparse
 from datetime import datetime
+
+from tornado.httputil import HTTPHeaders
 
 try:
     import pycurl
 except ImportError as e:
+    print(e)
     pycurl = None
 from jinja2.sandbox import SandboxedEnvironment as Environment
 from tornado import gen, httpclient
@@ -44,19 +48,24 @@ class Fetcher(object):
             _cookies = cookie_utils.CookieSession()
             _cookies.from_json(session)
 
+
         def _render(obj, key):
             if not obj.get(key):
                 return
+            
             obj[key] = self.jinja_env.from_string(obj[key]).render(_cookies=_cookies, **env)
+            return True
 
         _render(request, 'method')
         _render(request, 'url')
         for header in request['headers']:
             _render(header, 'name')
             _render(header, 'value')
+            header['value'] = utils.quote_chinese(header['value'])
         for cookie in request['cookies']:
             _render(cookie, 'name')
             _render(cookie, 'value')
+            cookie['value'] = utils.quote_chinese(cookie['value'])
         _render(request, 'data')
         return request
 
@@ -101,6 +110,8 @@ class Fetcher(object):
                 )
 
         session = cookie_utils.CookieSession()
+        if req.headers.get('cookie'):
+            req.headers['Cookie'] = req.headers.pop("cookie")
         if req.headers.get('Cookie'):
             session.update(dict(x.strip().split('=', 1) \
                     for x in req.headers['Cookie'].split(';') \
@@ -145,11 +156,13 @@ class Fetcher(object):
                     bodySize = len(request.body) if request.body else 0,
                     )
             if request.body:
+                if isinstance(request.body,bytes):
+                    request._body = request.body.decode()
                 ret['postData'] = dict(
                         mimeType = request.headers.get('content-type'),
                         text = request.body,
                         )
-                if ret['postData']['mimeType'] == 'application/x-www-form-urlencoded':
+                if ret['postData']['mimeType'] and 'application/x-www-form-urlencoded' in ret['postData']['mimeType']:
                     ret['postData']['params'] = [
                             {'name': n, 'value': v} for n, v in \
                                 urlparse.parse_qsl(request.body)]
@@ -179,7 +192,7 @@ class Fetcher(object):
                     content = dict(
                         size = len(response.body),
                         mimeType = response.headers.get('content-type'),
-                        text = base64.b64encode(response.body),
+                        text = base64.b64encode(response.body).decode('ascii'),
                         decoded = utils.decode(response.body, response.headers),
                         ),
                     redirectURL = response.headers.get('Location'),
@@ -198,7 +211,7 @@ class Fetcher(object):
             pageref = "page_0",
             )
         if response.body and 'image' in response.headers.get('content-type'):
-            entry['response']['content']['decoded'] = base64.b64encode(response.body)
+            entry['response']['content']['decoded'] = base64.b64encode(response.body).decode('ascii')
         return entry
 
     @staticmethod
@@ -210,7 +223,10 @@ class Fetcher(object):
         def getdata(_from):
             if _from == 'content':
                 if content[0] == -1:
-                    content[0] = utils.decode(response.body)
+                    if response.headers and isinstance(response.headers,HTTPHeaders):
+                        content[0] = utils.decode(response.body, headers=response.headers)
+                    else:
+                        content[0] = utils.decode(response.body)
                 if ('content-type' in response.headers):
                     if 'image' in response.headers.get('content-type'):
                         return base64.b64encode(response.body)
@@ -221,7 +237,14 @@ class Fetcher(object):
                 _from = _from[7:]
                 return response.headers.get(_from, '')
             elif _from == 'header':
-                return unicode(response.headers)
+                try:
+                    return str(response.headers._dict).replace('\'', '')
+                except Exception as e:
+                    traceback.print_exc()
+                try:
+                    return json.dumps(response.headers._dict)
+                except Exception as e:
+                    traceback.print_exc()
             else:
                 return ''
 
@@ -235,7 +258,7 @@ class Fetcher(object):
         for r in rule.get('failed_asserts') or '':
             if re.search(r['re'], getdata(r['from'])):
                 success = False
-                msg = 'fail assert: %s' % json.dumps(r, encoding="UTF-8", ensure_ascii=False)
+                msg = 'fail assert: %s' % json.dumps(r, ensure_ascii=False)
                 break
 
         for r in rule.get('extract_variables') or '':
@@ -300,10 +323,15 @@ class Fetcher(object):
                         mimeType = en['request'].get('mimeType'),
                         text = en['request'].get('data'),
                         )
-                if en['request'].get('mimeType') == 'application/x-www-form-urlencoded':
+                if request['postData']['mimeType'] and 'application/x-www-form-urlencoded' in request['postData']['mimeType'] :
                     params = [{'name': x[0], 'value': x[1]} \
                         for x in urlparse.parse_qsl(en['request']['data'], True)]
                     request['postData']['params'] = params
+                    try:
+                        _ = json.dumps(request['postData']['params'])
+                    except UnicodeDecodeError:
+                        logger.error('params encoding error')
+                        del request['postData']['params']
             return request
 
         entries = []
@@ -372,7 +400,7 @@ class Fetcher(object):
             response = yield self.client.fetch(req)
         except httpclient.HTTPError as e:
             if not e.response:
-                raise
+                raise e
             response = e.response
 
         env['session'].extract_cookies_to_jar(response.request, response)

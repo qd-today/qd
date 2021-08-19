@@ -7,7 +7,7 @@
 
 import time
 import datetime
-from base import *
+from .base import *
 import urllib
 
 import requests
@@ -20,7 +20,7 @@ def my_status(task):
         return u'停止'
     if task['last_failed_count']:
         return u'已失败%d次，重试中...' % task['last_failed_count']
-    if task['last_failed'] > task['last_success']:
+    if task['last_failed'] and task['last_failed'] > task['last_success']:
         return u'失败'
     if task['success_count'] == 0 and task['failed_count'] == 0 and task['next'] and (task['next'] - time.time() < 60):
         return u'正在准备为您签到'
@@ -40,12 +40,12 @@ class MyHandler(BaseHandler):
             hfile = "./tpls_history.json"
 
             if (True == os.path.isfile(hfile)):
-                hjson = json.loads(open(hfile, 'r').read())
+                hjson = json.loads(open(hfile, 'r' ,encoding='utf-8').read())
             else:
                 hjson = {}
             tpls = []
 
-            for tpl in self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'groups', 'updateable', 'tplurl'), limit=None):
+            for tpl in self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', '_groups', 'updateable', 'tplurl'), limit=None):
                 tplurl = tpl['tplurl']
                 if (tpl['updateable'] == 1) and (tplurl in hjson):
                     if (hjson[tplurl]['update']):
@@ -53,24 +53,24 @@ class MyHandler(BaseHandler):
                 tpls.append(tpl)
 
             tasks = []
-            for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'groups'), limit=None):
+            for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', '_groups'), limit=None):
                 tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
                 task['tpl'] = tpl
                 tasks.append(task)
 
-            groups = []
+            _groups = []
             for task in tasks:
-                temp = task['groups']
-                if (temp not  in groups):
-                    groups.append(temp)
+                temp = task['_groups']
+                if (temp not  in _groups):
+                    _groups.append(temp)
 
             tplgroups = []
             for tpl in tpls:
-                temp = tpl['groups']
+                temp = tpl['_groups']
                 if (temp not  in tplgroups):
                     tplgroups.append(temp)
                     
-            self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=groups,  tplgroups=tplgroups, adminflg=adminflg)
+            self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=_groups,  tplgroups=tplgroups, adminflg=adminflg)
         else:
             return self.redirect('/login')
 
@@ -82,15 +82,15 @@ class CheckUpdateHandler(BaseHandler):
         tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable",), limit=None)
         
         tasks = []
-        for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'groups'), limit=None):
+        for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', '_groups'), limit=None):
             tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
             task['tpl'] = tpl
             tasks.append(task)
-        groups = []
+        _groups = []
         for task in tasks:
-            temp = task['groups']
-            if (temp not  in groups):
-                groups.append(temp)
+            temp = task['_groups']
+            if (temp not  in _groups):
+                _groups.append(temp)
                 
         common_tpls = []
         res = requests.get("https://github.com/qiandao-today/templates", verify=False)
@@ -123,15 +123,15 @@ class CheckUpdateHandler(BaseHandler):
                         if (tpl['mtime'] < common_tpl['update_time_ts']):
                             self.db.tpl.mod(tpl["id"], updateable=1)
                             
-        tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable", 'groups'), limit=None)
+        tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable", '_groups'), limit=None)
         
         tplgroups = []
         for tpl in tpls:
-            temp = tpl['groups']
+            temp = tpl['_groups']
             if (temp not  in tplgroups):
-                groups.append(temp)
+                _groups.append(temp)
 
-        self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=groups, tplgroups=tplgroups)
+        self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=_groups, tplgroups=tplgroups)
 
 handlers = [
         ('/my/?', MyHandler),

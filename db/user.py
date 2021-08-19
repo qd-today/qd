@@ -13,7 +13,7 @@ from Crypto.Hash import MD5
 
 import config
 from libs import mcrypto as crypto, utils
-from basedb import BaseDB
+from .basedb import BaseDB
 
 logger = logging.getLogger('qiandao.userdb')
 class UserDB(BaseDB):
@@ -37,7 +37,7 @@ class UserDB(BaseDB):
 
     @staticmethod
     def check_nickname(nickname):
-        if isinstance(nickname, unicode):
+        if isinstance(nickname, str):
             nickname = nickname.encode('utf8')
         return len(nickname) < 64
 
@@ -46,7 +46,7 @@ class UserDB(BaseDB):
             raise self.DeplicateUser('duplicate username')
 
         now = time.time()
-        if isinstance(ip, basestring):
+        if isinstance(ip, str):
             ip = utils.ip2int(ip)
         userkey = umsgpack.unpackb(crypto.password_hash(password))[0]
 
@@ -130,7 +130,14 @@ class UserDB(BaseDB):
         else:
             userkey = config.aes_key
         try:
-            return crypto.aes_decrypt(data, userkey)
+            old = tmp = crypto.aes_decrypt(data, userkey)
+            if isinstance(tmp,dict):
+                old = {}
+                for key,value in tmp.items():
+                    if isinstance(key,bytes):
+                        key=key.decode('utf-8')
+                    old[key]=value
+            return old
         except Exception as e:
             raise self.UserDBException('decrypt error')
 
@@ -152,7 +159,7 @@ class UserDB(BaseDB):
     def list(self, fields=None, limit=None, **kwargs):
         where = '1=1'
         where_values = []
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if value is None:
                 where += ' and %s is %s' % (self.escape(key), self.placeholder)
             else:

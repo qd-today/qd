@@ -6,8 +6,8 @@
 # Created on 2014-08-07 21:01:31
 
 import base64
-import config
 import umsgpack
+import config
 
 from pbkdf2 import PBKDF2
 from Crypto import Random
@@ -34,7 +34,7 @@ def aes_encrypt(word, key=config.aes_key, iv=None):
     word = umsgpack.packb(word)
     mod = len(word) % 16
     if mod != 0:
-        word += '\0' * (16-mod)
+        word += b'\0' * (16-mod)
 
     aes = AES.new(key, AES.MODE_CBC, iv)
     ciphertext = aes.encrypt(word)

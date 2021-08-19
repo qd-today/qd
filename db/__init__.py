@@ -5,11 +5,13 @@
 #         http://binux.me
 # Created on 2014-08-08 20:28:15
 
-from user import UserDB
-from tpl import TPLDB
-from task import TaskDB
-from tasklog import TaskLogDB
-from push_request import PRDB
-from redisdb import RedisDB
-from site import SiteDB
-from pubtpl import PubTplDB
+from .user import UserDB
+from .tpl import TPLDB
+from .task import TaskDB
+from .tasklog import TaskLogDB
+from .push_request import PRDB
+from .redisdb import RedisDB
+from .site import SiteDB
+from .pubtpl import PubTplDB
+import os,sys
+sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))

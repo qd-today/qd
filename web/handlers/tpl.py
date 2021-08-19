@@ -7,8 +7,9 @@
 
 import json
 from tornado import gen
-from base import *
+from .base import *
 from libs import utils
+import traceback
 
 class TPLPushHandler(BaseHandler):
     @tornado.web.authenticated
@@ -78,8 +79,12 @@ class TPLRunHandler(BaseHandler):
         self.evil(+5)
         user = self.current_user
         data = {}
-        if 'json' in self.request.headers['Content-Type']:
-            data = json.loads(self.request.body)
+        try:
+            if 'json' in self.request.headers['Content-Type']:
+                self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
+                data = json.loads(self.request.body)
+        except :
+            pass
 
         tplid = tplid or data.get('tplid') or self.get_argument('_binux_tplid', None)
         tpl = dict()
@@ -121,7 +126,8 @@ class TPLRunHandler(BaseHandler):
             else:
                 result = yield self.fetcher.do_fetch(fetch_tpl, env, proxies=[])
         except Exception as e:
-            self.render('tpl_run_failed.html', log=e)
+            traceback.print_exc()
+            self.render('tpl_run_failed.html', log=str(e))
             return
 
         if tpl:
@@ -140,32 +146,35 @@ class TPLGroupHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, tplid):
         user = self.current_user      
-        groupNow = self.db.tpl.get(tplid, fields=('groups'))['groups']
+        groupNow = self.db.tpl.get(tplid, fields=('_groups'))['_groups']
         tasks = []
-        groups = []
-        tpls = self.db.tpl.list(userid=user['id'], fields=('groups'), limit=None)
+        _groups = []
+        tpls = self.db.tpl.list(userid=user['id'], fields=('_groups'), limit=None)
         for tpl in tpls:
-            temp = tpl['groups']
-            if (temp not  in groups):
-                groups.append(temp)
+            temp = tpl['_groups']
+            if (temp not  in _groups):
+                _groups.append(temp)
 
-        self.render('tpl_setgroup.html', tplid=tplid, groups=groups, groupNow=groupNow)
+        self.render('tpl_setgroup.html', tplid=tplid, _groups=_groups, groupNow=groupNow)
     
     @tornado.web.authenticated
     def post(self, tplid):        
-        New_group = self.request.body_arguments['New_group'][0].strip()
+        envs = {}
+        for key in self.request.body_arguments:
+            envs[key] = self.get_body_arguments(key)
+        New_group = envs['New_group'][0].strip()
         
         if New_group != "" :
-            target_group = New_group.decode("utf-8").encode("utf-8")
+            target_group = New_group
         else:
-            for value in self.request.body_arguments:
-                if self.request.body_arguments[value][0] == 'on':
+            for value in envs:
+                if envs[value][0] == 'on':
                     target_group = value.strip()
                     break
                 else:
                     target_group = 'None'
             
-        self.db.tpl.mod(tplid, groups=target_group)
+        self.db.tpl.mod(tplid, _groups=target_group)
    
         self.redirect('/my/')
 

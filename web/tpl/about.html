@@ -80,7 +80,7 @@ clipboard.on('error', function(e) {
 
 <header>
 <div class="container">
-  <h2 class="text-center">私有签到框架<sup>20210628</sup></h2>
+  <h2 class="text-center">私有签到框架<sup>20210807</sup></h2>
   <div class="buttons">
     <a href="/" class="btn btn-default pull-left">首页</a>
     <a href="/about" class="btn btn-default pull-left">常用API/过滤器</a>
@@ -114,17 +114,17 @@ clipboard.on('error', function(e) {
       <tr>
         <td>时间戳</td>
           <td id="api_url1" class="showbut">
-            <a href="/util/timestamp" rel="nofollow">http://localhost/util/timestamp</a>
+            <a href="/util/timestamp" target="_blank" rel="nofollow">http://localhost/util/timestamp</a>
           <button class="btn hljs-button" data-clipboard-target="#api_url1">复制</button>
         </td>
         <td>ts<br></td>
         <td>否</td>
-        <td>默认返回当前时间戳和时间<br>如果参数带时间戳，返回所对应北京时间</td>
+        <td>默认返回当前时间戳和时间<br>如果参数带时间戳ts, 返回所对应时间</td>
 
           <td id="api_exam1" class="showbut">
             <div class="autowrap">
-              <a href="/util/timestamp" rel="nofollow"> 
-          http://localhost/util/timestamp
+              <a href="/util/timestamp?ts=1625068800" target="_blank" rel="nofollow"> 
+          http://localhost/util/timestamp?ts=1625068800
               </a>
             </div>
           <button class="btn hljs-button" data-clipboard-target="#api_exam1">复制</button>
@@ -134,16 +134,16 @@ clipboard.on('error', function(e) {
       <tr>
         <td>Unicode转中文</td>
           <td id="api_url2" class="showbut">
-            <a href="/util/unicode" rel="nofollow">http://localhost/util/unicode</a>
+            <a href="/util/unicode" target="_blank" rel="nofollow">http://localhost/util/unicode</a>
           <button class="btn hljs-button" data-clipboard-target="#api_url2">复制</button>
         </td>
         <td>content</td>
         <td>是</td>
-        <td>要转码的内容</td>
+        <td>content: 要转码的内容</td>
 
           <td id="api_exam2" class="showbut">
             <div class="autowrap">
-              <a href="/util/unicode?content=%E4%BB%8A%E6%97%A5%E7%AD%BE%E5%88%B0%EF%BC%9A1%5Cu5929%5Cu5ef6%5Cu4fdd" rel="nofollow"> 
+              <a href="/util/unicode?content=%E4%BB%8A%E6%97%A5%E7%AD%BE%E5%88%B0%EF%BC%9A1%5Cu5929%5Cu5ef6%5Cu4fdd" target="_blank" rel="nofollow"> 
           http://localhost/util/unicode?content=%E4%BB%8A%E6%97%A5%E7%AD%BE%E5%88%B0%EF%BC%9A1%5Cu5929%5Cu5ef6%5Cu4fdd
               </a>
             </div>
@@ -154,7 +154,7 @@ clipboard.on('error', function(e) {
       <tr>
         <td>Url转中文</td>
           <td id="api_url3" class="showbut">
-            <a href="/util/urldecode" rel="nofollow">http://localhost/util/urldecode</a>
+            <a href="/util/urldecode" target="_blank" rel="nofollow">http://localhost/util/urldecode</a>
           <button class="btn hljs-button" data-clipboard-target="#api_url3">复制</button>
         </td>
         <td>content</td>
@@ -163,7 +163,7 @@ clipboard.on('error', function(e) {
 
           <td id="api_exam3" class="showbut">
             <div class="autowrap">
-              <a href="/util/urldecode?content=%E7%AD%BE%E5%88%B0%E6%88%90%E5%8A%9F%EF%BC%81%E6%AF%8F%E6%97%A5%E7%AD%BE%E5%88%B0%E8%8E%B7%E5%BE%97%2C" rel="nofollow"> 
+              <a href="/util/urldecode?content=%E7%AD%BE%E5%88%B0%E6%88%90%E5%8A%9F%EF%BC%81%E6%AF%8F%E6%97%A5%E7%AD%BE%E5%88%B0%E8%8E%B7%E5%BE%97%2C" target="_blank" rel="nofollow"> 
           http://localhost/util/urldecode?content=%E7%AD%BE%E5%88%B0%E6%88%90%E5%8A%9F%EF%BC%81%E6%AF%8F%E6%97%A5%E7%AD%BE%E5%88%B0%E8%8E%B7%E5%BE%97%2C
               </a>
             </div>
@@ -174,17 +174,17 @@ clipboard.on('error', function(e) {
       <tr>
         <td>正则表达式</td>
           <td id="api_url4" class="showbut">
-            <a href="/util/regex" rel="nofollow">http://localhost/util/regex</a>
+            <a href="/util/regex" target="_blank" rel="nofollow">http://localhost/util/regex</a>
           <button class="btn hljs-button" data-clipboard-target="#api_url4">复制</button>
         </td>
         <td>data,p</td>
         <td>是</td>
-        <td>data：原始数据<br>p：正则表达式</td>
+        <td>data: 原始数据<br>p: 正则表达式</td>
 
           <td id="api_exam4" class="showbut">
             <div class="autowrap">
-              <a href="/util/regex?data=%7b%22code%22%3a0%2c%22msg%22%3a%22%E6%88%90%E5%8A%9F%22%2c%22data%22%3a%7b%22users%22%3a%5b%7b%22name%22%3a%22%E5%BC%A0%E4%B8%89%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a12%7d%2c%7b%22name%22%3a%22%E6%9D%8E%E5%9B%9B%22%2c%22gender%22%3a%22female%22%2c%22age%22%3a15%7d%2c%7b%22name%22%3a%22%E7%8E%8B%E4%BA%94%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a22%7d%2c%7b%22name%22%3a%22%E8%B5%B5%E5%85%AD%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a24%7d%5d%2c%22goods%22%3a%5b%7b%22name%22%3a%22apple%22%2c%22price%22%3a15%2c%22num%22%3a200%7d%2c%7b%22name%22%3a%22pear%22%2c%22price%22%3a18%2c%22num%22%3a100%7d%2c%7b%22name%22%3a%22banana%22%2c%22price%22%3a16%2c%22num%22%3a210%7d%5d%7d%7d&amp;amp;p=name%22%3a%22(.%2b%3f)" rel="nofollow"> 
-          http://localhost/util/regex?data=%7b%22code%22%3a0%2c%22msg%22%3a%22%E6%88%90%E5%8A%9F%22%2c%22data%22%3a%7b%22users%22%3a%5b%7b%22name%22%3a%22%E5%BC%A0%E4%B8%89%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a12%7d%2c%7b%22name%22%3a%22%E6%9D%8E%E5%9B%9B%22%2c%22gender%22%3a%22female%22%2c%22age%22%3a15%7d%2c%7b%22name%22%3a%22%E7%8E%8B%E4%BA%94%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a22%7d%2c%7b%22name%22%3a%22%E8%B5%B5%E5%85%AD%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a24%7d%5d%2c%22goods%22%3a%5b%7b%22name%22%3a%22apple%22%2c%22price%22%3a15%2c%22num%22%3a200%7d%2c%7b%22name%22%3a%22pear%22%2c%22price%22%3a18%2c%22num%22%3a100%7d%2c%7b%22name%22%3a%22banana%22%2c%22price%22%3a16%2c%22num%22%3a210%7d%5d%7d%7d&amp;p=name%22%3a%22(.%2b%3f)
+              <a href="/util/regex?data=%7b%22code%22%3a0%2c%22msg%22%3a%22%E6%88%90%E5%8A%9F%22%2c%22data%22%3a%7b%22users%22%3a%5b%7b%22name%22%3a%22%E5%BC%A0%E4%B8%89%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a12%7d%2c%7b%22name%22%3a%22%E6%9D%8E%E5%9B%9B%22%2c%22gender%22%3a%22female%22%2c%22age%22%3a15%7d%2c%7b%22name%22%3a%22%E7%8E%8B%E4%BA%94%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a22%7d%2c%7b%22name%22%3a%22%E8%B5%B5%E5%85%AD%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a24%7d%5d%2c%22goods%22%3a%5b%7b%22name%22%3a%22apple%22%2c%22price%22%3a15%2c%22num%22%3a200%7d%2c%7b%22name%22%3a%22pear%22%2c%22price%22%3a18%2c%22num%22%3a100%7d%2c%7b%22name%22%3a%22banana%22%2c%22price%22%3a16%2c%22num%22%3a210%7d%5d%7d%7d&p=name%22%3a%22(.%2b%3f)" target="_blank" rel="nofollow"> 
+          http://localhost/util/regex?data=%7b%22code%22%3a0%2c%22msg%22%3a%22%E6%88%90%E5%8A%9F%22%2c%22data%22%3a%7b%22users%22%3a%5b%7b%22name%22%3a%22%E5%BC%A0%E4%B8%89%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a12%7d%2c%7b%22name%22%3a%22%E6%9D%8E%E5%9B%9B%22%2c%22gender%22%3a%22female%22%2c%22age%22%3a15%7d%2c%7b%22name%22%3a%22%E7%8E%8B%E4%BA%94%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a22%7d%2c%7b%22name%22%3a%22%E8%B5%B5%E5%85%AD%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a24%7d%5d%2c%22goods%22%3a%5b%7b%22name%22%3a%22apple%22%2c%22price%22%3a15%2c%22num%22%3a200%7d%2c%7b%22name%22%3a%22pear%22%2c%22price%22%3a18%2c%22num%22%3a100%7d%2c%7b%22name%22%3a%22banana%22%2c%22price%22%3a16%2c%22num%22%3a210%7d%5d%7d%7d&p=name%22%3a%22(.%2b%3f)
               </a>
             </div>
           <button class="btn hljs-button" data-clipboard-target="#api_exam4">复制</button>
@@ -194,23 +194,43 @@ clipboard.on('error', function(e) {
       <tr>
         <td>字符串替换</td>
           <td id="api_url5" class="showbut">
-            <a href="/util/string/replace" rel="nofollow">http://localhost/util/string/replace</a>
+            <a href="/util/string/replace" target="_blank" rel="nofollow">http://localhost/util/string/replace</a>
           <button class="btn hljs-button" data-clipboard-target="#api_url5">复制</button>
         </td>
         <td>p,s,t</td>
         <td>是</td>
-        <td>p：正则表达式<br>s:要替换的字符串<br>t:要替换的内容</td>
+        <td>p: 正则表达式<br>s: 要替换的字符串<br>t: 要替换的内容</td>
 
           <td id="api_exam5" class="showbut">
             <div class="autowrap">
-              <a href="/util/string/replace?p=%E4%BA%BA&amp;amp;t=%E5%AD%97%E7%AC%A6%E4%B8%B2&amp;amp;s=%7B%22text%22:%22%E6%88%91%E6%98%AF%E4%BA%BA%22%7D" rel="nofollow"> 
-          http://localhost/util/string/replace?p=%E4%BA%BA&amp;t=%E5%AD%97%E7%AC%A6%E4%B8%B2&amp;s=%7B%22text%22:%22%E6%88%91%E6%98%AF%E4%BA%BA%22%7D
+              <a href="/util/string/replace?p=%E4%BA%BA&t=%E5%AD%97%E7%AC%A6%E4%B8%B2&s=%7B%22text%22:%22%E6%88%91%E6%98%AF%E4%BA%BA%22%7D" target="_blank" rel="nofollow"> 
+          http://localhost/util/string/replace?p=%E4%BA%BA&t=%E5%AD%97%E7%AC%A6%E4%B8%B2&s=%7B%22text%22:%22%E6%88%91%E6%98%AF%E4%BA%BA%22%7D
               </a>
             </div>
           <button class="btn hljs-button" data-clipboard-target="#api_exam5">复制</button>
         </td>
       </tr>
       
+      <tr>
+        <td>延时</td>
+          <td id="api_url6" class="showbut">
+            <a href="/util/delay" target="_blank" rel="nofollow">http://localhost/util/delay</a>
+          <button class="btn hljs-button" data-clipboard-target="#api_url6">复制</button>
+        </td>
+        <td>seconds</td>
+        <td>是</td>
+        <td>seconds:延时指定时间<br>大于30s均视为延时30.0s</td>
+
+          <td id="api_exam6" class="showbut">
+            <div class="autowrap">
+              <a href="/util/delay?seconds=1.5" target="_blank" rel="nofollow"> 
+          http://localhost/util/delay?seconds=1.5
+              </a>
+            </div>
+          <button class="btn hljs-button" data-clipboard-target="#api_exam6">复制</button>
+        </td>
+      </tr>
+
     </tbody>
   </table>
   <h2>
@@ -237,7 +257,7 @@ clipboard.on('error', function(e) {
       <tr>
         <td>{{unicode(a)}}</td>
         <td>将 a 由 Unicode 转为中文（和上面 API 相同）</td>
-        <td>{{unicode(u"\u4f60\u597d")}}</td>
+        <td>{{unicode("\u4f60\u597d")}}</td>
         <td class="autowrap">你好</td>
       </tr>
       
@@ -257,14 +277,14 @@ clipboard.on('error', function(e) {
       
       <tr>
         <td>{{date_time(date,time,diff)}}</td>
-        <td>date：01表示是否显示日期（默认为 1）；time：01表示是否显示时分秒（默认为 1）；diff：时间差（默认为 0）</td>
+        <td>date: 01表示是否显示日期（默认为 1）；time: 01表示是否显示时分秒（默认为 1）；diff: 时间差（默认为 0）</td>
         <td>{{date_time(0,1,10)}}（在 18:06 测试）</td>
         <td class="autowrap">04:06:21</td>
       </tr>
       
       <tr>
         <td>{{quote_chinese(a)}}</td>
-        <td>将 a 中所有 ord() &gt;=128 的用 urlencode 表示（注意和 urlencoe 有区别）</td>
+        <td>将 a 中所有 ord() &gt;=128 的用 urlencode 表示（注意和 urlencode 有区别）</td>
         <td>{{quote_chinese("123中文QAQ&amp;amp;/:")}}</td>
         <td class="autowrap">123%E4%B8%AD%E6%96%87QAQ&amp;amp;/:</td>
       </tr>

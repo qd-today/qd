@@ -12,7 +12,7 @@ import time
 import requests
 import base64
 
-from base import *
+from .base import *
 
 class SubscribeHandler(BaseHandler):
     @tornado.web.addslash
@@ -46,7 +46,7 @@ class SubscribeHandler(BaseHandler):
                                 harfile_link = "{0}/{1}".format(url, har['filename'])
                                 har_res = requests.get(harfile_link, verify=False)
                                 if har_res.status_code == 200:
-                                    har['content'] = base64.b64encode(har_res.content.decode(har_res.encoding or 'utf-8', 'replace'))
+                                    har['content'] = base64.b64encode(har_res.content)
                                 else:
                                     msg = '{pre}\r\n打开链接错误{link}'.format(pre=msg, link=harfile_link)
 
@@ -74,11 +74,11 @@ class SubscribeHandler(BaseHandler):
 
             self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
 
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
             user = self.current_user
             tpls = self.db.pubtpl.list()
-            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=traceback.format_exc())
+            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
             return
 
 class SubscribeRefreshHandler(BaseHandler):
@@ -86,7 +86,7 @@ class SubscribeRefreshHandler(BaseHandler):
     def post(self, userid):
         try:
             user = self.current_user
-            op = self.request.arguments.get('op', '')
+            op = self.get_argument('op', '')
             if (op == ''):
                 raise Exception('op参数为空')
 
@@ -99,9 +99,9 @@ class SubscribeRefreshHandler(BaseHandler):
                         self.db.pubtpl.delete(pubtpl['id'])
             else:
                 raise Exception('没有权限操作')
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.redirect('/subscribe/{0}/'.format(userid) ) 
@@ -122,8 +122,11 @@ class Subscrib_signup_repos_Handler(BaseHandler):
         try:
             user = self.current_user
             if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+                envs = {}
+                for key in self.request.body_arguments:
+                    envs[key] = self.get_body_arguments(key)
                 env = {}
-                for k, v  in self.request.body_arguments.items():
+                for k, v  in envs.items():
                     if (v[0] == 'false') or (v[0] == 'true'):
                         env[k] = True if v == 'true' else False
                     else:
@@ -151,9 +154,9 @@ class Subscrib_signup_repos_Handler(BaseHandler):
             else:
                 raise Exception('非管理员用户，不可设置')
 
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')
@@ -165,8 +168,11 @@ class unsubscribe_repos_Handler(BaseHandler):
         try:
             user = self.current_user
             if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+                envs = {}
+                for key in self.request.body_arguments:
+                    envs[key] = self.get_body_arguments(key)
                 env = {}
-                for k, v  in self.request.body_arguments.items():
+                for k, v  in envs.items():
                     env[k] = v[0]
 
                 if (env['reponame'] != ''):
@@ -193,9 +199,9 @@ class unsubscribe_repos_Handler(BaseHandler):
             else:
                 raise Exception('非管理员用户，不可设置')
 
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')

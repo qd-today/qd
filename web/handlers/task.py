@@ -13,7 +13,7 @@ import pytz
 import random
 import traceback
 
-from base import *
+from .base import *
 from libs import utils
 from funcs import pusher
 from funcs import cal
@@ -36,18 +36,21 @@ class TaskNewHandler(BaseHandler):
                 if tpl.get('id'):
                     tplid = tpl['id']
                     break
-        tplid = int(tplid)
+        if tplid:
+            tplid = int(tplid)
 
-        tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'note', 'sitename', 'siteurl', 'variables')))
-        variables = json.loads(tpl['variables'])
+            tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'note', 'sitename', 'siteurl', 'variables')))
+            variables = json.loads(tpl['variables'])
 
-        groups = []
-        for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
-            temp = task['groups']
-            if (temp not  in groups):
-                groups.append(temp)
-        
-        self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, groups=groups, init_env=tpl['variables'])
+            _groups = []
+            for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+                temp = task['_groups']
+                if (temp not  in _groups):
+                    _groups.append(temp)
+            
+            self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=tpl['variables'])
+        else:
+            self.render('utils_run_result.html', log=u'请先添加模板！', title=u'设置失败', flg='danger')
 
     @tornado.web.authenticated
     def post(self, taskid=None):
@@ -58,9 +61,11 @@ class TaskNewHandler(BaseHandler):
         proxy = self.get_body_argument('_binux_proxy')
 
         tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'interval')))
-
+        envs = {}
+        for key in self.request.body_arguments:
+            envs[key] = self.get_body_arguments(key)
         env = {}
-        for key, value in self.request.body_arguments.iteritems():
+        for key, value in envs.items():
             if key.startswith('_binux_'):
                 continue
             if not value:
@@ -68,14 +73,14 @@ class TaskNewHandler(BaseHandler):
             env[key] = self.get_body_argument(key)
         env['_proxy'] = proxy
 
-        if ('New_group' in self.request.body_arguments):
-            New_group = self.request.body_arguments['New_group'][0].strip()
+        if ('New_group' in envs):
+            New_group = envs['New_group'][0].strip()
             
             if New_group != "" :
-                target_group = New_group.decode("utf-8").encode("utf-8")
+                target_group = New_group
             else:
-                for value in self.request.body_arguments:
-                    if self.request.body_arguments[value][0] == 'on':
+                for value in envs:
+                    if envs[value][0] == 'on':
                         if (value.find("group-select-") > -1):
                             target_group = value.replace("group-select-", "").strip()
                             break
@@ -98,8 +103,8 @@ class TaskNewHandler(BaseHandler):
             init_env = self.db.user.encrypt(user['id'], init_env)
             self.db.task.mod(taskid, init_env=init_env, env=None, session=None, note=note)
         
-        if ('New_group' in self.request.body_arguments):
-            self.db.task.mod(taskid, groups=target_group)
+        if ('New_group' in envs):
+            self.db.task.mod(taskid, _groups=target_group)
 
         self.redirect('/my/')
 
@@ -136,7 +141,7 @@ class TaskRunHandler(BaseHandler):
 
         tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename',
             'siteurl', 'tpl', 'interval', 'last_success')))
-        t = 0 if not tpl['userid'] else task['userid'], tpl['tpl']
+
         fetch_tpl = self.db.user.decrypt(
                 0 if not tpl['userid'] else task['userid'], tpl['tpl'])
         env = dict(
@@ -165,7 +170,7 @@ class TaskRunHandler(BaseHandler):
             logtmp = u"{0} 日志：{1}".format(t, e)
             pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
 
-            self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
+            self.db.tasklog.add(task['id'], success=False, msg=str(e))
             self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % e)
             return
 
@@ -228,7 +233,10 @@ class TaskLogDelHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self, taskid):
         user = self.current_user
-        body_arguments = self.request.body_arguments
+        envs = {}
+        for key in self.request.body_arguments:
+            envs[key] = self.get_body_arguments(key)
+        body_arguments = envs
         day = 365
         if ('day' in body_arguments):
             day = int(json.loads(body_arguments['day'][0]))
@@ -286,7 +294,9 @@ class TaskSetTimeHandler(TaskNewHandler):
     def post(self, taskid):
         log = u'设置成功'
         try:
-            envs = self.request.body_arguments
+            envs = {}
+            for key in self.request.body_arguments:
+                envs[key] = self.get_body_arguments(key)
             for env in envs.keys():
                 if (envs[env][0] == u'true' or envs[env][0] == u'false'):
                     envs[env] = True if envs[env][0] == u'true' else False
@@ -313,9 +323,9 @@ class TaskSetTimeHandler(TaskNewHandler):
                 tmp['sw'] = False
                 self.db.task.mod(taskid, newontime = json.dumps(tmp))
 
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
@@ -325,30 +335,33 @@ class TaskGroupHandler(TaskNewHandler):
     @tornado.web.authenticated
     def get(self, taskid):
         user = self.current_user      
-        groupNow = self.db.task.get(taskid, fields=('groups'))['groups']
-        groups = []
-        for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
-            temp = task['groups']
-            if (temp not  in groups):
-                groups.append(temp)
+        groupNow = self.db.task.get(taskid, fields=('_groups'))['_groups']
+        _groups = []
+        for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+            temp = task['_groups']
+            if (temp not  in _groups):
+                _groups.append(temp)
 
-        self.render('task_setgroup.html', taskid=taskid, groups=groups, groupNow=groupNow)
+        self.render('task_setgroup.html', taskid=taskid, _groups=_groups, groupNow=groupNow)
     
     @tornado.web.authenticated
     def post(self, taskid):        
-        New_group = self.request.body_arguments['New_group'][0].strip()
+        envs = {}
+        for key in self.request.body_arguments:
+            envs[key] = self.get_body_arguments(key)
+        New_group = envs['New_group'][0].strip()
         
         if New_group != "" :
-            target_group = New_group.decode("utf-8").encode("utf-8")
+            target_group = New_group
         else:
-            for value in self.request.body_arguments:
-                if self.request.body_arguments[value][0] == 'on':
+            for value in envs:
+                if envs[value][0] == 'on':
                     target_group = value.strip()
                     break
                 else:
                     target_group = 'None'
             
-        self.db.task.mod(taskid, groups=target_group)
+        self.db.task.mod(taskid, _groups=target_group)
 
         self.redirect('/my/')
         
@@ -357,9 +370,12 @@ class TasksDelHandler(BaseHandler):
     def post(self, userid):
         try:
             user = self.current_user
-            body_arguments = self.request.body_arguments
+            envs = {}
+            for key in self.request.body_arguments:
+                envs[key] = self.get_body_arguments(key)
+            body_arguments = envs
             if ('taskids' in body_arguments):
-                taskids = json.loads(self.request.body_arguments['taskids'][0])
+                taskids = json.loads(envs['taskids'][0])
             if (body_arguments['func'][0] == 'Del'):
                 for taskid in taskids:
                     task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid', )), 'w')
@@ -368,7 +384,7 @@ class TasksDelHandler(BaseHandler):
                         self.db.tasklog.delete(log['id'])
                     self.db.task.delete(taskid)
             elif (body_arguments['func'][0] == 'setGroup'):
-                New_group = body_arguments['groupValue'][0].strip().decode("utf-8").encode("utf-8")
+                New_group = body_arguments['groupValue'][0].strip()
                 if(New_group == ''):
                     New_group = u'None'
                 for taskid in taskids:
@@ -376,6 +392,7 @@ class TasksDelHandler(BaseHandler):
                     
             self.finish('<h1 class="alert alert-success text-center">操作成功</h1>')
         except Exception as e:
+            traceback.print_exc()
             self.render('tpl_run_failed.html', log=str(e))
             return
 
@@ -383,11 +400,11 @@ class GetGroupHandler(TaskNewHandler):
     @tornado.web.authenticated
     def get(self, taskid):
         user = self.current_user      
-        groups = {}
-        for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
-            groups[task['groups']] = ""
+        _groups = {}
+        for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+            _groups[task['_groups']] = ""
         
-        self.write(json.dumps(groups, ensure_ascii=False, indent=4))
+        self.write(json.dumps(_groups, ensure_ascii=False, indent=4))
         return
 
 handlers = [

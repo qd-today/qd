@@ -13,7 +13,7 @@ import random
 
 import croniter
 
-from base import *
+from .base import *
 from funcs import cal
 
 class TaskMultiOperateHandler(BaseHandler):
@@ -22,38 +22,45 @@ class TaskMultiOperateHandler(BaseHandler):
         try:
             tasktype = ''
             user = self.current_user
-            op = self.request.arguments.get('op', '')
-            groups = []
+            op = self.get_argument('op', '')
+            _groups = []
             if (op != ''):
-                tasktype = op[0]
+                tasktype = op
+                if isinstance(tasktype,bytes):
+                    tasktype = tasktype.decode()
             else:
                 raise Exception('错误参数')
             if (tasktype == 'setgroup'):
-                for task in self.db.task.list(user['id'], fields=('groups'), limit=None):
-                    temp = task['groups']
-                    if (temp not  in groups):
-                        groups.append(temp)
+                for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+                    temp = task['_groups']
+                    if (temp not  in _groups):
+                        _groups.append(temp)
 
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'打开失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'打开失败', flg='danger')
             return
 
-        self.render('taskmulti.html', user=user, tasktype=tasktype, groups=groups)
+        self.render('taskmulti.html', user=user, tasktype=tasktype, _groups=_groups)
         return
     
     @tornado.web.authenticated
     def post(self, userid):
         user = self.current_user
         try:
+            envs = {}
+            for key in self.request.body_arguments:
+                envs[key] = self.get_body_arguments(key)
             env = {}
-            op = self.request.arguments.get('op', '')
+            op = self.get_argument('op', '')
             if (op != ''):
-                tasktype = op[0]
+                tasktype = op
+                if isinstance(tasktype,bytes):
+                    tasktype = tasktype.decode()
             else:
                 raise Exception('错误参数')
             pass
-            for k, v  in self.request.body_arguments.items():
+            for k, v  in envs.items():
                 env[k] = json.loads(v[0])
             for taskid, selected  in env['selectedtasks'].items():
                 if (selected):
@@ -73,11 +80,11 @@ class TaskMultiOperateHandler(BaseHandler):
                                 group_env = env['setgroup']
                                 New_group = group_env['newgroup'].strip()
                                 if New_group != "" :
-                                    target_group = New_group.decode("utf-8").encode("utf-8")
+                                    target_group = New_group
                                 else:
                                     target_group = group_env['checkgroupname'] or 'None'
 
-                                self.db.task.mod(taskid, groups=target_group)
+                                self.db.task.mod(taskid, _groups=target_group)
 
                             if (tasktype == 'settime'):
                                 time_env = env['settime']
@@ -109,9 +116,9 @@ class TaskMultiOperateHandler(BaseHandler):
                                     raise Exception(u'参数错误')
                         else:
                             raise Exception('用户id与任务的用户id不一致')
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')
@@ -121,18 +128,23 @@ class GetTasksInfoHandler(BaseHandler):
     @tornado.web.authenticated
     def post(self, userid):
         try:
+            envs = {}
+            for key in self.request.body_arguments:
+                envs[key] = self.get_body_arguments(key)
             user = self.current_user
             tasks = []
-            for taskid, selected  in self.request.body_arguments.items():
+            for taskid, selected  in envs.items():
+                if isinstance(selected[0],bytes):
+                    selected[0] = selected[0].decode()
                 if (selected[0] == 'true'):
                     task = self.db.task.get(taskid, fields=('id',  'note', 'tplid'))
                     if (task):
                         sitename = self.db.tpl.get(task['tplid'], fields=('sitename'))['sitename']
                         task['sitename'] = sitename
                         tasks.append(task)
-        except Exception:
+        except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'获取信息失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'获取信息失败', flg='danger')
             return
 
         self.render('taskmulti_tasksinfo.html',  tasks=tasks)

@@ -6,9 +6,13 @@ venv/
 env27/
 .python-version
 .vscode
+.history/
 database - 副本.db
 *.un~
 qiandao.rar
 压缩.bat
 .ssh/
 database*.db
+local_config.py
+*.bak
+*.log

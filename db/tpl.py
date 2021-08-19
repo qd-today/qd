@@ -6,12 +6,8 @@
 # Created on 2014-08-07 22:27:07
 
 import time
-import logging
-import umsgpack
-
 import config
-from libs import utils
-from basedb import BaseDB
+from .basedb import BaseDB
 
 class TPLDB(BaseDB):
     '''
@@ -70,7 +66,7 @@ class TPLDB(BaseDB):
     def list(self, fields=None, limit=None, **kwargs):
         where = '1=1'
         where_values = []
-        for key, value in kwargs.iteritems():
+        for key, value in kwargs.items():
             if value is None:
                 where += ' and %s is %s' % (self.escape(key), self.placeholder)
             else:

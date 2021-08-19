@@ -13,7 +13,7 @@ import re
 import os
 
 import config
-from base import *
+from .base import *
 
 import sqlite3
 
@@ -25,8 +25,11 @@ import traceback
 from funcs import pusher
 
 def tostr(s):
-    if isinstance(s, bytearray):
-        return str(s)
+    if isinstance(s, bytes):
+        try:
+            return s.decode()
+        except :
+            return s
     return s
 
 class UserRegPush(BaseHandler):
@@ -36,14 +39,17 @@ class UserRegPush(BaseHandler):
     
     @tornado.web.authenticated
     def post(self, userid):
-        env = json.loads(self.request.body_arguments['env'][0])
+        envs = {}
+        for key in self.request.body_arguments:
+            envs[key] = self.get_body_arguments(key)
+        env = json.loads(envs['env'][0])
         token = env["wxpusher_token"]
         uid = env["wxpusher_uid"]
         skey = env["skey"]
         barkurl = env["barkurl"]
         qywx_token = env["qywx_token"]
         log = ""
-        if  ("reg" == self.request.body_arguments['func'][0]):
+        if  ("reg" == self.get_body_argument('func')):
             try:
                 if  (token != "") and (uid != ""):
                     temp = token + ";" + uid
@@ -85,7 +91,8 @@ class UserRegPush(BaseHandler):
                     log = log+u"企业微信 未填写完整\r\n"
 
             except Exception as e:
-                self.render('tpl_run_failed.html', log=e)
+                traceback.print_exc()
+                self.render('tpl_run_failed.html', log=str(e))
                 return
             
             self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
@@ -122,7 +129,8 @@ class UserRegPush(BaseHandler):
                     log = log+u"企业微信 未填写完整\r\n"
 
             except Exception as e:
-                self.render('tpl_run_failed.html', log=e)
+                traceback.print_exc()
+                self.render('tpl_run_failed.html', log=str(e))
                 return
 
             self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
@@ -170,8 +178,10 @@ class UserRegPushSw(BaseHandler):
                 task['pushsw']["pushen"] = False
                 tasks.append(task)
             temp = self.db.user.get(userid, fields=('noticeflg'))
-
-            env = json.loads(self.request.body_arguments['env'][0])
+            envs = {}
+            for key in self.request.body_arguments:
+                envs[key] = self.get_body_arguments(key)
+            env = json.loads(envs['env'][0])
             
             logtime = json.loads(self.db.user.get(userid, fields=('logtime'))['logtime'])
             if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0
@@ -214,7 +224,8 @@ class UserRegPushSw(BaseHandler):
                 self.db.task.mod(task["id"], pushsw=json.dumps(task['pushsw']))
                 
         except Exception as e:
-            self.render('tpl_run_failed.html', log=e)
+            traceback.print_exc()
+            self.render('tpl_run_failed.html', log=str(e))
             return
         self.render('utils_run_result.html', log=u"设置完成", title=u'设置成功', flg='success')
         return
@@ -243,13 +254,15 @@ class UserManagerHandler(BaseHandler):
         try:
             user = self.db.user.get(userid, fields=('role'))
             if user and user['role'] == "admin":
-                envs = self.request.body_arguments
-                mail = envs['adminmail'][0]
-                pwd = u"{0}".format(envs['adminpwd'][0])
+                envs = {}
+                for k, _  in self.request.body_arguments.items():
+                    envs[k] = self.get_body_argument(k)
+                mail = envs['adminmail']
+                pwd = envs['adminpwd']
                 if self.db.user.challenge_MD5(mail, pwd):
                     Target_users = []
                     for key, value in envs.items():
-                        if value[0] == "on":
+                        if value == "on":
                             Target_users.append(key)
 
                     for sub_user in Target_users:
@@ -282,7 +295,7 @@ class UserManagerHandler(BaseHandler):
         except Exception as e:
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
             
         return
@@ -301,9 +314,11 @@ class UserDBHandler(BaseHandler):
     def post(self, userid):
         try:
             user = self.db.user.get(userid, fields=('role', 'email'))
-            envs = self.request.body_arguments
-            mail = envs['adminmail'][0]
-            pwd = u"{0}".format(envs['adminpwd'][0])
+            envs = {}
+            for k, _  in self.request.body_arguments.items():
+                envs[k] = self.get_body_argument(k)
+            mail = envs['adminmail']
+            pwd = envs['adminpwd']
             now=datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
             if ('backupbtn' in envs):
@@ -329,13 +344,13 @@ class UserDBHandler(BaseHandler):
             if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
                 if ('backuptplsbtn' in envs):
                     tpls = []
-                    for tpl in self.db.tpl.list(userid=userid, fields=('id', 'siteurl', 'sitename', 'banner', 'note','fork', 'groups', 'har', 'tpl', 'variables'), limit=None):
+                    for tpl in self.db.tpl.list(userid=userid, fields=('id', 'siteurl', 'sitename', 'banner', 'note','fork', '_groups', 'har', 'tpl', 'variables'), limit=None):
                         tpl['tpl'] = self.db.user.decrypt(userid, tpl['tpl'])
                         tpl['har'] = self.db.user.decrypt(userid, tpl['har'])
                         tpls.append(tpl)
 
                     tasks = []
-                    for task in self.db.task.list(userid, fields=('id', 'tplid', 'note', 'disabled', 'groups', 'init_env', 'env', 'ontimeflg', 'ontime', 'pushsw', 'newontime'), limit=None):
+                    for task in self.db.task.list(userid, fields=('id', 'tplid', 'note', 'disabled', '_groups', 'init_env', 'env', 'ontimeflg', 'ontime', 'pushsw', 'newontime'), limit=None):
                         task['init_env'] = self.db.user.decrypt(userid, task['init_env'])
                         task['env'] = self.db.user.decrypt(userid, task['env']) if task['env'] else None
                         tasks.append(task)
@@ -361,8 +376,8 @@ class UserDBHandler(BaseHandler):
                     
                 if ('recoverytplsbtn' in envs):
                     if ('recfile' in envs):
-                        tpls = json.loads(envs['recfile'][0])['tpls']
-                        tasks = json.loads(envs['recfile'][0])['tasks']
+                        tpls = json.loads(envs['recfile'])['tpls']
+                        tasks = json.loads(envs['recfile'])['tasks']
                         ids = []
                         for newtpl in tpls:
                             userid2 = int(userid)
@@ -374,7 +389,7 @@ class UserDBHandler(BaseHandler):
                                                 siteurl = newtpl['siteurl'],
                                                 sitename = newtpl['sitename'],
                                                 note = newtpl['note'],
-                                                groups = u'备份还原',
+                                                _groups = u'备份还原',
                                                 banner = newtpl['banner']
                                             )
                             for task in tasks:
@@ -390,7 +405,7 @@ class UserDBHandler(BaseHandler):
                                                      init_env = newtask['init_env'],
                                                      session = None,
                                                      note = newtask['note'],
-                                                     groups = u'备份还原',
+                                                     _groups = u'备份还原',
                                                      ontimeflg = newtask['ontimeflg'],
                                                      ontime = newtask['ontime'],
                                                      pushsw = newtask['pushsw'],
@@ -403,9 +418,10 @@ class UserDBHandler(BaseHandler):
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
+            traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('tpl_run_failed.html', log=e)
+            self.render('tpl_run_failed.html', log=str(e))
             return
         return 
      
@@ -421,9 +437,11 @@ class toolbox_notpad_Handler(BaseHandler):
     def post(self,userid):
         try:
             user = self.db.user.get(userid, fields=('role', 'email'))
-            envs = self.request.body_arguments
-            mail = envs['adminmail'][0]
-            pwd = u"{0}".format(envs['adminpwd'][0])
+            envs = {}
+            for k, _  in self.request.body_arguments.items():
+                envs[k] = self.get_body_argument(k)
+            mail = envs['adminmail']
+            pwd = envs['adminpwd']
             if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
                 if ('mode' in envs) and ('content' in envs):
                     if (envs['mode'][0] == 'write'):
@@ -439,9 +457,10 @@ class toolbox_notpad_Handler(BaseHandler):
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
+            traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('tpl_run_failed.html', log=e)
+            self.render('tpl_run_failed.html', log=str(e))
             return
         return
 
@@ -450,9 +469,11 @@ class UserPushShowPvar(BaseHandler):
     def post(self,userid):
         try:
             user = self.db.user.get(userid, fields=('role', 'email'))
-            envs = self.request.body_arguments
-            mail = envs['adminmail'][0]
-            pwd = u"{0}".format(envs['adminpwd'][0])
+            envs = {}
+            for k, _  in self.request.body_arguments.items():
+                envs[k] = self.get_body_argument(k)
+            mail = envs['adminmail']
+            pwd = envs['adminpwd']
             if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
                 key = self.db.user.get(userid, fields=("barkurl", 'skey', 'wxpusher', 'qywx_token'))
                 log = u"""barkurl 前值：{bark}\r\nskey 前值：{skey}\r\nwxpusher 前值：{wxpusher}\r\n企业微信 前值：{qywx_token}""".format(
@@ -465,11 +486,12 @@ class UserPushShowPvar(BaseHandler):
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
+            traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('tpl_run_failed.html', log=e)
+            self.render('tpl_run_failed.html', log=str(e))
+            print(e)
             return
-        return
 
 class custom_pusher_Handler(BaseHandler):
     @tornado.web.authenticated
@@ -482,9 +504,9 @@ class custom_pusher_Handler(BaseHandler):
     @tornado.web.authenticated
     def post(self,userid):
         try:
-            envs = self.request.body_arguments
-            for env in envs.keys():
-                envs[env] = envs[env][0]
+            envs = {}
+            for k, _  in self.request.body_arguments.items():
+                envs[k] = self.get_body_argument(k)
             req = pusher()
             log = ''
             now = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -500,7 +522,7 @@ class custom_pusher_Handler(BaseHandler):
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
@@ -517,16 +539,16 @@ class UserSetNewPWDHandler(BaseHandler):
     def post(self,userid):
         try:
             log = u'设置成功'
-            envs = self.request.body_arguments
-            for env in envs.keys():
-                envs[env] = u'{0}'.format(envs[env][0])
+            envs = {}
+            for k, _  in self.request.body_arguments.items():
+                envs[k] = self.get_body_argument(k)
 
-            adminuser = self.db.user.get(email=envs['管理员邮箱'], fields=('role', 'email'))
-            newPWD = envs['新密码']
-            if self.db.user.challenge_MD5(envs['管理员邮箱'], envs['管理员密码']) and (adminuser['role'] == 'admin'):
+            adminuser = self.db.user.get(email=envs['adminmail'], fields=('role', 'email'))
+            newPWD = envs['newpwd']
+            if self.db.user.challenge_MD5(envs['adminmail'], envs['adminpwd']) and (adminuser['role'] == 'admin'):
                 if (len(newPWD) >= 6):
                     self.db.user.mod(userid, password=newPWD)
-                    if not (self.db.user.challenge(envs['用户名'], newPWD)):
+                    if not (self.db.user.challenge(envs['usermail'], newPWD)):
                         raise Exception(u'修改失败')
                 else:
                     raise Exception(u'密码长度要大于6位')    
@@ -534,7 +556,7 @@ class UserSetNewPWDHandler(BaseHandler):
                 raise Exception(u'管理员用户名/密码错误')
         except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=traceback.format_exc(), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')

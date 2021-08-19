@@ -31,7 +31,7 @@ class TaskDB(_TaskDB, BaseDB):
           `mtime` INT UNSIGNED NOT NULL,
           `ontimeflg` INT UNSIGNED NOT NULL DEFAULT 0,
           `ontime` VARCHAR(256) NOT NULL DEFAULT '00:10:00',
-          `groups` VARCHAR(256) NOT NULL DEFAULT 'None',
+          `_groups` VARCHAR(256) NOT NULL DEFAULT 'None',
           `pushsw`  VARBINARY(128) NOT NULL DEFAULT '{\"logen\":false,\"pushen\":true}',
           `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0}'
         )''' % self.__tablename__)

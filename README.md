@@ -1,29 +1,82 @@
-# qiandao
+# qiandao for Python3
 
-__操作前请一定要记得备份数据库__<br>
-__操作前请一定要记得备份数据库__<br>
-__操作前请一定要记得备份数据库__<br>
+## 以下为原镜像说明 : 
 
-鸣谢
-====
+签到 —— 一个**自动签到框架** base on an HAR editor
 
-[Mark  https://www.quchao.net/](https://www.quchao.net/) 
+[HAR editor 使用指南](docs/har-howto.md)
 
-[戏如人生 https://49594425.xyz/](https://49594425.xyz/)
+**<big>操作前请一定要记得备份数据库</big>**
 
-[AragonSnow https://hexo.aragon.wang/](https://hexo.aragon.wang/)
+使用Docker部署站点
+==========
 
-[buzhibujuelb](https://github.com/buzhibujuelb) 
+1. docker地址 : [https://hub.docker.com/r/a76yyyy/qiandao](https://hub.docker.com/r/a76yyyy/qiandao)
 
-[billypon](https://github.com/billypon) 
+2. docker部署命令
 
-[powersee](https://github.com/powersee) 
+   ``` docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config   a76yyyy/qiandao ```
 
-个人项目精力有限，仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request让我修改。
+- 默认Redis已随容器启动: (该命令与上一条命令等效)
 
-因为需要测试，docker镜像会晚于gitHub几天更新
+   ``` docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config   a76yyyy/qiandao sh -c "redis-server --daemonize yes && python /usr/src/app/run.py" ```
 
-docker地址：[https://hub.docker.com/r/asdaragon/qiandao](https://hub.docker.com/r/asdaragon/qiandao)
+3. 数据库备份指令 : ```docker cp 容器名:/usr/src/app/config/database.db . ```
+ 
+- 数据库恢复指令 : ```docker cp database.db 容器名:/usr/src/app/config/ ```
+
+4. docker配置邮箱(强制使用SSL)
+
+   ```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码  --env DOMAIN=域名 a76yyyy/qiandao ```
+
+5. docker 使用MySQL
+
+   ```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@链接/数据库名 a76yyyy/qiandao ```
+
+6. 其余可参考 Wiki : [Docker部署签到站教程](docs/Docker-howto.md)
+
+7. DockerHub : [介绍](http://mirrors.ustc.edu.cn/help/dockerhub.html)
+
+
+Web部署
+=========
+
+## 1. Version: python3.8
+
+```
+pip3 install -r requirements.txt
+```
+
+## 2. 可选 redis, Mysql
+
+```
+mysql < qiandao.sql
+```
+
+## 3. 启动
+
+```
+python ./run.py
+```
+
+数据不随项目分发，去 [https://qiandao.today/tpls/public](https://qiandao.today/tpls/public) 查看你需要的模板，点击下载。
+在你自己的主页中 「我的模板+」 点击 + 上传。模板需要发布才会在「公开模板」中展示，你需要管理员权限在「我的发布请求」中审批通过。
+
+
+## 4. 设置管理员
+
+```
+python ./chrole.py your@email.address admin
+```
+
+## 5. qiandao.py-CMD操作
+
+```
+python ./qiandao.py tpl.har [--key=value]* [env.json]
+```
+
+config.py-配置变量
+=========
 
 变量名|是否必须|默认值|说明
 :-: | :-: | :-: | :-: 
@@ -43,34 +96,47 @@ MAIL_DOMAIN|否|mail.qiandao.today|邮箱域名,没啥用，使用的DOMAIN
 AES_KEY|否|binux|AES加密密钥，强烈建议修改
 COOKIE_SECRET|否|binux|cookie加密密钥，强烈建议修改
 
-docker部署命令：``` docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config   asdaragon/qiandao ```
-
-数据库备份指令：```docker cp 容器名:/usr/src/app/config/database.db . ```
-
-数据库恢复指令：```docker cp database.db 容器名:/usr/src/app/config/ ```
-
-docker配置邮箱(强制使用SSL)：```docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码  --env DOMAIN=域名 asdaragon/qiandao ```
-
-docker 使用MySQL：```docker run -d --name qiandao -p 12345:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@链接/数据库名 asdaragon/qiandao ```
-
-自定义推送示例：
+优先用`mailgun`方式发送邮件，如果要用smtp方式发送邮件，请填写mail_smtp, mail_user, mail_password
+```python
+mail_smtp = ""     # 邮件smtp 地址
+mail_user = ""    # 邮件账户
+mail_passowrd = ""   # 邮件密码
+mail_domain = "mail.qiandao.today"
+mailgun_key = ""
 ```
-WXPusher
-{
-   "url": "http://wxpusher.zjiecode.com/api/send/message", 
-   "headers": "", 
-   "postData":"{"appToken":"你的token","content":"{log}","contentType":3,"uids":["你的UID"]}", 
-   "postMethod": "json"
-}
-bark:
-{
-   "postData": "{"title":"{t}","body":"{log}"}", 
-   "headers": "", 
-   "mode": "POST",
-   "postMethod": "x-www-form-urlencoded", 
-   "curl": "https://barkurl/key/", 
-}
-```
+## 旧版local_config.py迁移
+|  Line  |  Delete  |  Modify  |
+|  ----  | ----  | ----  |
+|10|~~```import urlparse```~~|```from urllib.parse import urlparse```|
+|18|~~```mysql_url = urlparse.urlparse(os.getenv('JAWSDB_MARIA_URL', ''))```~~|```mysql_url = urlparse(os.getenv('JAWSDB_MARIA_URL', ''))```|
+|19|~~```redis_url = urlparse.urlparse(os.getenv('REDISCLOUD_URL', ''))```~~|```redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))```|
+|43|~~```aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux').encode('utf-8')).digest()```~~|```aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux')).digest()```|
+|44|~~```cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux').encode('utf-8')).digest()```~~|```cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux')).digest()```|
+
+更新日志
+=========
+## 2021.08.07 更新
+1. 更新Wiki
+2. 修复网页编码导致的Body解析bug
+
+## 2021.07.31 更新
+1. 修复旧版数据库导致的编码bug
+2. 添加部分说明
+3. 优化docker配置
+4. 允许headers中文编码
+5. 修复不间断空格导致的编解码bug
+6. 修复delay延时功能
+7. 增加log的详细错误显示
+
+
+## 2021.07.29 更新
+1. 修复异常抛出时泄露源码路径的bug
+2. 修复原sql的groups字段bug
+3. 优化DockerFile及配置文件
+
+## 2021.07.28 更新
+1. 适配python版本至python3.8
+
 ## 2021.06.28 更新
 1. 修改Dockfile,采用密钥更新
 
@@ -180,7 +246,7 @@ bark:
 
 
 ## 2020.09.10 更新
-1. 鉴于github 污染严重，使用gitee代替作为订阅源，地址：[https://gitee.com/qiandao-today/templates](https://gitee.com/qiandao-today/templates)
+1. 鉴于github 污染严重，使用gitee代替作为订阅源，地址 : [https://gitee.com/qiandao-today/templates](https://gitee.com/qiandao-today/templates)
 2. 首页的检查模板更新取消，打开公共模板仓库会自动检查更新
 3. 修复邮箱验证，注册后未验证可以再次点击注册验证
 4. 修改任务时显示前值
@@ -235,7 +301,7 @@ bark:
 2. 添加关闭/开启注册功能
 3. 修改主页的'检查更新'为'检查模板更新'
 
-使用前需要进入容器，将对应已注册邮箱设置为管理员：
+使用前需要进入容器，将对应已注册邮箱设置为管理员 : 
 ```
 docker exec -it 容器名 /bin/bash
 python ./chrole.py 邮箱 admin
@@ -243,7 +309,7 @@ python ./chrole.py 邮箱 admin
 被禁用的账户将不能登录网站,所有任务将被禁用。
 被删除的账户，会删除该用户的所有任务，模板和日志
 
-如果使用mysql 在 20200604 请使用以下命令：
+如果使用mysql 在 20200604 请使用以下命令 : 
 ```
 ALTER TABLE `user` ADD `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable';
 CREATE TABLE IF NOT EXISTS `site` (
@@ -254,7 +320,7 @@ INSERT INTO `site` VALUES(1,1);
 ```
 
 ## 2020.6.6 更新
-1. 修复用户不存在依然能登陆的BUG(具体表现为：新用户新建模板保存时500错误，注册推送时提示NoneType) 
+1. 修复用户不存在依然能登陆的BUG(具体表现为 : 新用户新建模板保存时500错误，注册推送时提示NoneType) 
 2. 完善注册推送的注册消息
 3. 修复自动完成不推送的bug
 4. 添加定时 “今日已签过” 选项，可以直接定时第二天
@@ -270,11 +336,11 @@ INSERT INTO `site` VALUES(1,1);
 
 __本次更新会把之前的定时设置全部取消，介意请勿更新__
 
-如果使用mysql 在 20200601 请使用以下命令：
+如果使用mysql 在 20200601 请使用以下命令 : 
 ```
 ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0 }'
 ```
-延时的另一种用法，间隔定时运行：如果要实现每1周定时运行一次，设置最大最小值都是604800，即可
+延时的另一种用法，间隔定时运行 : 如果要实现每1周定时运行一次，设置最大最小值都是604800，即可
 
 ## 2020.6.1 更新
 1. 时间显示修改为具体时间，取消之前的 "1小时后"等模糊显示(By 戏如人生)
@@ -305,7 +371,7 @@ ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":fa
 4. 新增每日日志功能，可以将每日定时前的最后一个日志推送到S酱和WXPusher
 5. 修复“↓”按钮定位不准的bug
 
-如果使用mysql 在 5.22 请使用以下命令：
+如果使用mysql 在 5.22 请使用以下命令 : 
 ```
 ALTER TABLE `task` ADD `pushsw` VARBINARY(128) NOT NULL DEFAULT '{\"logen\":false,\"pushen\":true}';
 ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}';
@@ -319,7 +385,7 @@ ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,
 ## 2020.5.19 更新
 1. 添加手动检查模板更新的按钮。
 
-如果使用mysql 在 5.18 请使用以下命令：
+如果使用mysql 在 5.18 请使用以下命令 : 
 ```
 ALTER TABLE `tpl` ADD `tplurl` VARCHAR(1024) NULL DEFAULT '' ;
 ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0;
@@ -328,15 +394,16 @@ ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0;
 ## 2020.5.18 更新
 1. 定时的 "今日是否运行" 修改 为 "今日运行"
 2. 添加模板订阅功能，仓库地址在[https://github.com/qiandao-today/templates](https://github.com/qiandao-today/templates)
+
    主页打开公共模板按钮，点击订阅后自动导入模板，需要自己确认保存
 3. 模板上传指定格式为.har
 
 ## 2020.5.16 更新
 1. 添加任务分类功能
 
-如果使用mysql 请使用以下命令：
+如果使用mysql 请使用以下命令 : 
 ```
-ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' ;
+ALTER TABLE `task` ADD `_groups` VARBINARY(128) NOT NULL DEFAULT 'None' ;
 ```
 2. 定时功能显示之前的定时值
 
@@ -349,13 +416,13 @@ ALTER TABLE `task` ADD `groups` VARBINARY(128) NOT NULL DEFAULT 'None' ;
 http://cordimax.f3322.net:5558/381.html
 
 2. 增加了server酱、bark推送，WXPusher推送，并可以设置推送开关（by AragonSnow）
-需要推送的：登录账号以后点击注册bark/s酱/WXPusher，测试推送没有问题以后,再点击提交
+需要推送的 : 登录账号以后点击注册bark/s酱/WXPusher，测试推送没有问题以后,再点击提交
 
 
 3. 增加定时功能，在新建任务以后会出现定时按钮，设置每天的定时时间。<br>
-__不兼容旧版的数据库， 旧版数据库导入会自动转换，旧版将无法使用__<br>
-__使用SQLite3的，默认路径改为config文件夹里面，方便挂载后备份__<br>
-__使用Mysq的,请使用一下命令更新数据库：__<br>
+**不兼容旧版的数据库， 旧版数据库导入会自动转换，旧版将无法使用**<br>
+**使用SQLite3的，默认路径改为config文件夹里面，方便挂载后备份**<br>
+**使用Mysq的,请使用一下命令更新数据库:**
 ```
 ALTER TABLE `task` ADD `ontimeflg` INT UNSIGNED NOT NULL DEFAULT 0;
 ALTER TABLE `task` ADD `ontime` VARCHAR(256) NOT NULL DEFAULT '00:10:00';
@@ -365,70 +432,28 @@ ALTER TABLE `user` ADD `wxpusher` VARBINARY(128) NOT NULL DEFAULT '' ;
 ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1;
 ```
 
-
-## 以下为原镜像说明：
-
-签到 —— 一个自动签到框架 base on an HAR editor
-
-HAR editor 使用指南：https://github.com/binux/qiandao/blob/master/docs/har-howto.md
-
-Web
-===
-
-需要 python2.7, 虚拟主机无法安装
-
-```
-apt-get install python-dev autoconf g++ python-pbkdf2
-pip install tornado u-msgpack-python jinja2 chardet requests pbkdf2 pycrypto
-```
-
-可选 redis, Mysql
-
-```
-mysql < qiandao.sql
-```
-
-启动
-
-```
-./run.py
-```
-
-数据不随项目分发，去 [https://qiandao.today/tpls/public](https://qiandao.today/tpls/public) 查看你需要的模板，点击下载。
-在你自己的主页中 「我的模板+」 点击 + 上传。模板需要发布才会在「公开模板」中展示，你需要管理员权限在「我的发布请求」中审批通过。
-
-
-设置管理员
-
-```
-./chrole.py your@email.address admin
-```
-
-使用Docker部署站点
-==========
-
-可参考 Wiki [Docker部署签到站教程](https://github.com/binux/qiandao/wiki/Docker%E9%83%A8%E7%BD%B2%E7%AD%BE%E5%88%B0%E7%AB%99%E6%95%99%E7%A8%8B)
-
-qiandao.py
-==========
-
-```
-pip install tornado u-msgpack-python jinja2 chardet requests
-./qiandao.py tpl.har [--key=value]* [env.json]
-```
-
-config.py
+鸣谢
 =========
-优先用`mailgun`方式发送邮件，如果要用smtp方式发送邮件，请填写mail_smtp, mail_user, mail_password
-```python
-mail_smtp = ""     # 邮件smtp 地址
-mail_user = ""    # 邮件账户
-mail_passowrd = ""   # 邮件密码
-mail_domain = "mail.qiandao.today"
-mailgun_key = ""
-```
+
+[Mark  https://www.quchao.net/](https://www.quchao.net/) 
+
+[戏如人生 https://49594425.xyz/](https://49594425.xyz/)
+
+[AragonSnow https://hexo.aragon.wang/](https://hexo.aragon.wang/)
+
+[buzhibujuelb](https://github.com/buzhibujuelb) 
+
+[billypon](https://github.com/billypon) 
+
+[powersee](https://github.com/powersee) 
+
+[AragonSnow/qiandao](https://github.com/aragonsnow/qiandao) 
+
+[a76yyyy/qiandao](https://github.com/a76yyyy/qiandao) 
+
+个人项目精力有限，仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request。
 
 许可
-====
+=========
 
 MIT

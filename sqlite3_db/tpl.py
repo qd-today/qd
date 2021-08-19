@@ -38,7 +38,7 @@ class TPLDB(_TPLDB, BaseDB):
           `atime` INT UNSIGNED NOT NULL,
           `tplurl` VARCHAR(1024) NULL DEFAULT '',
           `updateable` INT UNSIGNED NOT NULL DEFAULT 0,
-          `groups` VARCHAR(256) NOT NULL DEFAULT 'None'
+          `_groups` VARCHAR(256) NOT NULL DEFAULT 'None'
         )''' % self.__tablename__)
 
         for each in ('siteurl', 'sitename', 'public'):

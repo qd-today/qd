@@ -194,7 +194,7 @@ class pusher(object):
                 utils.send_mail(to = email, 
                                 subject = u"在网站{0} {1}".format(config.domain, title),
                                 text = content,
-                                async=True)
+                                shark=True)
             except Exception as e:
                 logging.error('tasend mail error: %r', e)
 

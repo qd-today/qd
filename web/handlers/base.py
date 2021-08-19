@@ -4,7 +4,6 @@
 # Author: Binux<17175297.hk@gmail.com>
 #         http://binux.me
 # Created on 2012-12-15 16:16:38
-
 import jinja2
 import logging
 import umsgpack

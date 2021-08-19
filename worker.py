@@ -21,6 +21,7 @@ from libs.fetcher import Fetcher
 
 from funcs import pusher
 from funcs import cal
+import traceback
 
 logger = logging.getLogger('qiandao.worker')
 
@@ -230,11 +231,12 @@ class MainWorker(object):
             self.ClearLog(task['id'])
         except Exception as e:
             # failed feedback
+            traceback.print_exc()
             next_time_delta = self.failed_count_to_time(task['last_failed_count'], tpl['interval'])
                         
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
-            content = u"日志：{log}".format(log=e)
+            content = u"日志：{log}".format(log=str(e))
             disabled = False
             if next_time_delta:
                 next = time.time() + next_time_delta
@@ -247,7 +249,7 @@ class MainWorker(object):
                 content = u"任务已禁用"
                 pushtool.pusher(user['id'], pushsw, 0x1, title, content)
 
-            self.db.tasklog.add(task['id'], success=False, msg=unicode(e))
+            self.db.tasklog.add(task['id'], success=False, msg=str(e))
             self.db.task.mod(task['id'],
                     last_failed=time.time(),
                     failed_count=task['failed_count']+1,
