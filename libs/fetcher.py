@@ -231,7 +231,7 @@ class Fetcher(object):
                         content[0] = utils.decode(response.body)
                 if ('content-type' in response.headers):
                     if 'image' in response.headers.get('content-type'):
-                        return base64.b64encode(response.body)
+                        return base64.b64encode(response.body).decode('utf8') 
                 return content[0]
             elif _from == 'status':
                 return '%s' % response.code
