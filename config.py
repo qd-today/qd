@@ -43,7 +43,12 @@ pbkdf2_iterations = 400
 aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux').encode('utf-8')).digest()
 cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux').encode('utf-8')).digest()
 check_task_loop = 500
+# Tornado httpclient.HTTPRequest参数配置
 download_size_limit = 5*1024*1024
+request_timeout = 30.0
+connect_timeout = 30.0
+# delay 延时API最大时间限制，请小于上述timeout配置，否则会报599错误
+delay_max_timeout = 29.9
 proxies = []
 
 # 域名

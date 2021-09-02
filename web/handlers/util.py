@@ -14,7 +14,7 @@ import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import  PKCS1_v1_5
 from Crypto import Random
-
+from config import delay_max_timeout
 
 def request_parse(req_data):
     '''解析请求数据并以json形式返回'''
@@ -35,8 +35,10 @@ class UtilDelayParaHandler(BaseHandler):
             self.write(u'Error, delay 0.0 second.')
         if seconds < 0:
             seconds = 0.0
-        elif seconds > 30:
-            seconds = 30.0
+        elif seconds >= delay_max_timeout:
+            seconds = delay_max_timeout
+            yield gen.sleep(seconds)
+            self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
         yield gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
 
@@ -50,8 +52,10 @@ class UtilDelayIntHandler(BaseHandler):
             self.write(u'delay %s second.' % seconds)
         if seconds < 0:
             seconds = 0.0
-        elif seconds > 30:
-            seconds = 30.0
+        elif seconds > delay_max_timeout:
+            seconds = delay_max_timeout
+            yield gen.sleep(seconds)
+            self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
         yield gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
 
@@ -65,8 +69,10 @@ class UtilDelayHandler(BaseHandler):
             self.write(u'delay %s second.' % seconds)
         if seconds < 0:
             seconds = 0.0
-        elif seconds > 30:
-            seconds = 30.0
+        elif seconds >= delay_max_timeout:
+            seconds = delay_max_timeout
+            yield gen.sleep(seconds)
+            self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
         yield gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
 

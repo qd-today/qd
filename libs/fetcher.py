@@ -69,7 +69,7 @@ class Fetcher(object):
         _render(request, 'data')
         return request
 
-    def build_request(self, obj, download_size_limit=config.download_size_limit):
+    def build_request(self, obj, download_size_limit=config.download_size_limit, connect_timeout=config.connect_timeout, request_timeout=config.request_timeout):
         env = obj['env']
         rule = obj['rule']
         request = self.render(obj['request'], env['variables'], env['session'])
@@ -107,6 +107,8 @@ class Fetcher(object):
                 allow_ipv6 = True,
                 prepare_curl_callback = set_size_limit_callback,
                 validate_cert=False,
+                connect_timeout=connect_timeout,
+                request_timeout=request_timeout
                 )
 
         session = cookie_utils.CookieSession()
