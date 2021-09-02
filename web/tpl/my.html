@@ -102,7 +102,7 @@
                 <span type="span" class="btn btn-default"><a data-method="POST" href="/task/{{ task.id }}/del" data-confirm="是否要删除任务?">删除</a></span>
                 {% endif %}
                 <span type="span" class="btn btn-default"><a data-load-method="POST" class="modal_load" href="/task/{{ task.id }}/run" title="立即执行签到任务">执行</a></span>
-                <span type="span" class="btn btn-default"><a href="/tpl/{{ task.tplid }}/edit" target="_blank" title="查看模板数据">模板</a></span>
+                <span type="span" class="btn btn-default"><a href="/tpl/{{ task.tplid }}/edit?taskid={{ task.id }}" target="_blank" title="查看模板数据">模板</a></span>
                 <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/task/{{ task.id }}/settime" title="修改执行时间">定时</a></span>
                 <span type="span" class="btn btn-default"><a href="/task/{{ task.id }}/log" target="_blank" title="查看执行日志">日志</a></span>
                 <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/task/{{ task.id }}/group" title="将任务分组">分组</a></span>
