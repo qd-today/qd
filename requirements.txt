@@ -8,7 +8,7 @@
 -i https://pypi.org/simple
 certifi==2021.5.30
 chardet==4.0.0
-charset-normalizer==2.0.3; python_version >= '3'
+charset-normalizer==2.0.4; python_version >= '3'
 croniter==1.0.15
 grunt==0.1.1
 idna==3.2; python_version >= '3'
