@@ -76,7 +76,10 @@ class BaseHandler(tornado.web.RequestHandler):
         if not ret:
             return ret
         user = umsgpack.unpackb(ret)
-        user['isadmin'] = 'admin' in user['role'] if user['role'] else False
+        try:
+            user['isadmin'] = 'admin' in user['role'] if user['role'] else False
+        except:
+            return None
         return user
 
     def permission(self, obj, mode='r'):
