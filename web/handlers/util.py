@@ -162,9 +162,8 @@ class UtilRegexHandler(BaseHandler):
     def post(self):
         Rtv = {}
         try:
-            res_data = request_parse(self.request)
-            p = res_data["p"][0].decode('utf8') if 'p' in  res_data else None
-            data = res_data["data"][0].decode('utf8') if "data" in  res_data else None 
+            data = self.get_argument("data", "")
+            p = self.get_argument("p", "")
             temp = {}
             ds = re.findall(p, data, re.IGNORECASE)
             for cnt in range (0, len(ds)):
@@ -207,10 +206,9 @@ class UtilRSAHandler(BaseHandler):
     @gen.coroutine
     def get(self):
         try:
-            res_data = request_parse(self.request)
-            key = res_data["key"][0] if "key" in  res_data else None
-            data = res_data["data"][0] if "data" in  res_data else None 
-            func = res_data["f"][0] if "f" in  res_data else None 
+            key = self.get_argument("key", "")
+            data = self.get_argument("data", "")
+            func = self.get_argument("f", "encode")
             if (key) and (data) and (func):
                 lines = ""
                 temp = key
@@ -233,7 +231,7 @@ class UtilRSAHandler(BaseHandler):
 
                 cipher_rsa = PKCS1_v1_5.new(RSA.import_key(lines))
                 if (func.find("encode") > -1):
-                    crypt_text = cipher_rsa.encrypt(bytes(data))
+                    crypt_text = cipher_rsa.encrypt(bytes(data, encoding = "utf8"))
                     crypt_text = base64.b64encode(crypt_text).decode('utf8')
                     self.write(crypt_text)
                     return
@@ -255,10 +253,9 @@ class UtilRSAHandler(BaseHandler):
     @gen.coroutine
     def post(self):
         try:
-            res_data = request_parse(self.request)
-            key = res_data["key"][0] if "key" in  res_data else None
-            data = res_data["data"][0] if "data" in  res_data else None 
-            func = res_data["f"][0] if "f" in  res_data else None 
+            key = self.get_argument("key", "")
+            data = self.get_argument("data", "")
+            func = self.get_argument("f", "encode")
             if (key) and (data) and (func):
                 lines = ""
                 for line in key.split("\n"):
@@ -269,7 +266,7 @@ class UtilRSAHandler(BaseHandler):
                 
                 cipher_rsa = PKCS1_v1_5.new(RSA.import_key(lines))
                 if (func.find("encode") > -1):
-                    crypt_text = cipher_rsa.encrypt(bytes(data))
+                    crypt_text = cipher_rsa.encrypt(bytes(data, encoding = "utf8"))
                     crypt_text = base64.b64encode(crypt_text).decode('utf8')
                     self.write(crypt_text)
                     return
@@ -296,18 +293,20 @@ class toolboxHandler(BaseHandler):
     @gen.coroutine
     def post(self, userid):
         try:
-            res_data = request_parse(self.request)
-            email = res_data["email"][0] if "email" in  res_data else None
-            pwd = u"{0}".format(res_data["pwd"][0] if "pwd" in  res_data else '' )
-            f = res_data["f"][0] if "f" in  res_data else None
+            email = self.get_argument("email", "")
+            pwd = self.get_argument("pwd", "")
+            f = self.get_argument("f", "")
             if (email) and (pwd) and (f):
                 if self.db.user.challenge(email, pwd):
+                    userid = self.db.user.get(email=email, fields=('id'))['id']
                     text_data = self.db.user.get(email=email, fields=('notepad'))['notepad']
-                    new_data = res_data["data"][0] if "data" in  res_data else ''
+                    new_data = self.get_argument("data", "")
                     if (f.find('write') > -1 ): 
                         text_data = new_data
+                        self.db.user.mod(userid, notepad=text_data)
                     elif (f.find('append') > -1):
                         text_data = text_data + '\r\n' + new_data
+                        self.db.user.mod(userid, notepad=text_data)
                     self.write(text_data)
                     return
                 else:
