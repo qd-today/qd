@@ -117,11 +117,25 @@ mailgun_key = ""
 
 更新日志
 =========
+## 2021.09.03 更新
+1. 修复更新新版框架后因旧版框架cookie缓存导致的500错误
+2. 添加368和armv6架构容器构建
+3. 修复pycurl导致若干500和599错误
+4. 更新需求模块
+
+**Docker已预装Curl环境，默认不安装pycurl模组**
+
+```
+# 如需使用Proxy功能请安装PyCurl
+# Windows源码运行, 请执行 pip install pycurl==7.43.0.5 
+pip install pycurl # pip3 install pycurl
+```
+
 ## 2021.09.02 更新
 1. 修复Image解码失败的bug
 2. 添加请求时限设置
 3. 修复延时API超过请求时限导致的bug
-4. 查看任务的模板数据时自动导入任务变量
+4. 查看任务的模板数据时自动导入任务变量(by [billypon](https://github.com/billypon/qiandao))
 5. 默认去除pycurl模组，解决部分500和599错误
 
 ## 2021.08.07 更新
@@ -162,7 +176,7 @@ mailgun_key = ""
 5. 修复注册用户时没有创建md5密码的bug
 
 ## 2021.04.13 更新
-1. 添加代理功能，目前暂时不可用(By billypon)
+1. 添加proxy功能，目前暂时不可用(By billypon)
 
 ## 2021.02.20 更新
 1. 完善MD5

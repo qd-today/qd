@@ -21,13 +21,36 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 
 # Install packages
 RUN apk update \
-    && apk add --no-cache openrc redis libcurl bash git autoconf g++ tzdata nano openssh-client
+    && apk add --no-cache openrc redis bash git autoconf g++ tzdata nano openssh-client
 
 # Needed for pycurl
 ENV PYCURL_SSL_LIBRARY=openssl
+ENV CURL_VERSION 7.78.0
 
-# Install packages only needed for building, install and clean on a single layer
-RUN apk add --no-cache --virtual .build-dependencies build-base curl-dev 
+# For nghttp2-dev, we need this respository.
+RUN echo https://dl-cdn.alpinelinux.org/alpine/edge/testing >>/etc/apk/repositories 
+
+RUN apk add --update --no-cache openssl openssl-dev nghttp2-dev ca-certificates zlib zlib-dev brotli brotli-dev zstd zstd-dev
+RUN apk add --update --no-cache --virtual curldeps make perl && \
+wget https://curl.haxx.se/download/curl-$CURL_VERSION.tar.bz2 && \
+tar xjvf curl-$CURL_VERSION.tar.bz2 && \
+rm curl-$CURL_VERSION.tar.bz2 && \
+cd curl-$CURL_VERSION && \
+./configure \
+    --with-nghttp2=/usr \
+    --prefix=/usr \
+    --with-ssl \
+    --enable-ipv6 \
+    --enable-unix-sockets \
+    --without-libidn \
+    --disable-static \
+    --disable-ldap \
+    --with-pic && \
+make && \
+make install && \
+cd .. && \
+rm -r curl-$CURL_VERSION && \
+apk del curldeps
 
 # Setting openrc-redis
 RUN rc-status -a \
@@ -48,8 +71,8 @@ RUN mkdir -p /root/.ssh \
 # Pip install modules
 RUN pip install --upgrade setuptools \
     && pip install --no-cache-dir -r requirements.txt \
-    && apk del .build-dependencies \
-    && rm -rf /var/cache/apk/* 
+    && rm -rf /var/cache/apk/* \
+    && rm -rf /usr/share/man/* 
    
 ENV PORT 80
 EXPOSE $PORT/tcp

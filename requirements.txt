@@ -12,6 +12,7 @@ charset-normalizer==2.0.4; python_version >= '3'
 croniter==1.0.15
 grunt==0.1.1
 idna==3.2; python_version >= '3'
+incremental==21.3.0
 jinja2==3.0.1
 markupsafe==2.0.1; python_version >= '3.6'
 msgpack-python==0.5.6

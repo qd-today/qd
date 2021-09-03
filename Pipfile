@@ -17,6 +17,7 @@ Jinja2 = "*"
 umsgpack = "*"
 redis = "*"
 mysql-connector-python = "*"
+incremental = "*"
 
 [dev-packages]
 pycurl = "<7.43.0.6"
