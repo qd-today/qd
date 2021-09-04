@@ -26,11 +26,16 @@
   {% if current_user %}
   <div class="form-group">
     <label class="control-label" for="note">备注</label>
-	<!-- MY页面-添加签到-增加提示语 -->
+  <!-- MY页面-添加签到-增加提示语 -->
     <input type="text" class="form-control" name="_binux_note" value="{{ task.note or '' }}" id="note" placeholder="尽可能填写15个字符以内">
-	<!-- MY页面-添加签到-增加备注图标 -->
-	<span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
-	
+    {%if task.note %}
+      前值： <div class="autowrap showbut" id="pvar" >{{ task.note }}
+        <div class="btn hljs-button" data-clipboard-target="#pvar" style="vertical-align:top">复制</div>
+      </div>
+    {% endif %}
+    <!-- MY页面-添加签到-增加备注图标 -->
+  <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+
   </div>
   {% endif %}
 
@@ -38,7 +43,18 @@
   <div class="form-group">
     <label class="control-label" for="proxy">代理</label>
     <!-- MY页面-添加签到-增加提示语 -->
-    <input type="text" class="form-control" name="_binux_proxy" value="{{ init_env._proxy or '' }}" id="proxy" placeholder="http://127.0.0.1:8080" pattern="((https?|socks5)+://)?([^:@/]+(:[^@/]+)?@)?[^:@/]+:\d+">
+    <input type="text" class="form-control" name="_binux_proxy"  id="proxy" placeholder="http://127.0.0.1:8080" pattern="((https?|socks5)+://)?([^:@/]+(:[^@/]+)?@)?[^:@/]+:\d+">
+    {%if init_env %}
+      {% for pvar in init_env %}
+        {% if pvar.init_env_name ==  '_proxy' %}
+          {% if pvar.data %}
+          <div class="text">前值: </div><div class="autowrap showbut" id="pvar" >{{ pvar.data }}
+            <div class="btn hljs-button" data-clipboard-target="#pvar" style="vertical-align:top">复制</div>
+          </div>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% endif %}
     <!-- MY页面-添加签到-增加备注图标 -->
     <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
   </div>
