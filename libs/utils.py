@@ -7,16 +7,55 @@
 
 import socket
 import struct
+import ipaddress
 from tornado import gen
 
-
 def ip2int(addr):
-    return struct.unpack("!I", socket.inet_aton(addr))[0]
+    try:
+        return struct.unpack("!I", socket.inet_aton(addr))[0]
+    except:
+        return int(ipaddress.ip_address(addr))
 
+def ip2varbinary(addr:str, version:int):
+    if version == 4:
+        return socket.inet_aton(addr)
+    if version == 6:
+        return socket.inet_pton(socket.AF_INET6,addr)
 
 def int2ip(addr):
-    return socket.inet_ntoa(struct.pack("!I", addr))
+    try:
+        return socket.inet_ntoa(struct.pack("!I", addr))
+    except:
+        return str(ipaddress.ip_address(addr))
 
+def varbinary2ip(addr:bytes or int or str):
+    if isinstance(addr, int):
+        return int2ip(addr)
+    if isinstance(addr, str):
+        addr = addr.encode('utf-8')
+    if len(addr) == 4:
+        return socket.inet_ntop(socket.AF_INET,addr)
+    if len(addr) == 16:
+        return socket.inet_ntop(socket.AF_INET6,addr)
+
+def isIP(addr = None):
+    if addr:
+        p = re.compile(r'''
+         ((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?) # IPv4
+         |::ffff:(0:)?((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?) # IPv4 mapped / translated addresses
+         # |fe80:(:[0-9a-fA-F]{1,4}){0,4}(%\w+)? # IPv6 link-local
+         |([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4} # IPv6 full
+         |(([0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4})?::(([0-9a-fA-F]{1,4}:){0,6}[0-9a-fA-F]{1,4})? # IPv6 with ::
+         ''', re.VERBOSE)
+        tmp = p.match(addr)
+        if tmp and tmp[0] == addr:
+            if ':' in tmp[0]:
+                return 6
+            else:
+                return 4
+        else:
+            return 0
+    return 0
 
 import umsgpack
 import functools
