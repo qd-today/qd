@@ -26,7 +26,7 @@
               <input type="checkbox"  name="{{user.id}}" class="userlist-chkbox"> 
             </label>
           </td>
-          <td>{{ user.email }}{% if user.role == 'admin' %}[管理员]{% endif %}</td>
+          <td>{{ user.email }}{% if user.role == 'admin' %}<br>[管理员]{% endif %}</td>
           <td>
               {{ user.status }}<br>
               {% if user.email_verified %} 已验证邮箱
@@ -34,7 +34,7 @@
               {% endif %}
           </td>
           <td>{{ format_date(user.ctime,-8*60,True,False,True)}}</td>
-          <td>{{ format_date(user.atime,-8*60,True,False,True)}}</td>
+          <td>{{ format_date(user.atime,-8*60,True,False,True)}}{% if user.aip %}<br>IP: {{ varbinary2ip(user.aip) }}{% endif %}</td>
           <td>
             <span type="span" class="btn btn-default">
               <a data-load-method="GET" class="modal_load" href="/user/{{user.id}}/setnewpwd" title="修改密码">改密
