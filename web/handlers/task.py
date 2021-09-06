@@ -17,7 +17,7 @@ from .base import *
 from libs import utils
 from funcs import pusher
 from funcs import cal
-
+from codecs import escape_decode
 class TaskNewHandler(BaseHandler):    
     def get(self):
         user = self.current_user
@@ -82,7 +82,7 @@ class TaskNewHandler(BaseHandler):
                 for value in envs:
                     if envs[value][0] == 'on':
                         if (value.find("group-select-") > -1):
-                            target_group = value.replace("group-select-", "").strip()
+                            target_group = escape_decode(value.replace("group-select-", "").strip()[2:-1], "hex-escape")[0].decode('utf-8')
                             break
                     else:
                         target_group = 'None'
