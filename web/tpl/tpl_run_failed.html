@@ -2,5 +2,7 @@
 <h1 class="alert alert-danger text-center">签到失败</h1>
 <div class="well showbut" id="errmsg">
   <button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button>
-  {{ log }}
+  {% for _log in log.split('\\r\\n') %}
+    {{ _log  }}<br>
+  {% endfor %}
 </div>

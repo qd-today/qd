@@ -171,7 +171,7 @@ class TaskRunHandler(BaseHandler):
             pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
 
             self.db.tasklog.add(task['id'], success=False, msg=str(e))
-            self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % e)
+            self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % e.replace('\\r\\n', '<br>'))
             return
 
         self.db.tasklog.add(task['id'], success=True, msg=new_env['variables'].get('__log__'))
@@ -200,7 +200,7 @@ class TaskRunHandler(BaseHandler):
         pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
 
         self.db.tpl.incr_success(tpl['id'])
-        self.finish('<h1 class="alert alert-success text-center">签到成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp)
+        self.finish('<h1 class="alert alert-success text-center">签到成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
         logDay = int(self.db.site.get(1, fields=('logDay'))['logDay'])
         for log in self.db.tasklog.list(taskid = taskid, fields=('id', 'ctime')):
             if (time.time() - log['ctime']) > (logDay * 24 * 60 * 60):
