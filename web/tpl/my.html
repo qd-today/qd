@@ -33,7 +33,7 @@
     <div class="text-left">
       <span >
         <span type="span" class="btn btn-default">
-          <a data-load-method="GET" class="modal_load" href="/task/{{ userid }}/multi?op=disable" title="禁用多个任务">禁用</a>
+          <a data-load-method="GET" class="modal_load" href="/task/{{ userid }}/multi?op=disable" title="禁用多个任务" >禁用</a>
         </span>
         <span type="span" class="btn btn-default">
           <a data-load-method="GET" class="modal_load" href="/task/{{ userid }}/multi?op=enable" title="启用多个任务">启用</a>
@@ -62,10 +62,13 @@
       </thead>
       <tbody>
         {% for group in taskgroups | sort(reverse=True) %}
-        <tr name="{{group}} taskgroups" onClick="groups_click(this)" title="{{group}} taskgroup">
+        <tr name="{{group}} taskgroups" title="{{group}} taskgroup">
+           
           <tr>
-            <td colspan="6" onClick="groups_click(this)" title="{{group}} taskgroup"  style="background-color:rgb(215,237,251);">
+            <td colspan="6" title="{{group}} taskgroup"  style="background-color:rgb(215,237,251);">
+              <input type="checkbox"  title="全选/反选" name="{{group}} taskgroups" onclick="taskgrouponclick(this)">
               <text>{{group}}</text> 
+              <input type="checkbox" style="float:right"  title="隐藏/显示" name="{{group}} taskgroup " onclick="groups_click(this)">
             </td> 
           </tr>
           
@@ -73,7 +76,7 @@
           {% if group == task._groups %}
           <tr class="{{group}} taskgroup ">
             <td>
-              <input type="checkbox"  name="{{task.id}}" onclick="taskonclick(this)">
+              <input type="checkbox"  name="{{task.id}}" class="{{group}} taskgroups"  onclick="taskonclick(this)">
               {% if task.disabled %}<span title="任务处于禁用状态,使用 (立即执行) 成功签到一次,即可解除." style="color:#ff7600;border-left:5px solid #ff7600;padding-left:5px;">[禁用]</span>{% endif %}
               {{ utils.tplname(task.tpl) if task.tpl else "[已删除]" }}
 
@@ -102,7 +105,7 @@
                 <span type="span" class="btn btn-default"><a data-method="POST" href="/task/{{ task.id }}/del" data-confirm="是否要删除任务?">删除</a></span>
                 {% endif %}
                 <span type="span" class="btn btn-default"><a data-load-method="POST" class="modal_load" href="/task/{{ task.id }}/run" title="立即执行签到任务">执行</a></span>
-                <span type="span" class="btn btn-default"><a href="/tpl/{{ task.tplid }}/edit" target="_blank" title="查看模板数据">模板</a></span>
+                <span type="span" class="btn btn-default"><a href="/tpl/{{ task.tplid }}/edit?taskid={{ task.id }}" target="_blank" title="查看模板数据">模板</a></span>
                 <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/task/{{ task.id }}/settime" title="修改执行时间">定时</a></span>
                 <span type="span" class="btn btn-default"><a href="/task/{{ task.id }}/log" target="_blank" title="查看执行日志">日志</a></span>
                 <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/task/{{ task.id }}/group" title="将任务分组">分组</a></span>
@@ -144,10 +147,8 @@
         <tr name="{{tplgroup}} tplgroups">
           <tr>
             <td colspan="5"  style="background-color:rgb(215,237,251);">
-              <text>{{ tplgroup }}</text> 
-              <label>
-                <input type="checkbox"  name="{{ tplgroup }} tplgroups" onchange="checkboxOnclick(this)"> 
-              </label>
+              <text>{{ tplgroup }}</text>
+              <input type="checkbox" style="float:right" name="{{ tplgroup }} tplgroups" onchange="checkboxOnclick(this)"> 
             </td> 
           </tr>
           {% for tpl in tpls | sort(reverse=True, attribute="mtime") %}
@@ -332,6 +333,47 @@ function setTasksGroup() {
   }
 </script>
 
+<script>
+  function taskgrouponclick(checkbox){
+    var tmp = checkbox.name
+    var tasknodes = document.getElementsByClassName(tmp);
+    if (tasknodes.length > 0){
+        for (i = 0; i < tasknodes.length; i++) { 
+          if(checkbox.checked){
+            tasknodes[i].checked = true
+          }
+          else {
+            tasknodes[i].checked = false
+          }
+          taskonclick(tasknodes[i])
+        }
+    } 
+}
+</script>
+
+<script>
+function groups_click(checkbox) {
+    var tmp = checkbox.name
+    var GroupsShowVal = {}
+    if (typeof(window.localStorage.Groups) != "undefined")
+      GroupsShowVal = JSON.parse(window.localStorage.Groups);
+
+    var tasknodes = document.getElementsByClassName(tmp);
+    if (tasknodes.length > 0){
+        var tmp2 = tasknodes[0].style.display;
+        for (i = 0; i < tasknodes.length; i++) { 
+            if (tmp2 == '' || tmp2 == 'table-row'){
+            $(tasknodes[i]).hide();
+            GroupsShowVal[tmp] = true
+            }else{
+            $(tasknodes[i]).show();
+            GroupsShowVal[tmp] = false
+            }
+        }
+        window.localStorage.Groups = JSON.stringify(GroupsShowVal);
+    } 
+}
+</script>
 {% include 'LeftFuncBtn.html' %}
 {{ utils.modal_load() }}
 {{ utils.apost() }}

@@ -37,6 +37,7 @@ class HAREditor(BaseHandler):
 
     def post(self, id):
         user = self.current_user
+        taskid = self.get_query_argument('taskid', '')
 
         tpl = self.check_permission(
                 self.db.tpl.get(id, fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note', 'interval',
@@ -44,12 +45,13 @@ class HAREditor(BaseHandler):
 
         tpl['har'] = self.db.user.decrypt(tpl['userid'], tpl['har'])
         tpl['variables'] = json.loads(tpl['variables'])
+        envs = self.db.user.decrypt(user['id'], self.db.task.get(taskid, 'init_env')['init_env']) if taskid and self.db.task.get(taskid) else {}
 
         #self.db.tpl.mod(id, atime=time.time())
         self.finish(dict(
             filename = tpl['sitename'] or '未命名模板',
             har = tpl['har'],
-            env = dict((x, '') for x in tpl['variables']),
+            env = dict((x, envs[x] if x in envs else '') for x in tpl['variables']),
             setting = dict(
                 sitename = tpl['sitename'],
                 siteurl = tpl['siteurl'],

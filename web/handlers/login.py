@@ -65,7 +65,7 @@ class LoginHandler(BaseHandler):
             if config.https:
                 setcookie['secure'] = True
             self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
-            self.db.user.mod(user['id'], atime=time.time(), aip=self.ip2int)
+            self.db.user.mod(user['id'], atime=time.time(), aip=self.ip2varbinary)
             
             # 如果用户MD5不一致就更新MD5
             hash = MD5.new()
@@ -117,7 +117,7 @@ class RegisterHandler(BaseHandler):
             if (regEn == 1):
                 self.evil(+5)
                 try:
-                    self.db.user.add(email=email, password=password, ip=self.ip2int)
+                    self.db.user.add(email=email, password=password, ip=self.ip2varbinary)
                 except self.db.user.DeplicateUser as e:
                     self.evil(+3)
                     self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)

@@ -239,7 +239,7 @@ class UserManagerHandler(BaseHandler):
         if user and user['role'] == "admin":
             adminflg = True
             users = []
-            for user in self.db.user.list(fields=('id','status', 'role', 'ctime', 'email', 'atime', 'email_verified')):
+            for user in self.db.user.list(fields=('id','status', 'role', 'ctime', 'email', 'atime', 'email_verified', 'aip')):
                 if (user['email_verified'] == 0):
                     user['email_verified'] = False
                 else:

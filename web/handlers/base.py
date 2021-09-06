@@ -68,15 +68,18 @@ class BaseHandler(tornado.web.RequestHandler):
         return self.request.remote_ip
 
     @property
-    def ip2int(self):
-        return utils.ip2int(self.request.remote_ip)
+    def ip2varbinary(self):
+        return utils.ip2varbinary(self.request.remote_ip,utils.isIP(self.request.remote_ip))
 
     def get_current_user(self):
         ret = self.get_secure_cookie('user', max_age_days=config.cookie_days)
         if not ret:
             return ret
         user = umsgpack.unpackb(ret)
-        user['isadmin'] = 'admin' in user['role'] if user['role'] else False
+        try:
+            user['isadmin'] = 'admin' in user['role'] if user['role'] else False
+        except:
+            return None
         return user
 
     def permission(self, obj, mode='r'):

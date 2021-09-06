@@ -60,6 +60,8 @@ class Fetcher(object):
         _render(request, 'url')
         for header in request['headers']:
             _render(header, 'name')
+            if pycurl and header['name'][0] == ":":
+                header['name'] = header['name'][1:]
             _render(header, 'value')
             header['value'] = utils.quote_chinese(header['value'])
         for cookie in request['cookies']:
@@ -69,7 +71,7 @@ class Fetcher(object):
         _render(request, 'data')
         return request
 
-    def build_request(self, obj, download_size_limit=config.download_size_limit):
+    def build_request(self, obj, download_size_limit=config.download_size_limit, connect_timeout=config.connect_timeout, request_timeout=config.request_timeout):
         env = obj['env']
         rule = obj['rule']
         request = self.render(obj['request'], env['variables'], env['session'])
@@ -93,6 +95,8 @@ class Fetcher(object):
                 return 0
             curl.setopt(pycurl.NOPROGRESS, 0)
             curl.setopt(pycurl.PROGRESSFUNCTION, size_limit)
+            curl.setopt(pycurl.CONNECTTIMEOUT, int(connect_timeout))
+            curl.setopt(pycurl.TIMEOUT, int(request_timeout))
             return curl
 
         req = httpclient.HTTPRequest(
@@ -107,6 +111,8 @@ class Fetcher(object):
                 allow_ipv6 = True,
                 prepare_curl_callback = set_size_limit_callback,
                 validate_cert=False,
+                connect_timeout=connect_timeout,
+                request_timeout=request_timeout
                 )
 
         session = cookie_utils.CookieSession()
@@ -229,7 +235,7 @@ class Fetcher(object):
                         content[0] = utils.decode(response.body)
                 if ('content-type' in response.headers):
                     if 'image' in response.headers.get('content-type'):
-                        return base64.b64encode(response.body)
+                        return base64.b64encode(response.body).decode('utf8') 
                 return content[0]
             elif _from == 'status':
                 return '%s' % response.code

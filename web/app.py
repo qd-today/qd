@@ -55,5 +55,6 @@ class Application(tornado.web.Application):
         self.jinja_env.globals.update({
             'config': config,
             'format_date': utils.format_date,
+            'varbinary2ip': utils.varbinary2ip
             })
         self.jinja_env.filters.update(ui_methods)

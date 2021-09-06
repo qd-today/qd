@@ -69,24 +69,3 @@ function OnlyCheckOne() {
     });
 };   
 
-function groups_click(checkbox) {
-    var tmp = checkbox.title
-    var GroupsShowVal = {}
-    if (typeof(window.localStorage.Groups) != "undefined")
-      GroupsShowVal = JSON.parse(window.localStorage.Groups);
-
-    var tasknodes = document.getElementsByClassName(tmp);
-    if (tasknodes.length > 0){
-        var tmp2 = tasknodes[0].style.display;
-        for (i = 0; i < tasknodes.length; i++) { 
-            if (tmp2 == '' || tmp2 == 'table-row'){
-            $(tasknodes[i]).hide();
-            GroupsShowVal[tmp] = true
-            }else{
-            $(tasknodes[i]).show();
-            GroupsShowVal[tmp] = false
-            }
-        }
-        window.localStorage.Groups = JSON.stringify(GroupsShowVal);
-    } 
-}

@@ -5,6 +5,8 @@
     require('/static/har/contenteditable');
     require('/static/har/editablelist');
     utils = require('/static/utils');
+    var local_protocol = window.location.protocol; 
+    var local_host = window.location.host;
     return angular.module('entry_editor', ['contenteditable']).controller('EntryCtrl', function($scope, $rootScope, $sce, $http) {
       var changing;
       $scope.panel = 'request';
@@ -186,7 +188,7 @@
           comment: '延时3秒',
           request: {
             method: 'GET',
-            url: 'http://localhost/util/delay/3',
+            url: [local_protocol,'//',local_host,'/util/delay/3'].join(''),
             postData: {
               test: ''
             },
@@ -211,7 +213,7 @@
           comment: 'unicode转换',
           request: {
             method: 'GET',
-            url: 'http://localhost/util/unicode?content=',
+            url: [local_protocol,'//',local_host,'/util/unicode?content='].join(''),
             headers: [],
             cookies: []
           },
@@ -224,6 +226,13 @@
             {
               re: "\"状态\": \"200\"",
               from: "content"
+            }
+          ],
+          extract_variables: [
+            {
+              name: '',
+              re: '"转换后": "(.*)"',
+              from: 'content'
             }
           ]
         });
@@ -237,7 +246,7 @@
           comment: 'url解码',
           request: {
             method: 'GET',
-            url: 'http://localhost/util/urldecode?content=',
+            url: [local_protocol,'//',local_host,'/util/urldecode?content='].join(''),
             headers: [],
             cookies: []
           },
@@ -251,6 +260,13 @@
               re: "\"状态\": \"200\"",
               from: "content"
             }
+          ],
+          extract_variables: [
+            {
+              name: '',
+              re: '"转换后": "(.*)"',
+              from: 'content'
+            }
           ]
         });
       };
@@ -263,7 +279,7 @@
           comment: '正则提取',
           request: {
             method: 'GET',
-            url: 'http://localhost/util/regex?p=&data=',
+            url: [local_protocol,'//',local_host,'/util/regex?p=&data='].join(''),
             headers: [],
             cookies: []
           },
@@ -276,6 +292,13 @@
             {
               re: "\"状态\": \"OK\"",
               from: "content"
+            }
+          ],
+          extract_variables: [
+            {
+              name: '',
+              re: '"1": "(.*)"',
+              from: 'content'
             }
           ]
         });
@@ -289,7 +312,7 @@
           comment: '字符串替换',
           request: {
             method: 'GET',
-            url: 'http://localhost/util/string/replace?r=json&p=&s=&t=',
+            url: [local_protocol,'//',local_host,'/util/string/replace?r=json&p=&s=&t='].join(''),
             headers: [],
             cookies: []
           },
@@ -303,6 +326,13 @@
               re: "\"状态\": \"OK\"",
               from: "content"
             }
+          ],
+          extract_variables: [
+            {
+              name: '',
+              re: '"处理后字符串": "(.*)"',
+              from: 'content'
+            }
           ]
         });
       };
@@ -315,7 +345,7 @@
           comment: 'RSA加密',
           request: {
             method: 'GET',
-            url: 'http://localhost/util/rsa?key=&data=&f=encode',
+            url: [local_protocol,'//',local_host,'/util/rsa?key=&data=&f=encode'].join(''),
             headers: [],
             cookies: []
           },
@@ -324,6 +354,13 @@
             {
               re: "200",
               from: "status"
+            }
+          ],
+          extract_variables: [
+            {
+              name: '',
+              re: '(.*)',
+              from: 'content'
             }
           ]
         });
@@ -335,13 +372,17 @@
           pageref: $scope.entry.pageref,
           recommend: true,
           comment: '读取记事本',
+          variables: {
+            qd_email: "",
+            qd_pwd: ""
+          },
           request: {
             method: 'POST',
-            url: 'http://localhost/util/toolbox/1',
+            url: [local_protocol,'//',local_host,'/util/toolbox/1'].join(''),
             headers: [],
             cookies: [],
             postData:{
-              text: "email={{qd_name|urlencode}}&pwd={{qd_pwd|urlencode}}&f=read"
+              text: "email={{qd_email|urlencode}}&pwd={{qd_pwd|urlencode}}&f=read"
             }
           },
           response: {},
@@ -349,6 +390,13 @@
             {
               re: "200",
               from: "status"
+            }
+          ],
+          extract_variables: [
+            {
+              name: '',
+              re: '([\s\S]*)',
+              from: 'content'
             }
           ]
         });
@@ -361,11 +409,11 @@
           comment: '追加记事本',
           request: {
             method: 'POST',
-            url: 'http://localhost/util/toolbox/1',
+            url: [local_protocol,'//',local_host,'/util/toolbox/1'].join(''),
             headers: [],
             cookies: [],
             postData:{
-              text: "email={{qd_name|urlencode}}&pwd={{qd_pwd|urlencode}}&f=read&data="
+              text: "email={{qd_email|urlencode}}&pwd={{qd_pwd|urlencode}}&f=append&data="
             }
           },
           response: {},
@@ -373,6 +421,13 @@
             {
               re: "200",
               from: "status"
+            }
+          ],
+          extract_variables: [
+            {
+              name: '',
+              re: '([\s\S]*)',
+              from: 'content'
             }
           ]
         });

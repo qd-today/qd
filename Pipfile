@@ -15,11 +15,12 @@ pytz = "*"
 croniter = "*"
 Jinja2 = "*"
 umsgpack = "*"
-pycurl = "<7.43.0.6"
 redis = "*"
 mysql-connector-python = "*"
+incremental = "*"
 
 [dev-packages]
+pycurl = "<7.43.0.6"
 
 [requires]
 python_version = "3.8"
