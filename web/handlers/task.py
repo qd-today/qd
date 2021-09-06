@@ -171,7 +171,7 @@ class TaskRunHandler(BaseHandler):
             pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
 
             self.db.tasklog.add(task['id'], success=False, msg=str(e))
-            self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % e.replace('\\r\\n', '<br>'))
+            self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % str(e).replace('\\r\\n', '<br>'))
             return
 
         self.db.tasklog.add(task['id'], success=True, msg=new_env['variables'].get('__log__'))
