@@ -115,6 +115,18 @@ mailgun_key = ""
 |43|~~```aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux').encode('utf-8')).digest()```~~|```aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux')).digest()```|
 |44|~~```cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux').encode('utf-8')).digest()```~~|```cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux')).digest()```|
 
+更新方法
+=========
+## 1. 源码部署更新
+``` 
+sh ./update.sh # 先cd到源码所在目录，执行命令后重启进程 
+```
+
+## 2. Docker容器部署更新
+``` 
+sh /usr/src/app/update.sh # 先进入容器后台，执行命令后重启进程 
+```
+
 更新日志
 =========
 ## 2021.09.06 更新
