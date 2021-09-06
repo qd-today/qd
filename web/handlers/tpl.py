@@ -10,6 +10,7 @@ from tornado import gen
 from .base import *
 from libs import utils
 import traceback
+from codecs import escape_decode
 
 class TPLPushHandler(BaseHandler):
     @tornado.web.authenticated
@@ -169,7 +170,7 @@ class TPLGroupHandler(BaseHandler):
         else:
             for value in envs:
                 if envs[value][0] == 'on':
-                    target_group = value.strip()
+                    target_group = escape_decode(value.strip()[2:-1], "hex-escape")[0].decode('utf-8')
                     break
                 else:
                     target_group = 'None'

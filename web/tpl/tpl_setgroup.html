@@ -4,10 +4,10 @@
   <hr>
 
   <div class="use_redpackets_content" id="oneCheck">
-    {% for group in groups %}
+    {% for group in _groups %}
     <div class="checkbox">
       <label>
-        <input type="checkbox" name="{{ group }} "  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
+        <input type="checkbox" name="{{ group.encode('UTF-8') }}"  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
       </label>
     </div>
     {% endfor %}
