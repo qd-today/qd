@@ -14,7 +14,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="签到框架">
   <meta property="og:title" content="签到框架">
-  <meta property="og:url" content="https://192.168.1.5:59595">
+  <meta property="og:url" content="http://localhost:8923">
   <meta property="og:description" content="WEB自动化">
   <meta property="og:locale" content="zh_CN">
   <meta property="og:image" content="/static/img/200.png?v=8555c81a420559e56767924d429ea9bc">
@@ -269,12 +269,47 @@ clipboard.on('error', function(e) {
       </tr>
       
       <tr>
-        <td>{{timestamp()}}</td>
-        <td>调用 python 里的 time.time() 函数</td>
-        <td>{{timestamp()}}</td>
-        <td class="autowrap">1599990277.46</td>
+        <td>{{timestamp(type)}}</td>
+        <td>调用 python 里的 time.time() 函数, type: 'int'表示输出整数, 'float'表示输出小数,默认为'int'</td>
+        <td>{{timestamp('float')}}</td>
+        <td class="autowrap">1599990277.4615508</td>
       </tr>
       
+      <tr>
+        <td>{{is_num(s)}}</td>
+        <td>判断s是否为数字</td>
+        <td>{{is_num('0.5')}}</td>
+        <td class="autowrap">True</td>
+      </tr>
+
+      <tr>
+        <td>{{add(a,b)}}</td>
+        <td>计算 a + b</td>
+        <td>{{add(3,2)}}</td>
+        <td class="autowrap">5.0</td>
+      </tr>
+
+      <tr>
+        <td>{{sub(a,b)}}</td>
+        <td>计算 a - b</td>
+        <td>{{sub(3,2)}}</td>
+        <td class="autowrap">1.0</td>
+      </tr>
+
+      <tr>
+        <td>{{multiply(a,b)}}</td>
+        <td>计算 a * b</td>
+        <td>{{multiply(3,2)}}</td>
+        <td class="autowrap">6.0</td>
+      </tr>
+
+      <tr>
+        <td>{{divide(a,b)}}</td>
+        <td>计算 a / b</td>
+        <td>{{divide(3,2)}}</td>
+        <td class="autowrap">1.5</td>
+      </tr>
+
       <tr>
         <td>{{date_time(date,time,diff)}}</td>
         <td>date: 01表示是否显示日期（默认为 1）；time: 01表示是否显示时分秒（默认为 1）；diff: 时间差（默认为 0）</td>

@@ -326,8 +326,39 @@ def get_date_time(date=True, time=True, time_difference=0):
         return ""
 
 import time
-def timestamp():
-    return int(time.time())
+def timestamp(type='int'):
+    if type=='float':
+        return time.time()
+    else:
+        return int(time.time())
+
+def add(a:str,b:str):
+    if is_num(a) and is_num(b):
+        return '{:f}'.format(float(a)+float(b))
+    return
+
+def sub(a:str,b:str):
+    if is_num(a) and is_num(b):
+        return '{:f}'.format(float(a)-float(b))
+    return
+
+def multiply(a:str,b:str):
+    if is_num(a) and is_num(b):
+        return '{:f}'.format(float(a)*float(b))
+    return
+
+def divide(a:str,b:str):
+    if is_num(a) and is_num(b):
+        return '{:f}'.format(float(a)/float(b))
+    return
+
+def is_num(s:str=''):
+    s = str(s)
+    if s.count('.') ==1:
+        tmp = s.split('.')
+        return tmp[0].isdigit() and tmp[1].isdigit()
+    else:
+        return s.isdigit()
 
 jinja_globals = {
     'md5': md5string,
@@ -337,6 +368,11 @@ jinja_globals = {
     'timestamp': timestamp,
     'random': get_random,
     'date_time': get_date_time,
+    'is_num':is_num,
+    'add':add,
+    'sub':sub,
+    'multiply':multiply,
+    'divide':divide,
 }
 
 import re
