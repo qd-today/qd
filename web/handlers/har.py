@@ -63,8 +63,7 @@ class HAREditor(BaseHandler):
             ))
 
 class HARTest(BaseHandler):
-    @gen.coroutine
-    def post(self):
+    async def post(self):
         self.evil(+1)
         try:
             if 'json' in self.request.headers['Content-Type']:
@@ -72,7 +71,7 @@ class HARTest(BaseHandler):
         except :
             pass
         data = json.loads(self.request.body)
-        ret = yield self.fetcher.fetch(data)
+        ret = await gen.convert_yielded(self.fetcher.fetch(data))
 
         result = {
                 'success': ret['success'],

@@ -25,26 +25,24 @@ def request_parse(req_data):
     return data
 
 class UtilDelayParaHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         try:
             seconds = float(self.get_argument("seconds", 0))
         except Exception as e:
             traceback.print_exc()
-            yield gen.sleep(0.0)
+            await gen.sleep(0.0)
             self.write(u'Error, delay 0.0 second.')
         if seconds < 0:
             seconds = 0.0
         elif seconds >= delay_max_timeout:
             seconds = delay_max_timeout
-            yield gen.sleep(seconds)
+            await gen.sleep(seconds)
             self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
-        yield gen.sleep(seconds)
+        await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
 
 class UtilDelayIntHandler(BaseHandler):
-    @gen.coroutine
-    def get(self, seconds):
+    async def get(self, seconds):
         try:
             seconds = float(seconds)
         except Exception as e:
@@ -54,14 +52,13 @@ class UtilDelayIntHandler(BaseHandler):
             seconds = 0.0
         elif seconds > delay_max_timeout:
             seconds = delay_max_timeout
-            yield gen.sleep(seconds)
+            await gen.sleep(seconds)
             self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
-        yield gen.sleep(seconds)
+        await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
 
 class UtilDelayHandler(BaseHandler):
-    @gen.coroutine
-    def get(self, seconds):
+    async def get(self, seconds):
         try:
             seconds = float(seconds)
         except Exception as e:
@@ -71,14 +68,13 @@ class UtilDelayHandler(BaseHandler):
             seconds = 0.0
         elif seconds >= delay_max_timeout:
             seconds = delay_max_timeout
-            yield gen.sleep(seconds)
+            await gen.sleep(seconds)
             self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
-        yield gen.sleep(seconds)
+        await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
 
 class TimeStampHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         Rtv = {}
         try:
             ts = self.get_argument("ts", "")
@@ -109,8 +105,7 @@ class TimeStampHandler(BaseHandler):
 
 
 class UniCodeHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
@@ -126,8 +121,7 @@ class UniCodeHandler(BaseHandler):
 
 
 class UrlDecodeHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
@@ -140,8 +134,7 @@ class UrlDecodeHandler(BaseHandler):
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
 
 class UtilRegexHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         Rtv = {}
         try:
             data = self.get_argument("data", "")
@@ -158,8 +151,7 @@ class UtilRegexHandler(BaseHandler):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
 
-    @gen.coroutine
-    def post(self):
+    async def post(self):
         Rtv = {}
         try:
             data = self.get_argument("data", "")
@@ -179,8 +171,7 @@ class UtilRegexHandler(BaseHandler):
         return
 
 class UtilStrReplaceHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         Rtv = {}
         try:
             s = self.get_argument("s", "")
@@ -203,8 +194,7 @@ class UtilStrReplaceHandler(BaseHandler):
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
 
 class UtilRSAHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         try:
             key = self.get_argument("key", "")
             data = self.get_argument("data", "")
@@ -250,8 +240,7 @@ class UtilRSAHandler(BaseHandler):
             self.write(str(e))
             return
 
-    @gen.coroutine
-    def post(self):
+    async def post(self):
         try:
             key = self.get_argument("key", "")
             data = self.get_argument("data", "")
@@ -285,13 +274,11 @@ class UtilRSAHandler(BaseHandler):
             return
 
 class toolboxHandler(BaseHandler):
-    @gen.coroutine
-    def get(self, userid):
+    async def get(self, userid):
         user = self.current_user
         self.render('toolbox.html', userid=userid)
 
-    @gen.coroutine
-    def post(self, userid):
+    async def post(self, userid):
         try:
             email = self.get_argument("email", "")
             pwd = self.get_argument("pwd", "")

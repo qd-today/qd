@@ -371,8 +371,7 @@ class Fetcher(object):
                 )
 
 
-    @gen.coroutine
-    def fetch(self, obj, proxy={}):
+    async def fetch(self, obj, proxy={}):
         """
         obj = {
           request: {
@@ -403,7 +402,7 @@ class Fetcher(object):
                 setattr(req, 'proxy_%s' % key, proxy[key])
 
         try:
-            response = yield self.client.fetch(req)
+            response = await gen.convert_yielded(self.client.fetch(req))
         except httpclient.HTTPError as e:
             if not e.response:
                 raise e
@@ -412,12 +411,12 @@ class Fetcher(object):
         env['session'].extract_cookies_to_jar(response.request, response)
         success, msg = self.run_rule(response, rule, env)
 
-        raise gen.Return({
+        return {
             'success': success,
             'response': response,
             'env': env,
             'msg': msg,
-            })
+            }
 
     FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}')
     FOR_END = re.compile('{%\s*endfor\s*%}')
@@ -457,8 +456,7 @@ class Fetcher(object):
         while stmt_stack:
             yield stmt_stack.pop()
 
-    @gen.coroutine
-    def do_fetch(self, tpl, env, proxies=config.proxies, request_limit=1000):
+    async def do_fetch(self, tpl, env, proxies=config.proxies, request_limit=1000):
         """
         do a fetch of hole tpl
         """
@@ -473,16 +471,16 @@ class Fetcher(object):
             elif block['type'] == 'for':
                 for each in env['variables'].get(block['from'], []):
                     env['variables'][block['target']] = each
-                    env = yield self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit)
+                    env = await gen.convert_yielded(self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit))
             elif block['type'] == 'request':
                 entry = block['entry']
                 try:
                     request_limit -= 1
-                    result = yield self.fetch(dict(
+                    result = await gen.convert_yielded(self.fetch(dict(
                         request = entry['request'],
                         rule = entry['rule'],
                         env = env,
-                        ), proxy=proxy)
+                        ), proxy=proxy))
                     env = result['env']
                 except Exception as e:
                     if config.debug:
@@ -492,4 +490,4 @@ class Fetcher(object):
                 if not result['success']:
                     raise Exception('failed at %d/%d request, %s, %s' % (
                         i+1, len(tpl), result['msg'], entry['request']['url']))
-        raise gen.Return(env)
+        return env

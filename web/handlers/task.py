@@ -130,8 +130,7 @@ class TaskEditHandler(TaskNewHandler):
 
 class TaskRunHandler(BaseHandler):
     @tornado.web.authenticated
-    @gen.coroutine
-    def post(self, taskid):
+    async def post(self, taskid):
         self.evil(+2)
         start_ts = int(time.time())
         user = self.current_user
@@ -157,13 +156,13 @@ class TaskRunHandler(BaseHandler):
         try:
             url = utils.parse_url(env['variables'].get('_proxy'))
             if not url:
-                new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
+                new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env))
             else:
                 proxy = {
                     'host': url['host'],
                     'port': url['port'],
                 }
-                new_env = yield self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+                new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, [proxy]))
         except Exception as e:
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
@@ -196,7 +195,7 @@ class TaskRunHandler(BaseHandler):
         t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
         title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
         logtmp = new_env['variables'].get('__log__')
-        logtmp = u"{0}  日志：{1}".format(title, logtmp)
+        logtmp = u"{0} \\r\\n日志：{1}".format(title, logtmp)
         pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
 
         self.db.tpl.incr_success(tpl['id'])

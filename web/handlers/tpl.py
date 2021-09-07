@@ -75,8 +75,7 @@ class TPLDelHandler(BaseHandler):
         self.redirect(referer)
 
 class TPLRunHandler(BaseHandler):
-    @gen.coroutine
-    def post(self, tplid):
+    async def post(self, tplid):
         self.evil(+5)
         user = self.current_user
         data = {}
@@ -121,11 +120,11 @@ class TPLRunHandler(BaseHandler):
                     'host': url['host'],
                     'port': url['port'],
                 }
-                result = yield self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+                result = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, [proxy]))
             elif self.current_user:
-                result = yield self.fetcher.do_fetch(fetch_tpl, env)
+                result = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env))
             else:
-                result = yield self.fetcher.do_fetch(fetch_tpl, env, proxies=[])
+                result = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, proxies=[]))
         except Exception as e:
             traceback.print_exc()
             self.render('tpl_run_failed.html', log=str(e))
