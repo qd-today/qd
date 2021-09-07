@@ -1,8 +1,4 @@
 <h1 class="alert alert-{{ flg }} text-center">{{ title }}</h1>
 {% if log %}
-    <div><pre>
-    {% for _log in log.split('\\r\\n') %}
-        {{ _log  }}<br>
-    {% endfor %}
-    </pre></div>
+    <div><pre>{% for _log in log.split('\\r\\n') %}{{ _log  }}<br>{% endfor %}</pre></div>
 {% endif %}
