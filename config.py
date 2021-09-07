@@ -50,6 +50,8 @@ connect_timeout = 30.0
 # delay 延时API最大时间限制，请小于上述timeout配置，否则会报599错误
 delay_max_timeout = 29.9
 proxies = []
+# 新建任务后准备时间
+new_task_delay = 1
 
 # 域名
 domain = os.getenv('DOMAIN', 'qiandao.today')

@@ -94,7 +94,7 @@ class TaskNewHandler(BaseHandler):
             if tested:
                 self.db.task.mod(taskid, note=note, next=time.time() + (tpl['interval'] or 24*60*60))
             else:
-                self.db.task.mod(taskid, note=note, next=time.time() + 15)
+                self.db.task.mod(taskid, note=note, next=time.time() + config.new_task_delay)
         else:
             task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid', 'init_env')), 'w')
 
