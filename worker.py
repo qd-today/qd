@@ -267,6 +267,6 @@ if __name__ == '__main__':
     tornado.log.enable_pretty_logging()
     worker = MainWorker()
     io_loop = tornado.ioloop.IOLoop.instance()
-    tornado.ioloop.PeriodicCallback(worker, config.check_task_loop, io_loop).start()
+    tornado.ioloop.PeriodicCallback(worker, config.check_task_loop).start()
     worker()
     io_loop.start()
