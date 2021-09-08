@@ -283,23 +283,28 @@ class Fetcher(object):
                     find_all = True
 
             if find_all:
-                result = []
-                for m in re.compile(pattern, flags).finditer(getdata(r['from'])):
-                    if m.groups():
-                        m = m.groups()[0]
-                    else:
-                        m = m.group(0)
-                    result.append(m)
-                env['variables'][r['name']] = result
+                try:
+                    result = []
+                    for m in re.compile(pattern, flags).finditer(getdata(r['from'])):
+                        if m.groups():
+                            m = m.groups()[0]
+                        else:
+                            m = m.group(0)
+                        result.append(m)
+                    env['variables'][r['name']] = result
+                except Exception as e:
+                    env['variables'][r['name']] = str(e)
             else:
-                m = re.compile(pattern, flags).search(getdata(r['from']))
-                if m:
-                    if m.groups():
-                        m = m.groups()[0]
-                    else:
-                        m = m.group(0)
-                    env['variables'][r['name']] = m
-
+                try:
+                    m = re.compile(pattern, flags).search(getdata(r['from']))
+                    if m:
+                        if m.groups():
+                            m = m.groups()[0]
+                        else:
+                            m = m.group(0)
+                        env['variables'][r['name']] = m
+                except Exception as e:
+                    env['variables'][r['name']] = str(e)
         return success, msg
 
     @staticmethod
