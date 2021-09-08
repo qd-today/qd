@@ -2,6 +2,7 @@
 (function() {
   var base, base1,
     indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+  const jinja_globals = ['md5','quote_chinese','utf8','unicode','timestamp','random','date_time','is_num','add','sub','multiply','divide']
 
   if ((base = Array.prototype).some == null) {
     base.some = function(f) {
@@ -403,7 +404,9 @@
         re = /{{\s*([\w]+)[^}]*?\s*}}/g;
         results = [];
         while (m = re.exec(string)) {
-          results.push(m[1]);
+          if (jQuery.inArray(m[1], jinja_globals) < 0){
+            results.push(m[1]);
+          }
         }
         return results;
       },
