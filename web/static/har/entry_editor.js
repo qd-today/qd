@@ -591,7 +591,11 @@
           }
           try {
             if (match = re.match(/^\/(.*?)\/([gim]*)$/)) {
-              re = new RegExp(match[1], match[2]);
+              if (match[1]){
+                re = new RegExp(match[1], match[2]);
+              }else{
+                throw new Error(match[0] +' is not allowed!')
+              }
             } else {
               re = new RegExp(re);
             }
