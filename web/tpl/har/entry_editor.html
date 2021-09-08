@@ -273,7 +273,6 @@
                   <input type="text" placeholder="name" ng-model="rule.name" oninput="text_is_in_jinja_globals(this)">
                 </div>
                 <script>
-                  const jinja_globals = ['md5','quote_chinese','utf8','unicode','timestamp','random','date_time','is_num','add','sub','multiply','divide']
                   text_is_in_jinja_globals = function(text){
                     if (jQuery.inArray(text.value, jinja_globals) >= 0){
                       text.value = ['_',text.value].join("");

@@ -1,17 +1,28 @@
 {
-  "name": "qiandao",
+  "name": "Qiandao for Python3",
   "version": "0.0.0",
   "authors": [
-    "binux <roy@binux.me>"
+    "(a76yyyy <admin@a76yyyy.cn>",
+    "AragonSnow",
+    "binux <roy@binux.me>)"
   ],
   "description": "qiandao.today",
   "homepage": "http://qiandao.today/",
   "private": true,
-  "ignore": [],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "static/components",
+    "test",
+    "tests"
+  ],
   "dependencies": {
     "angularjs": "~1.2.21",
     "jquery": "~2.1.1",
     "bootstrap": "~3.2.0",
-    "seajs": "~2.3.0"
-  }
+    "seajs": "=2.3.0"
+  },
+  "main": "",
+  "license": "MIT"
 }
