@@ -563,7 +563,7 @@
                 content.decoded = atob(content.text);
               }
               data = content.decoded;
-          } else if (from === 'status') {
+          } else if (from === 'status' & $scope.preview != undefined) {
             data = '' + $scope.preview.response.status;
           } else if (from.indexOf('header-') === 0) {
             from = from.slice(7);
@@ -597,8 +597,8 @@
             }
           } catch (error1) {
             error = error1;
-            console.error(error);
-            return null;
+            console.error(error.message);
+            return error.message;
           }
           if (re.global) {
             result = [];
