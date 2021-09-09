@@ -590,7 +590,7 @@
             return null;
           }
           try {
-            if (match = re.match(/^\/(.*?)\/([gim]*)$/)) {
+            if (match = re.match(/^\/(.*?)\/([gimsu]*)$/)) {
               if (match[1]){
                 re = new RegExp(match[1], match[2]);
               }else{
@@ -605,18 +605,31 @@
             return error.message;
           }
           if (re.global) {
-            result = [];
-            while (m = re.exec(data)) {
-              result.push(m[1] ? m[1] : m[0]);
+            try {
+              result = [];
+              tmp = re.lastIndex;
+              while (m = re.exec(data)) {
+                result.push(m[1] ? m[1] : m[0]);
+                if (m[0] == ''){
+                  re.lastIndex++;// throw new Error('the RegExp "' + re.toString() +'" has caused a loop error! Try using stringObject.match(regexp) method on this stringobject...' );
+                }
+              }
+            }catch (error2){
+              console.error(error2.message);
+              result = data.match(re);
             }
-            return result;
+            console.log('The original result is ', result );
+            result = result.toString();
+            console.log('The result of toString() is '+ result );
+            return result.toString();
           } else {
             if (m = data.match(re)) {
-              if (m[1]) {
-                return m[1];
-              } else {
-                return m[0];
-              }
+              // if (m[1]) {
+              //   return m[1];
+              // } else {
+              //   return m[0];
+              // }
+              return m[1]
             }
             return null;
           }
