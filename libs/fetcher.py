@@ -272,26 +272,25 @@ class Fetcher(object):
             flags = 0
             find_all = False
 
-            re_m = re.match(r"^/(.*?)/([gim]*)$", r['re'])
+            re_m = re.match(r"^/(.*?)/([gimsu]*)$", r['re'])
             if re_m:
                 pattern = re_m.group(1)
-                if 'i' in re_m.group(2):
-                    flags |= re.I
-                if 'm' in re_m.group(2):
-                    flags |= re.M
                 if 'g' in re_m.group(2):
-                    find_all = True
+                    find_all = True # 全局匹配
+                if 'i' in re_m.group(2):
+                    flags |= re.I # 使匹配对大小写不敏感
+                if 'm' in re_m.group(2):
+                    flags |= re.M # 多行匹配，影响 ^ 和 $
+                if 's' in re_m.group(2):
+                    flags |= re.S # 使 . 匹配包括换行在内的所有字符
+                if 'u' in re_m.group(2):
+                    flags |= re.U # 根据Unicode字符集解析字符。这个标志影响 \w, \W, \b, \B.
+                if 'x' in re_m.group(2):
+                    pass# flags |= re.X # 该标志通过给予你更灵活的格式以便你将正则表达式写得更易于理解。暂不启用
 
             if find_all:
                 try:
-                    result = []
-                    for m in re.compile(pattern, flags).finditer(getdata(r['from'])):
-                        if m.groups():
-                            m = m.groups()[0]
-                        else:
-                            m = m.group(0)
-                        result.append(m)
-                    env['variables'][r['name']] = result
+                    env['variables'][r['name']] = re.compile(pattern, flags).findall(getdata(r['from']))
                 except Exception as e:
                     env['variables'][r['name']] = str(e)
             else:
