@@ -49,7 +49,7 @@
           <summary title="查询字符串参数">
             Query String Parameters
             <a class="btn btn-info btn-xxs"
-              ng-click="entry.request.queryString.unshift({name: ':key', value: ':value'})">ADD</a>
+              ng-click="entry.request.queryString.push({name: ':key', value: ':value'})">ADD</a>
           </summary>
           <div editablelist="entry.request.queryString"></div>
         </details>
@@ -59,7 +59,7 @@
           <summary title="请求头">
             Request Headers
             <a class="btn btn-info btn-xxs"
-              ng-click="entry.request.headers.unshift({name:'', value:'', checked: true})">ADD</a>
+              ng-click="entry.request.headers.push({name:'', value:'', checked: true})">ADD</a>
           </summary>
           <div editablelist="entry.request.headers"></div>
         </details>
@@ -71,7 +71,7 @@
           <summary title="Cookies">
             Cookies
             <a class="btn btn-info btn-xxs"
-              ng-click="entry.request.cookies.unshift({name:'', value:'', checked:true})">ADD</a>
+              ng-click="entry.request.cookies.push({name:'', value:'', checked:true})">ADD</a>
           </summary>
           <div editablelist="entry.request.cookies"></div>
         </details>
@@ -82,7 +82,7 @@
           <summary title="请求消息体">
             Request Payload
             <a class="btn btn-info btn-xxs" ng-if="entry.request.postData.params"
-              ng-click="entry.request.postData.params.unshift({name:'', value:''})">ADD</a>
+              ng-click="entry.request.postData.params.push({name:'', value:''})">ADD</a>
           </summary>
           <pre class="contentedit-wrapper" ng-bind-html="variables_wrapper(entry.request.postData.text)" ng-if="!entry.request.postData.params"></pre>
           <textarea contenteditable style="width: 100%" rows="5" onfocus="$(this).height($(this)[0].scrollHeight);" ng-model="entry.request.postData.text" ng-if="!entry.request.postData.params"></textarea>
@@ -126,7 +126,7 @@
         <details open onclick="return false">
           <summary title="变量">
             Variables
-            <a class="btn btn-info btn-xxs" ng-click="env.unshift({name:'', value:''})">ADD</a>
+            <a class="btn btn-info btn-xxs" ng-click="env.push({name:'', value:''})">ADD</a>
           </summary>
           <div editablelist="env"></div>
         </details>
@@ -208,7 +208,7 @@
               请求成功条件断言
               <small>支持正则，任意条件满足即为请求成功（没有失败条件命中时）</small>
               <a class="btn btn-info btn-xxs"
-                ng-click="entry.success_asserts.unshift({re:'', from:'content'})">ADD</a>
+                ng-click="entry.success_asserts.push({re:'', from:'content'})">ADD</a>
             </summary>
             <dl class="dl-horizontal">
               <dt ng-repeat-start="rule in entry.success_asserts">
@@ -235,7 +235,7 @@
               请求失败条件断言
               <small>支持正则，任意条件满足即为请求失败</small>
               <a class="btn btn-info btn-xxs"
-                ng-click="entry.failed_asserts.unshift({re:'', from:'content'})">ADD</a>
+                ng-click="entry.failed_asserts.push({re:'', from:'content'})">ADD</a>
             </summary>
             <dl class="dl-horizontal">
               <dt ng-repeat-start="rule in entry.failed_asserts">
@@ -262,7 +262,7 @@
               变量提取
               <small>支持正则，支持括号表达式</small>
               <a class="btn btn-info btn-xxs"
-                ng-click="entry.extract_variables.unshift({name: '', re:'', from:'content'})">ADD</a>
+                ng-click="entry.extract_variables.push({name: '', re:'', from:'content'})">ADD</a>
             </summary>
             <dl class="dl-horizontal">
               <dt ng-repeat-start="rule in entry.extract_variables">
