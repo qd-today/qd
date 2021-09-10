@@ -39,6 +39,13 @@
 
 7. DockerHub : [介绍](http://mirrors.ustc.edu.cn/help/dockerhub.html)
 
+8. **Docker已预装Curl环境，默认不安装pycurl模组**
+
+```
+# 如需使用Proxy功能请安装PyCurl
+# Windows源码运行, 请执行 pip install pycurl==7.43.0.5 
+pip install pycurl # pip3 install pycurl
+```
 
 Web部署
 =========
@@ -130,6 +137,30 @@ sh /usr/src/app/update.sh # 先进入容器后台，执行命令后重启进程
 更新日志
 =========
 
+## 2021.09.10 更新
+1. 添加全局代理黑名单机制
+2. 完善时间戳API
+3. 修复重置密码功能
+4. 修复前端正则表达式全局匹配和匹配为空时的bug
+5. 允许正则表达式匹配修饰符'/s'和'/u'
+
+> **Tips: 全局代理黑名单机制说明**
+```python
+# proxies为全局代理域名列表，若希望部分地址不走代理，请修改proxy_direct_mode及proxy_direct
+proxies = []
+# url为网址匹配模式;regexp为正则表达式匹配模式;空则进行全局代理
+proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '') 
+# url为网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求，以'|'分隔url网址, 
+# url格式应为scheme://domain或scheme://domain:port, 例如:
+# proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost') 
+# regexp为正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求
+proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
+                ([a-z][a-z0-9+\-.]*://)?                            # scheme
+                (0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])    # domain
+                (:[0-9]+)? """                                      # :port
+                ) 
+```
+
 ## 2021.09.08 更新
 1. 修复提取变量处输入正则表达式频繁卡顿的bug
 2. 修复提取变量处正则表达式错误导致500的bug
@@ -137,7 +168,7 @@ sh /usr/src/app/update.sh # 先进入容器后台，执行命令后重启进程
 4. 修复导入har自动提取API函数名作为变量导致500报错的bug
 5. 前端更新
 
-> Tips: 20210906 -> 20210908版本更新了Python相关特性和前端脚本，不再与旧版python兼容，请升级至Python 3.6及以上
+> **Tips: 20210906 -> 20210908版本更新了Python相关特性和前端脚本，不再与旧版python兼容，请升级至Python 3.6及以上**
 
 ## 2021.09.07 更新
 1. 修复单独调用worker脚本时的异常bug
@@ -165,13 +196,7 @@ sh /usr/src/app/update.sh # 先进入容器后台，执行命令后重启进程
 5. 修复pycurl导致若干500和599错误
 6. 更新需求模块
 
-**Docker已预装Curl环境，默认不安装pycurl模组**
 
-```
-# 如需使用Proxy功能请安装PyCurl
-# Windows源码运行, 请执行 pip install pycurl==7.43.0.5 
-pip install pycurl # pip3 install pycurl
-```
 
 ## 2021.09.02 更新
 1. 修复Image解码失败的bug
