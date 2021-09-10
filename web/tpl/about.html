@@ -117,14 +117,14 @@ clipboard.on('error', function(e) {
             <a href="/util/timestamp" target="_blank" rel="nofollow">http://localhost/util/timestamp</a>
           <button class="btn hljs-button" data-clipboard-target="#api_url1">复制</button>
         </td>
-        <td>ts<br></td>
+        <td>ts,form<br></td>
         <td>否</td>
-        <td>默认返回当前时间戳和时间<br>如果参数带时间戳ts, 返回所对应时间</td>
+        <td>默认返回当前时间戳和时间<br>如果参数带时间戳ts, 返回ts所对应时间;<br>如果参数带时间格式form，返回相应格式的本机和北京时间，默认"form=%Y-%m-%d %H:%M:%S"</td>
 
           <td id="api_exam1" class="showbut">
             <div class="autowrap">
-              <a href="/util/timestamp?ts=1625068800" target="_blank" rel="nofollow"> 
-          http://localhost/util/timestamp?ts=1625068800
+              <a href="/util/timestamp?ts=1625068800&form=%Y-%m-%d %H:%M:%S" target="_blank" rel="nofollow"> 
+          http://localhost/util/timestamp?ts=1625068800&form=%Y-%m-%d %H:%M:%S
               </a>
             </div>
           <button class="btn hljs-button" data-clipboard-target="#api_exam1">复制</button>

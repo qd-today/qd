@@ -82,20 +82,27 @@ class TimeStampHandler(BaseHandler):
             cst_tz = pytz.timezone('Asia/Shanghai')
             utc_tz = pytz.timezone("UTC")
             GMT_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
+            tmp = datetime.datetime.fromtimestamp
 
             if not ts:
                 # 当前本机时间戳，本机时间和北京时间
-                Rtv[u"时间戳"] = int(time.time())
-                Rtv[u"本机时间"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"]).strftime(type)
-                Rtv[u"北京时间"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"], cst_tz).strftime(type)
-                Rtv[u"GMT格式"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"], utc_tz).strftime(GMT_FORMAT)
-                Rtv[u"ISO格式"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"], utc_tz).isoformat().split("+")[0] + "Z"
+                Rtv[u"完整时间戳"] = time.time()
+                Rtv[u"时间戳"] = int(Rtv[u"完整时间戳"])
+                Rtv[u"16位时间戳"] = int(Rtv[u"完整时间戳"]*1000000)
+                Rtv[u"本机时间"] = tmp(Rtv[u"完整时间戳"]).strftime(type)
+                Rtv[u"周"] = tmp(Rtv[u"完整时间戳"]).strftime("%w/%W")
+                Rtv[u"日"] = "/".join([tmp(Rtv[u"完整时间戳"]).strftime("%j"),yearday(tmp(Rtv[u"完整时间戳"]).year)])
+                Rtv[u"北京时间"] = tmp(Rtv[u"完整时间戳"], cst_tz).strftime(type)
+                Rtv[u"GMT格式"] = tmp(Rtv[u"完整时间戳"], utc_tz).strftime(GMT_FORMAT)
+                Rtv[u"ISO格式"] = tmp(Rtv[u"完整时间戳"], utc_tz).isoformat().split("+")[0] + "Z"
             else:
                 # 用户时间戳转北京时间
-                Rtv[u"时间戳"] = ts
-                Rtv[u"北京时间"]  = datetime.datetime.fromtimestamp(int(ts), cst_tz).strftime(type)
-                Rtv[u"GMT格式"] = datetime.datetime.fromtimestamp(int(ts), utc_tz).strftime(GMT_FORMAT)
-                Rtv[u"ISO格式"] = datetime.datetime.fromtimestamp(int(ts), utc_tz).isoformat().split("+")[0] + "Z"
+                Rtv[u"时间戳"] = int(ts)
+                Rtv[u"周"] = tmp(Rtv[u"时间戳"]).strftime("%w/%W")
+                Rtv[u"日"] = "/".join([tmp(Rtv[u"时间戳"]).strftime("%j"),yearday(tmp(Rtv[u"时间戳"]).year)])
+                Rtv[u"北京时间"] = tmp(Rtv[u"时间戳"], cst_tz).strftime(type)
+                Rtv[u"GMT格式"] = tmp(Rtv[u"时间戳"], utc_tz).strftime(GMT_FORMAT)
+                Rtv[u"ISO格式"] = tmp(Rtv[u"时间戳"], utc_tz).isoformat().split("+")[0] + "Z"
             Rtv[u"状态"] = "200"
         except Exception as e:
                 Rtv[u"状态"] = str(e)
@@ -103,6 +110,11 @@ class TimeStampHandler(BaseHandler):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
 
+def yearday(year):
+    if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+        return '366'
+    else:
+        return '365'
 
 class UniCodeHandler(BaseHandler):
     async def get(self):
