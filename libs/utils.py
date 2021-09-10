@@ -57,9 +57,26 @@ def isIP(addr = None):
             return 0
     return 0
 
+def urlmatch(url):
+    reobj = re.compile(r"""(?xi)\A
+                ([a-z][a-z0-9+\-.]*://)?                            # Scheme
+                ([a-z0-9\-._~%]+                                    # domain or IPv4 host
+                |\[[a-z0-9\-._~%!$&'()*+,;=:]+\])                   # IPv6+ host
+                (:[0-9]+)? """                                      # :port
+                )
+    match = reobj.search(url)
+    return match.group()
+
+def getLocalScheme(scheme):
+    if scheme in ['http','https']:
+        if config.https:
+            return 'https'
+        else:
+            return 'http'
+    return scheme
+
 import umsgpack
 import functools
-
 
 def func_cache(f):
     _cache = {}
@@ -72,7 +89,6 @@ def func_cache(f):
         return _cache[key]
 
     return wrapper
-
 
 def method_cache(fn):
     @functools.wraps(fn)

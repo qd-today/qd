@@ -402,8 +402,17 @@ class Fetcher(object):
         req, rule, env = self.build_request(obj, self.download_size_limit)
 
         if proxy and pycurl:
-            for key in proxy:
-                setattr(req, 'proxy_%s' % key, proxy[key])
+            if not config.proxy_direct_mode:
+                for key in proxy:
+                    setattr(req, 'proxy_%s' % key, proxy[key])
+            elif config.proxy_direct_mode == 'regexp':
+                if not re.compile(config.proxy_direct).search(req.url):
+                    for key in proxy:
+                        setattr(req, 'proxy_%s' % key, proxy[key])
+            elif config.proxy_direct_mode == 'url':
+                if utils.urlmatch(req.url) not in config.proxy_direct.split('|'):
+                    for key in proxy:
+                        setattr(req, 'proxy_%s' % key, proxy[key])
 
         try:
             response = await gen.convert_yielded(self.client.fetch(req))

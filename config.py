@@ -49,7 +49,16 @@ request_timeout = 30.0
 connect_timeout = 30.0
 # delay 延时API最大时间限制，请小于上述timeout配置，否则会报599错误
 delay_max_timeout = 29.9
+# proxies为全局代理域名列表，若希望部分地址不走代理，请修改proxy_direct_mode及proxy_direct
 proxies = []
+proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '') # url为网址匹配模式;regexp为正则表达式匹配模式;空则进行全局代理
+# url为网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求，以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port, 例如:os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost') 
+# regexp为正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求
+proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
+                ([a-z][a-z0-9+\-.]*://)?                            # scheme
+                (0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])    # domain
+                (:[0-9]+)? """                                      # :port
+                ) 
 # 新建任务后准备时间
 new_task_delay = 1
 
