@@ -150,7 +150,7 @@ sh /usr/src/app/update.sh # 先进入容器后台，执行命令后重启进程
 ```python
 # proxies为全局代理域名列表，若希望部分地址不走代理，请修改proxy_direct_mode及proxy_direct
 proxies = []
-# url为网址匹配模式;regexp为正则表达式匹配模式;空则进行全局代理
+# url为网址匹配模式;regexp为正则表达式匹配模式;空则不开启全局代理黑名单
 proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '') 
 # url为网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求，以'|'分隔url网址, 
 # url格式应为scheme://domain或scheme://domain:port, 例如:
