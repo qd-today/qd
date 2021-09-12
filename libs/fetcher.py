@@ -60,7 +60,7 @@ class Fetcher(object):
         _render(request, 'url')
         for header in request['headers']:
             _render(header, 'name')
-            if pycurl and header['name'][0] == ":":
+            if pycurl and header['name'] and header['name'][0] == ":":
                 header['name'] = header['name'][1:]
             _render(header, 'value')
             header['value'] = utils.quote_chinese(header['value'])
