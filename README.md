@@ -33,7 +33,7 @@
 
 5. docker 使用MySQL
 
-   ```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@链接/数据库名 a76yyyy/qiandao ```
+   ```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@hostname:port/数据库名 a76yyyy/qiandao ```
 
 6. 其余可参考 Wiki : [Docker部署签到站教程](docs/Docker-howto.md)
 
@@ -47,12 +47,13 @@
 pip install pycurl # pip3 install pycurl
 ```
 
-Web部署
+Web源码部署
 =========
 
 ## 1. Version: python3.8
 
-```
+```bash
+# 请先cd到框架源码根目录
 pip3 install -r requirements.txt
 ```
 
@@ -62,9 +63,17 @@ pip3 install -r requirements.txt
 mysql < qiandao.sql
 ```
 
-## 3. 启动
+## 3. 修改相关设置
 
+```bash
+# 请先在框架根目录下新建local_config.py, 在linux环境下可执行以下命令
+cp config.py local_config.py
+# 修改local_config.py文件的内容不受通过git更新源码的影响
 ```
+
+## 4. 启动
+
+```bash
 python ./run.py
 ```
 
@@ -72,13 +81,13 @@ python ./run.py
 在你自己的主页中 「我的模板+」 点击 + 上传。模板需要发布才会在「公开模板」中展示，你需要管理员权限在「我的发布请求」中审批通过。
 
 
-## 4. 设置管理员
+## 5. 设置管理员
 
 ```
 python ./chrole.py your@email.address admin
 ```
 
-## 5. qiandao.py-CMD操作
+## 6. qiandao.py-CMD操作
 
 ```
 python ./qiandao.py tpl.har [--key=value]* [env.json]
@@ -93,9 +102,9 @@ BIND|否|0.0.0.0|监听地址
 PORT|否|8923|监听端口
 ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS，非程序使用HTTPS，需要HTTPS需要使用反向代理
 DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
-JAWSDB_MARIA_URL|否|''|需要使用MySQL时设置为 mysql://用户名:密码@链接/数据库名
-REDISCLOUD_URL|否|''|不懂
-REDIS_DB_INDEX|否|1|不懂
+JAWSDB_MARIA_URL|否|''|需要使用MySQL时设置为 mysql://用户名:密码@hostname:port/数据库名
+REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时设置为 http://rediscloud:密码@hostname:port
+REDIS_DB_INDEX|否|1|默认为1
 DOMAIN|否|qiandao.today|指定域名，建议修改，不然邮件重置密码之类的功能无效
 MAIL_SMTP|否|""|邮箱SMTP服务器
 MAIL_PORT|否|""|邮箱SMTP服务器端口
@@ -113,6 +122,9 @@ mail_passowrd = ""   # 邮件密码
 mail_domain = "mail.qiandao.today"
 mailgun_key = ""
 ```
+
+> 详细信息请查阅[config.py](config.py)
+
 ## 旧版local_config.py迁移
 |  Line  |  Delete  |  Modify  |
 |  ----  | ----  | ----  |
