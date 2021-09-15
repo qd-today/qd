@@ -123,7 +123,7 @@ class UniCodeHandler(BaseHandler):
             content = self.get_argument("content", "")
             tmp = bytes(content,'unicode_escape').decode('utf-8').replace(r'\u',r'\\u').replace(r'\\\u',r'\\u')
             tmp = bytes(tmp,'utf-8').decode('unicode_escape')
-            Rtv[u"转换后"] = tmp.encode('utf-8').decode('unicode_escape')
+            Rtv[u"转换后"] = tmp.encode('utf-8').replace(b'\xc2\xa0',b'\xa0').decode('unicode_escape')
             Rtv[u"状态"] = "200"
         except Exception as e:
             Rtv[u"状态"] = str(e)
