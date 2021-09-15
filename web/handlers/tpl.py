@@ -119,6 +119,8 @@ class TPLRunHandler(BaseHandler):
                 proxy = {
                     'host': url['host'],
                     'port': url['port'],
+                    'username': url['username'],
+                    'password':url['password']
                 }
                 result = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, [proxy]))
             elif self.current_user:

@@ -161,6 +161,8 @@ class TaskRunHandler(BaseHandler):
                 proxy = {
                     'host': url['host'],
                     'port': url['port'],
+                    'username': url['username'],
+                    'password': url['password']
                 }
                 new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, [proxy]))
         except Exception as e:
