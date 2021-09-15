@@ -357,7 +357,7 @@ class TaskGroupHandler(TaskNewHandler):
         else:
             for value in envs:
                 if envs[value][0] == 'on':
-                    target_group = value.strip()
+                    target_group = escape_decode(value.strip()[2:-1],"hex-escape")[0].decode('utf-8')
                     break
                 else:
                     target_group = 'None'
