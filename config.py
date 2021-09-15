@@ -13,7 +13,7 @@ debug = False                                               # 是否开启Debug
 gzip = True                                                 # 是否启用gzip
 bind = str(os.getenv('BIND', '0.0.0.0'))                    # 框架运行监听地址(0.0.0.0表示监听所有IP地址)、
 port = int(os.getenv('PORT', 8923))                         # 监听端口Port
-https = bool(os.getenv('ENABLE_HTTPS', False))              # 发送的邮件链接启用HTTPS，非程序使用HTTPS，需要HTTPS需要使用反向代理
+https = bool(os.getenv('ENABLE_HTTPS', False))              # 发送的邮件链接启用HTTPS, 非程序使用HTTPS, 需要HTTPS需要使用反向代理
 cookie_days = 5                                             # Cookie在客户端保留时间
 mysql_url = urlparse(os.getenv('JAWSDB_MARIA_URL', ''))     # 格式: mysql://用户名:密码@hostname:port/数据库名
 redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))       # 格式: (redis/http)://rediscloud:密码@hostname:port
@@ -28,10 +28,10 @@ class mysql(object):
 class sqlite3(object):
     path = './config/database.db'                           # Sqlite3数据库文件地址
 
-# 数据库类型，修改 sqlite3 为 mysql 使用 mysql
-db_type = os.getenv('DB_TYPE', 'sqlite3')                   # 默认为Sqlite3,需要使用MySQL时设置为'mysql'
+# 数据库类型, 修改 sqlite3 为 mysql 使用 mysql
+db_type = os.getenv('DB_TYPE', 'sqlite3')                   # 默认为Sqlite3, 需要使用MySQL时设置为'mysql'
 
-# redis 连接参数，可选
+# redis 连接参数, 可选
 class redis(object):
     host = redis_url.hostname or 'localhost'                # 访问Redis的Hostname
     port = redis_url.port or 6379                           # Redis的端口Port
@@ -40,20 +40,25 @@ class redis(object):
 evil = 100                                                  # 1小时内登录用户或IP上限
 
 pbkdf2_iterations = 400                                     # pbkdf2 迭代次数
-aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux').encode('utf-8')).digest()                # AES加密密钥，强烈建议修改
-cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux').encode('utf-8')).digest()    # Cookie加密密钥，强烈建议修改
-check_task_loop = 500                                       # Worker检查任务工作循环时间，单位毫秒
+aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux').encode('utf-8')).digest()                # AES加密密钥, 强烈建议修改
+cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux').encode('utf-8')).digest()    # Cookie加密密钥, 强烈建议修改
+check_task_loop = 500                                       # Worker检查任务工作循环时间, 单位毫秒
 # Tornado httpclient.HTTPRequest参数配置
 download_size_limit = 5*1024*1024                           # 允许用户单次请求下载最大值
 request_timeout = 30.0                                      # HTTPRequest 请求超时时间
 connect_timeout = 30.0                                      # HTTPRequest 连接超时时间
-delay_max_timeout = 29.9                                    # delay 延时API最大时间限制，请小于上述timeout配置，否则会报599错误
+delay_max_timeout = 29.9                                    # delay 延时API最大时间限制, 请小于上述timeout配置, 否则会报599错误
 
-# 全局代理域名列表相关设置
-proxies = []                                                # proxies为全局代理域名列表，若希望部分地址不走代理，请修改proxy_direct_mode及proxy_direct
-proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '')      # url为网址匹配模式;regexp为正则表达式匹配模式;空则进行全局代理
-# url为网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求，以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port, 例如:os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost') 
-# regexp为正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求
+# 以下为全局代理域名列表相关设置
+# proxies为全局代理域名列表, 默认为空[], 表示不开启全局代理; 
+# 代理格式应为'scheme://username:password@host:port',例如:proxies = ['http://admin:admin@127.0.0.1:8923','https://proxy.com:8888']; 
+# 任务级代理请在新建或修改任务时添加,任务级代理优先级大于全局代理; 
+proxies = []                                                # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct 
+proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '')      # 默认为空, 可选输入:'url'为网址匹配模式;'regexp'为正则表达式匹配模式;''空则不开启全局代理黑名单 
+# proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'url')进入网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求, 以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port 
+# 例如: proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost'); 
+# proxy_direct_mode= os.getenv('PROXY_DIRECT_MODE', 'regexp')进入正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求; 
+# 开启regexp模式后自动采用以下默认匹配正则表达式, 如无特别需求请勿修改
 proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
                 ([a-z][a-z0-9+\-.]*://)?                                                        # Scheme
                 (0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])                                # Domain/Hostname/IPv4/IPv6
@@ -62,8 +67,8 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 
 new_task_delay = 1                                          # 新建任务后准备时间
 
-# 发送邮件内链接域名，如果是通过IP+端口Port方式请正确输入`IP:Port`
-domain = os.getenv('DOMAIN', 'qiandao.today')               # 指定域名，建议修改，不然邮件重置密码之类的功能无效
+# 发送邮件内链接域名, 如果是通过IP+端口Port方式请正确输入`IP:Port`
+domain = os.getenv('DOMAIN', 'qiandao.today')               # 指定域名, 建议修改, 不然邮件重置密码之类的功能无效
 
 # 邮件发送相关配置
 mail_smtp = os.getenv('MAIL_SMTP',"")                       # 邮箱SMTP服务器
