@@ -155,6 +155,7 @@ sh /usr/src/app/update.sh # 先进入容器后台，执行命令后重启进程
 3. 修复修改任务分组时分组名为中文导致的乱码bug
 4. 支持socks5代理
 5. 分别构建Pycurl与Qiandao容器
+6. 优化登录页面,"我的"首页和"多任务操作"页面(by [acooler15](https://github.com/acooler15/qiandao))
 
 ## 2021.09.10 更新
 1. 添加全局代理黑名单机制
