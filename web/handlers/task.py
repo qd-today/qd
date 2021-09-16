@@ -43,10 +43,11 @@ class TaskNewHandler(BaseHandler):
             variables = json.loads(tpl['variables'])
 
             _groups = []
-            for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
-                temp = task['_groups']
-                if (temp not  in _groups):
-                    _groups.append(temp)
+            if user:
+                for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+                    temp = task['_groups']
+                    if (temp not  in _groups):
+                        _groups.append(temp)
             
             self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=tpl['variables'])
         else:
