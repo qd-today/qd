@@ -29,6 +29,8 @@ RUN mkdir -p /root/.ssh \
     && cp -f ssh/qiandao_fetch.pub /root/.ssh/id_rsa.pub \
     && chmod 600 /root/.ssh/id_rsa \
     && ssh-keyscan gitee.com > /root/.ssh/known_hosts \
+    && let num=$RANDOM%100+10 \
+    && sleep $num \
     && git clone git@gitee.com:a76yyyy/qiandao.git /gitclone_tmp \
     && yes | cp -rf /gitclone_tmp/. /usr/src/app
     
