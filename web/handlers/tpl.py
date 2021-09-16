@@ -101,6 +101,8 @@ class TPLRunHandler(BaseHandler):
             try:
                 fetch_tpl = json.loads(self.get_argument('tpl'))
             except:
+                if not user:
+                    return self.render('tpl_run_failed.html', log="请先登录!")
                 raise HTTPError(400)
 
         env = data.get('env')
