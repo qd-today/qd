@@ -60,64 +60,66 @@
           <th style="text-align:center" title="签到操作区">操作</th>
         </tr>
       </thead>
-      <tbody>
-        {% for group in taskgroups | sort(reverse=True) %}
-        <tr name="{{group}} taskgroups" title="{{group}} taskgroup">
+      {% for group in taskgroups | sort(reverse=True) %}
+      <tbody name="{{group}} tbody">
            
-          <tr>
-            <td colspan="6" title="{{group}} taskgroup"  style="background-color:rgb(215,237,251);">
-              <input type="checkbox"  title="全选/反选" name="{{group}} taskgroups" onclick="taskgrouponclick(this)">
-              <text>{{group}}</text> 
-              <input type="checkbox" style="float:right"  title="隐藏/显示" name="{{group}} taskgroup " onclick="groups_click(this)">
-            </td> 
-          </tr>
-          
-          {% for task in tasks | sort(reverse=True, attribute="ctime") %}
-          {% if group == task._groups %}
-          <tr class="{{group}} taskgroup ">
-            <td>
-              <input type="checkbox"  name="{{task.id}}" class="{{group}} taskgroups"  onclick="taskonclick(this)">
-              {% if task.disabled %}<span title="任务处于禁用状态,使用 (立即执行) 成功签到一次,即可解除." style="color:#ff7600;border-left:5px solid #ff7600;padding-left:5px;">[禁用]</span>{% endif %}
-              {{ utils.tplname(task.tpl) if task.tpl else "[已删除]" }}
+        <tr>
+          <th colspan="6" title="{{group}} taskgroup"  style="background-color:rgb(215,237,251);text-align: center;">
+            <input type="checkbox"  title="全选/反选" name="{{group}} checkbox" style="float:left" onclick="allTaskgroupChecked(this)">
+            <text>{{group}} 分组</text> 
+            <button style="float:right;padding: 1px 6px;"  title="隐藏/显示" name="{{group}} taskgroup" onclick="taskGroup.toggle(this)" class="dropup">
+              <span class="caret"></span>
+            </button>
+          </th>
+        </tr>
 
-              {% if task.note %}
-              -
-                <code>
-                  {% if task.note | length > 15 %}
-                <span data-toggle="popover" data-content="{{ task.note }}">{{ task.note | truncate(10, True) }}</span>
-                {% else %} {{ task.note }} {% endif %}
-                  {% endif %}
-                </code>
-            </td>
-            <td style="text-align:center;color: #cacaca;"><a style="color:#518cb9;" title="成功计次">{{ task.success_count }}</a> / <a style="color:#c15454;" title="失败计次">{{ task.failed_count }}</a></td>
-            <td><span data-toggle="popover" data-content="{{ format_date(task.last_success,-8*60,True,False,True) if task.last_success else '从未' }}">{{ format_date(task.last_success) if task.last_success else '从未' }}</span></td>
+        {% for task in tasks | sort(reverse=True, attribute="ctime") %}
+        {% if group == task._groups %}
+        <tr class="{{group}} taskgroup">
+          <td>
+            <input type="checkbox"  name="{{task.id}}" class="{{group}} checkbox" style="display: inline; min-height: unset;" onclick="taskNode.toggle(this)">
+            {% if task.disabled %}<span title="任务处于禁用状态,使用 (立即执行) 成功签到一次,即可解除." style="color:#ff7600;border-left:5px solid #ff7600;padding-left:5px;">[禁用]</span>{% endif %}
+            {{ utils.tplname(task.tpl) if task.tpl else "[已删除]" }}
 
-            <td style="text-align:center">{{ my_status(task) }}</td>
-            <!-- <td>{{ task.msg }}</td> -->
-        
-            <td><span data-toggle="popover" data-content="{{ format_date(task.next,-8*60,True,False,True) if task.next else '从未' }}">{{ format_date(task.next) if task.next else '从未' }}</span></td>
-
-            <td style="text-align:center">
-              <div class="btn-group btn-group-xs" role="group">
-                {% if task.tpl %}
-                <span type="span" class="btn btn-default"><a class="modal_load" href="/task/{{ task.id }}/edit" title="修改签到数据">修改</a></span>
-                {% else %}
-                <span type="span" class="btn btn-default"><a data-method="POST" href="/task/{{ task.id }}/del" data-confirm="是否要删除任务?">删除</a></span>
+            {% if task.note %}
+            -
+              <code>
+                {% if task.note | length > 15 %}
+              <span data-toggle="popover" data-content="{{ task.note }}">{{ task.note | truncate(10, True) }}</span>
+              {% else %} {{ task.note }} {% endif %}
                 {% endif %}
-                <span type="span" class="btn btn-default"><a data-load-method="POST" class="modal_load" href="/task/{{ task.id }}/run" title="立即执行签到任务">执行</a></span>
-                <span type="span" class="btn btn-default"><a href="/tpl/{{ task.tplid }}/edit?taskid={{ task.id }}" target="_blank" title="查看模板数据">模板</a></span>
-                <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/task/{{ task.id }}/settime" title="修改执行时间">定时</a></span>
-                <span type="span" class="btn btn-default"><a href="/task/{{ task.id }}/log" target="_blank" title="查看执行日志">日志</a></span>
-                <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/task/{{ task.id }}/group" title="将任务分组">分组</a></span>
-              </div>
-            </td>
-            
-          </tr>
-          {% endif %}
-          {% endfor %}
-        </tr> 
+              </code>
+          </td>
+          <td style="text-align:center;color: #cacaca;"><a style="color:#518cb9;" title="成功计次">{{ task.success_count }}</a> / <a style="color:#c15454;" title="失败计次">{{ task.failed_count }}</a></td>
+          <td><span data-toggle="popover" data-content="{{ format_date(task.last_success,-8*60,True,False,True) if task.last_success else '从未' }}">{{ format_date(task.last_success) if task.last_success else '从未' }}</span></td>
+
+          <td style="text-align:center">{{ my_status(task) }}</td>
+          <!-- <td>{{ task.msg }}</td> -->
+      
+          <td><span data-toggle="popover" data-content="{{ format_date(task.next,-8*60,True,False,True) if task.next else '从未' }}">{{ format_date(task.next) if task.next else '从未' }}</span></td>
+
+          <td style="text-align:center">
+            <div class="btn-group btn-group-xs" role="group">
+              {% if task.tpl %}
+              <span type="span" class="btn btn-default"><a class="modal_load" href="/task/{{ task.id }}/edit" title="修改签到数据">修改</a></span>
+              {% else %}
+              <span type="span" class="btn btn-default"><a data-method="POST" href="/task/{{ task.id }}/del" data-confirm="是否要删除任务?">删除</a></span>
+              {% endif %}
+              <span type="span" class="btn btn-default"><a data-load-method="POST" class="modal_load" href="/task/{{ task.id }}/run" title="立即执行签到任务">执行</a></span>
+              <span type="span" class="btn btn-default"><a href="/tpl/{{ task.tplid }}/edit?taskid={{ task.id }}" target="_blank" title="查看模板数据">模板</a></span>
+              <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/task/{{ task.id }}/settime" title="修改执行时间">定时</a></span>
+              <span type="span" class="btn btn-default"><a href="/task/{{ task.id }}/log" target="_blank" title="查看执行日志">日志</a></span>
+              <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/task/{{ task.id }}/group" title="将任务分组">分组</a></span>
+            </div>
+          </td>
+          
+        </tr>
+        {% endif %}
         {% endfor %}
-      </tbody>
+      
+      </tbody>   
+      {% endfor %}
+      
     </table>
     <div class="text-right">
       <a href="/tpls/public" class="btn btn-default">所有公开模板</a>
@@ -142,60 +144,62 @@
           <th style="text-align:center" title="模板操作区">操作</th>
         </tr>
       </thead>
-      <tbody>
-        {% for tplgroup in tplgroups | sort(reverse=True) %}
-        <tr name="{{tplgroup}} tplgroups">
-          <tr>
-            <td colspan="5"  style="background-color:rgb(215,237,251);">
-              <text>{{ tplgroup }}</text>
-              <input type="checkbox" style="float:right" name="{{ tplgroup }} tplgroups" onchange="checkboxOnclick(this)"> 
-            </td> 
-          </tr>
-          {% for tpl in tpls | sort(reverse=True, attribute="mtime") %}
-          {% if tplgroup == tpl._groups %}
-          <tr class="{{ tplgroup }} tplgroups" >
-            <td>
-              {% if  tpl.updateable == 1 %}
-              <span type="span" class="btn btn-default">
-                <a href="/tpl/{{ tpl.id }}/edit?tplurl={{ tpl.tplurl | urlencode }}?tpldata={{ tpl.tpldata | urlencode }}" target="_blank" title="更新模板">更新
-                </a>
-              </span>
-              {% endif %}
-              {{ utils.tplname(tpl) }}
-      
-              {% if tpl.fork %}<span>[fork]</span>{% endif %}-<kbd>{{ tpl.siteurl }}</kbd>
-            </td>
-  
-            <td><span data-toggle="popover" data-content="{{ format_date(tpl.ctime,-8*60,True,False,True)}}">{{ format_date(tpl.ctime) }}</span></td>         
-            <td><span data-toggle="popover" data-content="{{ format_date(tpl.mtime,-8*60,True,False,True)}}">{{ format_date(tpl.mtime) }}</span></td>
-        
-            <td>
-              {% if tpl.last_success %}
-              <span class="last_success" data-toggle="popover" data-content="{{ format_date(tpl.last_success,-8*60,True,False,True)}} ">{{ format_date(tpl.last_success) }}</span>
-              {% else %}
-              从未
-              {% endif %}
-            </td>
-  
-            <td style="text-align:center">
-              <div class="btn-group btn-group-xs" role="group" aria-label="...">
-                {% if tpl.lock %}
-                [锁定]
-                {% else %}
-                <span type="span" class="btn btn-default"><a href="/tpl/{{ tpl.id }}/edit" target="_blank" title="编辑模板数据">编辑</a></span>
-                <span type="span" class="btn btn-default"><a data-method="POST" href="/tpl/{{ tpl.id }}/del" data-confirm="是否要删除模板?" title="删除模板数据">删除</a></span>
-                {% endif %}
-                <span type="span" class="btn btn-default"><a class="modal_load" href="/task/new?tplid={{ tpl.id }}" title="通过此模板新建签到">新建</a></span>
-                <span type="span" class="btn btn-default"><a class="modal_load" href="/tpl/{{ tpl.id }}/push" title="发布自己创建的模板">发布</a></span>
-                <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/tpl/{{ tpl.id }}/group" title="将模板分组">分组</a></span>
-              </div>
-            </td>
-          
-          {% endif %}
-          {% endfor %}
+      <!-- <tbody> -->
+      {% for tplgroup in tplgroups | sort(reverse=True) %}
+      <tbody name="{{tplgroup}} tbody">
+        <tr>
+          <th colspan="5"  style="background-color:rgb(215,237,251);text-align: center;">
+            <text>{{ tplgroup }} 分组</text>
+            <button style="float:right;padding: 1px 6px;"  title="隐藏/显示" name="{{tplgroup}} tplgroup" onclick="tplGroup.toggle(this)" class="dropup">
+              <span class="caret"></span>
+            </button>
+          </th>
         </tr>
+        {% for tpl in tpls | sort(reverse=True, attribute="mtime") %}
+        {% if tplgroup == tpl._groups %}
+        <tr class="{{ tplgroup }} tplgroup" >
+          <td>
+            {% if  tpl.updateable == 1 %}
+            <span type="span" class="btn btn-default">
+              <a href="/tpl/{{ tpl.id }}/edit?tplurl={{ tpl.tplurl | urlencode }}?tpldata={{ tpl.tpldata | urlencode }}" target="_blank" title="更新模板">更新
+              </a>
+            </span>
+            {% endif %}
+            {{ utils.tplname(tpl) }}
+    
+            {% if tpl.fork %}<span>[fork]</span>{% endif %}-<kbd>{{ tpl.siteurl }}</kbd>
+          </td>
+
+          <td><span data-toggle="popover" data-content="{{ format_date(tpl.ctime,-8*60,True,False,True)}}">{{ format_date(tpl.ctime) }}</span></td>         
+          <td><span data-toggle="popover" data-content="{{ format_date(tpl.mtime,-8*60,True,False,True)}}">{{ format_date(tpl.mtime) }}</span></td>
+      
+          <td>
+            {% if tpl.last_success %}
+            <span class="last_success" data-toggle="popover" data-content="{{ format_date(tpl.last_success,-8*60,True,False,True)}} ">{{ format_date(tpl.last_success) }}</span>
+            {% else %}
+            从未
+            {% endif %}
+          </td>
+
+          <td style="text-align:center">
+            <div class="btn-group btn-group-xs" role="group" aria-label="...">
+              {% if tpl.lock %}
+              [锁定]
+              {% else %}
+              <span type="span" class="btn btn-default"><a href="/tpl/{{ tpl.id }}/edit" target="_blank" title="编辑模板数据">编辑</a></span>
+              <span type="span" class="btn btn-default"><a data-method="POST" href="/tpl/{{ tpl.id }}/del" data-confirm="是否要删除模板?" title="删除模板数据">删除</a></span>
+              {% endif %}
+              <span type="span" class="btn btn-default"><a class="modal_load" href="/task/new?tplid={{ tpl.id }}" title="通过此模板新建签到">新建</a></span>
+              <span type="span" class="btn btn-default"><a class="modal_load" href="/tpl/{{ tpl.id }}/push" title="发布自己创建的模板">发布</a></span>
+              <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/tpl/{{ tpl.id }}/group" title="将模板分组">分组</a></span>
+            </div>
+          </td>
+        
+        {% endif %}
         {% endfor %}
       </tbody>
+      {% endfor %}
+      
     </table>
     <div class="text-right">
       <a href="/pushs" class="btn btn-default">我的发布请求</a>
@@ -224,117 +228,154 @@
   }
 </script>
 <script src="/static/mutil_op.js"></script>
-<script>
-function Del_tasks () {
-  var Indexs = {};
-  var es = document.querySelectorAll('tr[class*=taskgroup]');
-  es.forEach(function(entry){
-    var tmp = entry.getElementsByTagName('td')[0].getElementsByTagName('input')[0]
-    if (tmp.checked){
-      Indexs[tmp.name] = ''
-    }
-  });
-  var $this = $(this);
-  var data = {taskids: JSON.stringify(Indexs), func: "Del"}
-  $.ajax('/tasks/{{ userid }}', {
-      type: 'POST',
-      data: data,
-    })
-    .done(function(data) {
-      goto_my()
-    })
-    .fail(function(jxhr) {
-      $("del_confirm-result").html('<h1 class="alert alert-danger text-center">失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
-    })
-    .always(function() {
-      $this.button('reset');});
 
-  return false;
-}
-function setTasksGroup() {
-    var Indexs = {};
-    var es = document.querySelectorAll('tr[class*=taskgroup]');
-    var tmp = ""
-    var groupValue = ''
-    es.forEach(function(entry){
-    var tmp = entry.getElementsByTagName('td')[0].getElementsByTagName('input')[0]
-    if (tmp.checked){
-        Indexs[tmp.name] = ''
-    }
-    });
-    
-    tmp = document.querySelectorAll('#NewGroupValue')[0]
-    if(tmp.value == ''){
-    es = document.querySelectorAll('#oneCheck input[type=checkbox]');
-    es.forEach(function (e){
-        if (e.checked) {
-        groupValue = e.name;
+<script>
+  const taskNode = {
+    selectedTaskNodesJSON: '{}',
+
+    get selectedTaskNodes() {
+      return this.getSelectedTaskNodes()
+    },
+
+    set selectedTaskNodes(val) {
+      this.setSelectedTaskNodes(val)
+    },
+
+    getSelectedTaskNodes: function(){
+      if(this.selectedTaskNodesJSON == '{}'){
+        if (typeof(sessionStorage.selectedtask) != "undefined"){
+          this.selectedTaskNodesJSON = sessionStorage.selectedtask
         }
-    });
-    }
-    else {
-    groupValue = tmp.value
-    }
-    var $this = $(this);
-    var data = {taskids: JSON.stringify(Indexs), func: "setGroup", groupValue: groupValue}
-    $.ajax('/tasks/{{ userid }}', {
-        type: 'POST',
-        data: data,
-    })
-    .done(function(data) {
-        window.location.replace("/my/")
-    })
-    .fail(function(jxhr) {
-        $('#run-result').html('<h1 class="alert alert-danger text-center">失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
-    })
-    .always(function() {
-        $this.button('reset');});
+      }
+      return JSON.parse(this.selectedTaskNodesJSON)
+    },
 
-    return false;
-}
+    setSelectedTaskNodes: function(val){
+      this.selectedTaskNodesJSON = JSON.stringify(val)
+      sessionStorage.selectedtask=JSON.stringify(val)
+    },
+
+    toggle: function(taskNode, uncheck) {
+      let _selectedTaskNodes = this.selectedTaskNodes
+      _selectedTaskNodes[taskNode.name] =taskNode.checked
+      this.selectedTaskNodes = _selectedTaskNodes
+      if(!uncheck) {
+        (typeof setTaskGroupChecked == 'function') && setTaskGroupChecked(taskNode.className)
+      }
+    },
+
+
+    init: function() {
+      let _selectedTaskNodes = this.selectedTaskNodes
+      for (var key in _selectedTaskNodes){
+        var tasknodes = document.getElementsByName(key);
+        if (tasknodes.length > 0){
+          tasknodes[0].checked = _selectedTaskNodes[key]
+        }
+      }
+    }
+
+  }
+  // 页面加载后初始化
+  taskNode.init()
 </script>
 
 <script>
-  if (typeof(window.localStorage.Groups) != "undefined"){
-    var groupsTmp = JSON.parse(window.localStorage.Groups)
-    for (var key in groupsTmp){
-      var tasknodes = document.getElementsByClassName(key);
-      if (tasknodes.length > 0){
-        for (i = 0; i < tasknodes.length; i++) { 
-            if (groupsTmp[key]){
-            $(tasknodes[i]).hide();
-            }else{
-            $(tasknodes[i]).show();
-            }
-      }
+  /**
+   * 创建一个用于控制group隐藏显示的对象
+   * 
+   * storage_HiddenGroupsName: 存储在localStorage中的隐藏Groups变量的名
+   **/
+  function createGroupObj(storage_HiddenGroupsName) {
+    if(typeof storage_HiddenGroupsName != 'string' && storage_HiddenGroupsName.strim() != storage_HiddenGroupsName) {
+      throw new Error('参数storageHiddenGroupsName类型必须为string，且不能为空')
+    }
+
+    return {
+      hiddenGroupsJSON: '{}',
+      _localStorageName: storage_HiddenGroupsName,
+      get hiddenGroups() {
+        return this.getHiddenGroups()
+      },
+
+      set hiddenGroups(val) {
+        this.setHiddenGroups(val)
+      },
+
+      getHiddenGroups: function(){
+        if(this.hiddenGroupsJSON == '{}'){
+          if (typeof(window.localStorage[this._localStorageName]) != "undefined"){
+            this.hiddenGroupsJSON = window.localStorage[this._localStorageName];
+          }
+        }
+        return JSON.parse(this.hiddenGroupsJSON)
+      },
+
+      setHiddenGroups: function(val){
+        this.hiddenGroupsJSON = JSON.stringify(val)
+        window.localStorage[this._localStorageName]=JSON.stringify(val)
+      },
+
+      toggle: function(that){
+        let groupName = that.name
+        let _hiddenGroups = this.hiddenGroups
+        if(typeof _hiddenGroups[groupName] != 'boolean') {
+          _hiddenGroups[groupName] = false
+        }
+        _hiddenGroups[groupName] = !_hiddenGroups[groupName]
+        this.nodesDisplay(groupName, !_hiddenGroups[groupName])
+        this.hiddenGroups = _hiddenGroups
+        // 三角符号变动
+        if(that.className.includes('dropup')) {
+          that.className = that.className.replaceAll('dropup','')
+        }else {
+          that.className = that.className.replace(/^\s+|\s+$/gm, '') + ' dropup'
+        }
+      },
+
+      nodesDisplay: function(groupName, bool) {
+        // bool: true时显示，false时隐藏
+        let tasknodes = document.getElementsByClassName(groupName);
+        if (tasknodes.length > 0){
+          for (i = 0; i < tasknodes.length; i++) { 
+            $(tasknodes[i]).toggle(bool);
+          }
+        }
+
+      },
+
+      init: function(){
+        let _hiddenGroups = this.hiddenGroups
+        for (let key in _hiddenGroups){
+          this.nodesDisplay(key, !_hiddenGroups[key])
+          if(_hiddenGroups[key]) {
+            // $('input[type="checkbox"][name="'+key+'"]').prop('checked', _hiddenGroups[key])
+            let _hiddenButton = document.getElementsByName(key)[0]
+            _hiddenButton.className = _hiddenButton.className.replaceAll('dropup','')
+          }
+        }
+  
       }
     }
   }
-
-  if (typeof(sessionStorage.selectedtask) != "undefined"){
-    var selectedtaskTmp = JSON.parse(sessionStorage.selectedtask)
-    for (var key in selectedtaskTmp){
-      var tasknodes = document.getElementsByName(key);
-      if (tasknodes.length > 0){
-        tasknodes[0].checked = selectedtaskTmp[key]
-      }
-    }
-  }
+  const taskGroup = createGroupObj('HiddenTaskGroups')
+  // 页面加载后初始化
+  taskGroup.init()
 </script>
 
 <script>
-  function taskonclick(checkbox){
-    var tmp = {}
-    if (typeof(sessionStorage.selectedtask) != "undefined") {
-      tmp = JSON.parse(sessionStorage['selectedtask'])
-    } 
-    tmp[checkbox.name] = checkbox.checked;
-    sessionStorage['selectedtask'] = JSON.stringify(tmp);
-  }
+  const tplGroup = createGroupObj('HiddenTplGroups')
+  tplGroup.init()
+  // const tplGroup = new taskGroup()
+
 </script>
 
 <script>
-  function taskgrouponclick(checkbox){
+  /**
+   * 全选/反选
+   * 
+   **/
+  function allTaskgroupChecked(checkbox){
     var tmp = checkbox.name
     var tasknodes = document.getElementsByClassName(tmp);
     if (tasknodes.length > 0){
@@ -345,35 +386,47 @@ function setTasksGroup() {
           else {
             tasknodes[i].checked = false
           }
-          taskonclick(tasknodes[i])
+          taskNode.toggle(tasknodes[i], true)
         }
     } 
-}
+  }
+  /**
+   *  修改全选按钮样式
+   * 
+   **/
+  function setTaskGroupChecked(className){
+    let _eles = document.getElementsByName(className)
+    let _nodeGroupChecked
+    for(let i=0; i<_eles.length; i++) {
+      if(_eles[i].nodeName.toLowerCase() == 'input' &&
+        _eles[i].getAttribute('type') == 'checkbox'
+      ){
+        _nodeGroupChecked = _eles[i]
+      }
+    }
+    if(typeof _nodeGroupChecked == 'undefined') return;
+    let _checkedNum = 0
+    const _taskNodes = document.getElementsByClassName(className)
+
+    for(key in _taskNodes) {
+      if(_taskNodes[key].checked == true) {
+        _checkedNum++
+      }
+    }
+
+    if(_checkedNum == _taskNodes.length) {
+      _nodeGroupChecked.indeterminate = false;
+      _nodeGroupChecked.checked = true;
+    }else if(_checkedNum > 0) {
+      _nodeGroupChecked.indeterminate = true;
+      _nodeGroupChecked.checked = false;
+    }else {
+      _nodeGroupChecked.indeterminate = false;
+      _nodeGroupChecked.checked = false;
+    }
+  }
 </script>
 
-<script>
-function groups_click(checkbox) {
-    var tmp = checkbox.name
-    var GroupsShowVal = {}
-    if (typeof(window.localStorage.Groups) != "undefined")
-      GroupsShowVal = JSON.parse(window.localStorage.Groups);
-
-    var tasknodes = document.getElementsByClassName(tmp);
-    if (tasknodes.length > 0){
-        var tmp2 = tasknodes[0].style.display;
-        for (i = 0; i < tasknodes.length; i++) { 
-            if (tmp2 == '' || tmp2 == 'table-row'){
-            $(tasknodes[i]).hide();
-            GroupsShowVal[tmp] = true
-            }else{
-            $(tasknodes[i]).show();
-            GroupsShowVal[tmp] = false
-            }
-        }
-        window.localStorage.Groups = JSON.stringify(GroupsShowVal);
-    } 
-}
-</script>
 {% include 'LeftFuncBtn.html' %}
 {{ utils.modal_load() }}
 {{ utils.apost() }}
