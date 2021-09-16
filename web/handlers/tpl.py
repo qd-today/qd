@@ -117,6 +117,7 @@ class TPLRunHandler(BaseHandler):
             url = utils.parse_url(env['variables'].get('_binux_proxy'))
             if url:
                 proxy = {
+                    'scheme': url['scheme'],
                     'host': url['host'],
                     'port': url['port'],
                     'username': url['username'],

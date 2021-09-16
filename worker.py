@@ -191,6 +191,7 @@ class MainWorker(object):
                 new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env))
             else:
                 proxy = {
+                    'scheme': url['scheme'],
                     'host': url['host'],
                     'port': url['port'],
                     'username': url['username'],

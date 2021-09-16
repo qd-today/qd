@@ -71,7 +71,7 @@ class Fetcher(object):
         _render(request, 'data')
         return request
 
-    def build_request(self, obj, download_size_limit=config.download_size_limit, connect_timeout=config.connect_timeout, request_timeout=config.request_timeout):
+    def build_request(self, obj, download_size_limit=config.download_size_limit, connect_timeout=config.connect_timeout, request_timeout=config.request_timeout, Socks5Type=False):
         env = obj['env']
         rule = obj['rule']
         request = self.render(obj['request'], env['variables'], env['session'])
@@ -97,6 +97,8 @@ class Fetcher(object):
             curl.setopt(pycurl.PROGRESSFUNCTION, size_limit)
             curl.setopt(pycurl.CONNECTTIMEOUT, int(connect_timeout))
             curl.setopt(pycurl.TIMEOUT, int(request_timeout))
+            if Socks5Type:
+                curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
             return curl
 
         req = httpclient.HTTPRequest(
@@ -399,20 +401,26 @@ class Fetcher(object):
           }
         }
         """
-        req, rule, env = self.build_request(obj, self.download_size_limit)
+        if proxy and pycurl and proxy.get('scheme','')=='socks5':
+            req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,Socks5Type=True)
+        else:
+            req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,)
 
         if proxy and pycurl:
             if not config.proxy_direct_mode:
                 for key in proxy:
-                    setattr(req, 'proxy_%s' % key, proxy[key])
+                    if key != 'scheme':
+                        setattr(req, 'proxy_%s' % key, proxy[key])
             elif config.proxy_direct_mode == 'regexp':
                 if not re.compile(config.proxy_direct).search(req.url):
                     for key in proxy:
-                        setattr(req, 'proxy_%s' % key, proxy[key])
+                        if key != 'scheme':
+                            setattr(req, 'proxy_%s' % key, proxy[key])
             elif config.proxy_direct_mode == 'url':
                 if utils.urlmatch(req.url) not in config.proxy_direct.split('|'):
                     for key in proxy:
-                        setattr(req, 'proxy_%s' % key, proxy[key])
+                        if key != 'scheme':
+                            setattr(req, 'proxy_%s' % key, proxy[key])
 
         try:
             response = await gen.convert_yielded(self.client.fetch(req))
