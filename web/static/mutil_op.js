@@ -69,3 +69,71 @@ function OnlyCheckOne() {
     });
 };   
 
+function Del_tasks () {
+  var Indexs = {};
+  var es = document.querySelectorAll('tr[class*=taskgroup]');
+  es.forEach(function(entry){
+    var tmp = entry.getElementsByTagName('td')[0].getElementsByTagName('input')[0]
+    if (tmp.checked){
+      Indexs[tmp.name] = ''
+    }
+  });
+  var $this = $(this);
+  var data = {taskids: JSON.stringify(Indexs), func: "Del"}
+  $.ajax('/tasks/{{ userid }}', {
+      type: 'POST',
+      data: data,
+    })
+    .done(function(data) {
+      goto_my()
+    })
+    .fail(function(jxhr) {
+      $("del_confirm-result").html('<h1 class="alert alert-danger text-center">失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+    })
+    .always(function() {
+      $this.button('reset');});
+
+  return false;
+}
+
+function setTasksGroup() {
+    var Indexs = {};
+    var es = document.querySelectorAll('tr[class*=taskgroup]');
+    var tmp = ""
+    var groupValue = ''
+    es.forEach(function(entry){
+    var tmp = entry.getElementsByTagName('td')[0].getElementsByTagName('input')[0]
+    if (tmp.checked){
+        Indexs[tmp.name] = ''
+    }
+    });
+    
+    tmp = document.querySelectorAll('#NewGroupValue')[0]
+    if(tmp.value == ''){
+    es = document.querySelectorAll('#oneCheck input[type=checkbox]');
+    es.forEach(function (e){
+        if (e.checked) {
+        groupValue = e.name;
+        }
+    });
+    }
+    else {
+    groupValue = tmp.value
+    }
+    var $this = $(this);
+    var data = {taskids: JSON.stringify(Indexs), func: "setGroup", groupValue: groupValue}
+    $.ajax('/tasks/{{ userid }}', {
+        type: 'POST',
+        data: data,
+    })
+    .done(function(data) {
+        window.location.replace("/my/")
+    })
+    .fail(function(jxhr) {
+        $('#run-result').html('<h1 class="alert alert-danger text-center">失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+    })
+    .always(function() {
+        $this.button('reset');});
+
+    return false;
+}

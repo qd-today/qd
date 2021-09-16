@@ -9,7 +9,17 @@
     {% for task in tasks %}
     <tr>
       <td style="text-align:center">{{ task.id }}</td>
-      <td style="text-align:center">{{ task.sitename }}-{{task.note}}</td>
+      <td style="text-align:center">
+        {{ task.sitename }}
+        {% if task.note %}
+        -
+        <code>
+          {% if task.note | length > 15 %}
+        <span data-toggle="popover" data-content="{{ task.note }}">{{ task.note | truncate(10, True) }}</span>
+        {% else %} {{ task.note }} {% endif %}
+          {% endif %}
+        </code>
+      </td>
     </tr>
     {% endfor %}
   </tbody>
