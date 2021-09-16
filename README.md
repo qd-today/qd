@@ -39,12 +39,14 @@
 
 7. DockerHub : [介绍](http://mirrors.ustc.edu.cn/help/dockerhub.html)
 
-8. **Docker已预装Curl环境，默认不安装pycurl模组**
+8. **Docker已预装Curl环境，默认安装pycurl模组**
 
 ```
 # 如需使用Proxy功能请安装PyCurl
 # Windows源码运行, 请执行 pip install pycurl==7.43.0.5 
 pip install pycurl # pip3 install pycurl
+# 如因curl导致500或599错误，请卸载PyCurl
+# pip uninstall pycurl
 ```
 
 Web源码部署
