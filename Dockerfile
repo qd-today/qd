@@ -1,5 +1,5 @@
 # 基础镜像
-FROM python:3.8-alpine
+FROM a76yyyy/pycurl:latest
 
 # 维护者信息
 LABEL maintainer "a76yyyy <q981331502@163.com>"
@@ -15,42 +15,6 @@ LABEL maintainer "a76yyyy <q981331502@163.com>"
 
 ADD . /usr/src/app
 WORKDIR /usr/src/app
-
-# 换源
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
-
-# Install packages
-RUN apk update \
-    && apk add --no-cache openrc redis bash git autoconf g++ tzdata nano openssh-client
-
-# Needed for pycurl
-ENV PYCURL_SSL_LIBRARY=openssl
-ENV CURL_VERSION 7.78.0
-
-# For nghttp2-dev, we need this respository.
-RUN echo https://dl-cdn.alpinelinux.org/alpine/edge/testing >>/etc/apk/repositories 
-
-RUN apk add --update --no-cache openssl openssl-dev nghttp2-dev ca-certificates zlib zlib-dev brotli brotli-dev zstd zstd-dev
-RUN apk add --update --no-cache --virtual curldeps make perl && \
-wget https://curl.haxx.se/download/curl-$CURL_VERSION.tar.bz2 && \
-tar xjvf curl-$CURL_VERSION.tar.bz2 && \
-rm curl-$CURL_VERSION.tar.bz2 && \
-cd curl-$CURL_VERSION && \
-./configure \
-    --with-nghttp2=/usr \
-    --prefix=/usr \
-    --with-ssl \
-    --enable-ipv6 \
-    --enable-unix-sockets \
-    --without-libidn \
-    --disable-static \
-    --disable-ldap \
-    --with-pic && \
-make && \
-make install && \
-cd .. && \
-rm -r curl-$CURL_VERSION && \
-apk del curldeps
 
 # Setting openrc-redis
 RUN rc-status -a \
