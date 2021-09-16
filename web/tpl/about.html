@@ -80,7 +80,7 @@ clipboard.on('error', function(e) {
 
 <header>
 <div class="container">
-  <h2 class="text-center">私有签到框架<sup>20210910</sup></h2>
+  <h2 class="text-center">私有签到框架<sup>20210916</sup></h2>
   <div class="buttons">
     <a href="/" class="btn btn-default pull-left">首页</a>
     <a href="/about" class="btn btn-default pull-left">常用API/过滤器</a>
@@ -231,6 +231,21 @@ clipboard.on('error', function(e) {
         </td>
       </tr>
 
+      <tr>
+        <td>HTTP/HTTPs<br>/Socks5代理</td>
+          <td id="api_url7" class="showbut">
+            <a>scheme://username:password@<br>hostname:port</a>
+          <button class="btn hljs-button" data-clipboard-target="#api_url7">复制</button>
+        </td>
+        <td>scheme,<br>username,<br>password,<br>hostname,<br>port</td>
+        <td>是(username, password除外)</td>
+        <td>scheme:协议头,可选输入http, https,socks5<br>username:代理账户名,如无账户验证请删除'username:password@'部分<br>password:代理账户密码<br>hostname:可选输入IPv4地址,IPv6地址,域名<br>port:端口号,如端口号为80或443可删除':port'部分</td>
+
+          <td id="api_exam7" class="showbut">
+            <div class="autowrap"> <a>http://admin:admin@localhost:8923</a></div>
+          <button class="btn hljs-button" data-clipboard-target="#api_exam7">复制</button>
+        </td>
+      </tr>
     </tbody>
   </table>
   <h2>
