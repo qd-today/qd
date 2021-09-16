@@ -230,6 +230,29 @@
 <script src="/static/mutil_op.js"></script>
 
 <script>
+  /**
+   * 全选/反选
+   * 
+   **/
+  function allTaskgroupChecked(checkbox){
+    var tmp = checkbox.name
+    var tasknodes = document.getElementsByClassName(tmp);
+    if (tasknodes.length > 0){
+        for (i = 0; i < tasknodes.length; i++) { 
+          if(checkbox.checked){
+            tasknodes[i].checked = true
+          }
+          else {
+            tasknodes[i].checked = false
+          }
+          taskNode.toggle(tasknodes[i], true)
+        }
+    } 
+  }
+
+</script>
+
+<script>
   const taskNode = {
     selectedTaskNodesJSON: '{}',
 
@@ -267,17 +290,65 @@
 
     init: function() {
       let _selectedTaskNodes = this.selectedTaskNodes
-      for (var key in _selectedTaskNodes){
-        var tasknodes = document.getElementsByName(key);
+      let _classNames= {}
+      for (let key in _selectedTaskNodes){
+        let tasknodes = document.getElementsByName(key);
         if (tasknodes.length > 0){
           tasknodes[0].checked = _selectedTaskNodes[key]
+          // 将已选中的tasknode的className 存储在_classNames中
+          if(_selectedTaskNodes[key]) {
+            _classNames[tasknodes[0].className] = true
+          }
         }
+      }
+
+      for(let key in _classNames){
+        (typeof setTaskGroupChecked == 'function') && setTaskGroupChecked(key)
       }
     }
 
   }
+
+  /**
+   *  修改全选按钮样式
+   *  在taskNode.init()之前加载
+   * 
+   **/
+   function setTaskGroupChecked(className){
+    let _eles = document.getElementsByName(className)
+    let _nodeGroupChecked
+    for(let i=0; i<_eles.length; i++) {
+      if(_eles[i].nodeName.toLowerCase() == 'input' &&
+        _eles[i].getAttribute('type') == 'checkbox'
+      ){
+        _nodeGroupChecked = _eles[i]
+      }
+    }
+    if(typeof _nodeGroupChecked == 'undefined') return;
+    let _checkedNum = 0
+    const _taskNodes = document.getElementsByClassName(className)
+
+    for(key in _taskNodes) {
+      if(_taskNodes[key].checked == true) {
+        _checkedNum++
+      }
+    }
+
+    if(_checkedNum == _taskNodes.length) {
+      _nodeGroupChecked.indeterminate = false;
+      _nodeGroupChecked.checked = true;
+    }else if(_checkedNum > 0) {
+      _nodeGroupChecked.indeterminate = true;
+      _nodeGroupChecked.checked = false;
+    }else {
+      _nodeGroupChecked.indeterminate = false;
+      _nodeGroupChecked.checked = false;
+    }
+  }
+
   // 页面加载后初始化
   taskNode.init()
+
 </script>
 
 <script>
@@ -370,62 +441,6 @@
 
 </script>
 
-<script>
-  /**
-   * 全选/反选
-   * 
-   **/
-  function allTaskgroupChecked(checkbox){
-    var tmp = checkbox.name
-    var tasknodes = document.getElementsByClassName(tmp);
-    if (tasknodes.length > 0){
-        for (i = 0; i < tasknodes.length; i++) { 
-          if(checkbox.checked){
-            tasknodes[i].checked = true
-          }
-          else {
-            tasknodes[i].checked = false
-          }
-          taskNode.toggle(tasknodes[i], true)
-        }
-    } 
-  }
-  /**
-   *  修改全选按钮样式
-   * 
-   **/
-  function setTaskGroupChecked(className){
-    let _eles = document.getElementsByName(className)
-    let _nodeGroupChecked
-    for(let i=0; i<_eles.length; i++) {
-      if(_eles[i].nodeName.toLowerCase() == 'input' &&
-        _eles[i].getAttribute('type') == 'checkbox'
-      ){
-        _nodeGroupChecked = _eles[i]
-      }
-    }
-    if(typeof _nodeGroupChecked == 'undefined') return;
-    let _checkedNum = 0
-    const _taskNodes = document.getElementsByClassName(className)
-
-    for(key in _taskNodes) {
-      if(_taskNodes[key].checked == true) {
-        _checkedNum++
-      }
-    }
-
-    if(_checkedNum == _taskNodes.length) {
-      _nodeGroupChecked.indeterminate = false;
-      _nodeGroupChecked.checked = true;
-    }else if(_checkedNum > 0) {
-      _nodeGroupChecked.indeterminate = true;
-      _nodeGroupChecked.checked = false;
-    }else {
-      _nodeGroupChecked.indeterminate = false;
-      _nodeGroupChecked.checked = false;
-    }
-  }
-</script>
 
 {% include 'LeftFuncBtn.html' %}
 {{ utils.modal_load() }}
