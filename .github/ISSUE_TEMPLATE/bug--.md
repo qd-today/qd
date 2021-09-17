@@ -2,7 +2,7 @@
 name: Bug报告
 about: Create a report to help us improve
 title: "[Bug]"
-labels: enhancement
+labels: bug
 assignees: ''
 
 ---
