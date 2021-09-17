@@ -71,7 +71,7 @@ class Fetcher(object):
         _render(request, 'data')
         return request
 
-    def build_request(self, obj, download_size_limit=config.download_size_limit, connect_timeout=config.connect_timeout, request_timeout=config.request_timeout, Socks5Type=False):
+    def build_request(self, obj, download_size_limit=config.download_size_limit, connect_timeout=config.connect_timeout, request_timeout=config.request_timeout, Socks5Type=False, Socks5hType=False):
         env = obj['env']
         rule = obj['rule']
         request = self.render(obj['request'], env['variables'], env['session'])
@@ -99,6 +99,8 @@ class Fetcher(object):
             curl.setopt(pycurl.TIMEOUT, int(request_timeout))
             if Socks5Type:
                 curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
+            elif Socks5hType:
+                curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5_HOSTNAME)
             return curl
 
         req = httpclient.HTTPRequest(
@@ -401,10 +403,15 @@ class Fetcher(object):
           }
         }
         """
-        if proxy and pycurl and proxy.get('scheme','')=='socks5':
-            req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,Socks5Type=True)
+        if proxy and pycurl:
+            if proxy.get('scheme','')=='socks5':
+                req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,Socks5Type=True)
+            elif proxy.get('scheme','')=='socks5h':
+                req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,Socks5hType=True)
+            else:
+                req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit)
         else:
-            req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,)
+            req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit)
 
         if proxy and pycurl:
             if not config.proxy_direct_mode:

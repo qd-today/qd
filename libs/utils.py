@@ -395,7 +395,7 @@ import re
 def parse_url(url):
     if not url:
         return None
-    result = re.match('((?P<scheme>(https?|socks5)+)://)?((?P<username>[^:@/]+)(:(?P<password>[^@/]+))?@)?(?P<host>[^:@/]+):(?P<port>\d+)', url)
+    result = re.match('((?P<scheme>(https?|socks5h?)+)://)?((?P<username>[^:@/]+)(:(?P<password>[^@/]+))?@)?(?P<host>[^:@/]+):(?P<port>\d+)', url)
     return None if not result else {
         'scheme': result.group('scheme'),
         'host': result.group('host'),
