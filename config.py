@@ -53,7 +53,7 @@ delay_max_timeout = 29.9                                    # delay 延时API最
 # proxies为全局代理域名列表, 默认为空[], 表示不开启全局代理; 
 # 代理格式应为'scheme://username:password@host:port',例如:proxies = ['http://admin:admin@127.0.0.1:8923','https://proxy.com:8888']; 
 # 任务级代理请在新建或修改任务时添加,任务级代理优先级大于全局代理; 
-proxies = []                                                # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct 
+proxies = os.getenv('PROXIES', '').split('|')               # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct 
 proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '')      # 默认为空, 可选输入:'url'为网址匹配模式;'regexp'为正则表达式匹配模式;''空则不开启全局代理黑名单 
 # proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'url')进入网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求, 以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port 
 # 例如: proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost'); 

@@ -39,13 +39,13 @@
 
 7. DockerHub : [介绍](http://mirrors.ustc.edu.cn/help/dockerhub.html)
 
-8. **Docker已预装Curl环境，默认安装pycurl模组**
+8. **Docker已预装Curl环境, 默认安装pycurl模组**
 
 ```
 # 如需使用Proxy功能请安装PyCurl
 # Windows源码运行, 请执行 pip install pycurl==7.43.0.5 
 pip install pycurl # pip3 install pycurl
-# 如因curl导致500或599错误，请卸载PyCurl
+# 如因curl导致500或599错误, 请卸载PyCurl
 # pip uninstall pycurl
 ```
 
@@ -79,8 +79,8 @@ cp config.py local_config.py
 python ./run.py
 ```
 
-数据不随项目分发，去 [https://qiandao.today/tpls/public](https://qiandao.today/tpls/public) 查看你需要的模板，点击下载。
-在你自己的主页中 「我的模板+」 点击 + 上传。模板需要发布才会在「公开模板」中展示，你需要管理员权限在「我的发布请求」中审批通过。
+数据不随项目分发, 去 [https://qiandao.today/tpls/public](https://qiandao.today/tpls/public) 查看你需要的模板, 点击下载。
+在你自己的主页中 「我的模板+」 点击 + 上传。模板需要发布才会在「公开模板」中展示, 你需要管理员权限在「我的发布请求」中审批通过。
 
 
 ## 5. 设置管理员
@@ -102,28 +102,22 @@ config.py-配置变量
 :-: | :-: | :-: | :-: 
 BIND|否|0.0.0.0|监听地址
 PORT|否|8923|监听端口
-ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS，非程序使用HTTPS，需要HTTPS需要使用反向代理
+ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS, <br>非程序使用HTTPS, 需要HTTPS需要使用反向代理
 DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
-JAWSDB_MARIA_URL|否|''|需要使用MySQL时设置为 mysql://用户名:密码@hostname:port/数据库名
-REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时设置为 http://rediscloud:密码@hostname:port
+JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 mysql://用户名:密码@hostname:port/数据库名
+REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时, <br>设置为 http://rediscloud:密码@hostname:port
 REDIS_DB_INDEX|否|1|默认为1
-DOMAIN|否|qiandao.today|指定域名，建议修改，不然邮件重置密码之类的功能无效
+DOMAIN|否|qiandao.today|指定访问域名, <br>建议修改, 不然邮件重置密码等功能无效
 MAIL_SMTP|否|""|邮箱SMTP服务器
 MAIL_PORT|否|""|邮箱SMTP服务器端口
 MAIL_USER|否|""|邮箱用户名
 MAIL_PASSWORD|否|""|邮箱密码
-MAIL_DOMAIN|否|mail.qiandao.today|邮箱域名,没啥用，使用的DOMAIN
-AES_KEY|否|binux|AES加密密钥，强烈建议修改
-COOKIE_SECRET|否|binux|cookie加密密钥，强烈建议修改
-
-优先用`mailgun`方式发送邮件，如果要用smtp方式发送邮件，请填写mail_smtp, mail_user, mail_password
-```python
-mail_smtp = ""     # 邮件smtp 地址
-mail_user = ""    # 邮件账户
-mail_passowrd = ""   # 邮件密码
-mail_domain = "mail.qiandao.today"
-mailgun_key = ""
-```
+MAIL_DOMAIN|否|mail.qiandao.today|邮箱域名,没啥用, 使用的DOMAIN
+AES_KEY|否|binux|AES加密密钥, 强烈建议修改
+COOKIE_SECRET|否|binux|cookie加密密钥, 强烈建议修改
+PROXIES|否|""|全局代理域名列表,用"|"分隔
+PROXY_DIRECT_MODE|否|""|全局代理黑名单模式,默认不开启 <br>"url"为网址匹配模式;"regexp"为正则表达式匹配模式
+PROXY_DIRECT|否|""|全局代理黑名单匹配规则
 
 > 详细信息请查阅[config.py](config.py)
 
@@ -140,16 +134,27 @@ mailgun_key = ""
 =========
 ## 1. 源码部署更新
 ``` 
-sh ./update.sh # 先cd到源码所在目录，执行命令后重启进程 
+sh ./update.sh # 先cd到源码所在目录, 执行命令后重启进程 
 ```
 
 ## 2. Docker容器部署更新
 ``` 
-sh /usr/src/app/update.sh # 先进入容器后台，执行命令后重启进程 
+sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程 
 ```
 
 更新日志
 =========
+## 2021.09.17 更新
+1. 修复变量名冲突时自动添加'_'失效的bug
+2. 支持socks5h代理
+3. 添加har时可见postdata的text控件
+4. 修复Proxies的bug
+
+> **Tips: Socks5说明**
+> 
+> Socks5h代理: socks5代理通过服务端进行域名解析. 
+> 
+> 如通过代理请求返回500或599错误时, 可尝试将 `socks5://host:port` 改为 `socks5h://host:port`, 以使用Socks5h方式请求
 
 ## 2021.09.16 更新
 1. 代理允许添加账户密码
@@ -174,7 +179,7 @@ sh /usr/src/app/update.sh # 先进入容器后台，执行命令后重启进程
 # proxies为全局代理域名列表, 默认为空[], 表示不开启全局代理; 
 # 代理格式应为'scheme://username:password@host:port',例如:proxies = ['http://admin:admin@127.0.0.1:8923','https://proxy.com:8888']; 
 # 任务级代理请在新建或修改任务时添加,任务级代理优先级大于全局代理; 
-proxies = []                                                # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct 
+proxies = os.getenv('PROXIES', '').split('|')               # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct 
 proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '')      # 默认为空, 可选输入:'url'为网址匹配模式;'regexp'为正则表达式匹配模式;''空则不开启全局代理黑名单 
 # proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'url')进入网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求, 以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port 
 # 例如: proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost'); 
@@ -194,7 +199,7 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 4. 修复导入har自动提取API函数名作为变量导致500报错的bug
 5. 前端更新
 
-> **Tips: 20210906 -> 20210908版本更新了Python相关特性和前端脚本，不再与旧版python兼容，请升级至Python 3.6及以上**
+> **Tips: 20210906 -> 20210908版本更新了Python相关特性和前端脚本, 不再与旧版python兼容, 请升级至Python 3.6及以上**
 
 ## 2021.09.07 更新
 1. 修复单独调用worker脚本时的异常bug
@@ -229,7 +234,7 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 2. 添加请求时限设置
 3. 修复延时API超过请求时限导致的bug
 4. 查看任务的模板数据时自动导入任务变量(by [billypon](https://github.com/billypon/qiandao))
-5. 默认去除pycurl模组，解决部分500和599错误
+5. 默认去除pycurl模组, 解决部分500和599错误
 
 ## 2021.08.07 更新
 1. 更新Wiki
@@ -256,20 +261,20 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 1. 修改Dockfile,采用密钥更新
 
 ## 2021.06.26 更新
-1. 公共仓库添加评论功能，跳转到github，国内打不开的问题自行解决
+1. 公共仓库添加评论功能, 跳转到github, 国内打不开的问题自行解决
 2. 公共仓库添加强制更新按钮
 3. 修复mysql创建数据库错误
 4. 修复about页面打开500错误
 
 ## 2021.06.21 更新
-1. 重写公共模板仓库的订阅方法，允许添加第三方库(具体规范参考)
-2. 模板使用缓存的方式，默认是每隔一天重新读取，可以手动刷新缓存
+1. 重写公共模板仓库的订阅方法, 允许添加第三方库(具体规范参考)
+2. 模板使用缓存的方式, 默认是每隔一天重新读取, 可以手动刷新缓存
 3. 新增多任务禁用/启用/删除/定时/分组
 4. 任务和模板分组栏修改颜色
 5. 修复注册用户时没有创建md5密码的bug
 
 ## 2021.04.13 更新
-1. 添加proxy功能，目前暂时不可用(By billypon)
+1. 添加proxy功能, 目前暂时不可用(By billypon)
 
 ## 2021.02.20 更新
 1. 完善MD5
@@ -278,7 +283,7 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 
 ## 2021.02.20 更新
 1. 修复容忍错误推送的失效的BUG
-2. 主循环修改为0.5s，使定时运行更准确
+2. 主循环修改为0.5s, 使定时运行更准确
 3. 修复/register没有注册按钮的BUG
 4. 密码验证修改为md5
 5. 更换默认微信推送图片
@@ -308,11 +313,11 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 1. 底部添加本项目链接
 2. 禁止注册时隐藏注册按钮
 3. 显示注册推送的前值
-4. 添加记事本功能，用户可以将数据保存在本地
+4. 添加记事本功能, 用户可以将数据保存在本地
 5. 推送注册和推送设置按钮移动到工具箱
 6. 定时时间以任务起始时间为依据
 7. 新增自定义推送功能
-8. bark推送改为POST，可以推送日志
+8. bark推送改为POST, 可以推送日志
 
 ## 2020.12.24 更新
 1. 修复模板编辑中'{{变量}}'自动urlencode的问题
@@ -328,27 +333,27 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 1. 修复任务运行结束后'logDay'报错
 
 ## 2020.11.20 更新
-1. 修复模板订阅时url太长报错的问题，模板按照修改时间来排序
-2. 支持网站设置仅保留一定天数的日志，日志清理时间在任务成功完成之后,默认365天
+1. 修复模板订阅时url太长报错的问题, 模板按照修改时间来排序
+2. 支持网站设置仅保留一定天数的日志, 日志清理时间在任务成功完成之后,默认365天
 3. 手动清除一定天数的日志
 4. 分组折叠/展开 支持记忆
 5. 修复模板编辑页面反选错误的bug
 
 ## 2020.11.05 更新
-1. 用户管理，备份，网站管理，密码不显示明文，不输入账号密码返回页面显示中文
+1. 用户管理, 备份, 网站管理, 密码不显示明文, 不输入账号密码返回页面显示中文
 
 ## 2020.10.31 更新
 1. 允许普通用户备份/恢复
 2. 模板编辑页显示请求排序
 3. 模板编辑页可以同时删除多个请求
-4. 主页允许多项操作删除/分组，取消分组的勾选框，改为点击即可显示隐藏
+4. 主页允许多项操作删除/分组, 取消分组的勾选框, 改为点击即可显示隐藏
 5. 公共仓库打开失败时使用本地仓库
 
 ## 2020.09.18 更新
 1. 允许备份/恢复 用户的所有任务和模板
-2. 修复模板编辑时，变量作为url会自动url转码的bug
+2. 修复模板编辑时, 变量作为url会自动url转码的bug
 3. 模板编辑时允许拖拽请求
-4. 模板订阅添加错误显示，避免500
+4. 模板订阅添加错误显示, 避免500
 
 ## 2020.09.14 更新(By liubei121212)
 1. 添加 unicode 函数
@@ -361,12 +366,12 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 
 
 ## 2020.09.10 更新
-1. 鉴于github 污染严重，使用gitee代替作为订阅源，地址 : [https://gitee.com/qiandao-today/templates](https://gitee.com/qiandao-today/templates)
-2. 首页的检查模板更新取消，打开公共模板仓库会自动检查更新
-3. 修复邮箱验证，注册后未验证可以再次点击注册验证
+1. 鉴于github 污染严重, 使用gitee代替作为订阅源, 地址 : [https://gitee.com/qiandao-today/templates](https://gitee.com/qiandao-today/templates)
+2. 首页的检查模板更新取消, 打开公共模板仓库会自动检查更新
+3. 修复邮箱验证, 注册后未验证可以再次点击注册验证
 4. 修改任务时显示前值
 
-本次更新有js脚本更新，请开启chrome 的 “disable cache”功能更新js脚本
+本次更新有js脚本更新, 请开启chrome 的 “disable cache”功能更新js脚本
 
 ## 2020.09.07 更新
 1. 在数据库管理中增加一键备份/恢复所有模板的功能
@@ -374,16 +379,16 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 ## 2020.09.01 更新
 1. 正则提取支持post方式
 2. 取消getcookie插件提示(By powersee)
-3. 管理员可以查看用户是否验证邮箱，可以设置不验证邮箱无法登陆
+3. 管理员可以查看用户是否验证邮箱, 可以设置不验证邮箱无法登陆
 4. 支持任务分组
 5. 推送带上任务备注
 
 ## 2020.07.19更新
 1. 修改按钮“推送通知开关”为“推送设置”
-2. 添加错误提醒容忍。在自动签到到一定次数错误后，才推送提醒。
+2. 添加错误提醒容忍。在自动签到到一定次数错误后, 才推送提醒。
 
 ## 2020.07.17更新
-1. 使报错显示中文，添加点击复制错误日志按钮(by [liubei121212](https://github.com/liubei121212/qiandao))
+1. 使报错显示中文, 添加点击复制错误日志按钮(by [liubei121212](https://github.com/liubei121212/qiandao))
 2. 主页版本从alpha修改为20200717
 
 ## 2020.07.09更新
@@ -391,38 +396,38 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 2. 添加任务日志清空功能
 3. 修复定时的随机延时取消失败的BUG
 4. 添加任务禁用功能
-5. 为了提高兼容性，请求不验证SSL
+5. 为了提高兼容性, 请求不验证SSL
 
 ## 2020.6.22 更新
 1. 修复检查公共模板更新功能；
 2. 美化左侧三按钮(By 十六君)
 3. 修复插入RSA加密实际是字符串替换的BUG
-4. 修改请求为不验证SSL，提升兼容性
+4. 修改请求为不验证SSL, 提升兼容性
    
 ## 2020.6.14 更新
 1. 添加RSA加密/解密
 2. 用户管理页面添加用户最后登陆时间
-3. 字符串替换功能可以返回纯文本，避免有转义'\\'的出现,需要替换参数r=text
+3. 字符串替换功能可以返回纯文本, 避免有转义'\\'的出现,需要替换参数r=text
 
 ## 2020.6.12 更新
-1. 定时日志BUG太多，修不过来，取消此功能
+1. 定时日志BUG太多, 修不过来, 取消此功能
 2. 修复用户不存在时登录500错误
 
 ## 2020.6.11 更新
-1. 修复MySQL的支持，不需要手动更新Mysql数据库
+1. 修复MySQL的支持, 不需要手动更新Mysql数据库
 
 ## 2020.6.10 更新
-1. 添加管理员管理用户功能，可以将用户禁用/开启/删除
+1. 添加管理员管理用户功能, 可以将用户禁用/开启/删除
 2. 添加关闭/开启注册功能
 3. 修改主页的'检查更新'为'检查模板更新'
 
-使用前需要进入容器，将对应已注册邮箱设置为管理员 : 
+使用前需要进入容器, 将对应已注册邮箱设置为管理员 : 
 ```
 docker exec -it 容器名 /bin/bash
 python ./chrole.py 邮箱 admin
 ```
 被禁用的账户将不能登录网站,所有任务将被禁用。
-被删除的账户，会删除该用户的所有任务，模板和日志
+被删除的账户, 会删除该用户的所有任务, 模板和日志
 
 如果使用mysql 在 20200604 请使用以下命令 : 
 ```
@@ -435,43 +440,43 @@ INSERT INTO `site` VALUES(1,1);
 ```
 
 ## 2020.6.6 更新
-1. 修复用户不存在依然能登陆的BUG(具体表现为 : 新用户新建模板保存时500错误，注册推送时提示NoneType) 
+1. 修复用户不存在依然能登陆的BUG(具体表现为 : 新用户新建模板保存时500错误, 注册推送时提示NoneType) 
 2. 完善注册推送的注册消息
 3. 修复自动完成不推送的bug
-4. 添加定时 “今日已签过” 选项，可以直接定时第二天
+4. 添加定时 “今日已签过” 选项, 可以直接定时第二天
 5. 修复公共模板的HAR订阅功能
 
 ## 2020.6.5 更新
-1. 修复 sqlite3 数据库初始值错误的问题，仅影响新建数据库的用户 
+1. 修复 sqlite3 数据库初始值错误的问题, 仅影响新建数据库的用户 
 
 ## 2020.6.4 更新
-1. 根据反馈，HAR编辑里插入链接修改默认地址为localhost
-2. 修复2020601版，插入请求后修改为localhost地址, 点击测试的500错误的问题
+1. 根据反馈, HAR编辑里插入链接修改默认地址为localhost
+2. 修复2020601版, 插入请求后修改为localhost地址, 点击测试的500错误的问题
 3. 支持定时后 随机延时
 
-__本次更新会把之前的定时设置全部取消，介意请勿更新__
+__本次更新会把之前的定时设置全部取消, 介意请勿更新__
 
 如果使用mysql 在 20200601 请使用以下命令 : 
 ```
 ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0 }'
 ```
-延时的另一种用法，间隔定时运行 : 如果要实现每1周定时运行一次，设置最大最小值都是604800，即可
+延时的另一种用法, 间隔定时运行 : 如果要实现每1周定时运行一次, 设置最大最小值都是604800, 即可
 
 ## 2020.6.1 更新
-1. 时间显示修改为具体时间，取消之前的 "1小时后"等模糊显示(By 戏如人生)
+1. 时间显示修改为具体时间, 取消之前的 "1小时后"等模糊显示(By 戏如人生)
 2. 新建任务时可以选择分组
-3. Bark推送支持保存历史信息，需要升级APP。
-4. HAR编辑里添加添加插入unicode解码，url解码，正则表达式，字符串替换的功能
+3. Bark推送支持保存历史信息, 需要升级APP。
+4. HAR编辑里添加添加插入unicode解码, url解码, 正则表达式, 字符串替换的功能
 
 ## 2020.5.31 更新
 1. 修复定时 ‘day out of month’ 的BUG
-2. 取消定时界面的今日运行选项，自动判断当前时间是今天还是第二天
+2. 取消定时界面的今日运行选项, 自动判断当前时间是今天还是第二天
 3. 集成了时间戳获取、unicode转换、url转换功能(By [gxitm](https://github.com/gxitm))
 4. 集成了正则表达式、字符串替换功能。
 
 ## 2020.5.30 更新
 1. 修改 任务失败时 推送的消息内容为 任务日志；
-2. 因浏览器支持不好，取消 2020.5.18更新的 ‘模板上传指定格式为.har’；
+2. 因浏览器支持不好, 取消 2020.5.18更新的 ‘模板上传指定格式为.har’；
 3. 新增模板编辑 追加HAR 的功能；
 4. 新增模板请求删除功能。
 
@@ -483,7 +488,7 @@ ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":fa
 1. Bark, S酱, WXPusher 注册合并为一个按钮
 2. 任务推送支持注册后也能关闭
 3. 支持分任务开/关推送
-4. 新增每日日志功能，可以将每日定时前的最后一个日志推送到S酱和WXPusher
+4. 新增每日日志功能, 可以将每日定时前的最后一个日志推送到S酱和WXPusher
 5. 修复“↓”按钮定位不准的bug
 
 如果使用mysql 在 5.22 请使用以下命令 : 
@@ -494,7 +499,7 @@ ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,
 
 ## 2020.5.22 更新
 1. 分组增加折叠/展开功能
-2. 左侧增加新建模板按钮，“↑”回到顶部， “↓”表示跳转到模板页面
+2. 左侧增加新建模板按钮, “↑”回到顶部,  “↓”表示跳转到模板页面
 3. 修复删除任务时日志不删除bug
 
 ## 2020.5.19 更新
@@ -508,9 +513,9 @@ ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0;
 
 ## 2020.5.18 更新
 1. 定时的 "今日是否运行" 修改 为 "今日运行"
-2. 添加模板订阅功能，仓库地址在[https://github.com/qiandao-today/templates](https://github.com/qiandao-today/templates)
+2. 添加模板订阅功能, 仓库地址在[https://github.com/qiandao-today/templates](https://github.com/qiandao-today/templates)
 
-   主页打开公共模板按钮，点击订阅后自动导入模板，需要自己确认保存
+   主页打开公共模板按钮, 点击订阅后自动导入模板, 需要自己确认保存
 3. 模板上传指定格式为.har
 
 ## 2020.5.16 更新
@@ -530,13 +535,13 @@ ALTER TABLE `task` ADD `_groups` VARBINARY(128) NOT NULL DEFAULT 'None' ;
 
 http://cordimax.f3322.net:5558/381.html
 
-2. 增加了server酱、bark推送，WXPusher推送，并可以设置推送开关（by AragonSnow）
-需要推送的 : 登录账号以后点击注册bark/s酱/WXPusher，测试推送没有问题以后,再点击提交
+2. 增加了server酱、bark推送, WXPusher推送, 并可以设置推送开关（by AragonSnow）
+需要推送的 : 登录账号以后点击注册bark/s酱/WXPusher, 测试推送没有问题以后,再点击提交
 
 
-3. 增加定时功能，在新建任务以后会出现定时按钮，设置每天的定时时间。<br>
-**不兼容旧版的数据库， 旧版数据库导入会自动转换，旧版将无法使用**<br>
-**使用SQLite3的，默认路径改为config文件夹里面，方便挂载后备份**<br>
+3. 增加定时功能, 在新建任务以后会出现定时按钮, 设置每天的定时时间。<br>
+**不兼容旧版的数据库,  旧版数据库导入会自动转换, 旧版将无法使用**<br>
+**使用SQLite3的, 默认路径改为config文件夹里面, 方便挂载后备份**<br>
 **使用Mysq的,请使用一下命令更新数据库:**
 ```
 ALTER TABLE `task` ADD `ontimeflg` INT UNSIGNED NOT NULL DEFAULT 0;
@@ -566,7 +571,7 @@ ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1;
 
 [a76yyyy/qiandao](https://github.com/a76yyyy/qiandao) 
 
-个人项目精力有限，仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request。
+个人项目精力有限, 仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request。
 
 许可
 =========
