@@ -126,6 +126,14 @@
         obj = utils.list2dict($scope.entry.request.postData.params);
         return $scope.entry.request.postData.text = utils.querystring_unparse_with_variables(obj);
       }), true);
+      // $scope.$watch('entry.request.postData.text', (function() {
+      //   var obj, ref, ref1;
+      //   if (((ref = $scope.entry) != null ? (ref1 = ref.request) != null ? ref1.postData : void 0 : void 0) == null) {
+      //     return;
+      //   }
+      //   obj = utils.querystring_parse($scope.entry.request.postData.text);
+      //   return $scope.entry.request.postData.params = utils.dict2list(obj);
+      // }), true);
       $scope["delete"] = function(hashKey, array) {
         var each, i, index, len;
         for (index = i = 0, len = array.length; i < len; index = ++i) {

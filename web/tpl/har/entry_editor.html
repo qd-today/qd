@@ -84,8 +84,8 @@
             <a class="btn btn-info btn-xxs" ng-if="entry.request.postData.params"
               ng-click="entry.request.postData.params.push({name:'', value:''})">ADD</a>
           </summary>
-          <pre class="contentedit-wrapper" ng-bind-html="variables_wrapper(entry.request.postData.text)" ng-if="!entry.request.postData.params"></pre>
-          <textarea contenteditable style="width: 100%" rows="5" onfocus="$(this).height($(this)[0].scrollHeight);" ng-model="entry.request.postData.text" ng-if="!entry.request.postData.params"></textarea>
+          <pre class="contentedit-wrapper" ng-bind-html="variables_wrapper(entry.request.postData.text)"></pre>
+          <textarea contenteditable style="width: 100%" rows="5" onfocus="$(this).height($(this)[0].scrollHeight);" ng-model="entry.request.postData.text" ></textarea>
           <div ng-if="entry.request.postData.params">
             <div editablelist="entry.request.postData.params"></div>
           </div>
@@ -166,7 +166,7 @@
         <!-- request payload -->
         <details open ng-if="preview.request.postData.text">
           <summary title="请求消息体">Request Payload</summary>
-          <pre ng-bind-html="variables_wrapper(preview.request.postData.text)" ng-if="!preview.request.postData.params"></pre>
+          <pre ng-bind-html="variables_wrapper(preview.request.postData.text)" ng-if="preview.request.postData.text"></pre>
           <dl class="dl-horizontal" ng-if="preview.request.postData.params">
             <dt ng-repeat-start="each in preview.request.postData.params">{{ each.name }}</dt>
             <dd ng-repeat-end>{{ each.value }}</dd>

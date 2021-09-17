@@ -55,7 +55,9 @@
             replace_list[encodeURIComponent(m[0])] = m[0].slice(0, -2) + '|urlencode}}';
           }
         }
-        console.log(replace_list);
+        if (node_querystring.stringify(replace_list)){
+          console.log('The replace_list is',replace_list);
+        }
         for (key in replace_list) {
           value = replace_list[key];
           query = query.replace(new RegExp(RegExp.escape(key), 'g'), value);
@@ -93,9 +95,11 @@
       list2dict: function(list) {
         var dict, each, i, len;
         dict = {};
-        for (i = 0, len = list.length; i < len; i++) {
-          each = list[i];
-          dict[each.name] = each.value;
+        if (list) {
+          for (i = 0, len = list.length; i < len; i++) {
+            each = list[i];
+            dict[each.name] = each.value;
+          }
         }
         return dict;
       },
