@@ -85,5 +85,9 @@ ga_key = ""                                                 # google analytics�
 
 try:
     from local_config import *                              # 修改local_config.py文件的内容不受通过git更新源码的影响
+    from libs.utils import parse_url
+    for index,proxy in enumerate(proxies):
+        if isinstance(proxy,str):
+            proxies[index] = parse_url(proxy)
 except ImportError:
     pass
