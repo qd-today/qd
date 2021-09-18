@@ -16,6 +16,7 @@ import urllib.parse as urlparse
 from datetime import datetime
 
 from tornado.httputil import HTTPHeaders
+from tornado.escape import native_str
 
 try:
     import pycurl
@@ -71,7 +72,8 @@ class Fetcher(object):
         _render(request, 'data')
         return request
 
-    def build_request(self, obj, download_size_limit=config.download_size_limit, connect_timeout=config.connect_timeout, request_timeout=config.request_timeout, Socks5Type=False, Socks5hType=False):
+    def build_request(self, obj, download_size_limit=config.download_size_limit, connect_timeout=config.connect_timeout, request_timeout=config.request_timeout,
+                     proxy={}, CURL_ENCODING=True, CURL_CONTENT_LENGTH=True):
         env = obj['env']
         rule = obj['rule']
         request = self.render(obj['request'], env['variables'], env['session'])
@@ -86,21 +88,39 @@ class Fetcher(object):
         elif method == 'POST':
             data = request.get('data', '')
 
-        def set_size_limit_callback(curl):
+        def set_curl_callback(curl):
             def size_limit(download_size, downloaded, upload_size, uploaded):
                 if download_size and download_size > download_size_limit:
                     return 1
                 if downloaded > download_size_limit:
                     return 1
                 return 0
-            curl.setopt(pycurl.NOPROGRESS, 0)
-            curl.setopt(pycurl.PROGRESSFUNCTION, size_limit)
-            curl.setopt(pycurl.CONNECTTIMEOUT, int(connect_timeout))
-            curl.setopt(pycurl.TIMEOUT, int(request_timeout))
-            if Socks5Type:
-                curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
-            elif Socks5hType:
-                curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5_HOSTNAME)
+            if pycurl:
+                if not CURL_ENCODING:
+                    try:
+                        curl.unsetopt(pycurl.ENCODING)
+                    except:
+                        pass
+                if not CURL_CONTENT_LENGTH:
+                    try:
+                        if headers.get('Content-Length'):
+                            headers.pop('Content-Length')
+                            curl.setopt(
+                                pycurl.HTTPHEADER,[
+                                    "%s: %s" % (native_str(k), native_str(v))
+                                    for k, v in HTTPHeaders(headers).get_all()]
+                            )
+                    except:
+                        pass
+                curl.setopt(pycurl.NOPROGRESS, 0)
+                curl.setopt(pycurl.PROGRESSFUNCTION, size_limit)
+                curl.setopt(pycurl.CONNECTTIMEOUT, int(connect_timeout))
+                curl.setopt(pycurl.TIMEOUT, int(request_timeout))
+                if proxy:
+                    if proxy.get('scheme','')=='socks5':
+                        curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
+                    elif proxy.get('scheme','')=='socks5h':
+                        curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5_HOSTNAME)
             return curl
 
         req = httpclient.HTTPRequest(
@@ -113,7 +133,7 @@ class Fetcher(object):
                 decompress_response = True,
                 allow_nonstandard_methods = True,
                 allow_ipv6 = True,
-                prepare_curl_callback = set_size_limit_callback,
+                prepare_curl_callback = set_curl_callback,
                 validate_cert=False,
                 connect_timeout=connect_timeout,
                 request_timeout=request_timeout
@@ -134,6 +154,22 @@ class Fetcher(object):
         cookie_header = session.get_cookie_header(req)
         if cookie_header:
             req.headers['Cookie'] = cookie_header
+
+        if proxy and pycurl:
+            if not config.proxy_direct_mode:
+                for key in proxy:
+                    if key != 'scheme':
+                        setattr(req, 'proxy_%s' % key, proxy[key])
+            elif config.proxy_direct_mode == 'regexp':
+                if not re.compile(config.proxy_direct).search(req.url):
+                    for key in proxy:
+                        if key != 'scheme':
+                            setattr(req, 'proxy_%s' % key, proxy[key])
+            elif config.proxy_direct_mode == 'url':
+                if utils.urlmatch(req.url) not in config.proxy_direct.split('|'):
+                    for key in proxy:
+                        if key != 'scheme':
+                            setattr(req, 'proxy_%s' % key, proxy[key])
 
         env['session'] = session
 
@@ -271,6 +307,9 @@ class Fetcher(object):
                 msg = 'fail assert: %s' % json.dumps(r, ensure_ascii=False)
                 break
 
+        if not success and (response.error or response.reason):
+            msg = str(response.error or response.reason)
+
         for r in rule.get('extract_variables') or '':
             pattern = r['re']
             flags = 0
@@ -377,9 +416,28 @@ class Fetcher(object):
                     version = '1.2'
                     )
                 )
+    async def build_response(self, obj, proxy={}, CURL_ENCODING=True, CURL_CONTENT_LENGTH=True):
+        try:
+            req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=CURL_ENCODING,CURL_CONTENT_LENGTH=CURL_CONTENT_LENGTH)
+            response =  await gen.convert_yielded(self.client.fetch(req))
+        except httpclient.HTTPError as e:
+            if e.__dict__.get('errno','') == 61:
+                req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=False)
+                e.response =  await gen.convert_yielded(self.client.fetch(req))
+            elif e.code == 400 and e.message == 'Bad Request':
+                req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_CONTENT_LENGTH=False)
+                e.response =  await gen.convert_yielded(self.client.fetch(req))
+            if not e.response:
+                try:
+                    traceback.print_exc()
+                    from io import BytesIO
+                    e.response = httpclient.HTTPResponse(request=req,code=e.code,reason=e.message,buffer=BytesIO(str(e).encode()))
+                except Exception as e:
+                    raise e
+            response = e.response
+        return rule, env, response
 
-
-    async def fetch(self, obj, proxy={}):
+    async def fetch(self, obj, proxy={}, CURL_ENCODING=True, CURL_CONTENT_LENGTH=True):
         """
         obj = {
           request: {
@@ -403,38 +461,8 @@ class Fetcher(object):
           }
         }
         """
-        if proxy and pycurl:
-            if proxy.get('scheme','')=='socks5':
-                req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,Socks5Type=True)
-            elif proxy.get('scheme','')=='socks5h':
-                req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,Socks5hType=True)
-            else:
-                req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit)
-        else:
-            req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit)
 
-        if proxy and pycurl:
-            if not config.proxy_direct_mode:
-                for key in proxy:
-                    if key != 'scheme':
-                        setattr(req, 'proxy_%s' % key, proxy[key])
-            elif config.proxy_direct_mode == 'regexp':
-                if not re.compile(config.proxy_direct).search(req.url):
-                    for key in proxy:
-                        if key != 'scheme':
-                            setattr(req, 'proxy_%s' % key, proxy[key])
-            elif config.proxy_direct_mode == 'url':
-                if utils.urlmatch(req.url) not in config.proxy_direct.split('|'):
-                    for key in proxy:
-                        if key != 'scheme':
-                            setattr(req, 'proxy_%s' % key, proxy[key])
-
-        try:
-            response = await gen.convert_yielded(self.client.fetch(req))
-        except httpclient.HTTPError as e:
-            if not e.response:
-                raise e
-            response = e.response
+        rule, env, response = await gen.convert_yielded(self.build_response(obj, proxy, CURL_ENCODING, CURL_CONTENT_LENGTH))
 
         env['session'].extract_cookies_to_jar(response.request, response)
         success, msg = self.run_rule(response, rule, env)
