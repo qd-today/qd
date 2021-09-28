@@ -48,11 +48,19 @@
           value = obj[key];
           re = /{{\s*([\w]+)[^}]*?\s*}}/g;
           while (m = re.exec(key)) {
-            replace_list[encodeURIComponent(m[0])] = m[0].slice(0, -2) + '|urlencode}}';
+            if (m[0].slice(-12) != '|urlencode}}'){
+              replace_list[encodeURIComponent(m[0])] = m[0].slice(0, -2) + '|urlencode}}';
+            }else{
+              replace_list[encodeURIComponent(m[0])] = m[0];
+            }
           }
           re = /{{\s*([\w]+)[^}]*?\s*}}/g;
           while (m = re.exec(value)) {
-            replace_list[encodeURIComponent(m[0])] = m[0].slice(0, -2) + '|urlencode}}';
+            if (m[0].slice(-12) != '|urlencode}}'){
+              replace_list[encodeURIComponent(m[0])] = m[0].slice(0, -2) + '|urlencode}}';
+            }else{
+              replace_list[encodeURIComponent(m[0])] = m[0];
+            }
           }
         }
         if (node_querystring.stringify(replace_list)){
