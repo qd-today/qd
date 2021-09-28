@@ -103,8 +103,8 @@ class Fetcher(object):
                         pass
                 if not CURL_CONTENT_LENGTH:
                     try:
-                        if headers.get('Content-Length'):
-                            headers.pop('Content-Length')
+                        if headers.get('content-length'):
+                            headers.pop('content-length')
                             curl.setopt(
                                 pycurl.HTTPHEADER,[
                                     "%s: %s" % (native_str(k), native_str(v))
@@ -421,20 +421,26 @@ class Fetcher(object):
             req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=CURL_ENCODING,CURL_CONTENT_LENGTH=CURL_CONTENT_LENGTH)
             response =  await gen.convert_yielded(self.client.fetch(req))
         except httpclient.HTTPError as e:
-            if e.__dict__.get('errno','') == 61:
-                req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=False)
-                e.response =  await gen.convert_yielded(self.client.fetch(req))
-            elif e.code == 400 and e.message == 'Bad Request':
-                req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_CONTENT_LENGTH=False)
-                e.response =  await gen.convert_yielded(self.client.fetch(req))
-            if not e.response:
-                try:
+            try:
+                if e.__dict__.get('errno','') == 61:
+                    req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=False)
+                    e.response =  await gen.convert_yielded(self.client.fetch(req))
+                elif e.code == 400 and e.message == 'Bad Request' and not e.response:
+                    if req and req.headers.get('content-length'):
+                        req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_CONTENT_LENGTH=False)
+                        e.response =  await gen.convert_yielded(self.client.fetch(req))
+                    else:
+                        httpclient.AsyncHTTPClient.configure(None)
+                        req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy)
+                        e.response =  await gen.convert_yielded(self.client.fetch(req))
+                        if pycurl:
+                            httpclient.AsyncHTTPClient.configure('tornado.curl_httpclient.CurlAsyncHTTPClient')
+            finally:
+                if not e.response:
                     traceback.print_exc()
                     from io import BytesIO
                     e.response = httpclient.HTTPResponse(request=req,code=e.code,reason=e.message,buffer=BytesIO(str(e).encode()))
-                except Exception as e:
-                    raise e
-            response = e.response
+                return rule, env, e.response
         return rule, env, response
 
     async def fetch(self, obj, proxy={}, CURL_ENCODING=True, CURL_CONTENT_LENGTH=True):
