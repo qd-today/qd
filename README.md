@@ -144,6 +144,13 @@ sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程
 
 更新日志
 =========
+## 2021.09.28 更新
+1. 更新并优化fetcher脚本
+2. 更新输入提示
+3. 修复{{unicode(arg)}}不能正常转换unicode的bug
+4. 修复重复添加'|urlencode'的bug
+5. 优化fetcher重试逻辑
+
 ## 2021.09.17 更新
 1. 修复变量名冲突时自动添加'_'失效的bug
 2. 支持socks5h代理
