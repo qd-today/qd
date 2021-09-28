@@ -182,12 +182,14 @@ def utf8(string):
     return string
 
 def conver2unicode(string):
-    if isinstance(string,str):
-        return string
-    try:
-        return string.decode()
-    except :
-        return str(string)
+    if not isinstance(string,str):
+        try:
+            string = string.decode()
+        except :
+            string =  str(string)
+    tmp = bytes(string,'unicode_escape').decode('utf-8').replace(r'\u',r'\\u').replace(r'\\\u',r'\\u')
+    tmp = bytes(tmp,'utf-8').decode('unicode_escape')
+    return tmp.encode('utf-8').replace(b'\xc2\xa0',b'\xa0').decode('unicode_escape')
 
 import urllib
 import config

@@ -16,3 +16,4 @@ database*.db
 local_config.py
 *.bak
 *.log
+*.dccache
