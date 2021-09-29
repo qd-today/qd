@@ -9,14 +9,23 @@ import os
 import hashlib
 from urllib.parse import urlparse
 
-debug = False                                               # 是否开启Debug
-gzip = True                                                 # 是否启用gzip
-bind = str(os.getenv('BIND', '0.0.0.0'))                    # 框架运行监听地址(0.0.0.0表示监听所有IP地址)、
+debug = bool(os.getenv('QIANDAO_DEBUG',False))              # 是否开启Debug
+gzip = bool(os.getenv('GZIP',True))                         # 是否启用gzip
+bind = str(os.getenv('BIND', '0.0.0.0'))                    # 框架运行监听地址(0.0.0.0表示监听所有IP地址)
 port = int(os.getenv('PORT', 8923))                         # 监听端口Port
-https = bool(os.getenv('ENABLE_HTTPS', False))              # 发送的邮件链接启用HTTPS, 非程序使用HTTPS, 需要HTTPS需要使用反向代理
+https = bool(os.getenv('ENABLE_HTTPS', False))              # 发送的邮件链接启用HTTPS, 非框架自身HTTPS开关, 需要HTTPS请使用外部反向代理
 cookie_days = 5                                             # Cookie在客户端保留时间
 mysql_url = urlparse(os.getenv('JAWSDB_MARIA_URL', ''))     # 格式: mysql://用户名:密码@hostname:port/数据库名
 redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))       # 格式: (redis/http)://rediscloud:密码@hostname:port
+
+# PyCurl 相关设置
+use_pycurl = bool(os.getenv('USE_PYCURL',True))             # 是否启用Pycurl模组, 当环境无PyCurl模组时无效
+allow_retry = bool(os.getenv('ALLOW_RETRY', True))          # 在Pycurl环境下部分请求可能导致Request错误时, 自动修改冲突设置并重发请求
+curl_encoding = bool(os.getenv('CURL_ENCODING', True))      # 是否允许使用Curl进行Encoding操作, 当PyCurl返回"Error 61 Unrecognized transfer encoding."错误且'ALLOW_RETRY=True'时, 本次请求禁用Headers中的Content-Encoding并重试
+curl_length = bool(os.getenv('CURL_CONTENT_LENGTH', True))  # 是否允许Curl使用Headers中自定义Content-Length请求, 当PyCurl返回"HTTP 400 Bad Request"错误且'ALLOW_RETRY=True'时, 本次请求禁用Headers中的Content-Length并重试
+not_retry_code = list(map(int,os.getenv('NOT_RETRY_CODE', '301|302|303|304|305|307|400|401|403|404|405|407|408|409|410|412|415|413|414|500|501|502|503|504|599').split('|')))
+                                                            # 启用后, 当满足PyCurl启用, HTTPError code不在该列表中, 任务代理为空, 且'ALLOW_RETRY=True'时, 本次请求禁用Pycurl并重试
+empty_retry = bool(os.getenv('EMPTY_RETRY', True))          # 启用后, 当满足PyCurl启用, 返回Response为空, 任务代理为空, 且'ALLOW_RETRY=True'时, 本次请求禁用Pycurl并重试
 
 class mysql(object):
     host = mysql_url.hostname or 'localhost'                # 访问MySQL的Hostname

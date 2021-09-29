@@ -41,11 +41,11 @@
 
 8. **Docker已预装Curl环境, 默认安装pycurl模组**
 
-```
+```bash
 # 如需使用Proxy功能请安装PyCurl
 # Windows源码运行, 请执行 pip install pycurl==7.43.0.5 
 pip install pycurl # pip3 install pycurl
-# 如因curl导致500或599错误, 请卸载PyCurl
+# 如因curl导致500或599错误, 请卸载PyCurl或修改环境变量USE_PYCURL为False
 # pip uninstall pycurl
 ```
 
@@ -118,6 +118,12 @@ COOKIE_SECRET|否|binux|cookie加密密钥, 强烈建议修改
 PROXIES|否|""|全局代理域名列表,用"|"分隔
 PROXY_DIRECT_MODE|否|""|全局代理黑名单模式,默认不开启 <br>"url"为网址匹配模式;"regexp"为正则表达式匹配模式
 PROXY_DIRECT|否|""|全局代理黑名单匹配规则
+USE_PYCURL|否|True|是否启用Pycurl模组
+ALLOW_RETRY|否|True|在Pycurl环境下部分请求可能导致Request错误时, <br>自动修改冲突设置并重发请求
+CURL_ENCODING|否|True|是否允许使用Curl进行Encoding操作
+CURL_CONTENT_LENGTH|否|True|是否允许Curl使用Headers中自定义Content-Length请求
+NOT_RETRY_CODE|否|[详见配置](config.py)...|[详见配置](config.py)...
+empty_retry|否|True|[详见配置](config.py)...
 
 > 详细信息请查阅[config.py](config.py)
 
@@ -146,7 +152,7 @@ sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程
 =========
 ## 2021.09.28 更新
 1. 更新并优化fetcher脚本
-2. 更新输入提示
+2. 更新输入提示(by [cxk000](https://github.com/a76yyyy/qiandao/commits?author=ckx000))
 3. 修复{{unicode(arg)}}不能正常转换unicode的bug
 4. 修复重复添加'|urlencode'的bug
 5. 优化fetcher重试逻辑

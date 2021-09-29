@@ -18,19 +18,22 @@ from datetime import datetime
 from tornado.httputil import HTTPHeaders
 from tornado.escape import native_str
 
-try:
-    import pycurl
-except ImportError as e:
-    print(e)
-    pycurl = None
 from jinja2.sandbox import SandboxedEnvironment as Environment
-from tornado import gen, httpclient
+from tornado import gen, httpclient, simple_httpclient
 
 import config
 from libs import cookie_utils, utils
 
+if config.use_pycurl:
+    try:
+        import pycurl
+    except ImportError as e:
+        print(e)
+        pycurl = None
+else:
+    pycurl = None
+NOT_RETYR_CODE = config.not_retry_code
 logger = logging.getLogger('qiandao.fetcher')
-
 
 class Fetcher(object):
     def __init__(self, download_size_limit=config.download_size_limit):
@@ -416,25 +419,29 @@ class Fetcher(object):
                     version = '1.2'
                     )
                 )
-    async def build_response(self, obj, proxy={}, CURL_ENCODING=True, CURL_CONTENT_LENGTH=True):
+    async def build_response(self, obj, proxy={}, CURL_ENCODING=config.curl_encoding, CURL_CONTENT_LENGTH=config.curl_length, EMPTY_RETRY = config.empty_retry):
         try:
             req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=CURL_ENCODING,CURL_CONTENT_LENGTH=CURL_CONTENT_LENGTH)
             response =  await gen.convert_yielded(self.client.fetch(req))
         except httpclient.HTTPError as e:
             try:
-                if e.__dict__.get('errno','') == 61:
-                    req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=False)
-                    e.response =  await gen.convert_yielded(self.client.fetch(req))
-                elif e.code == 400 and e.message == 'Bad Request' and not e.response:
-                    if req and req.headers.get('content-length'):
-                        req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_CONTENT_LENGTH=False)
+                if config.allow_retry and pycurl:
+                    if e.__dict__.get('errno','') == 61:
+                        logger.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
+                        req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=False,CURL_CONTENT_LENGTH=CURL_CONTENT_LENGTH)
                         e.response =  await gen.convert_yielded(self.client.fetch(req))
+                    elif e.code == 400 and e.message == 'Bad Request' and req and req.headers.get('content-length'):
+                        logger.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
+                        req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=CURL_ENCODING,CURL_CONTENT_LENGTH=False)
+                        e.response =  await gen.convert_yielded(self.client.fetch(req))
+                    elif e.code not in NOT_RETYR_CODE or (EMPTY_RETRY and not e.response):
+                        logger.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
+                        client = simple_httpclient.SimpleAsyncHTTPClient()
+                        e.response =  await gen.convert_yielded(client.fetch(req))
                     else:
-                        httpclient.AsyncHTTPClient.configure(None)
-                        req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy)
-                        e.response =  await gen.convert_yielded(self.client.fetch(req))
-                        if pycurl:
-                            httpclient.AsyncHTTPClient.configure('tornado.curl_httpclient.CurlAsyncHTTPClient')
+                        logger.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
+                else:
+                    logger.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
             finally:
                 if not e.response:
                     traceback.print_exc()
@@ -443,7 +450,7 @@ class Fetcher(object):
                 return rule, env, e.response
         return rule, env, response
 
-    async def fetch(self, obj, proxy={}, CURL_ENCODING=True, CURL_CONTENT_LENGTH=True):
+    async def fetch(self, obj, proxy={}, CURL_ENCODING=config.curl_encoding, CURL_CONTENT_LENGTH=config.curl_length, EMPTY_RETRY = config.empty_retry):
         """
         obj = {
           request: {
@@ -468,7 +475,7 @@ class Fetcher(object):
         }
         """
 
-        rule, env, response = await gen.convert_yielded(self.build_response(obj, proxy, CURL_ENCODING, CURL_CONTENT_LENGTH))
+        rule, env, response = await gen.convert_yielded(self.build_response(obj, proxy, CURL_ENCODING, CURL_CONTENT_LENGTH, EMPTY_RETRY))
 
         env['session'].extract_cookies_to_jar(response.request, response)
         success, msg = self.run_rule(response, rule, env)
