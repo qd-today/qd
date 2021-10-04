@@ -324,6 +324,8 @@ class UserDBHandler(BaseHandler):
             if ('backupbtn' in envs):
                 if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
                     if user and user['role'] == "admin":
+                        if config.db_type != "sqlite3":
+                            raise Exception(u"抱歉，暂不支持通过本页面备份MySQL数据！ﾍ(;´Д｀ﾍ)")
                         filename = config.sqlite3.path
                         savename = "database_{now}.db".format(now=now)
                         self.set_header ('Content-Type', 'application/octet-stream')
@@ -376,8 +378,15 @@ class UserDBHandler(BaseHandler):
                     
                 if ('recoverytplsbtn' in envs):
                     if ('recfile' in envs):
-                        tpls = json.loads(envs['recfile'])['tpls']
-                        tasks = json.loads(envs['recfile'])['tasks']
+                        if envs['recfile'][:6] == 'SQLite':
+                            raise Exception(u"抱歉，暂不支持通过本页面还原SQLite3数据库文件！(╥╯^╰╥)")
+                        else:
+                            try:
+                                tpls = json.loads(envs['recfile'])['tpls']
+                                tasks = json.loads(envs['recfile'])['tasks']
+                            except:
+                                raise Exception(u"抱歉，暂不支持通过本页面还原该备份文件！(ノ￣▽￣) \\r\\n \
+                                请确认该文件来自于该页面\"备份\"按钮 (๑*◡*๑)。")
                         ids = []
                         for newtpl in tpls:
                             userid2 = int(userid)

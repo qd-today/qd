@@ -57,9 +57,26 @@ def isIP(addr = None):
             return 0
     return 0
 
+def urlmatch(url):
+    reobj = re.compile(r"""(?xi)\A
+                ([a-z][a-z0-9+\-.]*://)?                            # Scheme
+                ([a-z0-9\-._~%]+                                    # domain or IPv4 host
+                |\[[a-z0-9\-._~%!$&'()*+,;=:]+\])                   # IPv6+ host
+                (:[0-9]+)? """                                      # :port
+                )
+    match = reobj.search(url)
+    return match.group()
+
+def getLocalScheme(scheme):
+    if scheme in ['http','https']:
+        if config.https:
+            return 'https'
+        else:
+            return 'http'
+    return scheme
+
 import umsgpack
 import functools
-
 
 def func_cache(f):
     _cache = {}
@@ -72,7 +89,6 @@ def func_cache(f):
         return _cache[key]
 
     return wrapper
-
 
 def method_cache(fn):
     @functools.wraps(fn)
@@ -166,12 +182,14 @@ def utf8(string):
     return string
 
 def conver2unicode(string):
-    if isinstance(string,str):
-        return string
-    try:
-        return string.decode()
-    except :
-        return str(string)
+    if not isinstance(string,str):
+        try:
+            string = string.decode()
+        except :
+            string =  str(string)
+    tmp = bytes(string,'unicode_escape').decode('utf-8').replace(r'\u',r'\\u').replace(r'\\\u',r'\\u')
+    tmp = bytes(tmp,'utf-8').decode('unicode_escape')
+    return tmp.encode('utf-8').replace(b'\xc2\xa0',b'\xa0').decode('unicode_escape')
 
 import urllib
 import config
@@ -326,8 +344,39 @@ def get_date_time(date=True, time=True, time_difference=0):
         return ""
 
 import time
-def timestamp():
-    return int(time.time())
+def timestamp(type='int'):
+    if type=='float':
+        return time.time()
+    else:
+        return int(time.time())
+
+def add(a:str,b:str):
+    if is_num(a) and is_num(b):
+        return '{:f}'.format(float(a)+float(b))
+    return
+
+def sub(a:str,b:str):
+    if is_num(a) and is_num(b):
+        return '{:f}'.format(float(a)-float(b))
+    return
+
+def multiply(a:str,b:str):
+    if is_num(a) and is_num(b):
+        return '{:f}'.format(float(a)*float(b))
+    return
+
+def divide(a:str,b:str):
+    if is_num(a) and is_num(b):
+        return '{:f}'.format(float(a)/float(b))
+    return
+
+def is_num(s:str=''):
+    s = str(s)
+    if s.count('.') ==1:
+        tmp = s.split('.')
+        return tmp[0].isdigit() and tmp[1].isdigit()
+    else:
+        return s.isdigit()
 
 jinja_globals = {
     'md5': md5string,
@@ -337,13 +386,18 @@ jinja_globals = {
     'timestamp': timestamp,
     'random': get_random,
     'date_time': get_date_time,
+    'is_num':is_num,
+    'add':add,
+    'sub':sub,
+    'multiply':multiply,
+    'divide':divide,
 }
 
 import re
 def parse_url(url):
     if not url:
         return None
-    result = re.match('((?P<scheme>(https?|socks5)+)://)?((?P<username>[^:@/]+)(:(?P<password>[^@/]+))?@)?(?P<host>[^:@/]+):(?P<port>\d+)', url)
+    result = re.match('((?P<scheme>(https?|socks5h?)+)://)?((?P<username>[^:@/]+)(:(?P<password>[^@/]+))?@)?(?P<host>[^:@/]+):(?P<port>\d+)', url)
     return None if not result else {
         'scheme': result.group('scheme'),
         'host': result.group('host'),

@@ -17,7 +17,7 @@ from .base import *
 from libs import utils
 from funcs import pusher
 from funcs import cal
-
+from codecs import escape_decode
 class TaskNewHandler(BaseHandler):    
     def get(self):
         user = self.current_user
@@ -43,10 +43,11 @@ class TaskNewHandler(BaseHandler):
             variables = json.loads(tpl['variables'])
 
             _groups = []
-            for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
-                temp = task['_groups']
-                if (temp not  in _groups):
-                    _groups.append(temp)
+            if user:
+                for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+                    temp = task['_groups']
+                    if (temp not  in _groups):
+                        _groups.append(temp)
             
             self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=tpl['variables'])
         else:
@@ -82,7 +83,7 @@ class TaskNewHandler(BaseHandler):
                 for value in envs:
                     if envs[value][0] == 'on':
                         if (value.find("group-select-") > -1):
-                            target_group = value.replace("group-select-", "").strip()
+                            target_group = escape_decode(value.replace("group-select-", "").strip()[2:-1], "hex-escape")[0].decode('utf-8')
                             break
                     else:
                         target_group = 'None'
@@ -94,7 +95,7 @@ class TaskNewHandler(BaseHandler):
             if tested:
                 self.db.task.mod(taskid, note=note, next=time.time() + (tpl['interval'] or 24*60*60))
             else:
-                self.db.task.mod(taskid, note=note, next=time.time() + 15)
+                self.db.task.mod(taskid, note=note, next=time.time() + config.new_task_delay)
         else:
             task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid', 'init_env')), 'w')
 
@@ -130,8 +131,7 @@ class TaskEditHandler(TaskNewHandler):
 
 class TaskRunHandler(BaseHandler):
     @tornado.web.authenticated
-    @gen.coroutine
-    def post(self, taskid):
+    async def post(self, taskid):
         self.evil(+2)
         start_ts = int(time.time())
         user = self.current_user
@@ -157,13 +157,16 @@ class TaskRunHandler(BaseHandler):
         try:
             url = utils.parse_url(env['variables'].get('_proxy'))
             if not url:
-                new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
+                new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env))
             else:
                 proxy = {
+                    'scheme': url['scheme'],
                     'host': url['host'],
                     'port': url['port'],
+                    'username': url['username'],
+                    'password': url['password']
                 }
-                new_env = yield self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+                new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, [proxy]))
         except Exception as e:
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
@@ -171,7 +174,7 @@ class TaskRunHandler(BaseHandler):
             pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
 
             self.db.tasklog.add(task['id'], success=False, msg=str(e))
-            self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % e)
+            self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % str(e).replace('\\r\\n', '<br>'))
             return
 
         self.db.tasklog.add(task['id'], success=True, msg=new_env['variables'].get('__log__'))
@@ -196,11 +199,11 @@ class TaskRunHandler(BaseHandler):
         t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
         title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
         logtmp = new_env['variables'].get('__log__')
-        logtmp = u"{0}  日志：{1}".format(title, logtmp)
+        logtmp = u"{0} \\r\\n日志：{1}".format(title, logtmp)
         pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
 
         self.db.tpl.incr_success(tpl['id'])
-        self.finish('<h1 class="alert alert-success text-center">签到成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp)
+        self.finish('<h1 class="alert alert-success text-center">签到成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
         logDay = int(self.db.site.get(1, fields=('logDay'))['logDay'])
         for log in self.db.tasklog.list(taskid = taskid, fields=('id', 'ctime')):
             if (time.time() - log['ctime']) > (logDay * 24 * 60 * 60):
@@ -356,7 +359,7 @@ class TaskGroupHandler(TaskNewHandler):
         else:
             for value in envs:
                 if envs[value][0] == 'on':
-                    target_group = value.strip()
+                    target_group = escape_decode(value.strip()[2:-1],"hex-escape")[0].decode('utf-8')
                     break
                 else:
                     target_group = 'None'

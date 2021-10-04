@@ -25,26 +25,24 @@ def request_parse(req_data):
     return data
 
 class UtilDelayParaHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         try:
             seconds = float(self.get_argument("seconds", 0))
         except Exception as e:
             traceback.print_exc()
-            yield gen.sleep(0.0)
+            await gen.sleep(0.0)
             self.write(u'Error, delay 0.0 second.')
         if seconds < 0:
             seconds = 0.0
         elif seconds >= delay_max_timeout:
             seconds = delay_max_timeout
-            yield gen.sleep(seconds)
+            await gen.sleep(seconds)
             self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
-        yield gen.sleep(seconds)
+        await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
 
 class UtilDelayIntHandler(BaseHandler):
-    @gen.coroutine
-    def get(self, seconds):
+    async def get(self, seconds):
         try:
             seconds = float(seconds)
         except Exception as e:
@@ -54,14 +52,13 @@ class UtilDelayIntHandler(BaseHandler):
             seconds = 0.0
         elif seconds > delay_max_timeout:
             seconds = delay_max_timeout
-            yield gen.sleep(seconds)
+            await gen.sleep(seconds)
             self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
-        yield gen.sleep(seconds)
+        await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
 
 class UtilDelayHandler(BaseHandler):
-    @gen.coroutine
-    def get(self, seconds):
+    async def get(self, seconds):
         try:
             seconds = float(seconds)
         except Exception as e:
@@ -71,14 +68,13 @@ class UtilDelayHandler(BaseHandler):
             seconds = 0.0
         elif seconds >= delay_max_timeout:
             seconds = delay_max_timeout
-            yield gen.sleep(seconds)
+            await gen.sleep(seconds)
             self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
-        yield gen.sleep(seconds)
+        await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
 
 class TimeStampHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         Rtv = {}
         try:
             ts = self.get_argument("ts", "")
@@ -86,20 +82,27 @@ class TimeStampHandler(BaseHandler):
             cst_tz = pytz.timezone('Asia/Shanghai')
             utc_tz = pytz.timezone("UTC")
             GMT_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
+            tmp = datetime.datetime.fromtimestamp
 
             if not ts:
                 # 当前本机时间戳，本机时间和北京时间
-                Rtv[u"时间戳"] = int(time.time())
-                Rtv[u"本机时间"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"]).strftime(type)
-                Rtv[u"北京时间"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"], cst_tz).strftime(type)
-                Rtv[u"GMT格式"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"], utc_tz).strftime(GMT_FORMAT)
-                Rtv[u"ISO格式"] = datetime.datetime.fromtimestamp(Rtv[u"时间戳"], utc_tz).isoformat().split("+")[0] + "Z"
+                Rtv[u"完整时间戳"] = time.time()
+                Rtv[u"时间戳"] = int(Rtv[u"完整时间戳"])
+                Rtv[u"16位时间戳"] = int(Rtv[u"完整时间戳"]*1000000)
+                Rtv[u"本机时间"] = tmp(Rtv[u"完整时间戳"]).strftime(type)
+                Rtv[u"周"] = tmp(Rtv[u"完整时间戳"]).strftime("%w/%W")
+                Rtv[u"日"] = "/".join([tmp(Rtv[u"完整时间戳"]).strftime("%j"),yearday(tmp(Rtv[u"完整时间戳"]).year)])
+                Rtv[u"北京时间"] = tmp(Rtv[u"完整时间戳"], cst_tz).strftime(type)
+                Rtv[u"GMT格式"] = tmp(Rtv[u"完整时间戳"], utc_tz).strftime(GMT_FORMAT)
+                Rtv[u"ISO格式"] = tmp(Rtv[u"完整时间戳"], utc_tz).isoformat().split("+")[0] + "Z"
             else:
                 # 用户时间戳转北京时间
-                Rtv[u"时间戳"] = ts
-                Rtv[u"北京时间"]  = datetime.datetime.fromtimestamp(int(ts), cst_tz).strftime(type)
-                Rtv[u"GMT格式"] = datetime.datetime.fromtimestamp(int(ts), utc_tz).strftime(GMT_FORMAT)
-                Rtv[u"ISO格式"] = datetime.datetime.fromtimestamp(int(ts), utc_tz).isoformat().split("+")[0] + "Z"
+                Rtv[u"时间戳"] = int(ts)
+                Rtv[u"周"] = tmp(Rtv[u"时间戳"]).strftime("%w/%W")
+                Rtv[u"日"] = "/".join([tmp(Rtv[u"时间戳"]).strftime("%j"),yearday(tmp(Rtv[u"时间戳"]).year)])
+                Rtv[u"北京时间"] = tmp(Rtv[u"时间戳"], cst_tz).strftime(type)
+                Rtv[u"GMT格式"] = tmp(Rtv[u"时间戳"], utc_tz).strftime(GMT_FORMAT)
+                Rtv[u"ISO格式"] = tmp(Rtv[u"时间戳"], utc_tz).isoformat().split("+")[0] + "Z"
             Rtv[u"状态"] = "200"
         except Exception as e:
                 Rtv[u"状态"] = str(e)
@@ -107,16 +110,20 @@ class TimeStampHandler(BaseHandler):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
 
+def yearday(year):
+    if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
+        return '366'
+    else:
+        return '365'
 
 class UniCodeHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
             tmp = bytes(content,'unicode_escape').decode('utf-8').replace(r'\u',r'\\u').replace(r'\\\u',r'\\u')
             tmp = bytes(tmp,'utf-8').decode('unicode_escape')
-            Rtv[u"转换后"] = tmp.encode('utf-8').decode('unicode_escape')
+            Rtv[u"转换后"] = tmp.encode('utf-8').replace(b'\xc2\xa0',b'\xa0').decode('unicode_escape')
             Rtv[u"状态"] = "200"
         except Exception as e:
             Rtv[u"状态"] = str(e)
@@ -126,8 +133,7 @@ class UniCodeHandler(BaseHandler):
 
 
 class UrlDecodeHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
@@ -140,8 +146,7 @@ class UrlDecodeHandler(BaseHandler):
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
 
 class UtilRegexHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         Rtv = {}
         try:
             data = self.get_argument("data", "")
@@ -158,8 +163,7 @@ class UtilRegexHandler(BaseHandler):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
 
-    @gen.coroutine
-    def post(self):
+    async def post(self):
         Rtv = {}
         try:
             data = self.get_argument("data", "")
@@ -179,8 +183,7 @@ class UtilRegexHandler(BaseHandler):
         return
 
 class UtilStrReplaceHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         Rtv = {}
         try:
             s = self.get_argument("s", "")
@@ -203,8 +206,7 @@ class UtilStrReplaceHandler(BaseHandler):
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
 
 class UtilRSAHandler(BaseHandler):
-    @gen.coroutine
-    def get(self):
+    async def get(self):
         try:
             key = self.get_argument("key", "")
             data = self.get_argument("data", "")
@@ -250,8 +252,7 @@ class UtilRSAHandler(BaseHandler):
             self.write(str(e))
             return
 
-    @gen.coroutine
-    def post(self):
+    async def post(self):
         try:
             key = self.get_argument("key", "")
             data = self.get_argument("data", "")
@@ -285,13 +286,11 @@ class UtilRSAHandler(BaseHandler):
             return
 
 class toolboxHandler(BaseHandler):
-    @gen.coroutine
-    def get(self, userid):
+    async def get(self, userid):
         user = self.current_user
         self.render('toolbox.html', userid=userid)
 
-    @gen.coroutine
-    def post(self, userid):
+    async def post(self, userid):
         try:
             email = self.get_argument("email", "")
             pwd = self.get_argument("pwd", "")

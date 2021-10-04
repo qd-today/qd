@@ -68,4 +68,4 @@ if __name__ == '__main__':
     except Exception as e:
         print('qiandao failed!', e)
     else:
-        print('qiandao success!', result.get('variables', {}).get('__log__', ''))
+        print('qiandao success!', result.get('variables', {}).get('__log__', '').replace('\\r\\n','\r\n'))

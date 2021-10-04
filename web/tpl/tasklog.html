@@ -44,7 +44,16 @@
             <span class="text-danger">失败</span>
             {% endif %}
           </td>
-          <td class="autowrap showbut" id="log{{loop.index}}">{{ log.msg }}<button class="btn hljs-button" data-clipboard-target="#log{{ loop.index }}">复制</button></td>
+          <td class="autowrap showbut" id="log{{loop.index}}">
+            {% if log.msg %}
+            {% for _log in log.msg.split('\\r\\n') %}
+              {{ _log  }}<br>
+            {% endfor %}
+          <button class="btn hljs-button" data-clipboard-target="#log{{ loop.index }}">复制</button>
+          {% else %}
+          {{ log.msg  }}
+          <button class="btn hljs-button" data-clipboard-target="#log{{ loop.index }}">复制</button>
+          {% endif %}</td>
         </tr>
         {% endfor %}
       </tbody>

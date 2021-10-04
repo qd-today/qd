@@ -16,20 +16,24 @@ import urllib.parse as urlparse
 from datetime import datetime
 
 from tornado.httputil import HTTPHeaders
+from tornado.escape import native_str
 
-try:
-    import pycurl
-except ImportError as e:
-    print(e)
-    pycurl = None
 from jinja2.sandbox import SandboxedEnvironment as Environment
-from tornado import gen, httpclient
+from tornado import gen, httpclient, simple_httpclient
 
 import config
 from libs import cookie_utils, utils
 
+if config.use_pycurl:
+    try:
+        import pycurl
+    except ImportError as e:
+        print(e)
+        pycurl = None
+else:
+    pycurl = None
+NOT_RETYR_CODE = config.not_retry_code
 logger = logging.getLogger('qiandao.fetcher')
-
 
 class Fetcher(object):
     def __init__(self, download_size_limit=config.download_size_limit):
@@ -60,7 +64,7 @@ class Fetcher(object):
         _render(request, 'url')
         for header in request['headers']:
             _render(header, 'name')
-            if pycurl and header['name'][0] == ":":
+            if pycurl and header['name'] and header['name'][0] == ":":
                 header['name'] = header['name'][1:]
             _render(header, 'value')
             header['value'] = utils.quote_chinese(header['value'])
@@ -71,7 +75,8 @@ class Fetcher(object):
         _render(request, 'data')
         return request
 
-    def build_request(self, obj, download_size_limit=config.download_size_limit, connect_timeout=config.connect_timeout, request_timeout=config.request_timeout):
+    def build_request(self, obj, download_size_limit=config.download_size_limit, connect_timeout=config.connect_timeout, request_timeout=config.request_timeout,
+                     proxy={}, CURL_ENCODING=True, CURL_CONTENT_LENGTH=True):
         env = obj['env']
         rule = obj['rule']
         request = self.render(obj['request'], env['variables'], env['session'])
@@ -86,17 +91,39 @@ class Fetcher(object):
         elif method == 'POST':
             data = request.get('data', '')
 
-        def set_size_limit_callback(curl):
+        def set_curl_callback(curl):
             def size_limit(download_size, downloaded, upload_size, uploaded):
                 if download_size and download_size > download_size_limit:
                     return 1
                 if downloaded > download_size_limit:
                     return 1
                 return 0
-            curl.setopt(pycurl.NOPROGRESS, 0)
-            curl.setopt(pycurl.PROGRESSFUNCTION, size_limit)
-            curl.setopt(pycurl.CONNECTTIMEOUT, int(connect_timeout))
-            curl.setopt(pycurl.TIMEOUT, int(request_timeout))
+            if pycurl:
+                if not CURL_ENCODING:
+                    try:
+                        curl.unsetopt(pycurl.ENCODING)
+                    except:
+                        pass
+                if not CURL_CONTENT_LENGTH:
+                    try:
+                        if headers.get('content-length'):
+                            headers.pop('content-length')
+                            curl.setopt(
+                                pycurl.HTTPHEADER,[
+                                    "%s: %s" % (native_str(k), native_str(v))
+                                    for k, v in HTTPHeaders(headers).get_all()]
+                            )
+                    except:
+                        pass
+                curl.setopt(pycurl.NOPROGRESS, 0)
+                curl.setopt(pycurl.PROGRESSFUNCTION, size_limit)
+                curl.setopt(pycurl.CONNECTTIMEOUT, int(connect_timeout))
+                curl.setopt(pycurl.TIMEOUT, int(request_timeout))
+                if proxy:
+                    if proxy.get('scheme','')=='socks5':
+                        curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
+                    elif proxy.get('scheme','')=='socks5h':
+                        curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5_HOSTNAME)
             return curl
 
         req = httpclient.HTTPRequest(
@@ -109,7 +136,7 @@ class Fetcher(object):
                 decompress_response = True,
                 allow_nonstandard_methods = True,
                 allow_ipv6 = True,
-                prepare_curl_callback = set_size_limit_callback,
+                prepare_curl_callback = set_curl_callback,
                 validate_cert=False,
                 connect_timeout=connect_timeout,
                 request_timeout=request_timeout
@@ -130,6 +157,22 @@ class Fetcher(object):
         cookie_header = session.get_cookie_header(req)
         if cookie_header:
             req.headers['Cookie'] = cookie_header
+
+        if proxy and pycurl:
+            if not config.proxy_direct_mode:
+                for key in proxy:
+                    if key != 'scheme':
+                        setattr(req, 'proxy_%s' % key, proxy[key])
+            elif config.proxy_direct_mode == 'regexp':
+                if not re.compile(config.proxy_direct).search(req.url):
+                    for key in proxy:
+                        if key != 'scheme':
+                            setattr(req, 'proxy_%s' % key, proxy[key])
+            elif config.proxy_direct_mode == 'url':
+                if utils.urlmatch(req.url) not in config.proxy_direct.split('|'):
+                    for key in proxy:
+                        if key != 'scheme':
+                            setattr(req, 'proxy_%s' % key, proxy[key])
 
         env['session'] = session
 
@@ -267,39 +310,46 @@ class Fetcher(object):
                 msg = 'fail assert: %s' % json.dumps(r, ensure_ascii=False)
                 break
 
+        if not success and (response.error or response.reason):
+            msg = str(response.error or response.reason)
+
         for r in rule.get('extract_variables') or '':
             pattern = r['re']
             flags = 0
             find_all = False
 
-            re_m = re.match(r"^/(.*?)/([gim]*)$", r['re'])
+            re_m = re.match(r"^/(.*?)/([gimsu]*)$", r['re'])
             if re_m:
                 pattern = re_m.group(1)
-                if 'i' in re_m.group(2):
-                    flags |= re.I
-                if 'm' in re_m.group(2):
-                    flags |= re.M
                 if 'g' in re_m.group(2):
-                    find_all = True
+                    find_all = True # 全局匹配
+                if 'i' in re_m.group(2):
+                    flags |= re.I # 使匹配对大小写不敏感
+                if 'm' in re_m.group(2):
+                    flags |= re.M # 多行匹配，影响 ^ 和 $
+                if 's' in re_m.group(2):
+                    flags |= re.S # 使 . 匹配包括换行在内的所有字符
+                if 'u' in re_m.group(2):
+                    flags |= re.U # 根据Unicode字符集解析字符。这个标志影响 \w, \W, \b, \B.
+                if 'x' in re_m.group(2):
+                    pass# flags |= re.X # 该标志通过给予你更灵活的格式以便你将正则表达式写得更易于理解。暂不启用
 
             if find_all:
-                result = []
-                for m in re.compile(pattern, flags).finditer(getdata(r['from'])):
-                    if m.groups():
-                        m = m.groups()[0]
-                    else:
-                        m = m.group(0)
-                    result.append(m)
-                env['variables'][r['name']] = result
+                try:
+                    env['variables'][r['name']] = re.compile(pattern, flags).findall(getdata(r['from']))
+                except Exception as e:
+                    env['variables'][r['name']] = str(e)
             else:
-                m = re.compile(pattern, flags).search(getdata(r['from']))
-                if m:
-                    if m.groups():
-                        m = m.groups()[0]
-                    else:
-                        m = m.group(0)
-                    env['variables'][r['name']] = m
-
+                try:
+                    m = re.compile(pattern, flags).search(getdata(r['from']))
+                    if m:
+                        if m.groups():
+                            m = m.groups()[0]
+                        else:
+                            m = m.group(0)
+                        env['variables'][r['name']] = m
+                except Exception as e:
+                    env['variables'][r['name']] = str(e)
         return success, msg
 
     @staticmethod
@@ -369,10 +419,38 @@ class Fetcher(object):
                     version = '1.2'
                     )
                 )
+    async def build_response(self, obj, proxy={}, CURL_ENCODING=config.curl_encoding, CURL_CONTENT_LENGTH=config.curl_length, EMPTY_RETRY = config.empty_retry):
+        try:
+            req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=CURL_ENCODING,CURL_CONTENT_LENGTH=CURL_CONTENT_LENGTH)
+            response =  await gen.convert_yielded(self.client.fetch(req))
+        except httpclient.HTTPError as e:
+            try:
+                if config.allow_retry and pycurl:
+                    if e.__dict__.get('errno','') == 61:
+                        logger.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
+                        req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=False,CURL_CONTENT_LENGTH=CURL_CONTENT_LENGTH)
+                        e.response =  await gen.convert_yielded(self.client.fetch(req))
+                    elif e.code == 400 and e.message == 'Bad Request' and req and req.headers.get('content-length'):
+                        logger.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
+                        req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=CURL_ENCODING,CURL_CONTENT_LENGTH=False)
+                        e.response =  await gen.convert_yielded(self.client.fetch(req))
+                    elif e.code not in NOT_RETYR_CODE or (EMPTY_RETRY and not e.response):
+                        logger.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
+                        client = simple_httpclient.SimpleAsyncHTTPClient()
+                        e.response =  await gen.convert_yielded(client.fetch(req))
+                    else:
+                        logger.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
+                else:
+                    logger.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
+            finally:
+                if not e.response:
+                    traceback.print_exc()
+                    from io import BytesIO
+                    e.response = httpclient.HTTPResponse(request=req,code=e.code,reason=e.message,buffer=BytesIO(str(e).encode()))
+                return rule, env, e.response
+        return rule, env, response
 
-
-    @gen.coroutine
-    def fetch(self, obj, proxy={}):
+    async def fetch(self, obj, proxy={}, CURL_ENCODING=config.curl_encoding, CURL_CONTENT_LENGTH=config.curl_length, EMPTY_RETRY = config.empty_retry):
         """
         obj = {
           request: {
@@ -396,28 +474,18 @@ class Fetcher(object):
           }
         }
         """
-        req, rule, env = self.build_request(obj, self.download_size_limit)
 
-        if proxy and pycurl:
-            for key in proxy:
-                setattr(req, 'proxy_%s' % key, proxy[key])
-
-        try:
-            response = yield self.client.fetch(req)
-        except httpclient.HTTPError as e:
-            if not e.response:
-                raise e
-            response = e.response
+        rule, env, response = await gen.convert_yielded(self.build_response(obj, proxy, CURL_ENCODING, CURL_CONTENT_LENGTH, EMPTY_RETRY))
 
         env['session'].extract_cookies_to_jar(response.request, response)
         success, msg = self.run_rule(response, rule, env)
 
-        raise gen.Return({
+        return {
             'success': success,
             'response': response,
             'env': env,
             'msg': msg,
-            })
+            }
 
     FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}')
     FOR_END = re.compile('{%\s*endfor\s*%}')
@@ -457,8 +525,7 @@ class Fetcher(object):
         while stmt_stack:
             yield stmt_stack.pop()
 
-    @gen.coroutine
-    def do_fetch(self, tpl, env, proxies=config.proxies, request_limit=1000):
+    async def do_fetch(self, tpl, env, proxies=config.proxies, request_limit=1000):
         """
         do a fetch of hole tpl
         """
@@ -473,16 +540,16 @@ class Fetcher(object):
             elif block['type'] == 'for':
                 for each in env['variables'].get(block['from'], []):
                     env['variables'][block['target']] = each
-                    env = yield self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit)
+                    env = await gen.convert_yielded(self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit))
             elif block['type'] == 'request':
                 entry = block['entry']
                 try:
                     request_limit -= 1
-                    result = yield self.fetch(dict(
+                    result = await gen.convert_yielded(self.fetch(dict(
                         request = entry['request'],
                         rule = entry['rule'],
                         env = env,
-                        ), proxy=proxy)
+                        ), proxy=proxy))
                     env = result['env']
                 except Exception as e:
                     if config.debug:
@@ -492,4 +559,4 @@ class Fetcher(object):
                 if not result['success']:
                     raise Exception('failed at %d/%d request, %s, %s' % (
                         i+1, len(tpl), result['msg'], entry['request']['url']))
-        raise gen.Return(env)
+        return env

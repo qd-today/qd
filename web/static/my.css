@@ -25,8 +25,8 @@ header .container {
 header .buttons {
   position: absolute;
   margin-bottom: 10px;
-  left: 10px;
-  right: 10px;
+  left: -10px;
+  right: -10px;
   bottom: 0;
 }
 header .buttons a {

@@ -45,6 +45,11 @@ class MainWorker(object):
         self.fetcher = Fetcher()
 
     def __call__(self):
+        # self.running = tornado.ioloop.IOLoop.current().spawn_callback(self.run)
+        # if self.running:
+        #     success, failed = self.running
+        #     if success or failed:
+        #         logger.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
         if self.running:
             return
         self.running = self.run()
@@ -140,8 +145,7 @@ class MainWorker(object):
         else:
             return False
 
-    @gen.coroutine
-    def do(self, task):
+    async def do(self, task):
         task['note'] = self.db.task.get(task['id'], fields=('note'))['note']
         user = self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname', 'logtime'))
         tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl', 'interval', 'last_success'))
@@ -157,22 +161,22 @@ class MainWorker(object):
         if task['disabled']:
             self.db.tasklog.add(task['id'], False, msg='task disabled.')
             self.db.task.mod(task['id'], next=None, disabled=1)
-            raise gen.Return(False)
+            return False
 
         if not user:
             self.db.tasklog.add(task['id'], False, msg='no such user, disabled.')
             self.db.task.mod(task['id'], next=None, disabled=1)
-            raise gen.Return(False)
+            return False
 
         if not tpl:
             self.db.tasklog.add(task['id'], False, msg='tpl missing, task disabled.')
             self.db.task.mod(task['id'], next=None, disabled=1)
-            raise gen.Return(False)
+            return False
 
         if tpl['userid'] and tpl['userid'] != user['id']:
             self.db.tasklog.add(task['id'], False, msg='no permission error, task disabled.')
             self.db.task.mod(task['id'], next=None, disabled=1)
-            raise gen.Return(False)
+            return False
 
         start = time.time()
         try:
@@ -184,13 +188,16 @@ class MainWorker(object):
 
             url = utils.parse_url(env['variables'].get('_proxy'))
             if not url:
-                new_env = yield self.fetcher.do_fetch(fetch_tpl, env)
+                new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env))
             else:
                 proxy = {
+                    'scheme': url['scheme'],
                     'host': url['host'],
                     'port': url['port'],
+                    'username': url['username'],
+                    'password': url['password']
                 }
-                new_env = yield self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+                new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, [proxy]))
 
             variables = self.db.user.encrypt(task['userid'], new_env['variables'])
             session = self.db.user.encrypt(task['userid'],
@@ -226,7 +233,7 @@ class MainWorker(object):
             logtemp = u"{0}  日志：{1}".format(t, logtemp)
             pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
 
-            logger.info('taskid:%d tplid:%d successed! %.4fs', task['id'], task['tplid'], time.time()-start)
+            logger.info('taskid:%d tplid:%d successed! %.5fs', task['id'], task['tplid'], time.time()-start)
             # delete log
             self.ClearLog(task['id'])
         except Exception as e:
@@ -260,13 +267,13 @@ class MainWorker(object):
             self.db.tpl.incr_failed(tpl['id'])
 
             logger.error('taskid:%d tplid:%d failed! %r %.4fs', task['id'], task['tplid'], e, time.time()-start)
-            raise gen.Return(False)
-        raise gen.Return(True)
+            return False
+        return True
 
 if __name__ == '__main__':
     tornado.log.enable_pretty_logging()
     worker = MainWorker()
     io_loop = tornado.ioloop.IOLoop.instance()
-    tornado.ioloop.PeriodicCallback(worker, config.check_task_loop, io_loop).start()
+    tornado.ioloop.PeriodicCallback(worker, config.check_task_loop).start()
     worker()
     io_loop.start()

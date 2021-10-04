@@ -278,13 +278,13 @@ class PasswordResetHandler(BaseHandler):
                              password=password,
                              mtime=time.time(),
                              )
-            return self.finish("密码重置成功!")
+            return self.finish("""密码重置成功! 请<a href="{http}://{domain}/login" >点击此处</a>返回登录页面。""".format(http='https' if config.https else 'http', domain=config.domain))
 
     def send_mail(self, user):
         verified_code = [user['mtime'], time.time()]
         verified_code = self.db.user.encrypt(user['id'], verified_code)
         verified_code = self.db.user.encrypt(0, [user['id'], verified_code])
-        verified_code = base64.b64encode(verified_code)
+        verified_code = base64.b64encode(verified_code).decode()
 
         future = utils.send_mail(to=user['email'], subject=u"签到平台(%s) 密码重置" % (config.domain), html=u"""
 

@@ -10,6 +10,7 @@ from tornado import gen
 from .base import *
 from libs import utils
 import traceback
+from codecs import escape_decode
 
 class TPLPushHandler(BaseHandler):
     @tornado.web.authenticated
@@ -74,8 +75,7 @@ class TPLDelHandler(BaseHandler):
         self.redirect(referer)
 
 class TPLRunHandler(BaseHandler):
-    @gen.coroutine
-    def post(self, tplid):
+    async def post(self, tplid):
         self.evil(+5)
         user = self.current_user
         data = {}
@@ -101,6 +101,8 @@ class TPLRunHandler(BaseHandler):
             try:
                 fetch_tpl = json.loads(self.get_argument('tpl'))
             except:
+                if not user:
+                    return self.render('tpl_run_failed.html', log="请先登录!")
                 raise HTTPError(400)
 
         env = data.get('env')
@@ -117,14 +119,17 @@ class TPLRunHandler(BaseHandler):
             url = utils.parse_url(env['variables'].get('_binux_proxy'))
             if url:
                 proxy = {
+                    'scheme': url['scheme'],
                     'host': url['host'],
                     'port': url['port'],
+                    'username': url['username'],
+                    'password':url['password']
                 }
-                result = yield self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+                result = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, [proxy]))
             elif self.current_user:
-                result = yield self.fetcher.do_fetch(fetch_tpl, env)
+                result = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env))
             else:
-                result = yield self.fetcher.do_fetch(fetch_tpl, env, proxies=[])
+                result = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, proxies=[]))
         except Exception as e:
             traceback.print_exc()
             self.render('tpl_run_failed.html', log=str(e))
@@ -169,7 +174,7 @@ class TPLGroupHandler(BaseHandler):
         else:
             for value in envs:
                 if envs[value][0] == 'on':
-                    target_group = value.strip()
+                    target_group = escape_decode(value.strip()[2:-1], "hex-escape")[0].decode('utf-8')
                     break
                 else:
                     target_group = 'None'

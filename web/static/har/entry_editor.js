@@ -126,6 +126,14 @@
         obj = utils.list2dict($scope.entry.request.postData.params);
         return $scope.entry.request.postData.text = utils.querystring_unparse_with_variables(obj);
       }), true);
+      // $scope.$watch('entry.request.postData.text', (function() {
+      //   var obj, ref, ref1;
+      //   if (((ref = $scope.entry) != null ? (ref1 = ref.request) != null ? ref1.postData : void 0 : void 0) == null) {
+      //     return;
+      //   }
+      //   obj = utils.querystring_parse($scope.entry.request.postData.text);
+      //   return $scope.entry.request.postData.params = utils.dict2list(obj);
+      // }), true);
       $scope["delete"] = function(hashKey, array) {
         var each, i, index, len;
         for (index = i = 0, len = array.length; i < len; index = ++i) {
@@ -563,7 +571,7 @@
                 content.decoded = atob(content.text);
               }
               data = content.decoded;
-          } else if (from === 'status') {
+          } else if (from === 'status' & $scope.preview != undefined) {
             data = '' + $scope.preview.response.status;
           } else if (from.indexOf('header-') === 0) {
             from = from.slice(7);
@@ -590,29 +598,46 @@
             return null;
           }
           try {
-            if (match = re.match(/^\/(.*?)\/([gim]*)$/)) {
-              re = new RegExp(match[1], match[2]);
+            if (match = re.match(/^\/(.*?)\/([gimsu]*)$/)) {
+              if (match[1]){
+                re = new RegExp(match[1], match[2]);
+              }else{
+                throw new Error(match[0] +' is not allowed!')
+              }
             } else {
               re = new RegExp(re);
             }
           } catch (error1) {
             error = error1;
-            console.error(error);
-            return null;
+            console.error(error.message);
+            return error.message;
           }
           if (re.global) {
-            result = [];
-            while (m = re.exec(data)) {
-              result.push(m[1] ? m[1] : m[0]);
+            try {
+              result = [];
+              tmp = re.lastIndex;
+              while (m = re.exec(data)) {
+                result.push(m[1] ? m[1] : m[0]);
+                if (m[0] == ''){
+                  re.lastIndex++;// throw new Error('the RegExp "' + re.toString() +'" has caused a loop error! Try using stringObject.match(regexp) method on this stringobject...' );
+                }
+              }
+            }catch (error2){
+              console.error(error2.message);
+              result = data.match(re);
             }
-            return result;
+            console.log('The original result is ', result );
+            result = result.toString();
+            console.log('The result of toString() is '+ result );
+            return result.toString();
           } else {
             if (m = data.match(re)) {
-              if (m[1]) {
-                return m[1];
-              } else {
-                return m[0];
-              }
+              // if (m[1]) {
+              //   return m[1];
+              // } else {
+              //   return m[0];
+              // }
+              return m[1]
             }
             return null;
           }
