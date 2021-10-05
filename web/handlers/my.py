@@ -37,9 +37,9 @@ class MyHandler(BaseHandler):
             if  self.db.user.get(user['id'], fields=('role'))['role'] == 'admin':
                 adminflg = True
 
-            hfile = "./tpls_history.json"
+            hfile = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "config"+os.path.sep+"tpls_history.json")
 
-            if (True == os.path.isfile(hfile)):
+            if os.path.isfile(hfile):
                 hjson = json.loads(open(hfile, 'r' ,encoding='utf-8').read())
             else:
                 hjson = {}
