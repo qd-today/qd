@@ -8,6 +8,8 @@ define (require, exports, module) ->
   require '/static/har/editablelist'
 
   utils = require '/static/utils'
+  local_protocol = window.location.protocol
+  local_host = window.location.host
 
   angular.module('entry_editor', [
     'contenteditable'
@@ -63,6 +65,8 @@ define (require, exports, module) ->
         return
       if not $scope.entry?
         return
+      if $scope.entry.request.url.substring(0, 2) == "{{" || $scope.entry.request.url.substring(0, 2) == "{%"
+        return
       try
         queryString = utils.dict2list(utils.querystring_parse_with_variables(utils.url_parse($scope.entry.request.url).query))
       catch error
@@ -79,7 +83,15 @@ define (require, exports, module) ->
         return
       if not $scope.entry?
         return
-      url = utils.url_parse($scope.entry.request.url)
+      if $scope.entry.request.url.substring(0, 2) == "{{" || $scope.entry.request.url.substring(0, 2) == "{%" 
+        return
+      url = utils.url_parse($scope.entry.request.url);
+      if url.path.indexOf('%7B%7B') > -1
+        url.path = url.path.replace('%7B%7B', '{{')
+        url.path = url.path.replace('%7D%7D', '}}')
+        url.pathname = url.pathname.replace('%7B%7B', '{{')
+        url.pathname = url.pathname.replace('%7D%7D', '}}')
+      url.path = url.path.replace('https:///', 'https://')
       query = utils.list2dict($scope.entry.request.queryString)
       query = utils.querystring_unparse_with_variables(query)
       url.search = "?#{query}" if query
@@ -97,6 +109,15 @@ define (require, exports, module) ->
       obj = utils.list2dict($scope.entry.request.postData.params)
       $scope.entry.request.postData.text = utils.querystring_unparse_with_variables(obj)
     ), true)
+
+    # $scope.$watch('entry.request.postData.text', (function() {
+    #   var obj, ref, ref1;
+    #   if (((ref = $scope.entry) != null ? (ref1 = ref.request) != null ? ref1.postData : void 0 : void 0) == null) {
+    #     return;
+    #   }
+    #   obj = utils.querystring_parse($scope.entry.request.postData.text);
+    #   return $scope.entry.request.postData.params = utils.dict2list(obj);
+    # }), true);
 
     # helper for delete item from array
     $scope.delete = (hashKey, array) ->
@@ -120,6 +141,7 @@ define (require, exports, module) ->
       $scope.$parent.har.log.entries.splice(current_pos, 0, entry)
       $rootScope.$broadcast('har-change')
       angular.element('#edit-entry').modal('hide')
+      return true
 
     $scope.add_request = (pos) ->
       $scope.insert_request(pos, {
@@ -144,7 +166,7 @@ define (require, exports, module) ->
         comment: '延时3秒'
         request:
           method: 'GET'
-          url: location.origin + '/util/delay/3'
+          url: [local_protocol,'//',local_host,'/util/delay/3'].join('')
           postData:
             test: ''
           headers: []
@@ -152,6 +174,228 @@ define (require, exports, module) ->
         response: {}
         success_asserts: [
           {re: "200", from: "status"}
+        ]
+      })
+
+    $scope.add_unicode_request = () ->
+      $scope.insert_request(1, {
+        checked: true,
+        pageref: $scope.entry.pageref,
+        recommend: true,
+        comment: 'unicode转换',
+        request: {
+          method: 'GET',
+          url: [local_protocol,'//',local_host,'/util/unicode?content='].join(''),
+          headers: [],
+          cookies: []
+        },
+        response: {},
+        success_asserts: [
+          {
+            re: "200",
+            from: "status"
+          },
+          {
+            re: "\"状态\": \"200\"",
+            from: "content"
+          }
+        ],
+        extract_variables: [
+          {
+            name: '',
+            re: '"转换后": "(.*)"',
+            from: 'content'
+          }
+        ]
+      })
+
+    $scope.add_urldecode_request = () ->
+      $scope.insert_request(1, {
+        checked: true,
+        pageref: $scope.entry.pageref,
+        recommend: true,
+        comment: 'url解码',
+        request: {
+          method: 'GET',
+          url: [local_protocol,'//',local_host,'/util/urldecode?content='].join(''),
+          headers: [],
+          cookies: []
+        },
+        response: {},
+        success_asserts: [
+          {
+            re: "200",
+            from: "status"
+          },
+          {
+            re: "\"状态\": \"200\"",
+            from: "content"
+          }
+        ],
+        extract_variables: [
+          {
+            name: '',
+            re: '"转换后": "(.*)"',
+            from: 'content'
+          }
+        ]
+      })
+
+    $scope.add_regex_request = () ->
+      $scope.insert_request(1, {
+        checked: true,
+        pageref: $scope.entry.pageref,
+        recommend: true,
+        comment: '正则提取',
+        request: {
+          method: 'GET',
+          url: [local_protocol,'//',local_host,'/util/regex?p=&data='].join(''),
+          headers: [],
+          cookies: []
+        },
+        response: {},
+        success_asserts: [
+          {
+            re: "200",
+            from: "status"
+          },
+          {
+            re: "\"状态\": \"OK\"",
+            from: "content"
+          }
+        ],
+        extract_variables: [
+          {
+            name: '',
+            re: '"1": "(.*)"',
+            from: 'content'
+          }
+        ]
+      })
+
+    $scope.add_string_replace_request = () ->
+      $scope.insert_request(1, {
+        checked: true,
+        pageref: $scope.entry.pageref,
+        recommend: true,
+        comment: '字符串替换',
+        request: {
+          method: 'GET',
+          url: [local_protocol,'//',local_host,'/util/string/replace?r=json&p=&s=&t='].join(''),
+          headers: [],
+          cookies: []
+        },
+        response: {},
+        success_asserts: [
+          {
+            re: "200",
+            from: "status"
+          },
+          {
+            re: "\"状态\": \"OK\"",
+            from: "content"
+          }
+        ],
+        extract_variables: [
+          {
+            name: '',
+            re: '"处理后字符串": "(.*)"',
+            from: 'content'
+          }
+        ]
+      })
+
+    $scope.add_RSA_Encrypt_request = () ->
+      $scope.insert_request(1, {
+        checked: true,
+        pageref: $scope.entry.pageref,
+        recommend: true,
+        comment: 'RSA加密',
+        request: {
+          method: 'GET',
+          url: [local_protocol,'//',local_host,'/util/rsa?key=&data=&f=encode'].join(''),
+          headers: [],
+          cookies: []
+        },
+        response: {},
+        success_asserts: [
+          {
+            re: "200",
+            from: "status"
+          }
+        ],
+        extract_variables: [
+          {
+            name: '',
+            re: '(.*)',
+            from: 'content'
+          }
+        ]
+      })
+
+    $scope.add_read_notepad_request = () ->
+      $scope.insert_request(1, {
+        checked: true,
+        pageref: $scope.entry.pageref,
+        recommend: true,
+        comment: '读取记事本',
+        variables: {
+          qd_email: "",
+          qd_pwd: ""
+        },
+        request: {
+          method: 'POST',
+          url: [local_protocol,'//',local_host,'/util/toolbox/1'].join(''),
+          headers: [],
+          cookies: [],
+          postData:{
+            text: "email={{qd_email|urlencode}}&pwd={{qd_pwd|urlencode}}&f=read"
+          }
+        },
+        response: {},
+        success_asserts: [
+          {
+            re: "200",
+            from: "status"
+          }
+        ],
+        extract_variables: [
+          {
+            name: '',
+            re: '([\s\S]*)',
+            from: 'content'
+          }
+        ]
+      })
+
+    $scope.add_append_notepad_request = () ->
+      $scope.insert_request(1, {
+        checked: true,
+        pageref: $scope.entry.pageref,
+        recommend: true,
+        comment: '追加记事本',
+        request: {
+          method: 'POST',
+          url: [local_protocol,'//',local_host,'/util/toolbox/1'].join(''),
+          headers: [],
+          cookies: [],
+          postData:{
+            text: "email={{qd_email|urlencode}}&pwd={{qd_pwd|urlencode}}&f=append&data="
+          }
+        },
+        response: {},
+        success_asserts: [
+          {
+            re: "200",
+            from: "status"
+          }
+        ],
+        extract_variables: [
+          {
+            name: '',
+            re: '([\s\S]*)',
+            from: 'content'
+          }
         ]
       })
 
@@ -163,10 +407,22 @@ define (require, exports, module) ->
       utils.storage.set('copy_request', angular.toJson($scope.copy_entry))
 
     $scope.paste_request = (pos)->
-      $scope.copy_entry.comment ?= '';
+      $scope.copy_entry.comment ?= ''
       $scope.copy_entry.comment = 'Copy_' + $scope.copy_entry.comment
       $scope.copy_entry.pageref = $scope.entry.pageref
       $scope.insert_request(pos, $scope.copy_entry)
+
+    $scope.del_request = (pos) ->
+        if pos == null
+          pos = 1
+        if (current_pos = $scope.$parent.har.log.entries.indexOf($scope.entry)) == -1
+          $scope.alert("can't find position to add request")
+          return
+        current_pos += pos;
+        $scope.$parent.har.log.entries.splice(current_pos, 1)
+        $rootScope.$broadcast('har-change')
+        return angular.element('#edit-entry').modal('hide')
+
     # fetch test
     $scope.do_test = () ->
       angular.element('.do-test').button('loading')
@@ -215,13 +471,15 @@ define (require, exports, module) ->
         if not from
           return null
         else if from == 'content'
+          if typeof($scope.preview) == 'undefined'
+            return false
           content = $scope.preview.response?.content
           if not content? or not content.text?
             return null
           if not content.decoded
             content.decoded = atob(content.text)
           data = content.decoded
-        else if from == 'status'
+        else if from == 'status' & $scope.preview != undefined
           data = '' + $scope.preview.response.status
         else if from.indexOf('header-') == 0
           from = from[7..]
@@ -235,22 +493,36 @@ define (require, exports, module) ->
           return null
 
         try
-          if match = re.match(/^\/(.*?)\/([gim]*)$/)
-            re = new RegExp(match[1], match[2])
+          if match = re.match(/^\/(.*?)\/([gimsu]*)$/)
+            if match[1]
+              re = new RegExp(match[1], match[2]);
+            else
+              throw new Error(match[0] +' is not allowed!')
           else
             re = new RegExp(re)
         catch error
-          console.error(error)
-          return null
+          console.error(error.message)
+          return error.message
 
         if re.global
-          result = []
-          while m = re.exec(data)
-            result.push(if m[1] then m[1] else m[0])
-          return result
+          try
+            result = []
+            tmp = re.lastIndex
+            while m = re.exec(data)
+              result.push(if m[1] then m[1] else m[0])
+              if m[0] == ''
+                re.lastIndex++; # throw new Error('the RegExp "' + re.toString() +'" has caused a loop error! Try using stringObject.match(regexp) method on this stringobject...' );
+          catch error
+            console.error(error.message)
+            result = data.match(re)
+          console.log('The original result is ', result )
+          result = result.toString()
+          console.log('The result of toString() is '+ result )
+          return result.toString()
         else
           if m = data.match(re)
-            return if m[1] then m[1] else m[0]
+            # return if m[1] then m[1] else m[0]
+            return m[1]
           return null
 
 ## eof

@@ -48,23 +48,23 @@
           value = obj[key];
           re = /{{\s*([\w]+)[^}]*?\s*}}/g;
           while (m = re.exec(key)) {
-            if (m[0].slice(-12) != '|urlencode}}'){
+            if (m[0].slice(-12) !== '|urlencode}}') {
               replace_list[encodeURIComponent(m[0])] = m[0].slice(0, -2) + '|urlencode}}';
-            }else{
+            } else {
               replace_list[encodeURIComponent(m[0])] = m[0];
             }
           }
           re = /{{\s*([\w]+)[^}]*?\s*}}/g;
           while (m = re.exec(value)) {
-            if (m[0].slice(-12) != '|urlencode}}'){
+            if (m[0].slice(-12) !== '|urlencode}}') {
               replace_list[encodeURIComponent(m[0])] = m[0].slice(0, -2) + '|urlencode}}';
-            }else{
+            } else {
               replace_list[encodeURIComponent(m[0])] = m[0];
             }
           }
         }
-        if (node_querystring.stringify(replace_list)){
-          console.log('The replace_list is',replace_list);
+        if (node_querystring.stringify(replace_list)) {
+          console.log('The replace_list is', replace_list);
         }
         for (key in replace_list) {
           value = replace_list[key];
@@ -202,8 +202,8 @@
               for (i = 0, len = tpl.length; i < len; i++) {
                 en = tpl[i];
                 results.push({
+                  comment: en.comment,
                   checked: true,
-				  comment: en.comment,
                   startedDateTime: (new Date()).toISOString(),
                   time: 1,
                   request: {

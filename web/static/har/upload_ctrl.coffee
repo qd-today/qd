@@ -50,9 +50,14 @@ define (require, exports, module) ->
 
       $scope.load_file = (data) ->
         console.log data
+        name = ""
+        if HARPATH != ""
+          name = HARNAME;
+        else
+          name = $scope.file.name;
         if data.log
           loaded =
-            filename: $scope.file.name
+            filename: name
             har: analysis.analyze(data, {
                   username: $scope.username
                   password: $scope.password
@@ -60,7 +65,7 @@ define (require, exports, module) ->
             upload: true
         else
           loaded =
-            filename: $scope.file.name
+            filename: name
             har: utils.tpl2har data
             upload: true
 
@@ -87,26 +92,96 @@ define (require, exports, module) ->
         if not $scope.local_har and remoteload()
           $scope.load_remote(location.href)
 
-      $scope.upload = ->
+      $scope.add_local = () ->
         if not $scope.file?
-          $scope.alert '还没选择文件啊，亲'
+          $scope.alert('还没选择文件啊，亲')
           return false
-
-        if $scope.file.size > 50*1024*1024
-          $scope.alert '文件大小超过50M'
+        if $scope.file.size > 50 * 1024 * 1024
+          $scope.alert('文件大小超过50M')
           return false
+        element.find('button').button('loading');
+        reader = new FileReader();
+        reader.onload = (ev) ->
+          return $scope.$apply(() ->
+            old_har = {
+                        filename: utils.storage.get('har_filename'),
+                        har: utils.storage.get('har_har'),
+                        env: utils.storage.get('har_env'),
+                        upload: true
+                      }
 
+            # if !old_har.har && typeof(old_har.har)!="undefined" && old_har.har != 0
+            # 优先读取本地保存的，如果没有则读取全局的
+            old_har = window.global_har if old_har.har? and old_har.har != 0
+
+            har_file_upload = angular.fromJson(ev.target.result)
+            new_har = {}
+            if har_file_upload.log
+              new_har = {
+                          filename: $scope.file.name,
+                          har: analysis.analyze(har_file_upload, {
+                            username: $scope.username,
+                            password: $scope.password
+                          }),
+                          upload: true
+                        }
+            else 
+              new_har = {
+                          filename: $scope.file.name,
+                          har: utils.tpl2har(har_file_upload),
+                          upload: true
+                        }
+
+            new_har.env = {};
+            ref = analysis.find_variables(new_har.har);
+            for each in ref 
+              new_har.env[each] = ""
+
+            if $scope.is_loaded
+              target_har = old_har;
+              for key in new_har
+                if new_har.hasOwnProperty(key) == true
+                    target_har.env[key]=new_har.env[key]
+              for new_har_log_entry in new_har.har.log.entries
+                target_har.har.log.entries.push(new_har_log_entry)
+            else 
+              target_har = new_har
+
+            $scope.uploaded = true
+            $scope.loaded(target_har)
+            return element.find('button').button('reset')
+          )
+        return reader.readAsText($scope.file)
+      
+      if HARDATA != ""
         element.find('button').button('loading')
         reader = new FileReader()
-        reader.onload = (ev) ->
-          $scope.$apply ->
-            $scope.uploaded = true
-            #try
-            $scope.load_file(angular.fromJson(ev.target.result))
-            #catch error
-              #console.error(error)
-              #$scope.alert('错误的HAR文件')
-              
-            element.find('button').button('reset')
-        reader.readAsText $scope.file
+        
+        data = Base64.decode(HARDATA)   # 解码
+        $scope.load_file(angular.fromJson(data))
+        element.find('button').button('reset')
+        return true
+      else
+        $scope.upload = ->
+          if not $scope.file?
+            $scope.alert '还没选择文件啊，亲'
+            return false
+
+          if $scope.file.size > 50*1024*1024
+            $scope.alert '文件大小超过50M'
+            return false
+
+          element.find('button').button('loading')
+          reader = new FileReader()
+          reader.onload = (ev) ->
+            $scope.$apply ->
+              $scope.uploaded = true
+              #try
+              $scope.load_file(angular.fromJson(ev.target.result))
+              #catch error
+                #console.error(error)
+                #$scope.alert('错误的HAR文件')
+                
+              element.find('button').button('reset')
+          reader.readAsText $scope.file
     )

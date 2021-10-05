@@ -36,8 +36,7 @@
       }
       cookie_input = angular.element($this.parent().find('input'));
       if ($('body').attr('get-cookie') === void 0) {
-        // alert('尚未安装GetCookie插件，请安装插件或手动获取！');
-        // $this.attr('href', 'https://chrome.google.com/webstore/detail/cookies-get-assistant/ljjpkibacifkfolehlgaolibbnlapkme').attr('target', '_blank');
+        console.log('尚未安装GetCookie插件，请安装插件或手动获取！');
       }
     });
     window.addEventListener("message", function(ev) {
@@ -52,7 +51,7 @@
         cookie_str += key + '=' + value + '; ';
       }
       if (cookie_str === '') {
-        // alert('没有获得cookie，您是否已经登录？');
+        console.log('没有获得cookie，您是否已经登录？');
         return;
       }
       if (cookie_input != null) {

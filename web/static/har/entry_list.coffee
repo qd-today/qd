@@ -14,7 +14,8 @@ define (require, exports, module) ->
       # on uploaded event
       $rootScope.$on('har-loaded', (ev, data) ->
         console.info(data)
-
+        global_har = data
+        window.global_har = global_har
         $scope.filename = data.filename
         $scope.har = data.har
         $scope.init_env = data.env
@@ -132,21 +133,24 @@ define (require, exports, module) ->
 
       har2tpl = (har) ->
         return ({
-		    comment: entry.comment
-            request:
-              method: entry.request.method
-              url: entry.request.url
-              headers: ({name: h.name, value: h.value} for h in entry.request.headers when h.checked)
-              cookies: ({name: c.name, value: c.value} for c in entry.request.cookies when c.checked)
-              data: entry.request.postData?.text
-              mimeType: entry.request.postData?.mimeType
-            rule:
-              success_asserts: entry.success_asserts
-              failed_asserts: entry.failed_asserts
-              extract_variables: entry.extract_variables
+          comment: entry.comment
+          request:
+            method: entry.request.method
+            url: entry.request.url
+            headers: ({name: h.name, value: h.value} for h in entry.request.headers when h.checked)
+            cookies: ({name: c.name, value: c.value} for c in entry.request.cookies when c.checked)
+            data: entry.request.postData?.text
+            mimeType: entry.request.postData?.mimeType
+          rule:
+            success_asserts: entry.success_asserts
+            failed_asserts: entry.failed_asserts
+            extract_variables: entry.extract_variables
           } for entry in har.log.entries when entry.checked)
 
       $scope.save = () ->
+        # 十六委托偷天修改，主要是HAR保存页面对自定义时间的支持
+        $scope.setting.interval = angular.element('#jiange_second').val();
+        # End
         data = {
           id: $scope.id,
           har: $scope.har
@@ -157,7 +161,8 @@ define (require, exports, module) ->
         save_btn = angular.element('#save-har .btn').button('loading')
         alert_elem = angular.element('#save-har .alert-danger').hide()
         alert_info_elem = angular.element('#save-har .alert-info').hide()
-        $http.post(location.pathname.replace('edit', 'save'), data)
+        replace_text = 'save?reponame='+HARPATH+'&'+'name='+HARNAME
+        $http.post(location.pathname.replace('edit', replace_text), data)
         .success((data, status, headers, config) ->
           utils.storage.del('har_filename')
           utils.storage.del('har_har')

@@ -39,11 +39,18 @@ define (require) ->
       for key, value of obj
         re = /{{\s*([\w]+)[^}]*?\s*}}/g
         while m = re.exec(key)
-          replace_list[encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
+          if m[0].slice(-12) != '|urlencode}}'
+            replace_list[encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
+          else
+            replace_list[encodeURIComponent(m[0])] = m[0]
         re = /{{\s*([\w]+)[^}]*?\s*}}/g
         while m = re.exec(value)
-          replace_list[encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
-      console.log(replace_list)
+          if m[0].slice(-12) != '|urlencode}}'
+            replace_list[encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
+          else
+            replace_list[encodeURIComponent(m[0])] = m[0]
+      if node_querystring.stringify(replace_list)
+          console.log('The replace_list is',replace_list)
       for key, value of replace_list
         query = query.replace(new RegExp(RegExp.escape(key), 'g'), value)
       return query
@@ -65,8 +72,9 @@ define (require) ->
       ({name: k, value: v} for k, v of dict)
     list2dict: (list) ->
       dict = {}
-      for each in list
-        dict[each.name] = each.value
+      if list
+        for each in list
+          dict[each.name] = each.value
       return dict
 
     get_public_suffix: node_tough.getPublicSuffix
@@ -132,7 +140,7 @@ define (require) ->
             name: 'binux'
             version: 'qiandao'
           entries: ({
-		    comment: en.comment
+            comment: en.comment
             checked: true
             startedDateTime: (new Date()).toISOString()
             time: 1

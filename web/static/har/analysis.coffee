@@ -3,6 +3,9 @@
 #         http://binux.me
 # Created on 2014-08-02 10:07:33
 
+window.jinja_globals = ['md5','quote_chinese','utf8','unicode','timestamp','random','date_time','is_num','add','sub','multiply','divide']
+jinja_globals = window.jinja_globals
+
 Array.prototype.some ?= (f) ->
   (return true if f x) for x in @
   return false
@@ -227,7 +230,8 @@ define (require, exports, module) ->
     variables: (string) ->
       re = /{{\s*([\w]+)[^}]*?\s*}}/g
       while m = re.exec(string)
-        m[1]
+        if jQuery.inArray(m[1], jinja_globals) < 0
+          m[1]
 
     variables_in_entry: (entry) ->
       result = []
