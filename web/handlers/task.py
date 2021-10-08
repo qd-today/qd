@@ -60,6 +60,8 @@ class TaskNewHandler(BaseHandler):
         tested = self.get_body_argument('_binux_tested', False)
         note = self.get_body_argument('_binux_note')
         proxy = self.get_body_argument('_binux_proxy')
+        retry_count = self.get_body_argument('_binux_retry_count')
+        retry_interval = self.get_body_argument('_binux_retry_interval')
 
         tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'interval')))
         envs = {}
@@ -73,6 +75,10 @@ class TaskNewHandler(BaseHandler):
                 continue
             env[key] = self.get_body_argument(key)
         env['_proxy'] = proxy
+        retry_count = int(retry_count) if retry_count else retry_count
+        retry_interval = int(retry_interval) if retry_interval else retry_interval
+        env['retry_count'] = retry_count
+        env['retry_interval'] = retry_interval
 
         if ('New_group' in envs):
             New_group = envs['New_group'][0].strip()
@@ -104,8 +110,14 @@ class TaskNewHandler(BaseHandler):
             init_env = self.db.user.encrypt(user['id'], init_env)
             self.db.task.mod(taskid, init_env=init_env, env=None, session=None, note=note)
         
-        if ('New_group' in envs):
+        if 'New_group' in envs:
             self.db.task.mod(taskid, _groups=target_group)
+
+        if retry_count:
+            self.db.task.mod(taskid, retry_count=retry_count)
+
+        if retry_interval:
+            self.db.task.mod(taskid, retry_interval=retry_interval)
 
         self.redirect('/my/')
 
@@ -114,7 +126,7 @@ class TaskEditHandler(TaskNewHandler):
     def get(self, taskid):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid',
-            'tplid', 'disabled', 'note')), 'w')
+            'tplid', 'disabled', 'note', 'retry_count', 'retry_interval')), 'w')
         task['init_env'] = self.db.user.decrypt(user['id'], self.db.task.get(taskid, 'init_env')['init_env'])
         envs = []
         for key, value in task['init_env'].items():
@@ -127,7 +139,7 @@ class TaskEditHandler(TaskNewHandler):
             'sitename', 'siteurl', 'variables')))
 
         variables = json.loads(tpl['variables'])
-        self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=task['init_env'])
+        self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=task['init_env'], retry_count=task['retry_count'], retry_interval=task['retry_interval'])
 
 class TaskRunHandler(BaseHandler):
     @tornado.web.authenticated
@@ -136,7 +148,7 @@ class TaskRunHandler(BaseHandler):
         start_ts = int(time.time())
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'init_env',
-            'env', 'session', 'last_success', 'last_failed', 'success_count', 'note',
+            'env', 'session', 'retry_count', 'retry_interval', 'last_success', 'last_failed', 'success_count', 'note',
             'failed_count', 'last_failed_count', 'next', 'disabled', 'ontime', 'ontimeflg', 'pushsw','newontime')), 'w')
 
         tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename',

@@ -352,7 +352,7 @@ class UserDBHandler(BaseHandler):
                         tpls.append(tpl)
 
                     tasks = []
-                    for task in self.db.task.list(userid, fields=('id', 'tplid', 'note', 'disabled', '_groups', 'init_env', 'env', 'ontimeflg', 'ontime', 'pushsw', 'newontime'), limit=None):
+                    for task in self.db.task.list(userid, fields=('id', 'tplid', 'retry_count', 'retry_interval','note', 'disabled', '_groups', 'init_env', 'env', 'ontimeflg', 'ontime', 'pushsw', 'newontime'), limit=None):
                         task['init_env'] = self.db.user.decrypt(userid, task['init_env'])
                         task['env'] = self.db.user.decrypt(userid, task['env']) if task['env'] else None
                         tasks.append(task)
@@ -409,10 +409,14 @@ class UserDBHandler(BaseHandler):
                             userid2 = int(userid)
                             newtask['init_env'] = self.db.user.encrypt(userid2, newtask['init_env'])
                             newtask['env'] = self.db.user.encrypt(userid2, newtask['env'])
+                            newtask['retry_count'] = newtask.get('retry_count',8)
+                            newtask['retry_interval'] = newtask.get('retry_interval')
                             taskid = self.db.task.add(newtask['tplid'], userid, newtask['env'])
                             self.db.task.mod(taskid, disabled = newtask['disabled'],
                                                      init_env = newtask['init_env'],
                                                      session = None,
+                                                     retry_count = newtask['retry_count'],
+                                                     retry_interval = newtask['retry_interval'],
                                                      note = newtask['note'],
                                                      _groups = u'备份还原',
                                                      ontimeflg = newtask['ontimeflg'],

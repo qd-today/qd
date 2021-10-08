@@ -95,6 +95,8 @@ class DBconverter(_TaskDB, BaseDB):
             `init_env` BLOB NULL,
             `env` BLOB NULL,
             `session` BLOB NULL,
+            `retry_count` INT NOT NULL DEFAULT 8,
+            `retry_interval` INT UNSIGNED NULL,
             `last_success` INT UNSIGNED NULL,
             `last_failed` INT UNSIGNED NULL,
             `success_count` INT UNSIGNED NOT NULL DEFAULT 0,
@@ -154,12 +156,22 @@ class DBconverter(_TaskDB, BaseDB):
                 `repobranch`  TEXT,
                 `commenturl`  TEXT
             )''' ) 
-                    
+
         if config.db_type == 'sqlite3': 
             exec_shell = self._execute
         else:
             exec_shell = self.db.task._execute
-            
+
+        try:
+            self.db.task.get("1", fields=('retry_count'))
+        except :
+            exec_shell("ALTER TABLE `task` ADD `retry_count` INT NOT NULL DEFAULT 8 " )
+
+        try:
+            self.db.task.get("1", fields=('retry_interval'))
+        except :
+            exec_shell("ALTER TABLE `task` ADD `retry_interval` INT UNSIGNED NULL " )
+
         try:
             self.db.task.get("1", fields=('ontimeflg'))
         except:
@@ -249,6 +261,8 @@ class DBconverter(_TaskDB, BaseDB):
                 `init_env` BLOB NULL,
                 `env` BLOB NULL,
                 `session` BLOB NULL,
+                `retry_count` INT NOT NULL DEFAULT 8,
+                `retry_interval` INT UNSIGNED NULL,
                 `last_success` INT UNSIGNED NULL,
                 `last_failed` INT UNSIGNED NULL,
                 `success_count` INT UNSIGNED NOT NULL DEFAULT 0,
@@ -264,7 +278,7 @@ class DBconverter(_TaskDB, BaseDB):
                 `pushsw`  VARBINARY(128) NOT NULL DEFAULT '{\"logen\":false,\"pushen\":true}',
                 `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0}'
                 );'''% autokey)
-                exec_shell("INSERT INTO `task` SELECT `id`,`tplid`,`userid`,`disabled`,`init_env`,`env`,`session`,`last_success`,`last_failed`,`success_count`,`failed_count`,`last_failed_count`,`next`,`note`,`ctime`,`mtime`,`ontimeflg`,`ontime`,`groups`,`pushsw`,`newontime` FROM `taskold` ")
+                exec_shell("INSERT INTO `task` SELECT `id`,`tplid`,`userid`,`disabled`,`init_env`,`env`,`session`,`retry_count`,`retry_interval`,`last_success`,`last_failed`,`success_count`,`failed_count`,`last_failed_count`,`next`,`note`,`ctime`,`mtime`,`ontimeflg`,`ontime`,`groups`,`pushsw`,`newontime` FROM `taskold` ")
                 exec_shell("DROP TABLE `taskold` ")
         except :
             pass
@@ -386,5 +400,5 @@ class DBconverter(_TaskDB, BaseDB):
             else:
                 exec_shell('''ALTER TABLE `pubtpl` ADD  `commenturl` TEXT ''')
                 exec_shell('''UPDATE `pubtpl` SET `commenturl` = '' WHERE 1=1 ''')
-                                    
+
         return 

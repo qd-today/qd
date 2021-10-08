@@ -12,7 +12,7 @@
     <label class="control-label" for="site-select">
       <a id="siteurl" href="" target="_blank" style="color:black;">网站</a>
     </label>
-    <select class="form-control" name="_binux_tplid">
+    <select class="form-control" name="_binux_tplid" id="tplid">
       {% for tpl in tpls %}
       <option value="{{ tpl.id }}" {% if tpl.id == tplid %}selected{% endif %} {% if not tpl.id %}disabled{% endif %}>{{ tpl.sitename or '未命名' }}</option>
       {% endfor %}
@@ -58,6 +58,50 @@
     <!-- MY页面-添加签到-增加备注图标 -->
     <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
   </div>
+
+  <div class="form-group">
+    <label class="control-label" for="retry_count">重试次数</label>
+    <input type="number" class="form-control" name="_binux_retry_count" list="retry_count" value="" min="-1" max="8" placeholder="选择或填写重试次数, 不填保持默认" style="width:100%">
+    <datalist id="retry_count" style="display:none;">
+      <option selected="selected" value="">请选择</option>
+      <option value="-1">始终重试</option>
+      <option value="0">不重试</option>
+      <option value="8">默认</option>
+    </datalist>
+    {%if retry_count %}
+    <div class="text">前值: </div><div class="autowrap showbut" id="pvar">{{ retry_count }}
+      <div class="btn hljs-button" data-clipboard-target="#pvar" style="vertical-align:top">复制</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="form-group">
+    <label class="control-label" for="retry_interval">重试间隔</label>
+    <input type="number" name="_binux_retry_interval" list="retry_interval" min="60" placeholder="选择或填写重试间隔, 不填保持默认, 单位: 秒" style="width:100%">
+    <datalist id="retry_interval" style="display:none;">
+      <option selected="selected" value="">请选择</option>
+      <option value="60">每1分钟</option>
+      <option value="1800">每30分钟</option>
+      <option value="2700">每45分钟</option>
+      <option value="3000">每50分钟</option>
+      <option value="3600">每小时</option>
+      <option value="7200">每2小时</option>
+      <option value="43200">每12小时</option>
+      <option value="82800">每23小时</option>
+      <option value="86399">每天</option>
+      <option value="604800">每周</option>
+      <option value="2626560">每月</option>
+      <option value="7884000">每季</option>
+      <option value="31536000">每年</option>
+      <option value="" disabled>最短1分钟!</option>
+    </datalist>
+    {%if retry_interval %}
+    <div class="text">前值: </div><div class="autowrap showbut" id="pvar">{{ retry_interval }}
+      <div class="btn hljs-button" data-clipboard-target="#pvar" style="vertical-align:top">复制</div>
+    </div>
+    {% endif %}
+  </div>
+
   {% endif %}
   
   {% if not task and current_user %}
@@ -147,5 +191,5 @@
 
   {{ utils.task_new_scripts() }}
   {{ utils.submit_loading() }}
-  {{ utils.form_select2() }}
+  {{ utils.form_select2(id="#tplid") }}
 </form>
