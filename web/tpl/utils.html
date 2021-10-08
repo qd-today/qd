@@ -174,3 +174,14 @@ $(function() {
 })
 </script>
 {% endmacro %}
+
+{% macro form_select2(id = ".form-control", width = "100%") %}
+<script>
+  var _id = {{ id|tojson }};
+  var _width = {{ width|tojson }};
+  $.fn.modal.Constructor.prototype.enforceFocus = function(){}
+  $(document).ready(function() {
+    $(_id).select2({width: _width });
+});
+</script>
+{% endmacro %}
