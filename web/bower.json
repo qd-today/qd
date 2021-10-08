@@ -1,6 +1,6 @@
 {
   "name": "Qiandao for Python3",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "authors": [
     "(a76yyyy <admin@a76yyyy.cn>",
     "AragonSnow",
@@ -21,7 +21,8 @@
     "angular": "~1.5.11",
     "jquery": "~3.6.0",
     "bootstrap": "=3.2.0",
-    "seajs": "=2.3.0"
+    "seajs": "=2.3.0",
+    "select2": "^4.0.13"
   },
   "main": "",
   "license": "MIT"
