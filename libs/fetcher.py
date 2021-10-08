@@ -299,18 +299,22 @@ class Fetcher(object):
 
         for r in rule.get('success_asserts') or '':
             if re.search(r['re'], getdata(r['from'])):
+                msg = ''
                 break
+            else:
+                msg = 'fail assert: %s from success_asserts' % json.dumps(r, ensure_ascii=False)
         else:
             if rule.get('success_asserts'):
                 success = False
+                
 
         for r in rule.get('failed_asserts') or '':
             if re.search(r['re'], getdata(r['from'])):
                 success = False
-                msg = 'fail assert: %s' % json.dumps(r, ensure_ascii=False)
+                msg = 'fail assert: %s from failed_asserts' % json.dumps(r, ensure_ascii=False)
                 break
 
-        if not success and (response.error or response.reason):
+        if not success and not msg and (response.error or response.reason):
             msg = str(response.error or response.reason)
 
         for r in rule.get('extract_variables') or '':
