@@ -11,13 +11,19 @@ import traceback
 import time
 import requests
 import base64
-
+import random
+from tornado import gen
 from .base import *
+from config import proxies 
+from libs.fetcher import Fetcher
+from libs.utils import find_encoding
+from urllib.parse import quote
+fetcher = Fetcher()
 
 class SubscribeHandler(BaseHandler):
     @tornado.web.addslash
     @tornado.web.authenticated
-    def get(self, userid):
+    async def get(self, userid):
         msg = ''
         user = self.current_user
         adminflg = False
@@ -25,6 +31,10 @@ class SubscribeHandler(BaseHandler):
             adminflg = True
         repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
         try:
+            if proxies:
+                proxy = random.choice(proxies)
+            else:
+                proxy = {}
             now_ts = int(time.time())
             # 如果上次更新时间大于1天则更新模板仓库
             if (now_ts - int(repos['lastupdate']) > 24 * 3600):
@@ -38,17 +48,20 @@ class SubscribeHandler(BaseHandler):
                             url = repo['repourl']
 
                     hfile_link = url + '/tpls_history.json'
-                    res = requests.get(hfile_link, verify=False)
-                    if res.status_code == 200:
-                        hfile = json.loads(res.content.decode(res.encoding, 'replace'))
+                    obj = {'request': {'method': 'GET', 'url': hfile_link, 'headers': [], 'cookies': []}, 'rule': {
+                        'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                    _,_,res = await gen.convert_yielded(fetcher.build_response(obj = obj, proxy = proxy))
+                    if res.code == 200:
+                        hfile = json.loads(res.body.decode(find_encoding(res.body, res.headers), 'replace'))
                         for har in hfile['har'].values():
                             if (har['content'] == ''):
-                                harfile_link = "{0}/{1}".format(url, har['filename'])
-                                har_res = requests.get(harfile_link, verify=False)
-                                if har_res.status_code == 200:
-                                    har['content'] = base64.b64encode(har_res.content)
+                                obj['request']['url'] = "{0}/{1}".format(url, quote(har['filename']))
+                                _,_,har_res = await gen.convert_yielded(fetcher.build_response(obj, proxy = proxy))
+                                if har_res.code == 200:
+                                    har['content'] = base64.b64encode(res.body).decode()
                                 else:
-                                    msg = '{pre}\r\n打开链接错误{link}'.format(pre=msg, link=harfile_link)
+                                    msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
+                                    continue
 
                             for k, v in repo.items():
                                 har[k] = v
@@ -65,7 +78,7 @@ class SubscribeHandler(BaseHandler):
                             else:
                                 self.db.pubtpl.add(har)
                     else:
-                        msg = '{pre}\r\n打开链接错误{link}'.format(pre=msg, link=hfile_link)
+                        msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
                 if msg == '':
                     repos["lastupdate"] = now_ts
                     self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
@@ -128,7 +141,7 @@ class Subscrib_signup_repos_Handler(BaseHandler):
                 env = {}
                 for k, v  in envs.items():
                     if (v[0] == 'false') or (v[0] == 'true'):
-                        env[k] = True if v == 'true' else False
+                        env[k] = True if v[0] == 'true' else False
                     else:
                         env[k] = v[0]
 
