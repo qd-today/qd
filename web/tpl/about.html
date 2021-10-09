@@ -96,12 +96,12 @@ clipboard.on('error', function(e) {
 <section class="tpl">
 <div class="container">
   <h2>
-    常用Api
+    常用API
   </h2>
   <table class="table table-hover apitable" style="font-size:x-small">
     <thead>
       <tr>
-        <th>api</th>
+        <th>API</th>
         <th>地址</th>
         <th>参数</th>
         <th>参数是否必须</th>
@@ -144,7 +144,7 @@ clipboard.on('error', function(e) {
           <td id="api_exam2" class="showbut">
             <div class="autowrap">
               <a href="/util/unicode?content=%E4%BB%8A%E6%97%A5%E7%AD%BE%E5%88%B0%EF%BC%9A1%5Cu5929%5Cu5ef6%5Cu4fdd" target="_blank" rel="nofollow"> 
-          http://localhost/util/unicode?content=%E4%BB%8A%E6%97%A5%E7%AD%BE%E5%88%B0%EF%BC%9A1%5Cu5929%5Cu5ef6%5Cu4fdd
+                http://localhost/util/unicode?content=今日签到：1\u5929\u5ef6\u4fdd
               </a>
             </div>
           <button class="btn hljs-button" data-clipboard-target="#api_exam2">复制</button>
@@ -184,7 +184,7 @@ clipboard.on('error', function(e) {
           <td id="api_exam4" class="showbut">
             <div class="autowrap">
               <a href="/util/regex?data=%7b%22code%22%3a0%2c%22msg%22%3a%22%E6%88%90%E5%8A%9F%22%2c%22data%22%3a%7b%22users%22%3a%5b%7b%22name%22%3a%22%E5%BC%A0%E4%B8%89%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a12%7d%2c%7b%22name%22%3a%22%E6%9D%8E%E5%9B%9B%22%2c%22gender%22%3a%22female%22%2c%22age%22%3a15%7d%2c%7b%22name%22%3a%22%E7%8E%8B%E4%BA%94%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a22%7d%2c%7b%22name%22%3a%22%E8%B5%B5%E5%85%AD%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a24%7d%5d%2c%22goods%22%3a%5b%7b%22name%22%3a%22apple%22%2c%22price%22%3a15%2c%22num%22%3a200%7d%2c%7b%22name%22%3a%22pear%22%2c%22price%22%3a18%2c%22num%22%3a100%7d%2c%7b%22name%22%3a%22banana%22%2c%22price%22%3a16%2c%22num%22%3a210%7d%5d%7d%7d&p=name%22%3a%22(.%2b%3f)" target="_blank" rel="nofollow"> 
-          http://localhost/util/regex?data=%7b%22code%22%3a0%2c%22msg%22%3a%22%E6%88%90%E5%8A%9F%22%2c%22data%22%3a%7b%22users%22%3a%5b%7b%22name%22%3a%22%E5%BC%A0%E4%B8%89%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a12%7d%2c%7b%22name%22%3a%22%E6%9D%8E%E5%9B%9B%22%2c%22gender%22%3a%22female%22%2c%22age%22%3a15%7d%2c%7b%22name%22%3a%22%E7%8E%8B%E4%BA%94%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a22%7d%2c%7b%22name%22%3a%22%E8%B5%B5%E5%85%AD%22%2c%22gender%22%3a%22male%22%2c%22age%22%3a24%7d%5d%2c%22goods%22%3a%5b%7b%22name%22%3a%22apple%22%2c%22price%22%3a15%2c%22num%22%3a200%7d%2c%7b%22name%22%3a%22pear%22%2c%22price%22%3a18%2c%22num%22%3a100%7d%2c%7b%22name%22%3a%22banana%22%2c%22price%22%3a16%2c%22num%22%3a210%7d%5d%7d%7d&p=name%22%3a%22(.%2b%3f)
+                http://localhost/util/regex?data={"code":0,"msg":"成功","data":{"users":[{"name":"张三","gender":"male","age":12},{"name":"李四","gender":"female","age":15},{"name":"王五","gender":"male","age":22},{"name":"赵六","gender":"male","age":24}],"goods":[{"name":"apple","price":15,"num":200},{"name":"pear","price":18,"num":100},{"name":"banana","price":16,"num":210}]}}&p=name":"(.+?)
               </a>
             </div>
           <button class="btn hljs-button" data-clipboard-target="#api_exam4">复制</button>
@@ -204,7 +204,7 @@ clipboard.on('error', function(e) {
           <td id="api_exam5" class="showbut">
             <div class="autowrap">
               <a href="/util/string/replace?p=%E4%BA%BA&t=%E5%AD%97%E7%AC%A6%E4%B8%B2&s=%7B%22text%22:%22%E6%88%91%E6%98%AF%E4%BA%BA%22%7D" target="_blank" rel="nofollow"> 
-          http://localhost/util/string/replace?p=%E4%BA%BA&t=%E5%AD%97%E7%AC%A6%E4%B8%B2&s=%7B%22text%22:%22%E6%88%91%E6%98%AF%E4%BA%BA%22%7D
+                http://localhost/util/string/replace?p=人&t=字符串&s={"text":"我是人"}
               </a>
             </div>
           <button class="btn hljs-button" data-clipboard-target="#api_exam5">复制</button>
@@ -230,10 +230,29 @@ clipboard.on('error', function(e) {
           <button class="btn hljs-button" data-clipboard-target="#api_exam6">复制</button>
         </td>
       </tr>
+      
+      <tr>
+        <td>RSA加密/解密</td>
+          <td id="api_url7" class="showbut">
+            <a href="/util/rsa" target="_blank" rel="nofollow">http://localhost/util/rsa</a>
+          <button class="btn hljs-button" data-clipboard-target="#api_url6">复制</button>
+        </td>
+        <td>key,<br>data<br>f</td>
+        <td>是</td>
+        <td>key:RSA私钥,Get方式请删除换行符<br>data:要加密或解密的数据<br>f:encode为加密,decode为解密</td>
 
+          <td id="api_exam7" class="showbut">
+            <div class="autowrap">
+              <a href="/util/rsa?key=-----BEGIN%20OPENSSH%20PRIVATE%20KEY-----b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAABlwAAAAdzc2gtcnNhAAAAAwEAAQAAAYEA2FD1IBCZcDgu7BjS2iySxTUlYWEWdkVB7xdmKJT4kUTEdEve7lvJb6PalpW8k1l1N7r%2FvFRDvSMe1Rd1Sc9n7dsOacCMsjy8Q5UDPGQ7ccahTDI7ygSA3igmasn9g5l21Sm04mP0riFzSybP7Xvne6EE5P6%2FCnO20kk6wWXmohhaIJjVpEhJ4%2FfMVWWHPggD90aKCEMKQJAL%2BFmLTpNl2t9jEUZczzKVlgEQEssnMZERiS4hwKFMy8qmupjjddGtyjNWR6WEE%2BKjj%2FKexcthFYWNAb2m8K%2F5jna439sxOe17PUMSCAbxjr4rRZTWRqk8FTSVwW5EZmBKAJCXMJIM8gaH9vG3VHt8btE0y0w8pgRbQ2bsTZ%2F3OTLHKQtPS7QMs4Ko%2FZ7LWHEzanUgZvWgvuv8SPEtXRVO%2BBuCsB6BV8RA4JbGogEx54oDn3Imo1%2BnWfrLte2tA%2BGiQXod9pwm9lVZ0L7oHL%2By9OXCPFSPt5G8II%2Bztid4yd8%2BD7PMFUp9AAAFgK0XbqqtF26qAAAAB3NzaC1yc2EAAAGBANhQ9SAQmXA4LuwY0tosksU1JWFhFnZFQe8XZiiU%2BJFExHRL3u5byW%2Bj2paVvJNZdTe6%2F7xUQ70jHtUXdUnPZ%2B3bDmnAjLI8vEOVAzxkO3HGoUwyO8oEgN4oJmrJ%2FYOZdtUptOJj9K4hc0smz%2B1753uhBOT%2BvwpzttJJOsFl5qIYWiCY1aRISeP3zFVlhz4IA%2FdGighDCkCQC%2FhZi06TZdrfYxFGXM8ylZYBEBLLJzGREYkuIcChTMvKprqY43XRrcozVkelhBPio4%2FynsXLYRWFjQG9pvCv%2BY52uN%2FbMTntez1DEggG8Y6%2BK0WU1kapPBU0lcFuRGZgSgCQlzCSDPIGh%2Fbxt1R7fG7RNMtMPKYEW0Nm7E2f9zkyxykLT0u0DLOCqP2ey1hxM2p1IGb1oL7r%2FEjxLV0VTvgbgrAegVfEQOCWxqIBMeeKA59yJqNfp1n6y7XtrQPhokF6HfacJvZVWdC%2B6By%2FsvTlwjxUj7eRvCCPs7YneMnfPg%2BzzBVKfQAAAAMBAAEAAAGAPxbNhz6QIcShGsbaqDsby1yGvHH%2BhRwJ8NuYNfnMzUGLMof2SvqGM4NMe2LMjwUmRMzLTXgeEYmusmOXF6HgI%2BUhvQIlhs5j8ioBuZlaJQLThE%2BaVH8fvqtjGP40bC9UEzOIyAZzFF45LA%2Fz0MW0a8A4lzkdKsU46vfkpQc9TsVfc%2BZfWPykYFKjS7zCxvq7fWEbXPGAiff5JcOn95DRwhYo5J7q7ptIOWmx8GlD0xcGUEYeHfptVXqTShTRMkmmpuLq%2FuSYWsfIbwcJYXNx1cqVP8VRvM%2FFl3uAyo%2Bw7BW0JFcP%2FAKnCvnWAYfY6qjdYqewuUES3p5Boy0KpsBpg50LtWOoM7JXNdnh9M0Ahwkwq2uoU%2BUklHEaM3IxJI6LVKG2Wv4MU%2FxXqAPYa1P2iG8x7Gx0UoIlI3GTgS7MdGxWzgC1qL%2FV%2BCobEWivjw%2FDfCturoAyIbirWMK6UK4WEx1f8uyAjeNTMB%2BiRMn9J4HRMVK%2B6fI6AzFHBOi8nFnBAAAAwQCarv5a2crBXULhVwPZGDwsaSz77cMxo8%2FgvKoOdSMaLeJ4nRvM7WiikJ%2BCF8rXjkV92U%2F9cHebeP1HS3ioyfTVaKdqSUnPUNe9UOtaoKQsiJg%2BMLFjgL80iNGBOqY3wShgN7kNdxalXHkSjaeRbMnB6VPuamKczZksi41MuByJVN9n1kQNyZJ3YSotK5CjjSrQIgbbYldYrbG0rrqrlvt%2BqjWLJLrJYbmFcMQSWtWtEk6WadhJ8wsFj3qoyNcqoBcAAADBAPHb59bPUJhRggiKhFum8r5u4Ad%2BEpYbSAf%2FeTGLiSBzKVwfQTZVZtbD8aw0Uo4Lja2kGXywz1R0bHo7kYu9fUeqvTYI6uPnRWC94EFxS%2BUhy6kQa%2BHluSFAlBMpl8%2Fd0wICMhKTovgAMSrLV1%2Fr%2FMwDnQdNRhn8qWgP0wNwN6Y8AWhwEVZjtxdAba34eMtZ60RnP4i77kmwfp0uHl1hf7j1cEMgEYisrWHEPVmpuvTnO2f65b03i%2F5vA9hcmBCgRQAAAMEA5Pa7sizCQ43fn3fZJ%2BNLoop8uuPsFA7jhOXETP0iRsQBwo9pz2GfiW%2FwbS5WT51%2BP6NMR%2B4uOTPIuBe1sEEES0%2FhiwzHTi154pYNOSk4U637klnhUGmHLE7mR%2BMaDG9yTfm25um8saZKzxXqyixbl8GiQUKasWW%2BUa1AJswNfM4yvbj%2Bnh%2FyqDavQ12KRkkKz6aikjHsj3TeTH0%2Boq3u0wn%2BSDXQkq7aIlkfdytGGfo8v344YvGIYRrbA5C4drDZAAAABnB1YmxpYwECAwQ%3D-----END%20OPENSSH%20PRIVATE%20KEY-----&data=Test&f=encode" target="_blank" rel="nofollow"> 
+          http://localhost/util/rsa?key=-----BEGIN%20OPENSSH%20PRIVATE%20KEY-----...-----END%20OPENSSH%20PRIVATE%20KEY-----&data=Test&f=encode
+              </a>
+            </div>
+          <button class="btn hljs-button" data-clipboard-target="#api_exam6">复制</button>
+        </td>
+      </tr>
       <tr>
         <td>HTTP/HTTPs<br>/Socks5代理</td>
-          <td id="api_url7" class="showbut">
+          <td id="api_url8" class="showbut">
             <a>scheme://username:password@<br>hostname:port</a>
           <button class="btn hljs-button" data-clipboard-target="#api_url7">复制</button>
         </td>
@@ -241,7 +260,7 @@ clipboard.on('error', function(e) {
         <td>是(username, password除外)</td>
         <td>scheme:协议头,可选输入http, https,socks5<br>username:代理账户名,如无账户验证请删除'username:password@'部分<br>password:代理账户密码<br>hostname:可选输入IPv4地址,IPv6地址,域名<br>port:端口号,如端口号为80或443可删除':port'部分</td>
 
-          <td id="api_exam7" class="showbut">
+          <td id="api_exam8" class="showbut">
             <div class="autowrap"> <a>http://admin:admin@localhost:8923</a></div>
           <button class="btn hljs-button" data-clipboard-target="#api_exam7">复制</button>
         </td>
