@@ -16,7 +16,6 @@
 [![Build Image][workflow-image]][workflow-url] 
 [![last commit][last-commit-image]][last-commit-url] 
 [![commit activity][commit-activity-image]][commit-activity-url] 
-
 [![docker version][docker-version-image]][docker-version-url] 
 [![docker pulls][docker-pulls-image]][docker-pulls-url] 
 [![docker stars][docker-stars-image]][docker-stars-url] 
@@ -53,8 +52,8 @@
 </div>
 
 <p align="center">
-   <img width="45%" src="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/login.png">
-   <img width="45%" src="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/index.png">
+   <img width="45%" style="border:solid 1px #DCEBFB" src="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/login.png" >
+   <img width="45%" style="border:solid 1px #DCEBFB" src="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/index.png">
 </p>
 
 操作说明
