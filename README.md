@@ -161,7 +161,8 @@ DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
 JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 mysql://用户名:密码@hostname:port/数据库名
 REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时, <br>设置为 http://rediscloud:密码@hostname:port
 REDIS_DB_INDEX|否|1|默认为1
-DOMAIN|否|qiandao.today|指定访问域名, <br>建议修改, 不然邮件重置密码等功能无效
+PUSH_PIC_URL|否|<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png">push_pic.png</a>|默认为<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png">push_pic.png</a>
+DOMAIN|否|qiandao.today|指定访问域名, <br>建议修改, 否则邮件重置密码等功能无效
 MAIL_SMTP|否|""|邮箱SMTP服务器
 MAIL_PORT|否|""|邮箱SMTP服务器端口
 MAIL_USER|否|""|邮箱用户名

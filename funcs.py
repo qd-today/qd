@@ -124,7 +124,7 @@ class pusher(object):
                     link = u'{0}/bot{1}/sendMessage'.format(tgHost,token)
                 else:
                     link = u'https://{0}/bot{1}/sendMessage'.format(tgHost,token)
-                picurl = "https://i.loli.net/2021/02/18/gYV2EswCOlLmPSD.png" if pic == '' else pic
+                picurl = config.push_pic if pic == '' else pic
                 d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QianDao提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
                 obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
@@ -147,7 +147,7 @@ class pusher(object):
         if (dingding_token != ""):
             try:
                 link = u"https://oapi.dingtalk.com/robot/send?access_token={0}".format(dingding_token)
-                picurl = "https://i.loli.net/2021/02/18/gYV2EswCOlLmPSD.png" if pic == '' else pic
+                picurl = config.push_pic if pic == '' else pic
                 d = {"msgtype":"markdown","markdown":{"title":title,"text":"![QianDao](" + picurl + ")\n " + "#### "+ title + "\n > " +content}}
                 obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
@@ -256,7 +256,7 @@ class pusher(object):
                                             "title" : t,
                                             "description" : log,
                                             "url" : "",
-                                            "picurl" : "https://i.loli.net/2021/02/18/gYV2EswCOlLmPSD.png" if qywx[u'图片'] == '' else qywx[u'图片']
+                                            "picurl" : config.push_pic if qywx[u'图片'] == '' else qywx[u'图片']
                                         }
                                     ]
                             }

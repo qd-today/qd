@@ -17,6 +17,7 @@ https = bool(os.getenv('ENABLE_HTTPS', False))              # 发送的邮件链
 cookie_days = 5                                             # Cookie在客户端保留时间
 mysql_url = urlparse(os.getenv('JAWSDB_MARIA_URL', ''))     # 格式: mysql://用户名:密码@hostname:port/数据库名
 redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))       # 格式: (redis/http)://rediscloud:密码@hostname:port
+push_pic = os.getenv('PUSH_PIC_URL', 'https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png')      # 日志推送默认图片地址
 
 # PyCurl 相关设置
 use_pycurl = bool(os.getenv('USE_PYCURL',True))             # 是否启用Pycurl模组, 当环境无PyCurl模组时无效
