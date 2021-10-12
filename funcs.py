@@ -154,7 +154,7 @@ class pusher(object):
             try:
                 link = u"https://oapi.dingtalk.com/robot/send?access_token={0}".format(dingding_token)
                 picurl = config.push_pic if pic == '' else pic
-                content = content.replace('\\r\\n','\n')
+                content = content.replace('\\r\\n','\n\n > ')
                 d = {"msgtype":"markdown","markdown":{"title":title,"text":"![QianDao](" + picurl + ")\n " + "#### "+ title + "\n > " +content}}
                 obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
@@ -262,7 +262,7 @@ class pusher(object):
                                 "articles" : [
                                         {
                                             "title" : t,
-                                            "description" : log,
+                                            "description" : log.replace("\\r\\n","\n" ),
                                             "url" : "",
                                             "picurl" : config.push_pic if qywx[u'图片'] == '' else qywx[u'图片']
                                         }
@@ -285,6 +285,7 @@ class pusher(object):
         user = self.db.user.get(email=email, fields=('id', 'email', 'email_verified', 'nickname'))
         if user['email'] and user['email_verified']:
             try:
+                content = content.replace('\\r\\n','\n')
                 await gen.convert_yielded(utils.send_mail(to = email, 
                                 subject = u"在网站{0} {1}".format(config.domain, title),
                                 text = content,
