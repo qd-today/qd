@@ -237,7 +237,7 @@ class MainWorker(object):
             title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
             logtemp = new_env['variables'].get('__log__')
             logtemp = u"{0}  日志：{1}".format(t, logtemp)
-            pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
+            await pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
 
             logger.info('taskid:%d tplid:%d successed! %.5fs', task['id'], task['tplid'], time.time()-start)
             # delete log
@@ -255,12 +255,12 @@ class MainWorker(object):
                 next = time.time() + next_time_delta
                 content = content + u"下次运行时间：{0}".format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(next)))
                 if (logtime['ErrTolerateCnt'] <= task['last_failed_count']):
-                    pushtool.pusher(user['id'], pushsw, 0x1, title, content)
+                    await pushtool.pusher(user['id'], pushsw, 0x1, title, content)
             else:
                 disabled = True
                 next = None
                 content = u"任务已禁用"
-                pushtool.pusher(user['id'], pushsw, 0x1, title, content)
+                await pushtool.pusher(user['id'], pushsw, 0x1, title, content)
 
             self.db.tasklog.add(task['id'], success=False, msg=str(e))
             self.db.task.mod(task['id'],

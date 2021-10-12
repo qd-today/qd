@@ -109,6 +109,7 @@ class pusher(object):
             tgUserId = tmp[1]
             tgHost = tmp[2] if len(tmp) >= 3 else ''
             proxy = utils.parse_url(tmp[3]) if len(tmp) >= 4 else ''
+            pic = tmp[4] if len(tmp) >= 5 else ''
         if tgToken and tgUserId:
             try:
                 token = tgToken
@@ -123,7 +124,8 @@ class pusher(object):
                     link = u'{0}/bot{1}/sendMessage'.format(tgHost,token)
                 else:
                     link = u'https://{0}/bot{1}/sendMessage'.format(tgHost,token)
-                d = {'chat_id': str(chat_id), 'text': title+'\n\n'+content, 'disable_web_page_preview':'true'}
+                picurl = "https://i.loli.net/2021/02/18/gYV2EswCOlLmPSD.png" if pic == '' else pic
+                d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QianDao提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
                 obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
                 if proxy:
