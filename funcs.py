@@ -34,7 +34,7 @@ class pusher(object):
         self.fetcher = Fetcher()
     
     async def pusher(self, userid, pushsw, flg, title, content):
-        notice = self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'diypusher'))
+        notice = self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token', 'diypusher'))
 
         if (notice['noticeflg'] & flg != 0):
             user = self.db.user.get(userid, fields=('id', 'email', 'email_verified', 'nickname'))
@@ -49,6 +49,7 @@ class pusher(object):
             pusher["cuspushersw"] = False if (notice['noticeflg'] & 0x100) == 0 else True
             pusher["qywxpushersw"] = False if (notice['noticeflg'] & 0x200) == 0 else True
             pusher["tgpushersw"] = False if (notice['noticeflg'] & 0x400) == 0 else True
+            pusher["dingdingpushersw"] = False if (notice['noticeflg'] & 0x800) == 0 else True
 
             if (pushsw['pushen']):
                 if (pusher["barksw"]):
@@ -65,6 +66,8 @@ class pusher(object):
                     await self.qywx_pusher_send(notice['qywx_token'], title, content)
                 if (pusher["tgpushersw"]):
                     await self.send2tg(notice['tg_token'], title, content)
+                if (pusher["dingdingpushersw"]):
+                    await self.send2dingding(notice['dingding_token'], title, content)
 
 
     async def send2bark(self, barklink, title, content):
@@ -132,6 +135,26 @@ class pusher(object):
                 r = traceback.format_exc()
                 print(r)
         return r
+
+    async def send2dingding(self, dingding_token, title, content):
+        r = 'False'
+        tmp = dingding_token.split(';')
+        if len(tmp) >= 1:
+            dingding_token = tmp[0]
+            pic = tmp[1] if len(tmp) >= 2 else ''
+        if (dingding_token != ""):
+            try:
+                link = u"https://oapi.dingtalk.com/robot/send?access_token={0}".format(dingding_token)
+                picurl = "https://i.loli.net/2021/02/18/gYV2EswCOlLmPSD.png" if pic == '' else pic
+                d = {"msgtype":"markdown","markdown":{"title":title,"text":"![QianDao](" + picurl + ")\n " + "#### "+ title + "\n > " +content}}
+                obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
+                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                r = 'True'
+            except Exception as e:
+                r = traceback.format_exc()
+                print(r)
+        return r   
 
     async def send2wxpusher(self, wxpusher, content):
         r = 'False'

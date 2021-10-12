@@ -48,6 +48,7 @@ class UserRegPush(BaseHandler):
         barkurl = env["barkurl"]
         qywx_token = env["qywx_token"]
         tg_token = env["tg_token"]
+        dingding_token = env["dingding_token"]
         log = ""
         if  ("reg" == self.get_body_argument('func')):
             try:
@@ -99,6 +100,15 @@ class UserRegPush(BaseHandler):
                 else:
                     log = log+u"Tg bot 未填写完整\r\n"
 
+                if (dingding_token != ""):
+                    self.db.user.mod(userid, dingding_token = dingding_token)
+                    if (self.db.user.get(userid, fields=("dingding_token"))["dingding_token"] == dingding_token):
+                        log = log+u"注册 DingDing Bot 成功\r\n"
+                    else:
+                        log = log+u"注册 DingDing Bot 失败\r\n"
+                else:
+                    log = log+u"DingDing bot 未填写完整\r\n"
+
             except Exception as e:
                 traceback.print_exc()
                 self.render('tpl_run_failed.html', log=str(e))
@@ -142,6 +152,12 @@ class UserRegPush(BaseHandler):
                 else:
                     log = log+u"Tg Bot 未填写完整\r\n"
 
+                if (dingding_token != ""):
+                    await f.send2dingding(dingding_token, "正在测试DingDing Bot", u"{t} 发送测试".format(t=t))
+                    log = log+u"DingDing Bot 已推送,请检查是否收到\r\n"
+                else:
+                    log = log+u"DingDing Bot 未填写完整\r\n"
+
             except Exception as e:
                 traceback.print_exc()
                 self.render('tpl_run_failed.html', log=str(e))
@@ -169,6 +185,7 @@ class UserRegPushSw(BaseHandler):
         flg['cuspushersw']   = False if ((temp & 0x100) == 0) else True
         flg['qywxpushersw']   = False if ((temp & 0x200) == 0) else True
         flg['tgpushersw']   = False if ((temp & 0x400) == 0) else True
+        flg['dingdingpushersw']   = False if ((temp & 0x800) == 0) else True
         flg['handpush_succ'] = False if ((temp & 0x008) == 0) else True 
         flg['handpush_fail'] = False if ((temp & 0x004) == 0) else True 
         flg['autopush_succ'] = False if ((temp & 0x002) == 0) else True 
@@ -211,12 +228,14 @@ class UserRegPushSw(BaseHandler):
             cuspushersw_flg  = 1 if ("cuspushersw" in env) else 0
             qywxpushersw_flg  = 1 if ("qywxpushersw" in env) else 0 
             tgpushersw_flg  = 1 if ("tgpushersw" in env) else 0 
+            dingdingpushersw_flg  = 1 if ("dingdingpushersw" in env) else 0 
             handpush_succ_flg = 1 if ("handpush_succ" in env) else 0
             handpush_fail_flg = 1 if ("handpush_fail" in env) else 0
             autopush_succ_flg = 1 if ("autopush_succ" in env) else 0
             autopush_fail_flg = 1 if ("autopush_fail" in env) else 0
             
-            flg = (tgpushersw_flg << 10) \
+            flg =(dingdingpushersw_flg << 11) \
+                | (tgpushersw_flg << 10) \
                 | (qywxpushersw_flg << 9) \
                 | (cuspushersw_flg << 8) \
                 | (mailpushersw_flg << 7) \
@@ -505,13 +524,14 @@ class UserPushShowPvar(BaseHandler):
             mail = envs['adminmail']
             pwd = envs['adminpwd']
             if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
-                key = self.db.user.get(userid, fields=("barkurl", 'skey', 'wxpusher', 'qywx_token', 'tg_token'))
-                log = u"""barkurl 前值：{bark}\r\nskey 前值：{skey}\r\nwxpusher 前值：{wxpusher}\r\n企业微信 前值：{qywx_token}\r\nTg Bot 前值：{tg_token}""".format(
+                key = self.db.user.get(userid, fields=("barkurl", 'skey', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token'))
+                log = u"""barkurl 前值：{bark}\r\nskey 前值：{skey}\r\nwxpusher 前值：{wxpusher}\r\n企业微信 前值：{qywx_token}\r\nTg Bot 前值：{tg_token}\r\nDingDing Bot 前值：{dingding_token}""".format(
                           bark = key['barkurl'],
                           skey = key['skey'],
                           wxpusher = key['wxpusher'],
                           qywx_token = key['qywx_token'],
-                          tg_token = key['tg_token'])
+                          tg_token = key['tg_token'],
+                          dingding_token = key['dingding_token'])
                 self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
                 return
             else:

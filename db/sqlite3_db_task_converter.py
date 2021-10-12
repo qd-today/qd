@@ -61,7 +61,8 @@ class DBconverter(_TaskDB, BaseDB):
             `notepad` TEXT NULL,
             `diypusher` VARBINARY(1024) NOT NULL DEFAULT '',
             `qywx_token` VARBINARY(1024) NOT NULL DEFAULT '',
-            `tg_token` VARBINARY(1024) NOT NULL DEFAULT ''
+            `tg_token` VARBINARY(1024) NOT NULL DEFAULT '',
+            `dingding_token` VARBINARY(1024) NOT NULL DEFAULT ''
             );''')
             self.db.site._execute('''CREATE TABLE IF NOT EXISTS `tpl` (
             `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -378,6 +379,11 @@ class DBconverter(_TaskDB, BaseDB):
             exec_shell("ALTER TABLE `user` ADD `tg_token`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
 
         try:
+            self.db.user.get("1", fields=('dingding_token'))
+        except :
+            exec_shell("ALTER TABLE `user` ADD `dingding_token`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
+
+        try:
             self.db.user.get("1", fields=('password_md5'))
         except :
             exec_shell("ALTER TABLE `user` ADD  `password_md5` VARBINARY(128) NOT NULL DEFAULT '' ") 
@@ -413,9 +419,10 @@ class DBconverter(_TaskDB, BaseDB):
                     `notepad` TEXT NULL,
                     `diypusher` VARBINARY(1024) NOT NULL DEFAULT '',
                     `qywx_token` VARBINARY(1024) NOT NULL DEFAULT '',
-                    `tg_token` VARBINARY(1024) NOT NULL DEFAULT ''
+                    `tg_token` VARBINARY(1024) NOT NULL DEFAULT '',
+                    `dingding_token` VARBINARY(1024) NOT NULL DEFAULT ''
                     );''' % autokey)
-                exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`notepad`,`diypusher`,`qywx_token`,`tg_token` FROM `userold` ")
+                exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`notepad`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token` FROM `userold` ")
                 exec_shell("DROP TABLE `userold` ")
         except :
             pass
