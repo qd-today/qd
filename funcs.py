@@ -33,7 +33,7 @@ class pusher(object):
         self.db = DB
     
     def pusher(self, userid, pushsw, flg, title, content):
-        notice = self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'diypusher'))
+        notice = self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'diypusher'))
 
         if (notice['noticeflg'] & flg != 0):
             user = self.db.user.get(userid, fields=('id', 'email', 'email_verified', 'nickname'))
@@ -47,7 +47,8 @@ class pusher(object):
             pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True
             pusher["cuspushersw"] = False if (notice['noticeflg'] & 0x100) == 0 else True
             pusher["qywxpushersw"] = False if (notice['noticeflg'] & 0x200) == 0 else True
-        
+            pusher["tgpushersw"] = False if (notice['noticeflg'] & 0x400) == 0 else True
+
             if (pushsw['pushen']):
                 if (pusher["barksw"]):
                     self.send2bark(notice['barkurl'], title, content)
@@ -61,6 +62,8 @@ class pusher(object):
                     self.cus_pusher_send(diypusher, title, content)
                 if (pusher["qywxpushersw"]):
                     self.qywx_pusher_send(notice['qywx_token'], title, content)
+                if (pusher["tgpushersw"]):
+                    self.send2tg(notice['tg_token'], title, content)
 
 
     def send2bark(self, barklink, title, content):
@@ -90,6 +93,40 @@ class pusher(object):
                 print(r)
         return r   
     
+    def send2tg(self, tg_token, title, content):
+        r = 'False'
+        tmp = tg_token.split(';')
+        if len(tmp) >= 2:
+            tgToken = tmp[0]
+            tgUserId = tmp[1]
+            tgHost = tmp[2] if len(tmp) >= 3 else ''
+            proxy = tmp[3] if len(tmp) >= 4 else ''
+        if tgToken and tgUserId:
+            try:
+                token = tgToken
+                chat_id = tgUserId
+                #TG_BOT的token
+                #token = os.environ.get('TG_TOKEN')
+                #用户的ID
+                #chat_id = os.environ.get('TG_USERID')
+                if not tgHost:
+                    link = u'https://api.telegram.org/bot{0}/sendMessage'.format(token)
+                elif 'http://' in tgHost or 'https://' in tgHost:
+                    link = u'{0}/bot{1}/sendMessage'.format(tgHost,token)
+                else:
+                    link = u'https://{0}/bot{1}/sendMessage'.format(tgHost,token)
+                if proxy:
+                    proxies = {"http": proxy, "https": proxy}
+                else:
+                    proxies = None
+                d = {'chat_id': str(chat_id), 'text': title+'\n\n'+content, 'disable_web_page_preview':'true'}
+                res = requests.post(link, data=d , proxies=proxies, verify=False)
+                r = 'True'
+            except Exception as e:
+                r = traceback.format_exc()
+                print(r)
+        return r
+
     def send2wxpusher(self, wxpusher, content):
         r = 'False'
         temp = wxpusher.split(";")

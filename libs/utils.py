@@ -218,14 +218,14 @@ def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提�
     elif html:
         body['html'] = utf8(html)
     else:
-        raise Exception('nedd text or html')
+        raise Exception('need text or html')
 
     req = httpclient.HTTPRequest(
         method="POST",
         url="https://api.mailgun.net/v2/%s/messages" % config.mail_domain,
         auth_username="api",
         auth_password=config.mailgun_key,
-        body=urllib.urlencode(body)
+        body=urllib.parse.urlencode(body)
     )
     return client.fetch(req)
 

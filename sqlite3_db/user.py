@@ -35,7 +35,8 @@ class UserDB(_UserDB, BaseDB):
           `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
           `notepad` TEXT NOT NULL DEFAULT '',
           `diypisher` VARBINARY(1024) NOT NULL DEFAULT '',
-          `qywx_token` VARBINARY(1024) NOT NULL DEFAULT ''
+          `qywx_token` VARBINARY(1024) NOT NULL DEFAULT '',
+          `tg_token` VARBINARY(1024) NOT NULL DEFAULT ''
         )''' % self.__tablename__)
 
         for each in ('email', 'nickname'):
