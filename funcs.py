@@ -125,6 +125,7 @@ class pusher(object):
                 else:
                     link = u'https://{0}/bot{1}/sendMessage'.format(tgHost,token)
                 picurl = config.push_pic if pic == '' else pic
+                content = content.replace('\\r\\n','</pre>\n<pre>')
                 d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QianDao提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
                 obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
