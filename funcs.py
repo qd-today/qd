@@ -120,17 +120,20 @@ class pusher(object):
                 #chat_id = os.environ.get('TG_USERID')
                 if not tgHost:
                     link = u'https://api.telegram.org/bot{0}/sendMessage'.format(token)
-                elif 'http://' in tgHost or 'https://' in tgHost:
-                    link = u'{0}/bot{1}/sendMessage'.format(tgHost,token)
                 else:
-                    link = u'https://{0}/bot{1}/sendMessage'.format(tgHost,token)
+                    if tgHost[-1]!='/':
+                        tgHost = tgHost + '/'
+                    if 'http://' in tgHost or 'https://' in tgHost:
+                        link = u'{0}bot{1}/sendMessage'.format(tgHost,token)
+                    else:
+                        link = u'https://{0}bot{1}/sendMessage'.format(tgHost,token)
                 picurl = config.push_pic if pic == '' else pic
                 content = content.replace('\\r\\n','</pre>\n<pre>')
                 d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QianDao提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
                 obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
                 if proxy:
-                    _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj, proxy = utils.parse_url(proxy)))
+                    _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj, proxy = proxy))
                 else:
                     _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
                 r = 'True'
