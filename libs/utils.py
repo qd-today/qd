@@ -196,7 +196,7 @@ import config
 from tornado import httpclient
 
 
-def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提醒 <noreply@{}>".format(config.mail_domain)):
+async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提醒 <noreply@{}>".format(config.mail_domain)):
     if not config.mailgun_key:
         subtype = 'html' if html else 'plain'
         return _send_mail(to, subject, html or text or '', subtype)
@@ -227,7 +227,8 @@ def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提�
         auth_password=config.mailgun_key,
         body=urllib.parse.urlencode(body)
     )
-    return client.fetch(req)
+    res = await gen.convert_yielded(client.fetch(req))
+    return res
 
 
 import smtplib

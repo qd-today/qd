@@ -20,7 +20,6 @@ import sqlite3
 from backup import DBnew
 
 import codecs
-import requests
 import traceback
 from funcs import pusher
 
@@ -38,7 +37,7 @@ class UserRegPush(BaseHandler):
         self.render('user_register_pusher.html', userid=userid)
     
     @tornado.web.authenticated
-    def post(self, userid):
+    async def post(self, userid):
         envs = {}
         for key in self.request.body_arguments:
             envs[key] = self.get_body_arguments(key)
@@ -114,31 +113,31 @@ class UserRegPush(BaseHandler):
                 t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
 
                 if  (token != "") and (uid != ""):
-                    f.send2wxpusher("{0};{1}".format(token, uid),u"{t} 发送测试".format(t=t))
+                    await f.send2wxpusher("{0};{1}".format(token, uid),u"{t} 发送测试".format(t=t))
                     log = u"wxpusher 已推送,请检查是否收到\r\n"
                 else:
                     log = u"wxpusher 未填写完整\r\n"
 
                 if (skey != ""):
-                    f.send2s(skey, u"正在测试S酱", u"{t} 发送测试".format(t=t))
+                    await f.send2s(skey, u"正在测试S酱", u"{t} 发送测试".format(t=t))
                     log = log+u"S酱 已推送,请检查是否收到\r\n"
                 else:
                     log = log+u"skey 未填写完整\r\n"
 
                 if  (barkurl != ""):
-                    f.send2bark(barkurl, u"正在测试Bark", u"{t} 发送测试".format(t=t))
+                    await f.send2bark(barkurl, u"正在测试Bark", u"{t} 发送测试".format(t=t))
                     log = log+u"Bark 已推送,请检查是否收到\r\n"
                 else:
                     log = log+u"Bark 未填写完整\r\n"
                 
                 if (qywx_token != ""):
-                    f.qywx_pusher_send(qywx_token, "正在测试企业微信", u"{t} 发送测试".format(t=t))
+                    await f.qywx_pusher_send(qywx_token, "正在测试企业微信", u"{t} 发送测试".format(t=t))
                     log = log+u"企业微信 已推送,请检查是否收到\r\n"
                 else:
                     log = log+u"企业微信 未填写完整\r\n"
 
                 if (tg_token != ""):
-                    f.send2tg(tg_token, "正在测试Tg Bot", u"{t} 发送测试".format(t=t))
+                    await f.send2tg(tg_token, "正在测试Tg Bot", u"{t} 发送测试".format(t=t))
                     log = log+u"Tg Bot 已推送,请检查是否收到\r\n"
                 else:
                     log = log+u"Tg Bot 未填写完整\r\n"
@@ -514,7 +513,7 @@ class UserPushShowPvar(BaseHandler):
                           qywx_token = key['qywx_token'],
                           tg_token = key['tg_token'])
                 self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
-                return log
+                return
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
@@ -534,7 +533,7 @@ class custom_pusher_Handler(BaseHandler):
         return
         
     @tornado.web.authenticated
-    def post(self,userid):
+    async def post(self,userid):
         try:
             envs = {}
             for k, _  in self.request.body_arguments.items():
@@ -542,7 +541,7 @@ class custom_pusher_Handler(BaseHandler):
             req = pusher()
             log = ''
             now = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-            tmp = req.cus_pusher_send(envs ,u'推送测试', now)
+            tmp = await gen.convert_yielded(req.cus_pusher_send(envs ,u'推送测试', now))
             if ('True' == tmp):
                 if (envs['btn'] == 'regbtn'):
                     self.db.user.mod(userid, diypusher=json.dumps(envs))

@@ -9,7 +9,6 @@ import json
 import os
 import traceback
 import time
-import requests
 import base64
 import random
 from tornado import gen
