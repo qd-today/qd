@@ -199,7 +199,8 @@ from tornado import httpclient
 async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提醒 <noreply@{}>".format(config.mail_domain)):
     if not config.mailgun_key:
         subtype = 'html' if html else 'plain'
-        return _send_mail(to, subject, html or text or '', subtype)
+        _send_mail(to, subject, html or text or '', subtype)
+        return
 
     httpclient.AsyncHTTPClient.configure('tornado.curl_httpclient.CurlAsyncHTTPClient')
     if shark:
@@ -255,6 +256,7 @@ def _send_mail(to, subject, text=None, subtype='html'):
         s.close()
     except Exception as e:
         logger.error('send mail error {}'.format(str(e)))
+    return
 
 
 import chardet
