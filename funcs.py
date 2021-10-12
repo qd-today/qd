@@ -75,6 +75,7 @@ class pusher(object):
         try:
             link = barklink
             if (link[-1] != '/'): link=link+'/'
+            content = content.replace('\\r\\n','\n')
             d = {"title":title,"body":content}
             obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
@@ -91,6 +92,7 @@ class pusher(object):
         if (skey != ""):
             try:
                 link = u"https://sctapi.ftqq.com/{0}.send".format(skey.replace(".send", ""))
+                content = content.replace('\\r\\n','\n\n')
                 d = {'text': title, 'desp': content}
                 obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/x-www-form-urlencoded; charset=UTF-8'}], 'cookies': [], 'data':utils.urllib.parse.urlencode(d)}, 'rule': {
                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
@@ -152,6 +154,7 @@ class pusher(object):
             try:
                 link = u"https://oapi.dingtalk.com/robot/send?access_token={0}".format(dingding_token)
                 picurl = config.push_pic if pic == '' else pic
+                content = content.replace('\\r\\n','\n')
                 d = {"msgtype":"markdown","markdown":{"title":title,"text":"![QianDao](" + picurl + ")\n " + "#### "+ title + "\n > " +content}}
                 obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
@@ -170,6 +173,7 @@ class pusher(object):
         if (wxpusher_token != "") and (wxpusher_uid != ""):
             try:
                 link = "http://wxpusher.zjiecode.com/api/send/message"
+                content = content.replace('\\r\\n','\n')
                 d = {
                         "appToken":wxpusher_token,
                         "content":content,
