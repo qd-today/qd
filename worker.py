@@ -95,29 +95,35 @@ class MainWorker(object):
             logging.exception(e)
         raise gen.Return((success, failed))
 
-    scan_fields = ('id', 'tplid', 'userid', 'init_env', 'env', 'session', 'last_success', 'last_failed', 'success_count', 'failed_count', 'last_failed_count', 'next', 'disabled', )
+    scan_fields = ('id', 'tplid', 'userid', 'init_env', 'env', 'session', 'retry_count', 'retry_interval', 'last_success', 'last_failed', 'success_count', 'failed_count', 'last_failed_count', 'next', 'disabled', )
     def scan(self):
         return self.db.task.scan(fields=self.scan_fields)
 
     @staticmethod
-    def failed_count_to_time(last_failed_count, interval=None):
-        if last_failed_count == 0:
-            next = 10 * 60
-        elif last_failed_count == 1:
-            next = 110 * 60
-        elif last_failed_count == 2:
-            next = 240 * 60
-        elif last_failed_count == 3:
-            next = 360 * 60
-        elif last_failed_count < 8:
-            next = 11 * 60 * 60
-        else:
+    def failed_count_to_time(last_failed_count, retry_count=8, retry_interval=None, interval=None):
+        if last_failed_count < retry_count or retry_count == -1:
+            if retry_interval:
+                next = retry_interval
+            else:
+                if last_failed_count == 0:
+                    next = 10 * 60
+                elif last_failed_count == 1:
+                    next = 110 * 60
+                elif last_failed_count == 2:
+                    next = 4 * 60 * 60
+                elif last_failed_count == 3:
+                    next = 6 * 60 * 60
+                elif last_failed_count < retry_count or retry_count == -1:
+                    next = 11 * 60 * 60
+                else:
+                    next = None
+        elif retry_count == 0:
             next = None
 
         if interval is None:
             interval = 24 * 60 * 60
-        if next and next > interval / 2:
-            next = interval / 2
+        if next:
+            next = min(next, interval / 2)
         return next
 
     @staticmethod
@@ -231,7 +237,7 @@ class MainWorker(object):
             title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
             logtemp = new_env['variables'].get('__log__')
             logtemp = u"{0}  日志：{1}".format(t, logtemp)
-            pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
+            await pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
 
             logger.info('taskid:%d tplid:%d successed! %.5fs', task['id'], task['tplid'], time.time()-start)
             # delete log
@@ -239,7 +245,7 @@ class MainWorker(object):
         except Exception as e:
             # failed feedback
             traceback.print_exc()
-            next_time_delta = self.failed_count_to_time(task['last_failed_count'], tpl['interval'])
+            next_time_delta = self.failed_count_to_time(task['last_failed_count'], task['retry_count'], task['retry_interval'], tpl['interval'])
                         
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
@@ -249,12 +255,12 @@ class MainWorker(object):
                 next = time.time() + next_time_delta
                 content = content + u"下次运行时间：{0}".format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(next)))
                 if (logtime['ErrTolerateCnt'] <= task['last_failed_count']):
-                    pushtool.pusher(user['id'], pushsw, 0x1, title, content)
+                    await pushtool.pusher(user['id'], pushsw, 0x1, title, content)
             else:
                 disabled = True
                 next = None
                 content = u"任务已禁用"
-                pushtool.pusher(user['id'], pushsw, 0x1, title, content)
+                await pushtool.pusher(user['id'], pushsw, 0x1, title, content)
 
             self.db.tasklog.add(task['id'], success=False, msg=str(e))
             self.db.task.mod(task['id'],

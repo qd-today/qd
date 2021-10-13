@@ -94,7 +94,7 @@ class RegisterHandler(BaseHandler):
         regFlg = False if  self.db.site.get(1, fields=('regEn'))['regEn'] == 0 else True
         return self.render('register.html', regFlg=regFlg)
 
-    def post(self):
+    async def post(self):
         siteconfig = self.db.site.get(1, fields=('regEn', 'MustVerifyEmailEn'))
         regEn = siteconfig['regEn']
         regFlg = False if regEn == 0 else True
@@ -132,15 +132,12 @@ class RegisterHandler(BaseHandler):
                     setcookie['secure'] = True
                 self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
 
-                
                 if siteconfig['MustVerifyEmailEn'] != 1:
                     next = self.get_argument('next', '/my/')
                     self.redirect(next)
                 else:
                     self.render('register.html', email_error=u'请验证邮箱后再登陆', regFlg=regFlg)
-                future = self.send_mail(user)
-                if future:
-                    IOLoop.current().add_future(future, lambda x: x)
+                await gen.convert_yielded(self.send_mail(user))
                 
             else:
                 self.render('register.html', email_error=u'管理员关闭注册', regFlg=regFlg)
@@ -149,21 +146,19 @@ class RegisterHandler(BaseHandler):
             if (MustVerifyEmailEn == 1):
                 if (user['email_verified'] != 1):
                     self.render('register.html', email_error=u'email地址未验证，邮件已发送，请验证邮件后登陆')
-                    future = self.send_mail(user)
-                    if future:
-                        IOLoop.current().add_future(future, lambda x: x)
+                    await gen.convert_yielded(self.send_mail(user))
                 else:
                     self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
             else:
                 self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
         return
 
-    def send_mail(self, user):
+    async def send_mail(self, user):
         verified_code = [user['email'], time.time()]
         verified_code = self.db.user.encrypt(user['id'], verified_code)
         verified_code = self.db.user.encrypt(0, [user['id'], verified_code])
         verified_code = base64.b64encode(verified_code).decode()
-        future = utils.send_mail(to=user['email'], subject=u"欢迎注册 签到平台", html=u"""
+        await gen.convert_yielded(utils.send_mail(to=user['email'], subject=u"欢迎注册 签到平台", html=u"""
                 <table style="width:99.8%%;height:99.8%%"><tbody><tr><td style=" background:#fafafa url(#) "><div style="border-radius:10px;font-size:13px;color:#555;width:666px;font-family:'Century Gothic','Trebuchet MS','Hiragino Sans GB','微软雅黑','Microsoft Yahei',Tahoma,Helvetica,Arial,SimSun,sans-serif;margin:50px auto;border:1px solid #eee;max-width:100%%;background:#fff repeating-linear-gradient(-45deg,#fff,#fff 1.125rem,transparent 1.125rem,transparent 2.25rem);box-shadow:0 1px 5px rgba(0,0,0,.15)"><div style="width:100%%;background:#49BDAD;color:#fff;border-radius:10px 10px 0 0;background-image:-moz-linear-gradient(0deg,#43c6b8,#ffd1f4);background-image:-webkit-linear-gradient(0deg,#4831ff,#0497ff);height:66px"><p style="font-size:15px;word-break:break-all;padding:23px 32px;margin:0;background-color:hsla(0,0%%,100%%,.4);border-radius:10px 10px 0 0">&nbsp;[签到平台]&nbsp;&nbsp;{http}://{domain}</p></div>
                 <div style="margin:40px auto;width:90%%">
                     <p>点击以下链接验证邮箱，当您的签到失败的时候，会自动给您发送通知邮件。</p>
@@ -176,17 +171,9 @@ class RegisterHandler(BaseHandler):
         </tr>
         </tbody>
         </table>
-        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True)
+        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True))
 
-        def get_result(future):
-            try:
-                return future.result()
-            except Exception as e:
-                logging.error(e)
-
-        if future:
-            future.add_done_callback(get_result)
-        return future
+        return
 
 class VerifyHandler(BaseHandler):
     def get(self, code):
@@ -234,7 +221,7 @@ class PasswordResetHandler(BaseHandler):
 
         return self.render('password_reset.html')
 
-    def post(self, code):
+    async def post(self, code):
         if not code:
             self.evil(+5)
 
@@ -249,9 +236,8 @@ class PasswordResetHandler(BaseHandler):
             user = self.db.user.get(email=email, fields=('id', 'email', 'mtime', 'nickname', 'role'))
             if user:
                 logger.info('password reset: userid=%(id)s email=%(email)s', user)
-                future = self.send_mail(user)
-                if future:
-                    IOLoop.current().add_future(future, lambda x: x)
+                await gen.convert_yielded(self.send_mail(user))
+
 
             return self.finish("如果用户存在，会将发送密码重置邮件到您的邮箱，请注意查收。（如果您没有收到过激活邮件，可能无法也无法收到密码重置邮件）")
         else:
@@ -280,13 +266,13 @@ class PasswordResetHandler(BaseHandler):
                              )
             return self.finish("""密码重置成功! 请<a href="{http}://{domain}/login" >点击此处</a>返回登录页面。""".format(http='https' if config.https else 'http', domain=config.domain))
 
-    def send_mail(self, user):
+    async def send_mail(self, user):
         verified_code = [user['mtime'], time.time()]
         verified_code = self.db.user.encrypt(user['id'], verified_code)
         verified_code = self.db.user.encrypt(0, [user['id'], verified_code])
         verified_code = base64.b64encode(verified_code).decode()
 
-        future = utils.send_mail(to=user['email'], subject=u"签到平台(%s) 密码重置" % (config.domain), html=u"""
+        await gen.convert_yielded(utils.send_mail(to=user['email'], subject=u"签到平台(%s) 密码重置" % (config.domain), html=u"""
 
         <table style="width:99.8%%;height:99.8%%"><tbody><tr><td style=" background:#fafafa url(#) "><div style="border-radius:10px;font-size:13px;color:#555;width:666px;font-family:'Century Gothic','Trebuchet MS','Hiragino Sans GB','微软雅黑','Microsoft Yahei',Tahoma,Helvetica,Arial,SimSun,sans-serif;margin:50px auto;border:1px solid #eee;max-width:100%%;background:#fff repeating-linear-gradient(-45deg,#fff,#fff 1.125rem,transparent 1.125rem,transparent 2.25rem);box-shadow:0 1px 5px rgba(0,0,0,.15)"><div style="width:100%%;background:#49BDAD;color:#fff;border-radius:10px 10px 0 0;background-image:-moz-linear-gradient(0deg,#43c6b8,#ffd1f4);background-image:-webkit-linear-gradient(0deg,#4831ff,#0497ff);height:66px"><p style="font-size:15px;word-break:break-all;padding:23px 32px;margin:0;background-color:hsla(0,0%%,100%%,.4);border-radius:10px 10px 0 0">&nbsp;[签到平台]&nbsp;&nbsp;{http}://{domain}</p></div>
                 <div style="margin:40px auto;width:90%%">
@@ -301,16 +287,9 @@ class PasswordResetHandler(BaseHandler):
         </tbody>
         </table>
 
-        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True)
+        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True))
 
-        def get_result(future):
-            try:
-                return future.result()
-            except Exception as e:
-                logging.error(e)
-        if future:
-            future.add_done_callback(get_result)
-        return future
+        return
 
 handlers = [
         ('/login', LoginHandler),

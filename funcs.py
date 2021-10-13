@@ -6,7 +6,6 @@ import sys
 import json
 import logging
 import croniter
-import requests
 import traceback
 import random
 import time
@@ -14,7 +13,8 @@ import datetime
 
 import config
 from libs import utils
-
+from tornado import gen
+from libs.fetcher import Fetcher
 
 class pusher(object):
     def __init__(self):
@@ -31,9 +31,10 @@ class pusher(object):
             site = db.SiteDB()
             pubtpl = db.PubTplDB()
         self.db = DB
+        self.fetcher = Fetcher()
     
-    def pusher(self, userid, pushsw, flg, title, content):
-        notice = self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'diypusher'))
+    async def pusher(self, userid, pushsw, flg, title, content):
+        notice = self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token', 'diypusher'))
 
         if (notice['noticeflg'] & flg != 0):
             user = self.db.user.get(userid, fields=('id', 'email', 'email_verified', 'nickname'))
@@ -47,29 +48,38 @@ class pusher(object):
             pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True
             pusher["cuspushersw"] = False if (notice['noticeflg'] & 0x100) == 0 else True
             pusher["qywxpushersw"] = False if (notice['noticeflg'] & 0x200) == 0 else True
-        
+            pusher["tgpushersw"] = False if (notice['noticeflg'] & 0x400) == 0 else True
+            pusher["dingdingpushersw"] = False if (notice['noticeflg'] & 0x800) == 0 else True
+
             if (pushsw['pushen']):
                 if (pusher["barksw"]):
-                    self.send2bark(notice['barkurl'], title, content)
+                    await self.send2bark(notice['barkurl'], title, content)
                 if (pusher["schansw"]):
-                    self.send2s(notice['skey'], title, content)
+                    await self.send2s(notice['skey'], title, content)
                 if (pusher["wxpushersw"]):
-                    self.send2wxpusher(notice['wxpusher'], title+u"  "+content)
+                    await self.send2wxpusher(notice['wxpusher'], title+u"  "+content)
                 if (pusher["mailpushersw"]):
-                        self.sendmail(user['email'], title, content)
+                        await self.sendmail(user['email'], title, content)
                 if (pusher["cuspushersw"]):
-                    self.cus_pusher_send(diypusher, title, content)
+                    await self.cus_pusher_send(diypusher, title, content)
                 if (pusher["qywxpushersw"]):
-                    self.qywx_pusher_send(notice['qywx_token'], title, content)
+                    await self.qywx_pusher_send(notice['qywx_token'], title, content)
+                if (pusher["tgpushersw"]):
+                    await self.send2tg(notice['tg_token'], title, content)
+                if (pusher["dingdingpushersw"]):
+                    await self.send2dingding(notice['dingding_token'], title, content)
 
 
-    def send2bark(self, barklink, title, content):
+    async def send2bark(self, barklink, title, content):
         r = 'False'
         try:
             link = barklink
             if (link[-1] != '/'): link=link+'/'
-            msg = {"title":title,"body":content}
-            res = requests.post(link, data=msg, verify=False)
+            content = content.replace('\\r\\n','\n')
+            d = {"title":title,"body":content}
+            obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
+                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+            _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
             r = 'True'
         except Exception as e:
             r = traceback.format_exc()
@@ -77,20 +87,85 @@ class pusher(object):
         
         return r
         
-    def send2s(self, skey, title, content):
+    async def send2s(self, skey, title, content):
         r = 'False'
         if (skey != ""):
             try:
-                link = u"https://sc.ftqq.com/{0}.send".format(skey.replace(".send", ""))
+                link = u"https://sctapi.ftqq.com/{0}.send".format(skey.replace(".send", ""))
+                content = content.replace('\\r\\n','\n\n')
                 d = {'text': title, 'desp': content}
-                res = requests.post(link, data=d , verify=False)
+                obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/x-www-form-urlencoded; charset=UTF-8'}], 'cookies': [], 'data':utils.urllib.parse.urlencode(d)}, 'rule': {
+                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
                 print(r)
         return r   
     
-    def send2wxpusher(self, wxpusher, content):
+    async def send2tg(self, tg_token, title, content):
+        r = 'False'
+        tmp = tg_token.split(';')
+        if len(tmp) >= 2:
+            tgToken = tmp[0]
+            tgUserId = tmp[1]
+            tgHost = tmp[2] if len(tmp) >= 3 else ''
+            proxy = utils.parse_url(tmp[3]) if len(tmp) >= 4 else ''
+            pic = tmp[4] if len(tmp) >= 5 else ''
+        if tgToken and tgUserId:
+            try:
+                token = tgToken
+                chat_id = tgUserId
+                #TG_BOT的token
+                #token = os.environ.get('TG_TOKEN')
+                #用户的ID
+                #chat_id = os.environ.get('TG_USERID')
+                if not tgHost:
+                    link = u'https://api.telegram.org/bot{0}/sendMessage'.format(token)
+                else:
+                    if tgHost[-1]!='/':
+                        tgHost = tgHost + '/'
+                    if 'http://' in tgHost or 'https://' in tgHost:
+                        link = u'{0}bot{1}/sendMessage'.format(tgHost,token)
+                    else:
+                        link = u'https://{0}bot{1}/sendMessage'.format(tgHost,token)
+                picurl = config.push_pic if pic == '' else pic
+                content = content.replace('\\r\\n','</pre>\n<pre>')
+                d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QianDao提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
+                obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
+                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                if proxy:
+                    _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj, proxy = proxy))
+                else:
+                    _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                r = 'True'
+            except Exception as e:
+                r = traceback.format_exc()
+                print(r)
+        return r
+
+    async def send2dingding(self, dingding_token, title, content):
+        r = 'False'
+        tmp = dingding_token.split(';')
+        if len(tmp) >= 1:
+            dingding_token = tmp[0]
+            pic = tmp[1] if len(tmp) >= 2 else ''
+        if (dingding_token != ""):
+            try:
+                link = u"https://oapi.dingtalk.com/robot/send?access_token={0}".format(dingding_token)
+                picurl = config.push_pic if pic == '' else pic
+                content = content.replace('\\r\\n','\n\n > ')
+                d = {"msgtype":"markdown","markdown":{"title":title,"text":"![QianDao](" + picurl + ")\n " + "#### "+ title + "\n > " +content}}
+                obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
+                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                r = 'True'
+            except Exception as e:
+                r = traceback.format_exc()
+                print(r)
+        return r   
+
+    async def send2wxpusher(self, wxpusher, content):
         r = 'False'
         temp = wxpusher.split(";")
         wxpusher_token = temp[0] if (len(temp) >= 2) else ""
@@ -98,6 +173,7 @@ class pusher(object):
         if (wxpusher_token != "") and (wxpusher_uid != ""):
             try:
                 link = "http://wxpusher.zjiecode.com/api/send/message"
+                content = content.replace('\\r\\n','\n')
                 d = {
                         "appToken":wxpusher_token,
                         "content":content,
@@ -106,7 +182,9 @@ class pusher(object):
                             wxpusher_uid
                         ]
                     }
-                res = requests.post(link, json=d , verify=False)
+                obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
+                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
@@ -115,38 +193,49 @@ class pusher(object):
         return  r  
 
 
-    def cus_pusher_send(self, diypusher, t, log):
+    async def cus_pusher_send(self, diypusher, t, log):
         r = 'False'
         try:
             curltmp = diypusher['curl'].format(log=log, t=t)
             
             if (diypusher['headers']):
-                headerstmp = diypusher['headers'].replace('{log}', log).replace("{t}", t)
-                res = requests.get(curltmp, headers=headerstmp, verify=False)
+                headerstmp = json.loads(diypusher['headers'].replace('{log}', log).replace("{t}", t))
             else:
-                headerstmp = ''
+                headerstmp = {}
 
             if (diypusher['mode'] == 'POST'):
-                postDatatmp = diypusher['postData'].replace('{log}', log).replace("{t}", t)
+                postDatatmp = diypusher['postData'].replace('{log}', log).replace("{t}", t).replace("\\r\\n","\r\n" )
                 if (postDatatmp != ''):
                     postDatatmp = json.loads(postDatatmp)
+                if headerstmp:
+                    headerstmp.pop('content-type','')
+                    headerstmp.pop('Content-Type','')
                 if (diypusher['postMethod'] == 'x-www-form-urlencoded'):
-                    res = requests.post(curltmp, headers=headerstmp, data=postDatatmp, verify=False)
+                    headerstmp['Content-Type'] = "application/x-www-form-urlencoded; charset=UTF-8"
+                    headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
+                    obj = {'request': {'method': 'POST', 'url': curltmp, 'headers': headerstmp, 'cookies': [], 'data':utils.urllib.parse.urlencode(postDatatmp)}, 'rule': {
+                        'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
                 else:
-                    res = requests.post(curltmp, headers=headerstmp, json=postDatatmp, verify=False)
+                    headerstmp['Content-Type'] = "application/json; charset=UTF-8"
+                    headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
+                    obj = {'request': {'method': 'POST', 'url': curltmp, 'headers': headerstmp, 'cookies': [], 'data':json.dumps(postDatatmp)}, 'rule': {
+                        'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
             elif (diypusher['mode'] == 'GET'):
-                res = requests.get(curltmp, headers=headerstmp, verify=False)
+                headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
+                obj = {'request': {'method': 'GET', 'url': curltmp, 'headers': headerstmp, 'cookies': []}, 'rule': {
+                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
             else:
                 raise Exception(u'模式未选择')
+            _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
 
-            if (res.status_code == 200):
+            if (res.code == 200):
                 r = "True"
 
         except Exception as e:
             r = traceback.format_exc()
         return r
 
-    def qywx_pusher_send(self, qywx_token, t, log):
+    async def qywx_pusher_send(self, qywx_token, t, log):
         r = 'False'
         try:
             qywx = {}
@@ -159,8 +248,11 @@ class pusher(object):
             else:
                 raise Exception(u'企业微信token错误')
             
-            get_access_token_res = requests.get('https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={id}&corpsecret={secret}'.format(id=qywx[u'企业ID'], secret=qywx[u'应用密钥']), 
-                                verify=False).json()
+            access_url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={id}&corpsecret={secret}'.format(id=qywx[u'企业ID'], secret=qywx[u'应用密钥'])
+            obj = {'request': {'method': 'GET', 'url': access_url, 'headers': [], 'cookies': []}, 'rule': {
+                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+            _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+            get_access_token_res = json.loads(res.body)
             if (get_access_token_res['access_token'] != '' and get_access_token_res['errmsg'] == 'ok'):
                 msgUrl = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={0}'.format(get_access_token_res['access_token'])
                 postData = {"touser" : "@all",
@@ -170,15 +262,17 @@ class pusher(object):
                                 "articles" : [
                                         {
                                             "title" : t,
-                                            "description" : log,
-                                            "url" : "URL",
-                                            "picurl" : "https://i.loli.net/2021/02/18/gYV2EswCOlLmPSD.png" if qywx[u'图片'] == '' else qywx[u'图片']
+                                            "description" : log.replace("\\r\\n","\n" ),
+                                            "url" : "",
+                                            "picurl" : config.push_pic if qywx[u'图片'] == '' else qywx[u'图片']
                                         }
                                     ]
                             }
                 }
-                msg_res = requests.post(msgUrl, data=json.dumps(postData), verify=False)
-                tmp = msg_res.json()
+                obj = {'request': {'method': 'POST', 'url': msgUrl, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(postData)}, 'rule': {
+                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                _,_,msg_res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                tmp = json.loads(msg_res.body)
                 if (tmp['errmsg'] == 'ok' and tmp['errcode'] == 0):
                     r = 'True'
 
@@ -187,14 +281,15 @@ class pusher(object):
             print(r)
         return r
 
-    def sendmail(self, email, title, content):
+    async def sendmail(self, email, title, content):
         user = self.db.user.get(email=email, fields=('id', 'email', 'email_verified', 'nickname'))
         if user['email'] and user['email_verified']:
             try:
-                utils.send_mail(to = email, 
+                content = content.replace('\\r\\n','\n')
+                await gen.convert_yielded(utils.send_mail(to = email, 
                                 subject = u"在网站{0} {1}".format(config.domain, title),
                                 text = content,
-                                shark=True)
+                                shark=True))
             except Exception as e:
                 logging.error('tasend mail error: %r', e)
 

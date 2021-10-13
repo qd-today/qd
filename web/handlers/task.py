@@ -28,7 +28,7 @@ class TaskNewHandler(BaseHandler):
         if user:
             tpls += sorted(self.db.tpl.list(userid=user['id'], fields=fields, limit=None), key=lambda t: -t['id'])
         if tpls:
-            tpls.append({'id': 0, 'sitename': u'以下为公共模板'})
+            tpls.append({'id': 0, 'sitename': u'-----公开模板-----'})
         tpls += sorted(self.db.tpl.list(userid=None, fields=fields, limit=None), key=lambda t: -t['success_count'])
 
         if not tplid:
@@ -60,6 +60,8 @@ class TaskNewHandler(BaseHandler):
         tested = self.get_body_argument('_binux_tested', False)
         note = self.get_body_argument('_binux_note')
         proxy = self.get_body_argument('_binux_proxy')
+        retry_count = self.get_body_argument('_binux_retry_count')
+        retry_interval = self.get_body_argument('_binux_retry_interval')
 
         tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'interval')))
         envs = {}
@@ -73,6 +75,10 @@ class TaskNewHandler(BaseHandler):
                 continue
             env[key] = self.get_body_argument(key)
         env['_proxy'] = proxy
+        retry_count = int(retry_count) if retry_count else retry_count
+        retry_interval = int(retry_interval) if retry_interval else retry_interval
+        env['retry_count'] = retry_count
+        env['retry_interval'] = retry_interval
 
         if ('New_group' in envs):
             New_group = envs['New_group'][0].strip()
@@ -104,8 +110,14 @@ class TaskNewHandler(BaseHandler):
             init_env = self.db.user.encrypt(user['id'], init_env)
             self.db.task.mod(taskid, init_env=init_env, env=None, session=None, note=note)
         
-        if ('New_group' in envs):
+        if 'New_group' in envs:
             self.db.task.mod(taskid, _groups=target_group)
+
+        if retry_count:
+            self.db.task.mod(taskid, retry_count=retry_count)
+
+        if retry_interval:
+            self.db.task.mod(taskid, retry_interval=retry_interval)
 
         self.redirect('/my/')
 
@@ -114,7 +126,7 @@ class TaskEditHandler(TaskNewHandler):
     def get(self, taskid):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid',
-            'tplid', 'disabled', 'note')), 'w')
+            'tplid', 'disabled', 'note', 'retry_count', 'retry_interval')), 'w')
         task['init_env'] = self.db.user.decrypt(user['id'], self.db.task.get(taskid, 'init_env')['init_env'])
         envs = []
         for key, value in task['init_env'].items():
@@ -127,7 +139,7 @@ class TaskEditHandler(TaskNewHandler):
             'sitename', 'siteurl', 'variables')))
 
         variables = json.loads(tpl['variables'])
-        self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=task['init_env'])
+        self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=task['init_env'], retry_count=task['retry_count'], retry_interval=task['retry_interval'])
 
 class TaskRunHandler(BaseHandler):
     @tornado.web.authenticated
@@ -136,7 +148,7 @@ class TaskRunHandler(BaseHandler):
         start_ts = int(time.time())
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'init_env',
-            'env', 'session', 'last_success', 'last_failed', 'success_count', 'note',
+            'env', 'session', 'retry_count', 'retry_interval', 'last_success', 'last_failed', 'success_count', 'note',
             'failed_count', 'last_failed_count', 'next', 'disabled', 'ontime', 'ontimeflg', 'pushsw','newontime')), 'w')
 
         tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename',
@@ -171,7 +183,7 @@ class TaskRunHandler(BaseHandler):
             t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
             logtmp = u"{0} 日志：{1}".format(t, e)
-            pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
+            await pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
 
             self.db.tasklog.add(task['id'], success=False, msg=str(e))
             self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % str(e).replace('\\r\\n', '<br>'))
@@ -200,7 +212,7 @@ class TaskRunHandler(BaseHandler):
         title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
         logtmp = new_env['variables'].get('__log__')
         logtmp = u"{0} \\r\\n日志：{1}".format(title, logtmp)
-        pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
+        await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
 
         self.db.tpl.incr_success(tpl['id'])
         self.finish('<h1 class="alert alert-success text-center">签到成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))

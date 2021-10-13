@@ -20,6 +20,8 @@ class TaskDB(_TaskDB, BaseDB):
           `init_env` BLOB NULL,
           `env` BLOB NULL,
           `session` BLOB NULL,
+          `retry_count` INT NOT NULL DEFAULT 8,
+          `retry_interval` INT UNSIGNED NULL,
           `last_success` INT UNSIGNED NULL,
           `last_failed` INT UNSIGNED NULL,
           `success_count` INT UNSIGNED NOT NULL DEFAULT 0,

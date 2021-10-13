@@ -11,14 +11,14 @@
     <a href="/login" class="btn btn-default">登录</a>
   </div>
   <form>
-    <h2 class="text-center">私有签到框架<sup>20210928</sup></h2>
+    <h2 class="text-center">私有签到框架<sup>20211010</sup></h2>
     <hr><br>
     <div class="form-group" id="site-select-div">
       <label class="control-label" for="site-select">
         <a target="_blank" id="siteurl" style="color:black;">网站</a>
         <a class="control-helper" href="/tpls/public">查看所有公开模板</a>
       </label>
-      <select class="form-control" name="_binux_tplid">
+      <select class="form-control" name="_binux_tplid" id="tplid">
         {% for tpl in tpls %}
         <option value="{{ tpl.id }}" {% if tpl.id == tplid %}selected{% endif %} {% if not tpl.id %}disabled{% endif %}>{{ tpl.sitename or '未命名' }}</option>
         {% endfor %}
@@ -51,6 +51,7 @@
     </script>
     {{ utils.task_new_scripts() }}
     {{ utils.modal_load() }}
+    {{ utils.form_select2(id="#tplid") }}
   </form>
 </div>
 {% endblock %}

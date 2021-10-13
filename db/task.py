@@ -13,7 +13,7 @@ class TaskDB(BaseDB):
     '''
     task db
 
-    id, tplid, userid, disabled, init_env, env, session, last_success, success_count, failed_count, last_failed, next, ctime, mtime
+    id, tplid, userid, disabled, init_env, env, session, retry_count, retry_interval, last_success, success_count, failed_count, last_failed, next, ctime, mtime
     '''
     __tablename__ = 'task'
 
@@ -31,6 +31,8 @@ class TaskDB(BaseDB):
                 userid = userid,
                 disabled = 0,
                 init_env = env,
+                retry_count = 8,
+                retry_interval = None,
                 last_success = None,
                 last_failed = None,
                 success_count = 0,

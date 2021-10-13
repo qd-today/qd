@@ -77,6 +77,8 @@ class DBnew(BaseDB):
                 `init_env` BLOB NULL,
                 `env` BLOB NULL,
                 `session` BLOB NULL,
+                `retry_count` INT NOT NULL DEFAULT 8,
+                `retry_interval` INT UNSIGNED NULL,
                 `last_success` INT UNSIGNED NULL,
                 `last_failed` INT UNSIGNED NULL,
                 `success_count` INT UNSIGNED NOT NULL DEFAULT 0,
@@ -128,7 +130,7 @@ class DBnew(BaseDB):
                     tpls.append(tpl)
             tasks = []
             tasklogs = []
-            for task in maindb.db.task.list(userid, fields=('id', 'tplid', 'userid', 'note', 'disabled', 'init_env', 'env', 'session', 'last_success', 'success_count', 
+            for task in maindb.db.task.list(userid, fields=('id', 'tplid', 'userid', 'note', 'disabled', 'init_env', 'env', 'session', 'retry_count', 'retry_interval', 'last_success', 'success_count', 
                                                         'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'mtime', 'ontimeflg', 'ontime',  '_groups', 'pushsw', 'newontime'), limit=None):
                 if task['userid'] == userid:
                     tasks.append(task)

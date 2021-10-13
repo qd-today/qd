@@ -196,10 +196,11 @@ import config
 from tornado import httpclient
 
 
-def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提醒 <noreply@{}>".format(config.mail_domain)):
+async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提醒 <noreply@{}>".format(config.mail_domain)):
     if not config.mailgun_key:
         subtype = 'html' if html else 'plain'
-        return _send_mail(to, subject, html or text or '', subtype)
+        _send_mail(to, subject, html or text or '', subtype)
+        return
 
     httpclient.AsyncHTTPClient.configure('tornado.curl_httpclient.CurlAsyncHTTPClient')
     if shark:
@@ -218,16 +219,17 @@ def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提�
     elif html:
         body['html'] = utf8(html)
     else:
-        raise Exception('nedd text or html')
+        raise Exception('need text or html')
 
     req = httpclient.HTTPRequest(
         method="POST",
         url="https://api.mailgun.net/v2/%s/messages" % config.mail_domain,
         auth_username="api",
         auth_password=config.mailgun_key,
-        body=urllib.urlencode(body)
+        body=urllib.parse.urlencode(body)
     )
-    return client.fetch(req)
+    res = await gen.convert_yielded(client.fetch(req))
+    return res
 
 
 import smtplib
@@ -254,6 +256,7 @@ def _send_mail(to, subject, text=None, subtype='html'):
         s.close()
     except Exception as e:
         logger.error('send mail error {}'.format(str(e)))
+    return
 
 
 import chardet

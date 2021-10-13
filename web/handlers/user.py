@@ -20,7 +20,6 @@ import sqlite3
 from backup import DBnew
 
 import codecs
-import requests
 import traceback
 from funcs import pusher
 
@@ -38,7 +37,7 @@ class UserRegPush(BaseHandler):
         self.render('user_register_pusher.html', userid=userid)
     
     @tornado.web.authenticated
-    def post(self, userid):
+    async def post(self, userid):
         envs = {}
         for key in self.request.body_arguments:
             envs[key] = self.get_body_arguments(key)
@@ -48,6 +47,8 @@ class UserRegPush(BaseHandler):
         skey = env["skey"]
         barkurl = env["barkurl"]
         qywx_token = env["qywx_token"]
+        tg_token = env["tg_token"]
+        dingding_token = env["dingding_token"]
         log = ""
         if  ("reg" == self.get_body_argument('func')):
             try:
@@ -90,6 +91,24 @@ class UserRegPush(BaseHandler):
                 else:
                     log = log+u"企业微信 未填写完整\r\n"
 
+                if (tg_token != ""):
+                    self.db.user.mod(userid, tg_token = tg_token)
+                    if (self.db.user.get(userid, fields=("tg_token"))["tg_token"] == tg_token):
+                        log = log+u"注册 Tg Bot 成功\r\n"
+                    else:
+                        log = log+u"注册 Tg Bot 失败\r\n"
+                else:
+                    log = log+u"Tg bot 未填写完整\r\n"
+
+                if (dingding_token != ""):
+                    self.db.user.mod(userid, dingding_token = dingding_token)
+                    if (self.db.user.get(userid, fields=("dingding_token"))["dingding_token"] == dingding_token):
+                        log = log+u"注册 DingDing Bot 成功\r\n"
+                    else:
+                        log = log+u"注册 DingDing Bot 失败\r\n"
+                else:
+                    log = log+u"DingDing bot 未填写完整\r\n"
+
             except Exception as e:
                 traceback.print_exc()
                 self.render('tpl_run_failed.html', log=str(e))
@@ -104,29 +123,40 @@ class UserRegPush(BaseHandler):
                 t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
 
                 if  (token != "") and (uid != ""):
-                    f.send2wxpusher("{0};{1}".format(token, uid),u"{t} 发送测试".format(t=t))
+                    await f.send2wxpusher("{0};{1}".format(token, uid),u"{t} 发送测试".format(t=t))
                     log = u"wxpusher 已推送,请检查是否收到\r\n"
                 else:
                     log = u"wxpusher 未填写完整\r\n"
 
                 if (skey != ""):
-                    f.send2s(skey, u"正在测试S酱", u"{t} 发送测试".format(t=t))
+                    await f.send2s(skey, u"正在测试S酱", u"{t} 发送测试".format(t=t))
                     log = log+u"S酱 已推送,请检查是否收到\r\n"
                 else:
                     log = log+u"skey 未填写完整\r\n"
 
                 if  (barkurl != ""):
-                    f.send2bark(barkurl, u"正在测试Bark", u"{t} 发送测试".format(t=t))
+                    await f.send2bark(barkurl, u"正在测试Bark", u"{t} 发送测试".format(t=t))
                     log = log+u"Bark 已推送,请检查是否收到\r\n"
                 else:
                     log = log+u"Bark 未填写完整\r\n"
                 
                 if (qywx_token != ""):
-                    
-                    f.qywx_pusher_send(qywx_token, "正在测试企业微信", u"{t} 发送测试".format(t=t))
+                    await f.qywx_pusher_send(qywx_token, "正在测试企业微信", u"{t} 发送测试".format(t=t))
                     log = log+u"企业微信 已推送,请检查是否收到\r\n"
                 else:
                     log = log+u"企业微信 未填写完整\r\n"
+
+                if (tg_token != ""):
+                    await f.send2tg(tg_token, "正在测试Tg Bot", u"{t} 发送测试".format(t=t))
+                    log = log+u"Tg Bot 已推送,请检查是否收到\r\n"
+                else:
+                    log = log+u"Tg Bot 未填写完整\r\n"
+
+                if (dingding_token != ""):
+                    await f.send2dingding(dingding_token, "正在测试DingDing Bot", u"{t} 发送测试".format(t=t))
+                    log = log+u"DingDing Bot 已推送,请检查是否收到\r\n"
+                else:
+                    log = log+u"DingDing Bot 未填写完整\r\n"
 
             except Exception as e:
                 traceback.print_exc()
@@ -154,6 +184,8 @@ class UserRegPushSw(BaseHandler):
         flg['mailpushersw']  = False if ((temp & 0x080) == 0) else True
         flg['cuspushersw']   = False if ((temp & 0x100) == 0) else True
         flg['qywxpushersw']   = False if ((temp & 0x200) == 0) else True
+        flg['tgpushersw']   = False if ((temp & 0x400) == 0) else True
+        flg['dingdingpushersw']   = False if ((temp & 0x800) == 0) else True
         flg['handpush_succ'] = False if ((temp & 0x008) == 0) else True 
         flg['handpush_fail'] = False if ((temp & 0x004) == 0) else True 
         flg['autopush_succ'] = False if ((temp & 0x002) == 0) else True 
@@ -194,13 +226,17 @@ class UserRegPushSw(BaseHandler):
             wxpushersw_flg    = 1 if ("wxpushersw" in env) else 0
             mailpushersw_flg  = 1 if ("mailpushersw" in env) else 0
             cuspushersw_flg  = 1 if ("cuspushersw" in env) else 0
-            qywxpushersw_flg  = 1 if ("qywxpushersw" in env) else 0  
+            qywxpushersw_flg  = 1 if ("qywxpushersw" in env) else 0 
+            tgpushersw_flg  = 1 if ("tgpushersw" in env) else 0 
+            dingdingpushersw_flg  = 1 if ("dingdingpushersw" in env) else 0 
             handpush_succ_flg = 1 if ("handpush_succ" in env) else 0
             handpush_fail_flg = 1 if ("handpush_fail" in env) else 0
             autopush_succ_flg = 1 if ("autopush_succ" in env) else 0
             autopush_fail_flg = 1 if ("autopush_fail" in env) else 0
             
-            flg = (qywxpushersw_flg << 9) \
+            flg =(dingdingpushersw_flg << 11) \
+                | (tgpushersw_flg << 10) \
+                | (qywxpushersw_flg << 9) \
                 | (cuspushersw_flg << 8) \
                 | (mailpushersw_flg << 7) \
                 | (barksw_flg << 6) \
@@ -352,7 +388,7 @@ class UserDBHandler(BaseHandler):
                         tpls.append(tpl)
 
                     tasks = []
-                    for task in self.db.task.list(userid, fields=('id', 'tplid', 'note', 'disabled', '_groups', 'init_env', 'env', 'ontimeflg', 'ontime', 'pushsw', 'newontime'), limit=None):
+                    for task in self.db.task.list(userid, fields=('id', 'tplid', 'retry_count', 'retry_interval','note', 'disabled', '_groups', 'init_env', 'env', 'ontimeflg', 'ontime', 'pushsw', 'newontime'), limit=None):
                         task['init_env'] = self.db.user.decrypt(userid, task['init_env'])
                         task['env'] = self.db.user.decrypt(userid, task['env']) if task['env'] else None
                         tasks.append(task)
@@ -409,10 +445,14 @@ class UserDBHandler(BaseHandler):
                             userid2 = int(userid)
                             newtask['init_env'] = self.db.user.encrypt(userid2, newtask['init_env'])
                             newtask['env'] = self.db.user.encrypt(userid2, newtask['env'])
+                            newtask['retry_count'] = newtask.get('retry_count',8)
+                            newtask['retry_interval'] = newtask.get('retry_interval')
                             taskid = self.db.task.add(newtask['tplid'], userid, newtask['env'])
                             self.db.task.mod(taskid, disabled = newtask['disabled'],
                                                      init_env = newtask['init_env'],
                                                      session = None,
+                                                     retry_count = newtask['retry_count'],
+                                                     retry_interval = newtask['retry_interval'],
                                                      note = newtask['note'],
                                                      _groups = u'备份还原',
                                                      ontimeflg = newtask['ontimeflg'],
@@ -484,14 +524,16 @@ class UserPushShowPvar(BaseHandler):
             mail = envs['adminmail']
             pwd = envs['adminpwd']
             if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
-                key = self.db.user.get(userid, fields=("barkurl", 'skey', 'wxpusher', 'qywx_token'))
-                log = u"""barkurl 前值：{bark}\r\nskey 前值：{skey}\r\nwxpusher 前值：{wxpusher}\r\n企业微信 前值：{qywx_token}""".format(
+                key = self.db.user.get(userid, fields=("barkurl", 'skey', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token'))
+                log = u"""barkurl 前值：{bark}\r\nskey 前值：{skey}\r\nwxpusher 前值：{wxpusher}\r\n企业微信 前值：{qywx_token}\r\nTg Bot 前值：{tg_token}\r\nDingDing Bot 前值：{dingding_token}""".format(
                           bark = key['barkurl'],
                           skey = key['skey'],
                           wxpusher = key['wxpusher'],
-                          qywx_token = key['qywx_token'])
+                          qywx_token = key['qywx_token'],
+                          tg_token = key['tg_token'],
+                          dingding_token = key['dingding_token'])
                 self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
-                return log
+                return
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
@@ -511,7 +553,7 @@ class custom_pusher_Handler(BaseHandler):
         return
         
     @tornado.web.authenticated
-    def post(self,userid):
+    async def post(self,userid):
         try:
             envs = {}
             for k, _  in self.request.body_arguments.items():
@@ -519,7 +561,7 @@ class custom_pusher_Handler(BaseHandler):
             req = pusher()
             log = ''
             now = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-            tmp = req.cus_pusher_send(envs ,u'推送测试', now)
+            tmp = await gen.convert_yielded(req.cus_pusher_send(envs ,u'推送测试', now))
             if ('True' == tmp):
                 if (envs['btn'] == 'regbtn'):
                     self.db.user.mod(userid, diypusher=json.dumps(envs))

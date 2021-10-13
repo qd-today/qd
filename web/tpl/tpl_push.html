@@ -1,3 +1,4 @@
+{% import "utils.html" as utils %}
 <form method="POST" action="/tpl/{{ tpl.id }}/push">
   <h1 class="text-center">模板发布</h1>
   <div class="alert alert-info">
@@ -14,7 +15,7 @@
   </div>
   <div class="form-group">
     <label class="control-label" for="to-tpl">发布为</label>
-    <select class="form-control" name="totpl">
+    <select class="form-control" name="totpl" id="totpl">
       <option value="0">新模板</option>
       {% for t in tpls %}
       <option value="{{ t.id }}">{{ t.sitename }}</option>
@@ -31,4 +32,5 @@
   <div class="text-right">
     <button type="submit" class="btn btn-default">提交</button>
   </div>
+  {{ utils.form_select2(id="#totpl") }}
 </form>
