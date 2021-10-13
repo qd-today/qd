@@ -3,7 +3,7 @@
   <h2 class="text-center">私有签到框架<sup>20211010</sup></h2>
   <hr>
   {% if task.disabled %}
-  <p class="alert alert-danger">任务处于禁用状态，使用 <a class="modal_load alert-link" href="/task/{{ task.id }}/run">立即执行</a> 成功签到一次，即可解除。</p>
+  <p class="alert alert-danger">任务处于禁用状态，使用 <a data-load-method="POST" class="modal_load alert-link" href="/task/{{ task.id }}/run">立即执行</a> 成功签到一次，即可解除。</p>
   {% endif %}
 
   <div id="run-result"></div>
