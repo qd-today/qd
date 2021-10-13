@@ -9,22 +9,21 @@
   {% if current_user %}
   <div class="form-group">
     <!-- 注册barkurl -->
-    <label class="control-label" for="note">BarkURL</label>
-    <input type="text" class="form-control" name="barkurl" value="" id="barkurl" placeholder="请输入 Bark_URL">
+    <label class="control-label" for="note">BarkUrl</label>
+    <input type="text" class="form-control" name="barkurl" value="" id="barkurl" placeholder="请输入 BarkUrl">
     <!-- 注册S酱 -->
     <label class="control-label" for="note">Server酱</label>
     <input type="text" class="form-control" name="skey" value="" id="skey" placeholder="请前往 https://sct.ftqq.com/ 获取Sendkey">
     <!-- 注册wxpusher -->
-    <label class="control-label" for="note">WxPusher 的 apptoken</label>
-    <input type="text" class="form-control" name="wxpusher_token" value="" id="wxpusher_token" placeholder="请到 http://wxpusher.zjiecode.com/admin 扫码新建app">
-    <label class="control-label" for="note">wxpusher 的 uid</label>
-    <input type="text" class="form-control" name="wxpusher_uid" value="" id="wxpusher_uid" placeholder="WxPusher 用户必须要订阅app才能收到推送">
+    <label class="control-label" for="note">WxPusher</label>
+    <input type="text" class="form-control" name="wxpusher_token" value="" id="wxpusher_token" placeholder="(用;来分割) APPTOKEN;WxPusher_UID">
+
     <!-- 注册企业微信 -->
     <label class="control-label" for="note">企业微信</label>
     <input type="text" class="form-control" name="qywx_token" value="" id="qywx_token" placeholder="(用;来分割) 企业ID;应用ID;应用密钥;自定推送图片URL(非必需)">
     <!-- 注册Tg Bot -->
-    <label class="control-label" for="note">Tg Bot</label>
-    <input type="text" class="form-control" name="tg_token" value="" id="tg_token" placeholder="(用;来分割) TG_TOKEN;TG_USERID;TG_HOST(非必需);代理地址(非必需)">
+    <label class="control-label" for="note">Tg Bot 后三项非必需</label>
+    <input type="text" class="form-control" name="tg_token" value="" id="tg_token" placeholder="(用;来分割) TG_TOKEN;TG_USERID;TG_HOST;PROXY地址;自定推送图片URL">
     <!-- 注册DingDing Bot -->
     <label class="control-label" for="note">DingDing Bot</label>
     <input type="text" class="form-control" name="dingding_token" value="" id="dingding_token" placeholder="(用;来分割) DINGDING_TOKEN;自定推送图片URL(非必需)">

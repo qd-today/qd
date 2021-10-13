@@ -51,24 +51,29 @@ class pusher(object):
             pusher["tgpushersw"] = False if (notice['noticeflg'] & 0x400) == 0 else True
             pusher["dingdingpushersw"] = False if (notice['noticeflg'] & 0x800) == 0 else True
 
-            if (pushsw['pushen']):
-                if (pusher["barksw"]):
-                    await self.send2bark(notice['barkurl'], title, content)
-                if (pusher["schansw"]):
-                    await self.send2s(notice['skey'], title, content)
-                if (pusher["wxpushersw"]):
-                    await self.send2wxpusher(notice['wxpusher'], title+u"  "+content)
-                if (pusher["mailpushersw"]):
-                        await self.sendmail(user['email'], title, content)
-                if (pusher["cuspushersw"]):
-                    await self.cus_pusher_send(diypusher, title, content)
-                if (pusher["qywxpushersw"]):
-                    await self.qywx_pusher_send(notice['qywx_token'], title, content)
-                if (pusher["tgpushersw"]):
-                    await self.send2tg(notice['tg_token'], title, content)
-                if (pusher["dingdingpushersw"]):
-                    await self.send2dingding(notice['dingding_token'], title, content)
+            def nonepush(*args):
+                return 
 
+            if (pushsw['pushen']):
+                send2bark = self.send2bark if (pusher["barksw"]) else nonepush
+                send2s = self.send2s if (pusher["schansw"]) else nonepush 
+                send2wxpusher = self.send2wxpusher if (pusher["wxpushersw"]) else nonepush 
+                sendmail = self.sendmail if (pusher["mailpushersw"]) else nonepush 
+                cus_pusher_send = self.cus_pusher_send if (pusher["cuspushersw"]) else nonepush 
+                qywx_pusher_send = self.qywx_pusher_send if (pusher["qywxpushersw"]) else nonepush 
+                send2tg = self.send2tg if (pusher["tgpushersw"]) else nonepush 
+                send2dingding = self.send2dingding if (pusher["dingdingpushersw"]) else nonepush 
+
+
+            if (pushsw['pushen']):
+                await gen.convert_yielded([send2bark(notice['barkurl'], title, content),
+                                           send2s(notice['skey'], title, content),
+                                           send2wxpusher( notice['wxpusher'], title+u"  "+content),
+                                           sendmail( user['email'], title, content),
+                                           cus_pusher_send( diypusher, title, content),
+                                           qywx_pusher_send( notice['qywx_token'], title, content),
+                                           send2tg( notice['tg_token'], title, content),
+                                           send2dingding(notice['dingding_token'], title, content)])
 
     async def send2bark(self, barklink, title, content):
         r = 'False'

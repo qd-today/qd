@@ -42,8 +42,7 @@ class UserRegPush(BaseHandler):
         for key in self.request.body_arguments:
             envs[key] = self.get_body_arguments(key)
         env = json.loads(envs['env'][0])
-        token = env["wxpusher_token"]
-        uid = env["wxpusher_uid"]
+        wxpusher_token = env["wxpusher_token"]
         skey = env["skey"]
         barkurl = env["barkurl"]
         qywx_token = env["qywx_token"]
@@ -52,15 +51,14 @@ class UserRegPush(BaseHandler):
         log = ""
         if  ("reg" == self.get_body_argument('func')):
             try:
-                if  (token != "") and (uid != ""):
-                    temp = token + ";" + uid
-                    self.db.user.mod(userid, wxpusher = temp)
-                    if (self.db.user.get(userid, fields=("wxpusher"))["wxpusher"] == temp):
-                        log = u"注册 wxpusher 成功\r\n"
+                if  (wxpusher_token != ""):
+                    self.db.user.mod(userid, wxpusher = wxpusher_token)
+                    if (self.db.user.get(userid, fields=("wxpusher"))["wxpusher"] == wxpusher_token):
+                        log = u"注册 WxPusher 成功\r\n"
                     else:
-                        log = u"注册 wxpusher 失败\r\n"
+                        log = u"注册 WxPusher 失败\r\n"
                 else:
-                    log = u"wxpusher 未填写完整\r\n"
+                    log = u"WxPusher 未填写完整\r\n"
 
                 if (skey != ""):
                     self.db.user.mod(userid, skey = skey)
@@ -69,7 +67,7 @@ class UserRegPush(BaseHandler):
                     else:
                         log = log+u"注册 S酱 失败\r\n"
                 else:
-                    log = log+u"skey 未填写完整\r\n"
+                    log = log+u"Sendkey 未填写完整\r\n"
                     
                 if (barkurl != ""):
                     if (barkurl[-1] != '/'): 
@@ -80,7 +78,7 @@ class UserRegPush(BaseHandler):
                     else:
                         log = log+u"注册 Bark 失败\r\n"
                 else:
-                    log = log+u"Bark 未填写完整\r\n"
+                    log = log+u"BarkUrl 未填写完整\r\n"
 
                 if (qywx_token != ""):
                     self.db.user.mod(userid, qywx_token = qywx_token)
@@ -98,7 +96,7 @@ class UserRegPush(BaseHandler):
                     else:
                         log = log+u"注册 Tg Bot 失败\r\n"
                 else:
-                    log = log+u"Tg bot 未填写完整\r\n"
+                    log = log+u"Tg Bot 未填写完整\r\n"
 
                 if (dingding_token != ""):
                     self.db.user.mod(userid, dingding_token = dingding_token)
@@ -107,7 +105,7 @@ class UserRegPush(BaseHandler):
                     else:
                         log = log+u"注册 DingDing Bot 失败\r\n"
                 else:
-                    log = log+u"DingDing bot 未填写完整\r\n"
+                    log = log+u"DingDing Bot 未填写完整\r\n"
 
             except Exception as e:
                 traceback.print_exc()
@@ -122,23 +120,23 @@ class UserRegPush(BaseHandler):
                 f = pusher()
                 t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
 
-                if  (token != "") and (uid != ""):
-                    await f.send2wxpusher("{0};{1}".format(token, uid),u"{t} 发送测试".format(t=t))
-                    log = u"wxpusher 已推送,请检查是否收到\r\n"
+                if (wxpusher_token != ""):
+                    await f.send2wxpusher("{0}".format(wxpusher_token),u"{t} 发送测试".format(t=t))
+                    log = u"WxPusher 已推送,请检查是否收到\r\n"
                 else:
-                    log = u"wxpusher 未填写完整\r\n"
+                    log = u"WxPusher 未填写完整\r\n"
 
                 if (skey != ""):
                     await f.send2s(skey, u"正在测试S酱", u"{t} 发送测试".format(t=t))
                     log = log+u"S酱 已推送,请检查是否收到\r\n"
                 else:
-                    log = log+u"skey 未填写完整\r\n"
+                    log = log+u"Sendkey 未填写完整\r\n"
 
                 if  (barkurl != ""):
                     await f.send2bark(barkurl, u"正在测试Bark", u"{t} 发送测试".format(t=t))
                     log = log+u"Bark 已推送,请检查是否收到\r\n"
                 else:
-                    log = log+u"Bark 未填写完整\r\n"
+                    log = log+u"BarkUrl 未填写完整\r\n"
                 
                 if (qywx_token != ""):
                     await f.qywx_pusher_send(qywx_token, "正在测试企业微信", u"{t} 发送测试".format(t=t))
@@ -525,7 +523,7 @@ class UserPushShowPvar(BaseHandler):
             pwd = envs['adminpwd']
             if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
                 key = self.db.user.get(userid, fields=("barkurl", 'skey', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token'))
-                log = u"""barkurl 前值：{bark}\r\nskey 前值：{skey}\r\nwxpusher 前值：{wxpusher}\r\n企业微信 前值：{qywx_token}\r\nTg Bot 前值：{tg_token}\r\nDingDing Bot 前值：{dingding_token}""".format(
+                log = u"""BarkUrl 前值：{bark}\r\nSendkey 前值：{skey}\r\nWxPusher 前值：{wxpusher}\r\n企业微信 前值：{qywx_token}\r\nTg Bot 前值：{tg_token}\r\nDingDing Bot 前值：{dingding_token}""".format(
                           bark = key['barkurl'],
                           skey = key['skey'],
                           wxpusher = key['wxpusher'],
