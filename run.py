@@ -5,6 +5,7 @@
 # Copyright © 2016 Binux <roy@binux.me>
 
 import sys
+import platform
 import logging
 import tornado.log
 from tornado.ioloop import IOLoop, PeriodicCallback
@@ -42,10 +43,17 @@ if __name__ == "__main__":
         port = config.port
     converter = sqlite3_db_task_converter.DBconverter()
     converter.ConvertNewType() 
+    if platform.system() == 'Windows':
+        config.multiprocess = False
+    if config.multiprocess and config.autoreload:
+        config.autoreload = False
 
     http_server = HTTPServer(Application(), xheaders=True)
     http_server.bind(port, config.bind)
-    http_server.start()
+    if config.multiprocess:
+        http_server.start(num_processes=0)
+    else:
+        http_server.start()
 
     worker = MainWorker()
     PeriodicCallback(worker, config.check_task_loop).start()

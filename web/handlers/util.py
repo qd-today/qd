@@ -32,14 +32,17 @@ class UtilDelayParaHandler(BaseHandler):
             traceback.print_exc()
             await gen.sleep(0.0)
             self.write(u'Error, delay 0.0 second.')
+            return
         if seconds < 0:
             seconds = 0.0
         elif seconds >= delay_max_timeout:
             seconds = delay_max_timeout
             await gen.sleep(seconds)
             self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
+            return
         await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
+        return
 
 class UtilDelayIntHandler(BaseHandler):
     async def get(self, seconds):
@@ -48,14 +51,17 @@ class UtilDelayIntHandler(BaseHandler):
         except Exception as e:
             traceback.print_exc()
             self.write(u'delay %s second.' % seconds)
+            return
         if seconds < 0:
             seconds = 0.0
         elif seconds > delay_max_timeout:
             seconds = delay_max_timeout
             await gen.sleep(seconds)
             self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
+            return
         await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
+        return
 
 class UtilDelayHandler(BaseHandler):
     async def get(self, seconds):
@@ -64,14 +70,17 @@ class UtilDelayHandler(BaseHandler):
         except Exception as e:
             traceback.print_exc()
             self.write(u'delay %s second.' % seconds)
+            return
         if seconds < 0:
             seconds = 0.0
         elif seconds >= delay_max_timeout:
             seconds = delay_max_timeout
             await gen.sleep(seconds)
             self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
+            return
         await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
+        return
 
 class TimeStampHandler(BaseHandler):
     async def get(self):
@@ -130,6 +139,7 @@ class UniCodeHandler(BaseHandler):
 
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
 
 
 class UrlDecodeHandler(BaseHandler):
@@ -144,6 +154,7 @@ class UrlDecodeHandler(BaseHandler):
 
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
 
 class UtilRegexHandler(BaseHandler):
     async def get(self):
@@ -162,6 +173,7 @@ class UtilRegexHandler(BaseHandler):
 
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
 
     async def post(self):
         Rtv = {}
@@ -204,6 +216,7 @@ class UtilStrReplaceHandler(BaseHandler):
 
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
 
 class UtilRSAHandler(BaseHandler):
     async def get(self):
@@ -248,6 +261,7 @@ class UtilRSAHandler(BaseHandler):
                     return
             else:
                 self.write(u"参数不完整，请确认")
+                return
         except Exception as e:
             self.write(str(e))
             return
@@ -281,6 +295,7 @@ class UtilRSAHandler(BaseHandler):
                     return
             else:
                 self.write(u"参数不完整，请确认")
+                return
         except Exception as e:
             self.write(str(e))
             return
