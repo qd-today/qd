@@ -15,8 +15,8 @@ import traceback
 
 from .base import *
 from libs import utils
-from funcs import pusher
-from funcs import cal
+from libs.funcs import pusher
+from libs.funcs import cal
 from codecs import escape_decode
 class TaskNewHandler(BaseHandler):    
     def get(self):

@@ -14,7 +14,7 @@ import random
 import croniter
 
 from .base import *
-from funcs import cal
+from libs.funcs import cal
 
 class TaskMultiOperateHandler(BaseHandler):
     @tornado.web.authenticated

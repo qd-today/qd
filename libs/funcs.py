@@ -12,9 +12,9 @@ import time
 import datetime
 
 import config
-from libs import utils
+import utils
 from tornado import gen
-from libs.fetcher import Fetcher
+from fetcher import Fetcher
 
 class pusher(object):
     def __init__(self):

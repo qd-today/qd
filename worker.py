@@ -19,8 +19,8 @@ import config
 from libs import utils
 from libs.fetcher import Fetcher
 
-from funcs import pusher
-from funcs import cal
+from libs.funcs import pusher
+from libs.funcs import cal
 import traceback
 
 logger = logging.getLogger('qiandao.worker')

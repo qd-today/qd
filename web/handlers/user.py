@@ -21,7 +21,7 @@ from backup import DBnew
 
 import codecs
 import traceback
-from funcs import pusher
+from libs.funcs import pusher
 
 def tostr(s):
     if isinstance(s, bytes):
