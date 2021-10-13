@@ -62,7 +62,7 @@
 
 **操作前请一定要记得备份数据库**
 
-**不要同时开启新旧版签到框架, 或将不同运行中容器的数据库映射为同一文件, 更新后请重启容器或清空浏览器缓存**
+**请勿同时运行新旧版签到框架, 或将不同运行中容器的数据库映射为同一文件, 更新后请重启容器或清空浏览器缓存**
 
 使用Docker部署站点
 ==========
@@ -156,22 +156,26 @@ config.py-配置变量
 :-: | :-: | :-: | :-: 
 BIND|否|0.0.0.0|监听地址
 PORT|否|8923|监听端口
-ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS, <br>非程序使用HTTPS, 需要HTTPS需要使用反向代理
+QIANDAO_DEBUG|否|False|是否启用Debug模式
+MULTI_PROCESS|否|False|是否启用多进程模式, <br>Windows平台无效
+AUTO_RELOAD|否|False|是否启用自动热加载, <br>MULTI_PROCESS=True时无效
+COOKIE_DAY|否|5|Cookie在客户端保留天数
 DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
 JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 mysql://用户名:密码@hostname:port/数据库名
 REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时, <br>设置为 http://rediscloud:密码@hostname:port
 REDIS_DB_INDEX|否|1|默认为1
 PUSH_PIC_URL|否|<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png">push_pic.png</a>|默认为<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png">push_pic.png</a>
+ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS, <br>非程序使用HTTPS, 需要HTTPS需要使用反向代理
 DOMAIN|否|qiandao.today|指定访问域名, <br>建议修改, 否则邮件重置密码等功能无效
 MAIL_SMTP|否|""|邮箱SMTP服务器
 MAIL_PORT|否|""|邮箱SMTP服务器端口
 MAIL_USER|否|""|邮箱用户名
 MAIL_PASSWORD|否|""|邮箱密码
 MAIL_DOMAIN|否|mail.qiandao.today|邮箱域名,没啥用, 使用的DOMAIN
-AES_KEY|否|binux|AES加密密钥, 强烈建议修改
-COOKIE_SECRET|否|binux|cookie加密密钥, 强烈建议修改
+AES_KEY|否|binux|AES加密密钥, **强烈建议修改**
+COOKIE_SECRET|否|binux|cookie加密密钥, **强烈建议修改**
 PROXIES|否|""|全局代理域名列表,用"|"分隔
-PROXY_DIRECT_MODE|否|""|全局代理黑名单模式,默认不开启 <br>"url"为网址匹配模式;"regexp"为正则表达式匹配模式
+PROXY_DIRECT_MODE|否|""|全局代理黑名单模式,默认不启用 <br>"url"为网址匹配模式;"regexp"为正则表达式匹配模式
 PROXY_DIRECT|否|""|全局代理黑名单匹配规则
 USE_PYCURL|否|True|是否启用Pycurl模组
 ALLOW_RETRY|否|True|在Pycurl环境下部分请求可能导致Request错误时, <br>自动修改冲突设置并重发请求
@@ -262,15 +266,15 @@ sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程
 > **Tips: 全局代理黑名单机制说明**
 ```python
 # 以下为全局代理域名列表相关设置
-# proxies为全局代理域名列表, 默认为空[], 表示不开启全局代理; 
+# proxies为全局代理域名列表, 默认为空[], 表示不启用全局代理; 
 # 代理格式应为'scheme://username:password@host:port',例如:proxies = ['http://admin:admin@127.0.0.1:8923','https://proxy.com:8888']; 
 # 任务级代理请在新建或修改任务时添加,任务级代理优先级大于全局代理; 
 proxies = os.getenv('PROXIES', '').split('|')               # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct 
-proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '')      # 默认为空, 可选输入:'url'为网址匹配模式;'regexp'为正则表达式匹配模式;''空则不开启全局代理黑名单 
+proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '')      # 默认为空, 可选输入:'url'为网址匹配模式;'regexp'为正则表达式匹配模式;''空则不启用全局代理黑名单 
 # proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'url')进入网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求, 以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port 
 # 例如: proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost'); 
 # proxy_direct_mode= os.getenv('PROXY_DIRECT_MODE', 'regexp')进入正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求; 
-# 开启regexp模式后自动采用以下默认匹配正则表达式, 如无特别需求请勿修改
+# 启用regexp模式后自动采用以下默认匹配正则表达式, 如无特别需求请勿修改
 proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
                 ([a-z][a-z0-9+\-.]*://)?                                                        # Scheme
                 (0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])                                # Domain/Hostname/IPv4/IPv6
@@ -387,7 +391,7 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 1. 修复点击登陆失败后注册按钮消失的问题
 
 ## 2021.01.13 更新
-1. 开启邮箱验证前必须验证管理员邮箱
+1. 启用邮箱验证前必须验证管理员邮箱
 
 ## 2021.01.08 更新
 1. 修复20210122注册按钮丢失的BUG
@@ -503,7 +507,7 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 1. 修复MySQL的支持, 不需要手动更新Mysql数据库
 
 ## 2020.6.10 更新
-1. 添加管理员管理用户功能, 可以将用户禁用/开启/删除
+1. 添加管理员管理用户功能, 可以将用户禁用/启用/删除
 2. 添加关闭/开启注册功能
 3. 修改主页的'检查更新'为'检查模板更新'
 
