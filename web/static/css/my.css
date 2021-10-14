@@ -18,7 +18,7 @@ header .container {
     /* 修改-顶部下划线border-bottom: 1px solid #eee */
    /* 修改-新加-下划线阴影-webkit-box-shadow:0 1px 1px rgba(0,0,0,.05) */
   /* 修改-新加-下划线阴影 box-shadow:0 1px 1px rgba(0,0,0,.05); */
-  background: url(header.jpg) repeat-x #FFF;/* 修改-新加-头部图片 */
+  background: url(../img/header.jpg) repeat-x #FFF;/* 修改-新加-头部图片 */
   background-repeat: no-repeat;/* 修改-新加-头部图片 */
   /* background-size:100% 100%; */
 }

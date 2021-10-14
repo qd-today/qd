@@ -20,7 +20,7 @@
   HARDATA= "{{ hardata }}";
 </script>
 
-<!-- <script src="/static/draggable-polyfill.js"></script> -->
+<script src="https://cdn.jsdelivr.net/gh/XboxYan/draggable-polyfill@master/lib/draggable-polyfill.js"></script>
 
 {% raw %}
 <div class="container">
@@ -427,6 +427,6 @@
     });
   })
 </script>
-<script src="/static/editor_js.js"></script>
 {% endraw %}
+<script src="{{ static_url('components/editor_js.js') }}"></script>
 {% endblock %}

@@ -15,7 +15,7 @@ Array.prototype.every ?= (f) ->
   return true
 
 define (require, exports, module) ->
-  utils = require('/static/utils')
+  utils = require('/static/components/utils')
 
   xhr = (har) ->
     for entry in har.log.entries

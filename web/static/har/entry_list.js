@@ -5,7 +5,7 @@
   define(function(require, exports, module) {
     var analysis, utils;
     analysis = require('/static/har/analysis');
-    utils = require('/static/utils');
+    utils = require('/static/components/utils');
     return angular.module('entry_list', []).controller('EntryList', function($scope, $rootScope, $http) {
       var har2tpl;
       $scope.filter = {};

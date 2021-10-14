@@ -37,7 +37,7 @@
 
   define(function(require, exports, module) {
     var analyze_cookies, headers, mime_type, post_data, replace_variables, rm_content, sort, utils, xhr;
-    utils = require('/static/utils');
+    utils = require('/static/components/utils');
     xhr = function(har) {
       var entry, h, j, len, ref;
       ref = har.log.entries;

@@ -4,7 +4,7 @@
     var local_host, local_protocol, utils;
     require('/static/har/contenteditable');
     require('/static/har/editablelist');
-    utils = require('/static/utils');
+    utils = require('/static/components/utils');
     local_protocol = window.location.protocol;
     local_host = window.location.host;
     return angular.module('entry_editor', ['contenteditable']).controller('EntryCtrl', function($scope, $rootScope, $sce, $http) {

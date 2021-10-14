@@ -8,7 +8,7 @@ html {
 }
 body {
   margin-bottom: 60px;
-  background: url(body.jpg) repeat-x #FFF;/* 修改-新加-头部图片 */
+  background: url(../img/body.jpg) repeat-x #FFF;/* 修改-新加-头部图片 */
 }
 footer {
   position: absolute;

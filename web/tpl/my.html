@@ -4,12 +4,12 @@
 
 {% block head %}
 {{ super() }}
-<link href="{{ static_url('my.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ static_url('css/my.css') }}" rel="stylesheet" type="text/css">
 {% endblock %}
 
 {% block body %}
 {{ utils.header(current_user) }}
-<script src="/static/misc.js"></script>
+<script src="{{ static_url('components/misc.js') }}"></script>
 <section class="task", id="task section">
   <div class="container">
     <h2>
@@ -227,7 +227,7 @@
     }
   }
 </script>
-<script src="/static/mutil_op.js"></script>
+<script src="{{ static_url('components/mutil_op.js') }}"></script>
 
 <script>
   /**

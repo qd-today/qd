@@ -3,7 +3,7 @@
   define(function(require, exports, module) {
     var analysis, remoteload, utils;
     analysis = require('/static/har/analysis');
-    utils = require('/static/utils');
+    utils = require('/static/components/utils');
     remoteload = function() {
       var each, i, len, ref1;
       ref1 = [/\/har\/edit\/(\d+)/, /\/push\/\d+\/view/, /\/tpl\/\d+\/edit/];
