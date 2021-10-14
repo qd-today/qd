@@ -24,7 +24,8 @@
     "jquery": "~3.6.0",
     "bootstrap": "=3.2.0",
     "seajs": "=2.3.0",
-    "select2": "^4.0.13"
+    "select2": "^4.0.13",
+    "nprogress": "^0.2.0"
   },
   "main": "",
   "license": "MIT",

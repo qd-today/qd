@@ -37,6 +37,38 @@ class SubscribeHandler(BaseHandler):
             now_ts = int(time.time())
             # 如果上次更新时间大于1天则更新模板仓库
             if (now_ts - int(repos['lastupdate']) > 24 * 3600):
+                tpls = self.db.pubtpl.list()
+                self.render('pubtpl_wait.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
+                return
+
+            tpls = self.db.pubtpl.list()
+            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
+
+        except Exception as e:
+            traceback.print_exc()
+            user = self.current_user
+            tpls = self.db.pubtpl.list()
+            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
+            return
+
+class SubscribeUpdatingHandler(BaseHandler):
+    @tornado.web.addslash
+    @tornado.web.authenticated
+    async def get(self, userid):
+        msg = ''
+        user = self.current_user
+        adminflg = False
+        if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+            adminflg = True
+        repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
+        try:
+            if proxies:
+                proxy = random.choice(proxies)
+            else:
+                proxy = {}
+            now_ts = int(time.time())
+            # 如果上次更新时间大于1天则更新模板仓库
+            if (now_ts - int(repos['lastupdate']) > 24 * 3600):
                 for repo in repos['repos']:
                     if repo['repoacc']:
                         url = '{0}@{1}'.format(repo['repourl'].replace('https://github.com/', 'https://cdn.jsdelivr.net/gh/'), repo['repobranch'])
@@ -221,6 +253,7 @@ class unsubscribe_repos_Handler(BaseHandler):
 
 handlers = [
         ('/subscribe/(\d+)/', SubscribeHandler),
+        ('/subscribe/(\d+)/updating/', SubscribeUpdatingHandler),
         ('/subscribe/refresh/(\d+)/', SubscribeRefreshHandler),
         ('/subscribe/signup_repos/(\d+)/', Subscrib_signup_repos_Handler),
         ('/subscribe/unsubscribe_repos/(\d+)/', unsubscribe_repos_Handler),

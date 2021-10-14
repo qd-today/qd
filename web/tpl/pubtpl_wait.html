@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}正在更新公共模板...{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link href="{{ static_url('css/my.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ static_url('components/nprogress/nprogress.css') }}" rel='stylesheet' />
+<script src="{{ static_url('components/nprogress/nprogress.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+{{ utils.header(current_user) }}
+
+<section class="tpl">
+  <div id="error-msg"> {% if msg or msg != '' %}<pre>{{msg}}</pre>{% endif %}</div>
+  <div class="container">
+    <h2>
+      已注册仓库
+    </h2>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="text-align:center" title="注册的仓库名">仓库名</th>
+          <th style="text-align:center" title="注册的仓库连接">链接</th>
+          <th style="text-align:center" title="注册的仓库分支">分支</th>
+          <th style="text-align:center" title="是否对仓库使用加速，仅对github有效">加速</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for repo in repos %}
+        <tr>
+          <td style="text-align:center">{{ repo.reponame }}</td>
+          <td style="text-align:center">
+            <a href="{{ repo.repourl }}" target="_blank">{{ repo.repourl }}</a>
+          </td>
+          <td style="text-align:center">{{ repo.repobranch }}</td>
+          <td style="text-align:center">{% if repo.repoacc %} 开启 {% else %} 关闭 {% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h2>
+      模板
+      <span type="span" class="btn btn-default">
+        <a href="https://github.com/qiandao-today/templates/issues/48" title="求模板链接" target="_blank">求模板</a>
+      </span>
+    </h2>
+    <table border=0 cellpadding=0 cellspacing=0 width="100%">
+        <tr>
+            <form name="loading">
+                <td align=center>
+                    <h3 class="text-center" id="update_loading">正在更新公共模板，请稍候.......</h3><br>
+                    <script>
+                        var bar = 0.0
+                        var finish = false;
+                        update_req();
+                        function count(finish) {
+                            if (finish) { NProgress.done(); window.location.replace("/subscribe/{{ userid }}/"); return; }
+                            bar = bar + 0.01;
+                            NProgress.set(bar);
+                            if (bar < 0.99) { setTimeout("count(finish)", 100); }
+                        }
+                        function update_req() {
+                            NProgress.start();
+                            count(finish);
+                            $.ajax('/subscribe/{{ userid }}/updating/', {
+                                type: 'GET'
+                            })
+                                .done(function () {
+                                    finish = true;
+                                    count(finish)
+                                })
+                                .fail(function () {
+                                    $("#update_loading").html("更新公共模板失败，请刷新重试！").show();
+                                });
+                            return false;
+                        }
+                    </script>
+                </td>
+            </form>
+        </tr>
+    </table>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th style="text-align:center" title="所属仓库">仓库</th>
+          <th style="text-align:center" title="需签到的网站">网站</th>
+          <th style="text-align:center" title="模板作者">作者</th>
+          <th style="text-align:center" title="修改日期">修改日期</th>
+          <th style="text-align:center" title="备注和修改日志">备注/日志</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tpl in tpls | sort(attribute='date', reverse=True)%}
+        <tr>
+          <td style="text-align:center">{{ tpl.reponame }}</td>
+          <td style="text-align:center">{{ tpl.name }}</td>
+          <td style="text-align:center">{{ tpl.author | safe }}</td>
+          <td style="text-align:center">{{ tpl.date | safe }}</td>
+          <td style="text-align:center">{{ tpl.comments | safe }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{{ utils.modal_load() }}
+{% endblock %}
