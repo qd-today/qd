@@ -1,0 +1,5 @@
+.babelrc
+.eslintrc
+.travis.yml
+*,v
+*.bak
