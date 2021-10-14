@@ -267,6 +267,9 @@ class UserRegPushSw(BaseHandler):
 class UserManagerHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, userid):
+        flg = self.get_argument("flg", '')
+        title = self.get_argument("title", '')
+        log = self.get_argument("log", '')
         adminflg = False
         users = []
         user = self.db.user.get(userid, fields=('role'))
@@ -280,7 +283,7 @@ class UserManagerHandler(BaseHandler):
                     user['email_verified'] = True
                 users.append(user)
 
-        self.render("user_manage.html", users=users, userid=userid, adminflg=adminflg)
+        self.render("user_manage.html", users=users, userid=userid, adminflg=adminflg, flg=flg, title=title,log=log)
         return
 
     @tornado.web.authenticated
@@ -329,9 +332,9 @@ class UserManagerHandler(BaseHandler):
         except Exception as e:
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
             return
-            
+        self.render('utils_run_result.html', title='操作成功', flg='success')
         return
 
 class UserDBHandler(BaseHandler):

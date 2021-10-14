@@ -1,10 +1,14 @@
 {% import "utils.html" as utils %}
 <form method="POST" action="/user/{{ userid }}/manage">
-  <script src="{{ static_url('components/blueimp-md5/js/md5.js') }}"></script>
-  <div id="run-result"></div>
   <h2 class="text-center">用户列表</h2>
   <hr>
-  
+
+  <div id="run-result">
+    {% if flg=='success' or flg=='danger' %}
+      {% include "utils_run_result.html" %}
+    {% endif %}
+  </div>
+
   {% if adminflg %}      
   <div id="userlist">
     <table class="table">
@@ -94,7 +98,7 @@
         })
         .done(function(response, status, xhr) {
           if (response.indexOf('alert alert-success text-center') > -1){
-            refresh_modal_load("/user/{{ userid }}/manage")
+            refresh_modal_load("/user/{{ userid }}/manage?flg=success&title=操作成功")
           }else{
             $('#run-result').html(response).show()
           }

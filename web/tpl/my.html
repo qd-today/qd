@@ -16,6 +16,7 @@
       我的签到
       <a href="/task/new" class="btn btn-default btn-xs modal_load glyphicon glyphicon-plus"></a>
       {% if adminflg %}
+      <script src="{{ static_url('components/blueimp-md5/js/md5.js') }}"></script>
       <span type="span" class="btn btn-default">
         <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/manage" title="管理用户">管理用户</a>
       </span>
