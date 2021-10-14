@@ -1,0 +1,34 @@
+{
+  "name": "qiandao",
+  "version": "1.0.0",
+  "description": "qiandao-自动签到框架",
+  "main": "webpack.config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qiandao-today/qiandao.git"
+  },
+  "keywords": [
+    "qiandao"
+  ],
+  "author": "a76yyyy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/qiandao-today/qiandao/issues"
+  },
+  "homepage": "https://github.com/qiandao-today/qiandao#readme",
+  "dependencies": {
+    "net": "^1.0.2",
+    "process": "^0.11.10",
+    "querystring": "^0.2.1",
+    "tough-cookie": "^4.0.0",
+    "url": "^0.11.0",
+    "util": "^0.12.4",
+    "webpack": "^5.58.2"
+  },
+  "devDependencies": {
+    "webpack-cli": "^4.9.0"
+  }
+}
