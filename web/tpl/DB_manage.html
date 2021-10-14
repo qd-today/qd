@@ -2,7 +2,7 @@
 <form method="POST" action="/user/{{ userid }}/database">
   <h2 class="text-center">数据库管理</h2>
   <hr>
-  <script src="/static/md5.js"></script>
+  <script src="{{ static_url('components/blueimp-md5/js/md5.js') }}"></script>
   <script src="/static/download.js"></script>
   <div id="run-result"></div>
 

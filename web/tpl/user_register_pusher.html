@@ -1,7 +1,7 @@
 {% import "utils.html" as utils %}
 <form method="POST" action="/user/{{ userid }}/pushsw">
   <h2 class="text-center">注册推送</h2>
-  <script src="/static/md5.js"></script>
+  <script src="{{ static_url('components/blueimp-md5/js/md5.js') }}"></script>
   <hr>
 
   <div id="run-result"></div>
@@ -79,6 +79,7 @@
         })
         .always(function() {
           $this.button('reset');
+          $this.css("outline","none");
         });
 
         return false;
@@ -92,6 +93,7 @@ $(function() {
       data = {}
       data['adminmail'] = $('#adminmail')[0].value;
       data['adminpwd'] = md5($('#adminpwd')[0].value);
+      $this = $(this);
       $.ajax("/user/{{ userid }}/UserPushShowPvar", {
             type: 'POST',
             data: data,
@@ -103,7 +105,9 @@ $(function() {
             $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
           })
           .always(function() {
-              $this.button('reset');
+            debugger
+            $this.button('reset');
+            $this.css("outline","none");
             });
       return false
     });

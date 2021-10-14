@@ -1,6 +1,6 @@
 {% import "utils.html" as utils %}
 <form method="POST" action="/user/{{ userid }}/manage">
-  <script src="/static/md5.js"></script>
+  <script src="{{ static_url('components/blueimp-md5/js/md5.js') }}"></script>
   <div id="run-result"></div>
   <h2 class="text-center">用户列表</h2>
   <hr>
