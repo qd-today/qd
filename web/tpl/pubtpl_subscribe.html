@@ -47,7 +47,7 @@
           {% endif %}
           <td style="text-align:center">{{ repo.reponame }}</td>
           <td style="text-align:center">
-            <a href="{{ repo.repourl }}" target="_blank">{{ repo.repourl }}</a>
+            <a href="{{ repo.repourl }}" target="_blank" rel="noopener noreferrer">{{ repo.repourl }}</a>
           </td>
           <td style="text-align:center">{{ repo.repobranch }}</td>
           <td style="text-align:center">{% if repo.repoacc %} 开启 {% else %} 关闭 {% endif %}</td>
@@ -66,7 +66,7 @@
       </span>
       {% endif %}
       <span type="span" class="btn btn-default">
-        <a href="https://github.com/qiandao-today/templates/issues/48" title="求模板链接" target="_blank">求模板</a>
+        <a href="https://github.com/qiandao-today/templates/discussions/71" title="求模板链接" target="_blank">求模板</a>
       </span>
     </h2>
     <table class="table table-hover">
@@ -92,7 +92,7 @@
             {% if tpl.commenturl != '' %}
             <div class="btn-group btn-group-xs" role="group" aria-label="...">
               <span type="span" class="btn btn-default">
-                <a href="{{tpl.commenturl}}" target="_blank" id="{{ tpl.name }}" title="跳转到评论区">评论</a>
+                <a href="{{tpl.commenturl}}" target="_blank" id="{{ tpl.name }}" title="跳转到评论区" rel="noopener noreferrer">评论</a>
               </span>
             </div>
             {% endif %}
