@@ -89,7 +89,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                                 obj['request']['url'] = "{0}/{1}".format(url, quote(har['filename']))
                                 _,_,har_res = await gen.convert_yielded(fetcher.build_response(obj, proxy = proxy))
                                 if har_res.code == 200:
-                                    har['content'] = base64.b64encode(res.body).decode()
+                                    har['content'] = base64.b64encode(har_res.body).decode()
                                 else:
                                     msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
                                     continue
