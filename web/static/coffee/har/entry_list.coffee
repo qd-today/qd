@@ -14,8 +14,8 @@ define (require, exports, module) ->
       # on uploaded event
       $rootScope.$on('har-loaded', (ev, data) ->
         console.info(data)
-        global_har = data
-        window.global_har = global_har
+        $scope.data = data
+        window.global_har = $scope.data
         $scope.filename = data.filename
         $scope.har = data.har
         $scope.init_env = data.env
@@ -31,10 +31,10 @@ define (require, exports, module) ->
           $scope.filter.recommend = true
 
         if not $scope.readonly
-          utils.storage.set('har_filename', data.filename)
-          utils.storage.set('har_env', data.env)
+          utils.storage.set('har_filename', $scope.filename)
+          utils.storage.set('har_env', $scope.env)
           if data.upload
-            utils.storage.set('har_har', data.har)
+            utils.storage.set('har_har', $scope.har)
           else
             utils.storage.del('har_har')
       )
@@ -47,7 +47,7 @@ define (require, exports, module) ->
           resortEntryList()
           sortRequest($('#sortBtn')[0])
           utils.storage.set('har_har', $scope.har)
-      ), 1000)
+      ), 1)
 
       $scope.save_change = ()->
         $scope.update_checked_status()
@@ -165,7 +165,11 @@ define (require, exports, module) ->
         alert_info_elem = angular.element('#save-har .alert-info').hide()
         replace_text = 'save?reponame='+HARPATH+'&'+'name='+HARNAME
         $http.post(location.pathname.replace('edit', replace_text), data)
-        .success((data, status, headers, config) ->
+        .then((res) ->
+          data = res.data
+          status = res.status
+          headers = res.headers
+          config = res.config
           utils.storage.del('har_filename')
           utils.storage.del('har_har')
           utils.storage.del('har_env')
@@ -174,8 +178,11 @@ define (require, exports, module) ->
           if pathname != location.pathname
             location.pathname = pathname
           alert_info_elem.text('保存成功').show()
-        )
-        .error((data, status, headers, config) ->
+        ,(res) ->
+          data = res.data
+          status = res.status
+          headers = res.headers
+          config = res.config
           alert_elem.text(data).show()
           save_btn.button('reset')
         )
@@ -190,12 +197,11 @@ define (require, exports, module) ->
         result = angular.element('#test-har .result').hide()
         btn = angular.element('#test-har .btn').button('loading')
         $http.post('/tpl/run', data)
-        .success((data) ->
-          result.html(data).show()
+        .then((res) ->
+          result.html(res.data).show()
           btn.button('reset')
-        )
-        .error((data) ->
-          result.html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(data)
+        ,(res) ->
+          result.html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(res.data)
           btn.button('reset')
         )
     )

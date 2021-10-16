@@ -38,10 +38,20 @@
       };
       $scope.load_remote = function(url) {
         element.find('button').button('loading');
-        return $http.post(url).success(function(data, status, headers, config) {
+        return $http.post(url).then(function(res) {
+          var config, data, headers, status;
+          data = res.data;
+          status = res.status;
+          headers = res.headers;
+          config = res.config;
           element.find('button').button('reset');
           return $scope.loaded(data);
-        }).error(function(data, status, headers, config) {
+        }, function(res) {
+          var config, data, headers, status;
+          data = res.data;
+          status = res.status;
+          headers = res.headers;
+          config = res.config;
           $scope.alert(data);
           return element.find('button').button('reset');
         });
@@ -123,7 +133,7 @@
               env: utils.storage.get('har_env'),
               upload: true
             };
-            if ((old_har.har != null) && old_har.har !== 0) {
+            if (!old_har.har && typeof old_har.har !== "undefined" && old_har.har !== 0) {
               old_har = window.global_har;
             }
             har_file_upload = angular.fromJson(ev.target.result);

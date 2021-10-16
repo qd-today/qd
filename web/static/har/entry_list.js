@@ -10,10 +10,10 @@
       var har2tpl;
       $scope.filter = {};
       $rootScope.$on('har-loaded', function(ev, data) {
-        var global_har, x;
+        var x;
         console.info(data);
-        global_har = data;
-        window.global_har = global_har;
+        $scope.data = data;
+        window.global_har = $scope.data;
         $scope.filename = data.filename;
         $scope.har = data.har;
         $scope.init_env = data.env;
@@ -39,10 +39,10 @@
           $scope.filter.recommend = true;
         }
         if (!$scope.readonly) {
-          utils.storage.set('har_filename', data.filename);
-          utils.storage.set('har_env', data.env);
+          utils.storage.set('har_filename', $scope.filename);
+          utils.storage.set('har_env', $scope.env);
           if (data.upload) {
-            return utils.storage.set('har_har', data.har);
+            return utils.storage.set('har_har', $scope.har);
           } else {
             return utils.storage.del('har_har');
           }
@@ -58,7 +58,7 @@
           sortRequest($('#sortBtn')[0]);
           return utils.storage.set('har_har', $scope.har);
         }
-      }), 1000);
+      }), 1);
       $scope.save_change = function() {
         $scope.update_checked_status();
         return $scope.save_change_storage();
@@ -258,8 +258,12 @@
         alert_elem = angular.element('#save-har .alert-danger').hide();
         alert_info_elem = angular.element('#save-har .alert-info').hide();
         replace_text = 'save?reponame=' + HARPATH + '&' + 'name=' + HARNAME;
-        return $http.post(location.pathname.replace('edit', replace_text), data).success(function(data, status, headers, config) {
-          var pathname;
+        return $http.post(location.pathname.replace('edit', replace_text), data).then(function(res) {
+          var config, headers, pathname, status;
+          data = res.data;
+          status = res.status;
+          headers = res.headers;
+          config = res.config;
           utils.storage.del('har_filename');
           utils.storage.del('har_har');
           utils.storage.del('har_env');
@@ -269,7 +273,12 @@
             location.pathname = pathname;
           }
           return alert_info_elem.text('保存成功').show();
-        }).error(function(data, status, headers, config) {
+        }, function(res) {
+          var config, headers, status;
+          data = res.data;
+          status = res.status;
+          headers = res.headers;
+          config = res.config;
           alert_elem.text(data).show();
           return save_btn.button('reset');
         });
@@ -285,11 +294,11 @@
         };
         result = angular.element('#test-har .result').hide();
         btn = angular.element('#test-har .btn').button('loading');
-        return $http.post('/tpl/run', data).success(function(data) {
-          result.html(data).show();
+        return $http.post('/tpl/run', data).then(function(res) {
+          result.html(res.data).show();
           return btn.button('reset');
-        }).error(function(data) {
-          result.html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(data);
+        }, function(res) {
+          result.html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(res.data);
           return btn.button('reset');
         });
       };

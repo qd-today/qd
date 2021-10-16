@@ -33,9 +33,9 @@ define (require, exports, module) ->
     )
 
     # on show event
-    angular.element('#edit-entry').on('show.bs.modal', (ev) ->
-      $rootScope.$broadcast('har-change')
-    )
+    # angular.element('#edit-entry').on('show.bs.modal', (ev) ->
+    #   $rootScope.$broadcast('har-change')
+    # )
 
     # on saved event
     angular.element('#edit-entry').on('hidden.bs.modal', (ev) ->

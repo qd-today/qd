@@ -37,11 +37,18 @@ define (require, exports, module) ->
       $scope.load_remote = (url) ->
         element.find('button').button('loading')
         $http.post(url)
-        .success((data, status, headers, config) ->
+        .then((res) ->
+          data = res.data
+          status = res.status
+          headers = res.headers
+          config = res.config
           element.find('button').button('reset')
           $scope.loaded(data)
-        )
-        .error((data, status, headers, config) ->
+        ,(res) ->
+          data = res.data
+          status = res.status
+          headers = res.headers
+          config = res.config
           $scope.alert(data)
           element.find('button').button('reset')
         )
@@ -112,7 +119,7 @@ define (require, exports, module) ->
 
             # if !old_har.har && typeof(old_har.har)!="undefined" && old_har.har != 0
             # 优先读取本地保存的，如果没有则读取全局的
-            old_har = window.global_har if old_har.har? and old_har.har != 0
+            old_har = window.global_har if !old_har.har && typeof(old_har.har)!="undefined" && old_har.har != 0
 
             har_file_upload = angular.fromJson(ev.target.result)
             new_har = {}

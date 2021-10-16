@@ -33,9 +33,6 @@
         angular.element('#edit-entry').modal('show');
         return $scope.alert_hide();
       });
-      angular.element('#edit-entry').on('show.bs.modal', function(ev) {
-        return $rootScope.$broadcast('har-change');
-      });
       angular.element('#edit-entry').on('hidden.bs.modal', function(ev) {
         var ref;
         if ((ref = $scope.panel) === 'preview-headers' || ref === 'preview') {
