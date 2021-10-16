@@ -4,7 +4,7 @@
 # Created on 2014-08-03 07:42:45
 
 define (require) ->
-  require '/static/node_components'
+  require '/static/components/node_components'
 
   RegExp.escape = (s) ->
     s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')

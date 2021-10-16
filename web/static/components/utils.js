@@ -2,7 +2,7 @@
 (function() {
   define(function(require) {
     var exports, querystring, tough, url;
-    require('./node_components');
+    require('/static/components/node_components');
     RegExp.escape = function(s) {
       return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
     };

@@ -5,7 +5,7 @@
 
 define (require, exports, module) ->
   analysis = require '/static/har/analysis'
-  utils = require '/static/utils'
+  utils = require '/static/components/utils'
 
   remoteload = () ->
     for each in [/\/har\/edit\/(\d+)/, /\/push\/\d+\/view/, /\/tpl\/\d+\/edit/]

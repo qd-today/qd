@@ -337,6 +337,9 @@
           tmp.childNodes[2].data = ""
         }
       }
+      else {
+        tmp.childNodes[2].data = ""
+      }
     });
   }
 </script>
@@ -356,7 +359,7 @@
     maxIndex = DragIndex;
   };
   function dragstartFunc(ev) {
-    resortEntryList()
+    resortEntryList();
     StartY = parseInt(ev.clientY);
     startIndex = parseInt(ev.srcElement.getAttribute('dragid'));
     currentDragItem = ev.srcElement;
@@ -388,7 +391,8 @@
     }
     
 
-    resortEntryList()
+    resortEntryList();
+    sortRequest($('#sortBtn')[0]);
     currentDragItem = null;
   }
 

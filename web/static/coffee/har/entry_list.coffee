@@ -5,7 +5,7 @@
 
 define (require, exports, module) ->
   analysis = require '/static/har/analysis'
-  utils = require '/static/utils'
+  utils = require '/static/components/utils'
 
   angular.module('entry_list', []).
     controller('EntryList', ($scope, $rootScope, $http) ->
@@ -44,6 +44,8 @@ define (require, exports, module) ->
       $scope.save_change_storage = utils.debounce((() ->
         if ($scope.filename and not $scope.readonly)
           console.debug('local saved')
+          resortEntryList()
+          sortRequest($('#sortBtn')[0])
           utils.storage.set('har_har', $scope.har)
       ), 1000)
 

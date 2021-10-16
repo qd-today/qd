@@ -7,7 +7,7 @@ define (require, exports, module) ->
   require '/static/har/contenteditable'
   require '/static/har/editablelist'
 
-  utils = require '/static/utils'
+  utils = require '/static/components/utils'
   local_protocol = window.location.protocol
   local_host = window.location.host
 
@@ -30,6 +30,11 @@ define (require, exports, module) ->
 
       angular.element('#edit-entry').modal('show')
       $scope.alert_hide()
+    )
+
+    # on show event
+    angular.element('#edit-entry').on('show.bs.modal', (ev) ->
+      $rootScope.$broadcast('har-change')
     )
 
     # on saved event

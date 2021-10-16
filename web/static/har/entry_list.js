@@ -54,6 +54,8 @@
       $scope.save_change_storage = utils.debounce((function() {
         if ($scope.filename && !$scope.readonly) {
           console.debug('local saved');
+          resortEntryList();
+          sortRequest($('#sortBtn')[0]);
           return utils.storage.set('har_har', $scope.har);
         }
       }), 1000);
