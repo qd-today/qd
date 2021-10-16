@@ -1,6 +1,6 @@
 <p align="center">
-   <a href="https://github.com/a76yyyy/qiandao">
-   <img style="border-radius:50%" width="150" src="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/icon.png">
+   <a href="https://github.com/qiandao-today/qiandao">
+   <img style="border-radius:50%" width="150" src="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/icon.png">
    </a>
 </p>
 
@@ -24,18 +24,18 @@
 ![python version][python-version-image] 
 
 
-[HomePage-image]: https://img.shields.io/badge/HomePage-a76yyyy-brightgreen
+[HomePage-image]: https://img.shields.io/badge/HomePage-qiandao--today-brightgreen
 [HomePage-url]: https://qiandao.a76yyyy.cn
-[Github-image]: https://img.shields.io/static/v1?label=Github&message=a76yyyy&color=brightgreen
-[Github-url]: https://github.com/a76yyyy/qiandao/
+[Github-image]: https://img.shields.io/static/v1?label=Github&message=qiandao-today&color=brightgreen
+[Github-url]: https://github.com/qiandao-today/qiandao/
 [Gitee-image]: https://img.shields.io/static/v1?label=Gitee&message=a76yyyy&color=brightgreen
 [Gitee-url]: https://gitee.com/a76yyyy/qiandao/
-[github-license-image]: https://img.shields.io/github/license/a76yyyy/qiandao
-[github-license-url]: https://github.com/a76yyyy/qiandao/blob/main/LICENSE
-[last-commit-image]: https://img.shields.io/github/last-commit/a76yyyy/qiandao
-[last-commit-url]: https://github.com/a76yyyy/qiandao/
-[commit-activity-image]: https://img.shields.io/github/commit-activity/m/a76yyyy/qiandao
-[commit-activity-url]: https://github.com/a76yyyy/qiandao/
+[github-license-image]: https://img.shields.io/github/license/qiandao-today/qiandao
+[github-license-url]: https://github.com/qiandao-today/qiandao/blob/main/LICENSE
+[last-commit-image]: https://img.shields.io/github/last-commit/qiandao-today/qiandao
+[last-commit-url]: https://github.com/qiandao-today/qiandao/
+[commit-activity-image]: https://img.shields.io/github/commit-activity/m/qiandao-today/qiandao
+[commit-activity-url]: https://github.com/qiandao-today/qiandao/
 [docker-version-image]: https://img.shields.io/docker/v/a76yyyy/qiandao?style=flat
 [docker-version-url]: https://hub.docker.com/r/a76yyyy/qiandao/tags?page=1&ordering=last_updated
 [docker-pulls-image]: https://img.shields.io/docker/pulls/a76yyyy/qiandao?style=flat
@@ -44,21 +44,21 @@
 [docker-stars-url]: https://hub.docker.com/r/a76yyyy/qiandao
 [docker-image-size-image]: https://img.shields.io/docker/image-size/a76yyyy/qiandao?style=flat
 [docker-image-size-url]: https://hub.docker.com/r/a76yyyy/qiandao
-[repo-size-image]: https://img.shields.io/github/repo-size/a76yyyy/qiandao
-[python-version-image]: https://img.shields.io/github/pipenv/locked/python-version/a76yyyy/qiandao
-[workflow-image]: https://github.com/a76yyyy/qiandao/actions/workflows/Build%20Image.yml/badge.svg
-[workflow-url]: https://github.com/a76yyyy/qiandao/actions/workflows/Build%20Image.yml
+[repo-size-image]: https://img.shields.io/github/repo-size/qiandao-today/qiandao
+[python-version-image]: https://img.shields.io/github/pipenv/locked/python-version/qiandao-today/qiandao
+[workflow-image]: https://github.com/qiandao-today/qiandao/actions/workflows/Build%20Image.yml/badge.svg
+[workflow-url]: https://github.com/qiandao-today/qiandao/actions/workflows/Build%20Image.yml
 
 </div>
 
 <p align="center">
-   <img width="45%" style="border:solid 1px #DCEBFB" src="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/login.png" >
-   <img width="45%" style="border:solid 1px #DCEBFB" src="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/index.png">
+   <img width="45%" style="border:solid 1px #DCEBFB" src="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/login.png" >
+   <img width="45%" style="border:solid 1px #DCEBFB" src="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/index.png">
 </p>
 
 操作说明
 ==========
-<a href="https://github.com/a76yyyy/qiandao/blob/master/docs/har-howto.md">HAR editor 使用指南</a>
+<a href="https://github.com/qiandao-today/qiandao/blob/master/docs/har-howto.md">HAR editor 使用指南</a>
 
 **操作前请一定要记得备份数据库**
 
@@ -89,7 +89,7 @@
 
    ```docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@hostname:port/数据库名 a76yyyy/qiandao ```
 
-6. 其余可参考 Wiki : <a href="https://github.com/a76yyyy/qiandao/blob/master/docs/Docker-howto.md">Docker部署签到站教程</a>
+6. 其余可参考 Wiki : <a href="https://github.com/qiandao-today/qiandao/blob/master/docs/Docker-howto.md">Docker部署签到站教程</a>
 
 7. DockerHub : [介绍](http://mirrors.ustc.edu.cn/help/dockerhub.html)
 
@@ -164,7 +164,7 @@ DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
 JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 mysql://用户名:密码@hostname:port/数据库名
 REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时, <br>设置为 http://rediscloud:密码@hostname:port
 REDIS_DB_INDEX|否|1|默认为1
-PUSH_PIC_URL|否|<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png">push_pic.png</a>|默认为<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png">push_pic.png</a>
+PUSH_PIC_URL|否|<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png">push_pic.png</a>|默认为<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png">push_pic.png</a>
 ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS, <br>非程序使用HTTPS, 需要HTTPS需要使用反向代理
 DOMAIN|否|qiandao.today|指定访问域名, <br>建议修改, 否则邮件重置密码等功能无效
 MAIL_SMTP|否|""|邮箱SMTP服务器
@@ -181,10 +181,10 @@ USE_PYCURL|否|True|是否启用Pycurl模组
 ALLOW_RETRY|否|True|在Pycurl环境下部分请求可能导致Request错误时, <br>自动修改冲突设置并重发请求
 CURL_ENCODING|否|True|是否允许使用Curl进行Encoding操作
 CURL_CONTENT_LENGTH|否|True|是否允许Curl使用Headers中自定义Content-Length请求
-NOT_RETRY_CODE|否|<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/config.py">详见配置</a>...|<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/config.py">详见配置</a>...
-EMPTY_RETRY|否|True|<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/config.py">详见配置</a>...
+NOT_RETRY_CODE|否|<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py">详见配置</a>...|<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py">详见配置</a>...
+EMPTY_RETRY|否|True|<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py">详见配置</a>...
 
-> 详细信息请查阅<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/config.py">config.py</a>
+> 详细信息请查阅<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py">config.py</a>
 
 ## 旧版local_config.py迁移
 |  Line  |  Delete  |  Modify  |
@@ -229,7 +229,7 @@ sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程
 
 ## 2021.09.28 更新
 1. 更新并优化fetcher脚本
-2. 更新输入提示(by [cxk000](https://github.com/a76yyyy/qiandao/commits?author=ckx000))
+2. 更新输入提示(by [cxk000](https://github.com/qiandao-today/qiandao/commits?author=ckx000))
 3. 修复{{unicode(arg)}}不能正常转换unicode的bug
 4. 修复重复添加'|urlencode'的bug
 5. 优化fetcher重试逻辑
@@ -662,11 +662,11 @@ ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1;
 
 [a76yyyy/qiandao](https://github.com/a76yyyy/qiandao) 
 
-<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/version.json">……</a>
+<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/version.json">……</a>
 
 个人项目精力有限, 仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request。
 
 许可
 ===========
 
-<a href="https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/LICENSE">MIT</a>
+<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/LICENSE">MIT</a>
