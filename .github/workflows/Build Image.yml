@@ -10,7 +10,7 @@ jobs:
             uses: actions/checkout@master
           - name: Get version
             id: get_version
-            if: startsWith(github.ref, 'refs/tags/') && startsWith(github.repository, 'qiandao-today/qiandao'
+            if: startsWith(github.ref, 'refs/tags/') && startsWith(github.repository, 'qiandao-today/qiandao')
             run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
           - name: Build and publish image
             uses: ilteoood/docker_buildx@master
