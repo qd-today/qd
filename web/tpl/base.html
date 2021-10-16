@@ -1,102 +1,111 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="utf-8">
-    <title>{% block title %}签到{% endblock %}</title>
-    <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
 
-    <meta name="description" content="{% block desc %}帮你每日签到，每天打卡！{% endblock %}">
-    <meta name="author" content="{% block author %}binux{% endblock %}">
-    <link rel="icon" type="image/png" href="{{ static_url('img/icon.png') }}">
-	
-	<meta name="description" content="WEB自动化HAR重放工具" />
-    <meta name="Keywords" content="HAR,WEB,自动化,应用,APP,Windows,Mac,Android,iOS,iPhone,手机,科技,重放,签到,qiandao,https" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="签到框架" />
-    <meta property="og:title" content="签到框架" />
-    <meta property="og:url" content="https://192.168.1.5:59595" />
-    <meta property="og:description" content="WEB自动化" />
-    <meta property="og:locale" content="zh_CN" />
-    <meta property="og:image" content="{{ static_url('img/200.png') }}" />
-    <link rel="icon" type="image/png" href="{{ static_url('img/16.png') }}" sizes="16x16" />
-    <link rel="icon" type="image/png" href="{{ static_url('img/32.png') }}" sizes="32x32" />
-    <link rel="icon" type="image/png" href="{{ static_url('img/96.png') }}" sizes="96x96" />
-    <link rel="icon" type="image/png" sizes="128x128" href="{{ static_url('img/128.png') }}" />
-    <link rel="icon" type="image/png" sizes="192x192" href="{{ static_url('img/192.png') }}" />
-    <meta name="apple-mobile-web-app-title" content="签到框架" />
-    <link rel="apple-touch-icon" href="{{ static_url('img/180.png') }}" />
-    <link rel="apple-touch-icon" sizes="152x152" href="{{ static_url('img/152.png') }}" />
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ static_url('img/180.png') }}" />
-    <link rel="apple-touch-icon" sizes="167x167" href="{{ static_url('img/167.png') }}" />
-    <link rel="apple-touch-icon" sizes="120x120" href="{{ static_url('img/120.png') }}" />
-    <link rel="apple-touch-icon-precomposed" sizes="180x180" href="{{ static_url('img/180.png') }}" />	
-    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script> 
-	
-    <script src="{{ static_url('components/seajs/dist/sea.js') }}"></script>
-    <script>
-      seajs.config({
-        base: "/static",
-      })
-      console = console || {};
-      console.log = console.log || function(){};
-      console.debug = console.debug || function(){};
-      console.info = console.info || function(){};
-      console.error = console.error || function(){};
-    </script>
-    {% block head %}
-    <link href="{{ static_url('components/bootstrap/dist/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
-    <script src="{{ static_url('components/jquery/dist/jquery.min.js') }}"></script>
-    <link href="{{ static_url('components/select2/dist/css/select2.min.css') }}" rel="stylesheet" />
-    <script src="{{ static_url('components/select2/dist/js/select2.full.min.js') }}"></script>
-    <script src="{{ static_url('components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
-    <link href="{{ static_url('css/base.css') }}" rel="stylesheet" type="text/css">
-    {% endblock %}
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}签到{% endblock %}</title>
+  <!--[if lt IE 9]>
+          <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
 
-    {% import "utils.html" as utils %}
-  </head>
+  <meta name="description" content="{% block desc %}帮你每日签到，每天打卡！{% endblock %}">
+  <meta name="author" content="{% block author %}binux{% endblock %}">
+  <link rel="icon" type="image/png" href="{{ static_url('img/icon.png') }}">
 
-  <body>
-<script>
-  var clipboard = new ClipboardJS('.btn');
-var cur;
-clipboard.on('success', function(e) {
+  <meta name="description" content="WEB自动化HAR重放工具" />
+  <meta name="Keywords" content="HAR,WEB,自动化,应用,APP,Windows,Mac,Android,iOS,iPhone,手机,科技,重放,签到,qiandao,https" />
+  <meta name="viewport" content="user-scalable=1">
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="签到框架" />
+  <meta property="og:title" content="签到框架" />
+  <meta property="og:url" content="https://192.168.1.5:59595" />
+  <meta property="og:description" content="WEB自动化" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta property="og:image" content="{{ static_url('img/200.png') }}" />
+  <link rel="icon" type="image/png" href="{{ static_url('img/16.png') }}" sizes="16x16" />
+  <link rel="icon" type="image/png" href="{{ static_url('img/32.png') }}" sizes="32x32" />
+  <link rel="icon" type="image/png" href="{{ static_url('img/96.png') }}" sizes="96x96" />
+  <link rel="icon" type="image/png" sizes="128x128" href="{{ static_url('img/128.png') }}" />
+  <link rel="icon" type="image/png" sizes="192x192" href="{{ static_url('img/192.png') }}" />
+  <meta name="apple-mobile-web-app-title" content="签到框架" />
+  <link rel="apple-touch-icon" href="{{ static_url('img/180.png') }}" />
+  <link rel="apple-touch-icon" sizes="152x152" href="{{ static_url('img/152.png') }}" />
+  <link rel="apple-touch-icon" sizes="180x180" href="{{ static_url('img/180.png') }}" />
+  <link rel="apple-touch-icon" sizes="167x167" href="{{ static_url('img/167.png') }}" />
+  <link rel="apple-touch-icon" sizes="120x120" href="{{ static_url('img/120.png') }}" />
+  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="{{ static_url('img/180.png') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script>
+
+  <script src="{{ static_url('components/seajs/dist/sea.js') }}"></script>
+  <script>
+    seajs.config({
+      base: "/static",
+    })
+    console = console || {};
+    console.log = console.log || function () { };
+    console.debug = console.debug || function () { };
+    console.info = console.info || function () { };
+    console.error = console.error || function () { };
+  </script>
+  {% block head %}
+  <link href="{{ static_url('components/bootstrap/dist/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
+  <script src="{{ static_url('components/jquery/dist/jquery.min.js') }}"></script>
+  <link href="{{ static_url('components/select2/dist/css/select2.min.css') }}" rel="stylesheet" />
+  <script src="{{ static_url('components/select2/dist/js/select2.full.min.js') }}"></script>
+  <script src="{{ static_url('components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
+  <link href="{{ static_url('css/base.css') }}" rel="stylesheet" type="text/css">
+  {% endblock %}
+
+  {% import "utils.html" as utils %}
+</head>
+
+<body>
+  <script>
+    var clipboard = new ClipboardJS('.btn');
+    var cur;
+    clipboard.on('success', function (e) {
       //onsole.info('Action:', e.action);
       //onsole.info('Text:', e.text);
       //console.info('Trigger:', e.trigger);
       e.clearSelection();
-      cur=e.trigger;
-      cur.innerHTML="复制成功";
-      setTimeout(function(){cur.innerHTML="复制";
+      cur = e.trigger;
+      cur.innerHTML = "复制成功";
+      setTimeout(function () {
+        cur.innerHTML = "复制";
       }, 1000);
-});
-clipboard.on('error', function(e) {
+    });
+    clipboard.on('error', function (e) {
 
       console.error('Action:', e.action);
       console.error('Trigger:', e.trigger);
-});
-</script>
-    {% block body %}{% endblock %}
-    {% block foot %}
-    <footer>
-	<hr>
-      <div class="container">
-        <p class="text-center">源代码: <a href="https://github.com/a76yyyy/qiandao/" target="_blank" style="color: #000000;">qiandao</a>| Powered by <a href="http://binux.me/" target="_blank" style="color: #000000;">Binux</a> | Theme by <a href="http://www.quchao.net/" target="_blank" style="color: #000000;">Mark</a> © 2021.</p>
-		</div>
-    </footer>
-    {% endblock %}
-    {% if config.ga_key %}
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    });
+  </script>
+  {% block body %}{% endblock %}
+  {% block foot %}
+  <footer>
+    <hr>
+    <div class="container">
+      <p class="text-center">源代码: <a href="https://github.com/a76yyyy/qiandao/" target="_blank"
+          style="color: #000000;">qiandao</a>| Powered by <a href="http://binux.me/" target="_blank"
+          style="color: #000000;">Binux</a> | Theme by <a href="http://www.quchao.net/" target="_blank"
+          style="color: #000000;">Mark</a> © 2021.</p>
+    </div>
+  </footer>
+  {% endblock %}
+  {% if config.ga_key %}
+  <script>
+    (function (i, s, o, g, r, a, m) {
+      i['GoogleAnalyticsObject'] = r; i[r] = i[r] || function () {
+        (i[r].q = i[r].q || []).push(arguments)
+      }, i[r].l = 1 * new Date(); a = s.createElement(o),
+        m = s.getElementsByTagName(o)[0]; a.async = 1; a.src = g; m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
 
-      ga('create', '{{ config.ga_key }}', 'auto');
-      ga('send', 'pageview');
-    </script>
-    {% endif %}
-  </body>
+    ga('create', '{{ config.ga_key }}', 'auto');
+    ga('send', 'pageview');
+  </script>
+  {% endif %}
+</body>
+
 </html>
 <!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: -->
