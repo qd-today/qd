@@ -20,7 +20,7 @@
   "dependencies": {
     "blueimp-md5": "^2.19.0",
     "js-base64": "^3.7.2",
-    "angular": "~1.5.11",
+    "angular": "~1.8.2",
     "jquery": "~3.6.0",
     "bootstrap": "=3.2.0",
     "seajs": "=2.3.0",
