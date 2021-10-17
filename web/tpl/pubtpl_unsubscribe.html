@@ -1,0 +1,70 @@
+<form method="POST" action="/subscribe/unsubscribe_repos/{{userid}}/">
+  <h2 class="text-center">退订仓库</h2>
+  <hr>
+  <div id="run-result"></div>
+  <script>
+    var selectedrepos = {};
+    debugger
+    if (typeof (sessionStorage.selectedrepo) != "undefined") {
+      selectedrepos = JSON.parse(sessionStorage['selectedrepo'])
+      NProgress.start();
+      NProgress.inc();
+      $.ajax("/subscribe/{{user.id}}/get_reposinfo", {
+        type: 'POST',
+        data: selectedrepos,
+      })
+        .done(function (data) {
+          $('#repotable').html(data).show()
+        })
+        .fail(function (jxhr) {
+          $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+        })
+        .always(function () { NProgress.done(); })
+    } else {
+      $('#run-result').html('<h1 class="alert alert-danger text-center">FAIL</h1><div class="well"></div>').show().find('div').text('请选择要退订的仓库');
+    }
+  </script>
+  {% if current_user %}
+  <div id="repotable"></div>
+  <div class="text-right">
+    <button id="unsubscribe" name="unsubscribe" type="button" data-loading-text="loading..."
+      class="btn btn-primary">退订</button>
+  </div>
+  <script>
+    $(function () {
+      $('#unsubscribe').on('click', function () {
+        NProgress.start();
+        data = {
+          selectedrepos: JSON.stringify(selectedrepos)
+        }
+        var $this = $(this);
+        $this.button('loading');
+        NProgress.inc();
+        $.ajax("/subscribe/unsubscribe_repos/{{user.id}}/", {
+          type: 'POST',
+          data: data,
+        })
+          .done(function (data) {
+            $('#run-result').html(data).show()
+          })
+          .fail(function (jxhr) {
+            $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+          })
+          .always(function () {
+            $this.button('reset');
+            NProgress.inc();
+            if (typeof (sessionStorage.selectedrepo) != "undefined") {
+              sessionStorage.removeItem('selectedrepo')
+            }
+          });
+        NProgress.done();
+        return false;
+      });
+      $('#modal_load').on('hide.bs.modal',
+        function () {
+          location.reload();
+        })
+    });
+  </script>
+  {% endif %}
+</form>

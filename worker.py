@@ -93,7 +93,7 @@ class MainWorker(object):
                     failed += 1
         except Exception as e:
             logging.exception(e)
-        raise gen.Return((success, failed))
+        return (success, failed)
 
     scan_fields = ('id', 'tplid', 'userid', 'init_env', 'env', 'session', 'retry_count', 'retry_interval', 'last_success', 'last_failed', 'success_count', 'failed_count', 'last_failed_count', 'next', 'disabled', )
     def scan(self):

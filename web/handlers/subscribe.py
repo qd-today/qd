@@ -192,6 +192,7 @@ class Subscrib_signup_repos_Handler(BaseHandler):
                     else:
                         tmp.append(env)
                         repos['repos'] = tmp
+                        repos["lastupdate"] = 0
                         self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
                 else:
                     raise Exception('仓库名/url/分支不能为空')
@@ -203,10 +204,50 @@ class Subscrib_signup_repos_Handler(BaseHandler):
             self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
-        self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')
+        self.render('utils_run_result.html', log=u'设置成功，请关闭操作对话框或刷新页面查看', title=u'设置成功', flg='success')
+        return
+
+class GetReposInfoHandler(BaseHandler):
+    @tornado.web.authenticated
+    def post(self, userid):
+        try:
+            user = self.current_user
+            if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+                envs = {}
+                for key in self.request.body_arguments:
+                    envs[key] = self.get_body_arguments(key)
+                tmp = json.loads(self.db.site.get(1, fields=('repos'))['repos'])['repos']
+                repos = []
+                for repoid, selected  in envs.items():
+                    if isinstance(selected[0],bytes):
+                        selected[0] = selected[0].decode()
+                    if (selected[0] == 'true'):
+                        repos.append(tmp[int(repoid)])
+            else:
+                raise Exception('非管理员用户，不可查看')
+        except Exception as e:
+            traceback.print_exc()
+            self.render('utils_run_result.html', log=str(e), title=u'获取信息失败', flg='danger')
+            return
+
+        self.render('pubtpl_reposinfo.html',  repos=repos)
         return
 
 class unsubscribe_repos_Handler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, userid):
+        try:
+            user = self.current_user
+            if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+                self.render('pubtpl_unsubscribe.html', user=user)
+            else:
+                raise Exception('非管理员用户，不可设置')
+            return
+        except Exception as e:
+            traceback.print_exc()
+            self.render('utils_run_result.html', log=str(e), title=u'打开失败', flg='danger')
+            return
+    
     @tornado.web.authenticated
     def post(self, userid):
         try:
@@ -217,29 +258,23 @@ class unsubscribe_repos_Handler(BaseHandler):
                     envs[key] = self.get_body_arguments(key)
                 env = {}
                 for k, v  in envs.items():
-                    env[k] = v[0]
-
-                if (env['reponame'] != ''):
-                    repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
-                    tmp = repos['repos']
-                    inflg = False
-                    repoindex = 99
+                    try:
+                        env[k] = json.loads(v[0])
+                    except:
+                        env[k] = v[0]
+                repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
+                tmp = repos['repos']
+                result = []
+                for i, j  in enumerate(tmp):
                     # 检查是否存在同名仓库
-                    for i in range(0, len(tmp)):
-                        if tmp[i]['reponame'] == env['reponame']:
-                            repoindex = i
-                            del tmp[repoindex]
-                            repos['repos'] = tmp
-                            pubtpls = self.db.pubtpl.list(reponame=env['reponame'], fields=('id'))
-                            for pubtpl in pubtpls:
-                                self.db.pubtpl.delete(pubtpl['id'])
-                            self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
-                            break
+                    if not env['selectedrepos'].get(str(i),False) :
+                        result.append(j)
                     else:
-                        raise Exception('不存在此仓库')
-
-                else:
-                    raise Exception('仓库名不能为空')
+                        pubtpls = self.db.pubtpl.list(reponame=j['reponame'], fields=('id'))
+                        for pubtpl in pubtpls:
+                            self.db.pubtpl.delete(pubtpl['id'])
+                repos['repos'] = result
+                self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
             else:
                 raise Exception('非管理员用户，不可设置')
 
@@ -248,7 +283,7 @@ class unsubscribe_repos_Handler(BaseHandler):
             self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
-        self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')
+        self.render('utils_run_result.html', log=u'设置成功，请关闭操作对话框或刷新页面查看', title=u'设置成功', flg='success')
         return
 
 handlers = [
@@ -256,6 +291,7 @@ handlers = [
         ('/subscribe/(\d+)/updating/', SubscribeUpdatingHandler),
         ('/subscribe/refresh/(\d+)/', SubscribeRefreshHandler),
         ('/subscribe/signup_repos/(\d+)/', Subscrib_signup_repos_Handler),
+        ('/subscribe/(\d+)/get_reposinfo', GetReposInfoHandler),
         ('/subscribe/unsubscribe_repos/(\d+)/', unsubscribe_repos_Handler),
         ]
 

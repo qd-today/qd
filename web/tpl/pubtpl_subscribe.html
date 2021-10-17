@@ -19,13 +19,17 @@
       <span type="span" class="btn btn-default"> 
         <a data-load-method="GET" class="modal_load"  href="/subscribe/signup_repos/{{userid}}/" title="注册模板仓库">注册</a>       
       </span>
+      <span type="span" class="btn btn-default"> 
+        <a data-load-method="GET" class="modal_load"  href="/subscribe/unsubscribe_repos/{{userid}}/" title="取消注册此仓库">退订</a>       
+      </span>
       {% endif %}
     </h2>
     <table class="table table-hover">
       <thead>
         <tr>
           {% if adminflg %}
-          <th style="text-align:center" title="仓库操作区">操作</th>
+          <th style="text-align:center" title="操作">操作</th>
+          <th style="text-align:center" title="仓库序号">序号</th>
           {% endif %}
           <th style="text-align:center" title="注册的仓库名">仓库名</th>
           <th style="text-align:center" title="注册的仓库连接">链接</th>
@@ -38,11 +42,14 @@
         <tr>
           {% if adminflg %}
           <td style="text-align:center">
-            {% if repo.reponame != 'default'%}
-            <div class="btn-group btn-group-xs" role="group" aria-label="...">
-                <button  type="button" class="btn btn-default btn-sm" name="unsubscribe_{{repo.reponame}}" title="取消注册此仓库" onclick="unsubscribe_repo('{{repo.reponame}}')">退订</input>
-            </div>
+            {% if repo.reponame == 'default'%}
+            <input type="checkbox"  name="{{loop.index0}}" class="Repo checkbox" style="display: inline; min-height: unset;" disabled=true>
+            {% else %}
+            <input type="checkbox"  name="{{loop.index0}}" class="Repo checkbox" style="display: inline; min-height: unset;" onclick="repoNode.toggle(this)">
             {% endif %}
+          </td>
+          <td style="text-align:center">
+            {{loop.index0}}
           </td>
           {% endif %}
           <td style="text-align:center">{{ repo.reponame }}</td>
@@ -118,27 +125,102 @@
   })
 </script>
 <script>
- function unsubscribe_repo(name) {
-   data = {
-    reponame: name
-   }
-   $.ajax("/subscribe/unsubscribe_repos/{{userid}}/", {
-          type: 'POST',
-          data: data,
-        })
-        .done(function(data) {
-         $('#error-msg').html(data).show()
-        
-        })
-        .fail(function(jxhr) {
-          $('#error-msg').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
-        })
-        .always(function() {
-          $this.button('reset');
-        });
+  const repoNode = {
+    selectedRepoNodesJSON: '{}',
 
-        return false;
- }
+    get selectedRepoNodes() {
+      return this.getSelectedRepoNodes()
+    },
+
+    set selectedRepoNodes(val) {
+      this.setSelectedRepoNodes(val)
+    },
+
+    getSelectedRepoNodes: function(){
+      if(this.selectedRepoNodesJSON == '{}'){
+        if (typeof(sessionStorage.selectedrepo) != "undefined"){
+          this.selectedRepoNodesJSON = sessionStorage.selectedrepo
+        }
+      }
+      return JSON.parse(this.selectedRepoNodesJSON)
+    },
+
+    setSelectedRepoNodes: function(val){
+      this.selectedRepoNodesJSON = JSON.stringify(val)
+      sessionStorage.selectedrepo=JSON.stringify(val)
+    },
+
+    toggle: function(repoNode, uncheck) {
+      let _selectedRepoNodes = this.selectedRepoNodes
+      _selectedRepoNodes[repoNode.name] =repoNode.checked
+      this.selectedRepoNodes = _selectedRepoNodes
+      if(!uncheck) {
+        (typeof setRepoGroupChecked == 'function') && setRepoGroupChecked(repoNode.className)
+      }
+    },
+
+
+    init: function() {
+      let _selectedRepoNodes = this.selectedRepoNodes
+      let _classNames= {}
+      for (let key in _selectedRepoNodes){
+        let reponodes = document.getElementsByName(key);
+        if (reponodes.length > 0){
+          reponodes[0].checked = _selectedRepoNodes[key]
+          // 将已选中的reponode的className 存储在_classNames中
+          if(_selectedRepoNodes[key]) {
+            _classNames[reponodes[0].className] = true
+          }
+        }
+      }
+
+      for(let key in _classNames){
+        (typeof setRepoGroupChecked == 'function') && setRepoGroupChecked(key)
+      }
+    }
+
+  }
+
+  /**
+   *  修改全选按钮样式
+   *  在repoNode.init()之前加载
+   * 
+   **/
+   function setRepoGroupChecked(className){
+    let _eles = document.getElementsByName(className)
+    let _nodeGroupChecked
+    for(let i=0; i<_eles.length; i++) {
+      if(_eles[i].nodeName.toLowerCase() == 'input' &&
+        _eles[i].getAttribute('type') == 'checkbox'
+      ){
+        _nodeGroupChecked = _eles[i]
+      }
+    }
+    if(typeof _nodeGroupChecked == 'undefined') return;
+    let _checkedNum = 0
+    const _repoNodes = document.getElementsByClassName(className)
+
+    for(key in _repoNodes) {
+      if(_repoNodes[key].checked == true) {
+        _checkedNum++
+      }
+    }
+
+    if(_checkedNum == _repoNodes.length) {
+      _nodeGroupChecked.indeterminate = false;
+      _nodeGroupChecked.checked = true;
+    }else if(_checkedNum > 0) {
+      _nodeGroupChecked.indeterminate = true;
+      _nodeGroupChecked.checked = false;
+    }else {
+      _nodeGroupChecked.indeterminate = false;
+      _nodeGroupChecked.checked = false;
+    }
+  }
+
+  // 页面加载后初始化
+  repoNode.init()
+
 </script>
 {% endif %}
 

@@ -1,0 +1,18 @@
+<table class="table table-hover">
+    <thead>
+      <tr>
+        <th style="text-align:center" title="仓库名">仓库名</th>
+        <th style="text-align:center" title="仓库分支">仓库分支</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for repo in repos %}
+      <tr>
+        <td style="text-align:center">
+          <a href="{{ repo.repourl }}" target="_blank" rel="noopener noreferrer">{{ repo.reponame }}</a>
+        </td>
+        <td style="text-align:center">{{ repo.repobranch }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>

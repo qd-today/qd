@@ -52,6 +52,10 @@
 
         return false;
       });
-    })
+      $('#modal_load').on('hide.bs.modal',
+        function () {
+          location.reload();
+        })
+    });
 </script>
 </form>
