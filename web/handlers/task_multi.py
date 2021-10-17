@@ -121,7 +121,7 @@ class TaskMultiOperateHandler(BaseHandler):
             self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
-        self.render('utils_run_result.html', log=u'设置成功，请手动刷新页面查看', title=u'设置成功', flg='success')
+        self.render('utils_run_result.html', log=u'设置成功，请关闭操作对话框或刷新页面查看', title=u'设置成功', flg='success')
         return
 
 class GetTasksInfoHandler(BaseHandler):

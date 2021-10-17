@@ -9,6 +9,8 @@
     var selectedtasks = {};
     if (typeof(sessionStorage.selectedtask) != "undefined") {
       selectedtasks = JSON.parse(sessionStorage['selectedtask'])
+      NProgress.start();
+      NProgress.inc();
       $.ajax("/task/{{user.id}}/get_tasksinfo", {
             type: 'POST',
             data: selectedtasks,
@@ -19,6 +21,7 @@
           .fail(function(jxhr) {
             $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
           })
+          .always(function () { NProgress.done(); })
     } else {
       $('#run-result').html('请选择任务').show()
     }
@@ -100,6 +103,7 @@
     $('#submitbtn').on('click', function() {
       var data = {};
       var tasktype = "{{tasktype}}";
+      NProgress.start();
       data['selectedtasks'] = JSON.stringify(selectedtasks);
 
       if (tasktype == 'setgroup'){
@@ -117,7 +121,7 @@
         }
         data['setgroup'] = JSON.stringify(setgrouptmp);
       }
-
+      NProgress.inc();
       if (tasktype == 'settime') {
         var settime_tmp = {
           'ontime_method' : $('#ontime_method')[0].value,
@@ -129,9 +133,9 @@
           'cron_sec' : $('#cron_sec')[0].value,
         }
         data['settime'] = JSON.stringify(settime_tmp);
-        debugger;
       }
 
+      NProgress.inc();
       var $this = $(this);
       $this.button('loading');
       $.ajax("/task/{{user.id}}/multi?op={{tasktype}}", {
@@ -145,6 +149,7 @@
         $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
       })
       .always(function() {
+        NProgress.done();
         $this.button('reset');
       });
 
