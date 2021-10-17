@@ -9,15 +9,17 @@
 <script src="{{ static_url('components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
 <script src="{{ static_url('components/angular/angular.min.js') }}"></script>
 <script src="{{ static_url('components/js-base64/base64.js') }}"></script>
+<link href="{{ static_url('components/nprogress/nprogress.css') }}" rel='stylesheet' />
+<script src="{{ static_url('components/nprogress/nprogress.js') }}"></script>
 {% endblock %}
 
 {% block body %}
 <script>
-  TPLID={{ tplid or 0 }};
-  HASUSER={{ 1 if current_user else 0 }};
+  TPLID = {{ tplid or 0 }};
+  HASUSER = {{ 1 if current_user else 0 }};
   HARPATH = "{{ harpath }}";
   HARNAME = "{{ harname }}";
-  HARDATA= "{{ hardata }}";
+  HARDATA = "{{ hardata }}";
 </script>
 
 <script src="https://cdn.jsdelivr.net/gh/XboxYan/draggable-polyfill@master/lib/draggable-polyfill.js"></script>

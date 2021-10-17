@@ -451,7 +451,9 @@
       };
       return $scope.do_test = function() {
         var c, h, ref, ref1;
+        NProgress.start();
         angular.element('.do-test').button('loading');
+        NProgress.inc();
         $http.post('/har/test', {
           request: {
             method: $scope.entry.request.method,
@@ -498,8 +500,13 @@
             variables: utils.list2dict($scope.env),
             session: $scope.session
           }
-        }).success(function(data, status, headers, config) {
-          var ref, ref1;
+        }).then(function(res) {
+          var config, data, headers, ref, ref1, status;
+          NProgress.inc();
+          data = res.data;
+          status = res.status;
+          headers = res.headers;
+          config = res.config;
           angular.element('.do-test').button('reset');
           if (status !== 200) {
             $scope.alert(data);
@@ -511,16 +518,24 @@
           $scope.session = data.env.session;
           $scope.panel = 'preview';
           if (((ref = data.har.response) != null ? (ref1 = ref.content) != null ? ref1.text : void 0 : void 0) != null) {
-            return setTimeout((function() {
+            setTimeout((function() {
               return angular.element('.panel-preview iframe').attr("src", "data:" + data.har.response.content.mimeType + ";base64," + data.har.response.content.text);
             }), 0);
           }
-        }).error(function(data, status, headers, config) {
+          return NProgress.done();
+        }, function(res) {
+          var config, data, headers, status;
+          data = res.data;
+          status = res.status;
+          headers = res.headers;
+          config = res.config;
           angular.element('.do-test').button('reset');
-          console.error('error', data, status, headers, config);
-          return $scope.alert(data);
+          console.error('Error_Message', res);
+          $scope.alert(data || res.statusText || 'net::ERR_CONNECTION_REFUSED');
+          return NProgress.done();
         });
-        return $scope.preview_match = function(re, from) {
+        NProgress.inc();
+        $scope.preview_match = function(re, from) {
           var content, data, error, header, i, len, m, match, ref2, ref3, result, tmp;
           data = null;
           if (!from) {
@@ -603,7 +618,9 @@
             }
             return null;
           }
+          return NProgress.inc();
         };
+        return NProgress.inc();
       };
     });
   });

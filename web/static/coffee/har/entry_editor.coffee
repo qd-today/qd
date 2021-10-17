@@ -430,7 +430,9 @@ define (require, exports, module) ->
 
     # fetch test
     $scope.do_test = () ->
+      NProgress.start()
       angular.element('.do-test').button('loading')
+      NProgress.inc()
       $http.post('/har/test', {
         request:
           method: $scope.entry.request.method
@@ -446,8 +448,12 @@ define (require, exports, module) ->
         env:
           variables: utils.list2dict($scope.env)
           session: $scope.session
-      }).
-      success((data, status, headers, config) ->
+      }).then((res) ->
+        NProgress.inc()
+        data = res.data
+        status = res.status
+        headers = res.headers
+        config = res.config
         angular.element('.do-test').button('reset')
         if (status != 200)
           $scope.alert(data)
@@ -464,13 +470,19 @@ define (require, exports, module) ->
             angular.element('.panel-preview iframe').attr("src",
               "data:#{data.har.response.content.mimeType};\
               base64,#{data.har.response.content.text}")), 0)
-      ).
-      error((data, status, headers, config) ->
+        NProgress.done()
+      ,(res) ->
+        data = res.data
+        status = res.status
+        headers = res.headers
+        config = res.config
         angular.element('.do-test').button('reset')
-        console.error('error', data, status, headers, config)
-        $scope.alert(data)
+        console.error('Error_Message', res)
+        $scope.alert(data || res.statusText || 'net::ERR_CONNECTION_REFUSED' )
+        NProgress.done()
       )
 
+      NProgress.inc()
       $scope.preview_match = (re, from) ->
         data = null
         if not from
@@ -529,6 +541,8 @@ define (require, exports, module) ->
             # return if m[1] then m[1] else m[0]
             return m[1]
           return null
+        NProgress.inc()
+      NProgress.inc()
 
 ## eof
   )
