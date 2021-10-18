@@ -141,9 +141,37 @@ class UniCodeHandler(BaseHandler):
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
         return
 
+    async def post(self):
+        Rtv = {}
+        try:
+            content = self.get_argument("content", "")
+            tmp = bytes(content,'unicode_escape').decode('utf-8').replace(r'\u',r'\\u').replace(r'\\\u',r'\\u')
+            tmp = bytes(tmp,'utf-8').decode('unicode_escape')
+            Rtv[u"转换后"] = tmp.encode('utf-8').replace(b'\xc2\xa0',b'\xa0').decode('unicode_escape')
+            Rtv[u"状态"] = "200"
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
+
 
 class UrlDecodeHandler(BaseHandler):
     async def get(self):
+        Rtv = {}
+        try:
+            content = self.get_argument("content", "")
+            Rtv[u"转换后"] = urllib.parse.unquote(content)
+            Rtv[u"状态"] = "200"
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
+
+    async def post(self):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
@@ -196,6 +224,29 @@ class UtilRegexHandler(BaseHandler):
 
 class UtilStrReplaceHandler(BaseHandler):
     async def get(self):
+        Rtv = {}
+        try:
+            s = self.get_argument("s", "")
+            p = self.get_argument("p", "")
+            t = self.get_argument("t", "")
+            Rtv[u"原始字符串"] = s
+            Rtv[u"处理后字符串"] = re.sub(p, t, s)
+            Rtv[u"状态"] = "OK"      
+            if self.get_argument("r", "")  == "text":
+                self.write(Rtv[u"处理后字符串"])
+                return
+            else:
+                self.set_header('Content-Type', 'application/json; charset=UTF-8')
+                self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+                return
+        except Exception as e:
+            Rtv["状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
+
+    async def post(self):
         Rtv = {}
         try:
             s = self.get_argument("s", "")
