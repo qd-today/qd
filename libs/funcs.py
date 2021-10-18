@@ -111,6 +111,8 @@ class pusher(object):
     async def send2tg(self, tg_token, title, content):
         r = 'False'
         tmp = tg_token.split(';')
+        tgToken = ''
+        tgUserId = ''
         if len(tmp) >= 2:
             tgToken = tmp[0]
             tgUserId = tmp[1]
