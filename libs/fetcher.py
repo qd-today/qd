@@ -302,7 +302,7 @@ class Fetcher(object):
                 msg = ''
                 break
             else:
-                msg = 'fail assert: %s from success_asserts' % json.dumps(r, ensure_ascii=False)
+                msg = 'Fail assert: %s from success_asserts' % json.dumps(r, ensure_ascii=False)
         else:
             if rule.get('success_asserts'):
                 success = False
@@ -311,11 +311,11 @@ class Fetcher(object):
         for r in rule.get('failed_asserts') or '':
             if re.search(r['re'], getdata(r['from'])):
                 success = False
-                msg = 'fail assert: %s from failed_asserts' % json.dumps(r, ensure_ascii=False)
+                msg = 'Fail assert: %s from failed_asserts' % json.dumps(r, ensure_ascii=False)
                 break
 
-        if not success and not msg and (response.error or response.reason):
-            msg = str(response.error or response.reason)
+        if not success and msg and (response.error or response.reason):
+            msg += ', \\r\\nResponse Error : %s' % str(response.error or response.reason)
 
         for r in rule.get('extract_variables') or '':
             pattern = r['re']
@@ -558,9 +558,9 @@ class Fetcher(object):
                 except Exception as e:
                     if config.debug:
                         logging.exception(e)
-                    raise Exception('failed at %d/%d request, error:%r, %s' % (
+                    raise Exception('Failed at %d/%d request, \\r\\nError: %r, \\r\\nRequest URL: %s' % (
                         i+1, len(tpl), e, entry['request']['url']))
                 if not result['success']:
-                    raise Exception('failed at %d/%d request, %s, %s' % (
+                    raise Exception('Failed at %d/%d request, \\r\\n%s, \\r\\nRequest URL: %s' % (
                         i+1, len(tpl), result['msg'], entry['request']['url']))
         return env
