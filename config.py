@@ -68,7 +68,7 @@ delay_max_timeout = 29.9                                                    # de
 # 代理格式应为'scheme://username:password@host:port',例如:proxies = ['http://admin:admin@127.0.0.1:8923','https://proxy.com:8888']; 
 # 任务级代理请在新建或修改任务时添加,任务级代理优先级大于全局代理; 
 proxies = os.getenv('PROXIES', '').split('|')               # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct 
-proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '')      # 默认为空, 可选输入:'url'为网址匹配模式;'regexp'为正则表达式匹配模式;''空则不启用全局代理黑名单 
+proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'regexp')      # 默认为'regexp'以过滤本地请求, 可选输入:'regexp'为正则表达式匹配模式;'url'为网址匹配模式;''空则不启用全局代理黑名单 
 # proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'url')进入网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求, 以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port 
 # 例如: proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost'); 
 # proxy_direct_mode= os.getenv('PROXY_DIRECT_MODE', 'regexp')进入正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求; 
