@@ -180,7 +180,7 @@ class TaskRunHandler(BaseHandler):
                 }
                 new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, [proxy]))
         except Exception as e:
-            t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
+            t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
             logtmp = u"{0} 日志：{1}".format(t, e)
             await pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
@@ -208,10 +208,10 @@ class TaskRunHandler(BaseHandler):
                 mtime = time.time(),
                 next = nextTime)
         
-        t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
+        t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
         logtmp = new_env['variables'].get('__log__')
-        logtmp = u"{0} \\r\\n日志：{1}".format(title, logtmp)
+        logtmp = u"{0} \\r\\n日志：{1}".format(t, logtmp)
         await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
 
         self.db.tpl.incr_success(tpl['id'])

@@ -233,10 +233,10 @@ class MainWorker(object):
                     next=next)
             self.db.tpl.incr_success(tpl['id'])
 
-            t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
+            t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
             logtemp = new_env['variables'].get('__log__')
-            logtemp = u"{0}  日志：{1}".format(t, logtemp)
+            logtemp = u"{0} 日志：{1}".format(t, logtemp)
             await pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
 
             logger.info('taskid:%d tplid:%d successed! %.5fs', task['id'], task['tplid'], time.time()-start)
@@ -247,9 +247,9 @@ class MainWorker(object):
             traceback.print_exc()
             next_time_delta = self.failed_count_to_time(task['last_failed_count'], task['retry_count'], task['retry_interval'], tpl['interval'])
                         
-            t = datetime.datetime.now().strftime('%m-%d %H:%M:%S')
+            t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
-            content = u"日志：{log}".format(log=str(e))
+            content = u"{0} 日志：{1}".format(t, str(e))
             disabled = False
             if next_time_delta:
                 next = time.time() + next_time_delta
