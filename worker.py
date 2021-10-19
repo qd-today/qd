@@ -236,7 +236,7 @@ class MainWorker(object):
             t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
             logtemp = new_env['variables'].get('__log__')
-            logtemp = u"{0} 日志：{1}".format(t, logtemp)
+            logtemp = u"{0} \\r\\n日志：{1}".format(t, logtemp)
             await pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
 
             logger.info('taskid:%d tplid:%d successed! %.5fs', task['id'], task['tplid'], time.time()-start)
@@ -249,17 +249,17 @@ class MainWorker(object):
                         
             t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
-            content = u"{0} 日志：{1}".format(t, str(e))
+            content = u"{0} \\r\\n日志：{1}".format(t, str(e))
             disabled = False
             if next_time_delta:
                 next = time.time() + next_time_delta
-                content = content + u"下次运行时间：{0}".format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(next)))
+                content = content + u" \\r\\n下次运行时间：{0}".format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(next)))
                 if (logtime['ErrTolerateCnt'] <= task['last_failed_count']):
                     await pushtool.pusher(user['id'], pushsw, 0x1, title, content)
             else:
                 disabled = True
                 next = None
-                content = u"任务已禁用"
+                content = u" \\r\\n任务已禁用"
                 await pushtool.pusher(user['id'], pushsw, 0x1, title, content)
 
             self.db.tasklog.add(task['id'], success=False, msg=str(e))
@@ -272,7 +272,7 @@ class MainWorker(object):
                     next=next)
             self.db.tpl.incr_failed(tpl['id'])
 
-            logger.error('taskid:%d tplid:%d failed! %r %.4fs', task['id'], task['tplid'], e, time.time()-start)
+            logger.error('taskid:%d tplid:%d failed! %r %.4fs', task['id'], task['tplid'], str(e), time.time()-start)
             return False
         return True
 

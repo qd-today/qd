@@ -182,11 +182,12 @@ class TaskRunHandler(BaseHandler):
         except Exception as e:
             t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
-            logtmp = u"{0} 日志：{1}".format(t, e)
-            await pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
+            logtmp = u"{0} \\r\\n日志：{1}".format(t, e)
 
             self.db.tasklog.add(task['id'], success=False, msg=str(e))
-            self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % str(e).replace('\\r\\n', '<br>'))
+            self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+
+            await pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
             return
 
         self.db.tasklog.add(task['id'], success=True, msg=new_env['variables'].get('__log__'))
@@ -212,10 +213,11 @@ class TaskRunHandler(BaseHandler):
         title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
         logtmp = new_env['variables'].get('__log__')
         logtmp = u"{0} \\r\\n日志：{1}".format(t, logtmp)
-        await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
 
         self.db.tpl.incr_success(tpl['id'])
         self.finish('<h1 class="alert alert-success text-center">签到成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+        
+        await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
         logDay = int(self.db.site.get(1, fields=('logDay'))['logDay'])
         for log in self.db.tasklog.list(taskid = taskid, fields=('id', 'ctime')):
             if (time.time() - log['ctime']) > (logDay * 24 * 60 * 60):

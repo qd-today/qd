@@ -194,7 +194,7 @@ class VerifyHandler(BaseHandler):
             self.finish('验证成功')
         except Exception as e:
             self.evil(+5)
-            logger.error(e)
+            logger.error('%r',e)
             self.set_status(400)
             self.finish('验证失败')
 
@@ -214,7 +214,7 @@ class PasswordResetHandler(BaseHandler):
             assert time.time() - time_time < 60 * 60
         except Exception as e:
             self.evil(+10)
-            logger.error(e)
+            logger.error('%r',e)
             self.set_status(400)
             self.finish('Bad Request')
             return
@@ -255,7 +255,7 @@ class PasswordResetHandler(BaseHandler):
                 assert time.time() - time_time < 60 * 60
             except Exception as e:
                 self.evil(+10)
-                logger.error(e)
+                logger.error('%r',e)
                 self.set_status(400)
                 self.finish('Bad Request')
                 return
