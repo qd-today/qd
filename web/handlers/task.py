@@ -113,7 +113,7 @@ class TaskNewHandler(BaseHandler):
         if 'New_group' in envs:
             self.db.task.mod(taskid, _groups=target_group)
 
-        if retry_count:
+        if isinstance(retry_count, int) and -1 <= retry_count <= 8:
             self.db.task.mod(taskid, retry_count=retry_count)
 
         if retry_interval:

@@ -68,7 +68,7 @@
       <option value="0">不重试</option>
       <option value="8">默认</option>
     </datalist>
-    {%if retry_count %}
+    {%if retry_count != '' %}
     <div class="text">前值: </div><div class="autowrap showbut" id="pvar">{{ retry_count }}
       <div class="btn hljs-button" data-clipboard-target="#pvar" style="vertical-align:top">复制</div>
     </div>
