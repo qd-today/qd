@@ -101,6 +101,7 @@ class MainWorker(object):
 
     @staticmethod
     def failed_count_to_time(last_failed_count, retry_count=8, retry_interval=None, interval=None):
+        next = None
         if last_failed_count < retry_count or retry_count == -1:
             if retry_interval:
                 next = retry_interval
