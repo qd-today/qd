@@ -211,6 +211,21 @@ sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程
 更新日志
 ===========
 
+## 2021.10.23 更新
+1. CRON添加随机延时 (by [acooler15](https://github.com/qiandao-today/qiandao/commits?author=acooler15))
+2. 优化签到日志显示信息
+3. 统一日志格式
+4. API请求允许POST
+5. 缩短手动执行任务前端响应时间
+6. 修复无法将签到任务的重试次数设为0
+7. 修复UnboundLocalError
+
+<details>
+
+<summary>
+历史更新日志
+</summary>
+
 ## 2021.10.17 更新
 1. 修复请求测试按钮绑定事件失效的bug
 2. 多任务操作时显示优化
@@ -227,12 +242,6 @@ sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程
 8. 修复更新公共模板导致订阅空白的bug
 9. 点击关于页面不再301重定向
 10. 修复编辑模板页面显示序号问题
-
-<details>
-
-<summary>
-历史更新日志
-</summary>
 
 ## 2021.10.10 更新
 1. 修复数据库aip字段类型
