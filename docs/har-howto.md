@@ -1,4 +1,8 @@
-#如何创建签到模板
+# 什么是HAR
+
+HAR: https://toolbox.googleapps.com/apps/har_analyzer/?lang=zh-CN
+
+# 如何创建签到模板
 
 **大坑，慎入**
 
