@@ -49,7 +49,7 @@ function send2notepad(mode){
         type: 'POST',
         data: data,
       })
-      .success(function(jxhr) {
+      .done(function(jxhr) {
           window.location.reload();
         })
       .fail(function(jxhr) {

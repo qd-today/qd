@@ -494,11 +494,11 @@ class toolbox_notpad_Handler(BaseHandler):
             pwd = envs['adminpwd']
             if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
                 if ('mode' in envs) and ('content' in envs):
-                    if (envs['mode'][0] == 'write'):
-                        new_data =  envs['content'][0]
+                    if (envs['mode'] == 'write'):
+                        new_data =  envs['content']
                     else:
                         data = self.db.user.get(userid, fields=('notepad'))['notepad']
-                        new_data = data + "\r\n" +envs['content'][0]
+                        new_data = data + "\r\n" +envs['content']
 
                     self.db.user.mod(userid, notepad=new_data)
 
