@@ -538,8 +538,8 @@ define (require, exports, module) ->
           return result.toString()
         else
           if m = data.match(re)
-            # return if m[1] then m[1] else m[0]
-            return m[1]
+            return if m[1] then m[1] else m[0]
+            # return m[1]
           return null
         NProgress.inc()
       NProgress.inc()

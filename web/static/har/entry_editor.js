@@ -614,7 +614,11 @@
             return result.toString();
           } else {
             if (m = data.match(re)) {
-              return m[1];
+              if (m[1]) {
+                return m[1];
+              } else {
+                return m[0];
+              }
             }
             return null;
           }
