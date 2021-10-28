@@ -42,7 +42,7 @@ Options:
   -h, --help                    Display help message
   -s, --script-version          Display script version
   -u, --update                  Default update method
-  -v, --version=TAG_VERSION     Update to the specified tag version
+  -v, --version=TAG_VERSION     Forced Update to the specified tag version
   -f, --force                   Forced version update
   -l, --local                   Display Local version
   -r, --remote                  Display Remote version
@@ -92,9 +92,9 @@ force_update() {
 }
 
 update_version() {
-    echo -e "Info: 正在切换至指定Tag版本: $1，请稍候..."
+    echo -e "Info: 正在强制切换至指定Tag版本: $1，请稍候..."
     git fetch --all
-    git checkout $1
+    git checkout -f $1
     if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器，或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi
