@@ -52,10 +52,10 @@ Exit status:
   !=0 if serious problems.
 
 Example:
-  1) Use short options to create vm:
+  1) Use short options:
     $ sh $__ScriptName -v=$(python -c 'import sys, json; print(json.load(open("version.json"))["version"])')
 
-  2) Use long options to create vm:
+  2) Use long options:
     $ sh $__ScriptName --update
 
 Report issues to https://github.com/qiandao-today/qiandao
