@@ -32,7 +32,9 @@ RUN mkdir -p /root/.ssh \
     && let num=$RANDOM%100+10 \
     && sleep $num \
     && git clone git@gitee.com:a76yyyy/qiandao.git /gitclone_tmp \
-    && yes | cp -rf /gitclone_tmp/. /usr/src/app
+    && yes | cp -rf /gitclone_tmp/. /usr/src/app \
+    && chmod +x /usr/src/app/update.sh \
+    && ln -s /usr/src/app/update.sh /bin/update
     
 # Pip install modules
 RUN pip install --upgrade setuptools \
