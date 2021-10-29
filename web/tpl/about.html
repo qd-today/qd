@@ -311,35 +311,35 @@ clipboard.on('error', function(e) {
       
       <tr>
         <td>{{is_num(s)}}</td>
-        <td>判断s是否为数字</td>
+        <td>判断s是否为数字<br>不支持科学计数</td>
         <td>{{is_num('0.5')}}</td>
         <td class="autowrap">True</td>
       </tr>
 
       <tr>
-        <td>{{add(a,b)}}</td>
-        <td>计算 a + b</td>
+        <td>{{add(*args)}}</td>
+        <td>对多个数据进行求和运算</td>
         <td>{{add(3,2)}}</td>
         <td class="autowrap">5.0</td>
       </tr>
 
       <tr>
-        <td>{{sub(a,b)}}</td>
-        <td>计算 a - b</td>
+        <td>{{sub(*args)}}</td>
+        <td>对多个数据进行减法运算</td>
         <td>{{sub(3,2)}}</td>
         <td class="autowrap">1.0</td>
       </tr>
 
       <tr>
-        <td>{{multiply(a,b)}}</td>
-        <td>计算 a * b</td>
+        <td>{{multiply(*args)}}</td>
+        <td>对多个数据进行乘法运算</td>
         <td>{{multiply(3,2)}}</td>
         <td class="autowrap">6.0</td>
       </tr>
 
       <tr>
-        <td>{{divide(a,b)}}</td>
-        <td>计算 a / b</td>
+        <td>{{divide(*args)}}</td>
+        <td>对多个数据进行除法运算</td>
         <td>{{divide(3,2)}}</td>
         <td class="autowrap">1.5</td>
       </tr>
