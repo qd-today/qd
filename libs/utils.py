@@ -353,33 +353,65 @@ def timestamp(type='int'):
     else:
         return int(time.time())
 
-def add(a:str,b:str):
-    if is_num(a) and is_num(b):
-        return '{:f}'.format(float(a)+float(b))
-    return
+def add(*args):
+    result = 0
+    if args and is_num(args[0]):
+        result = args[0]
+        for i in args[1:]:
+            if is_num(i):
+                result += float(i)
+            else:
+                return
+        return '{:f}'.format(result)
+    else:
+        return result
 
-def sub(a:str,b:str):
-    if is_num(a) and is_num(b):
-        return '{:f}'.format(float(a)-float(b))
-    return
+def sub(*args):
+    result = 0
+    if args and is_num(args[0]):
+        result = args[0]
+        for i in args[1:]:
+            if is_num(i):
+                result -= float(i)
+            else:
+                return
+        return '{:f}'.format(result)
+    else:
+        return result
 
-def multiply(a:str,b:str):
-    if is_num(a) and is_num(b):
-        return '{:f}'.format(float(a)*float(b))
-    return
+def multiply(*args):
+    result = 0
+    if args and is_num(args[0]):
+        result = args[0]
+        for i in args[1:]:
+            if is_num(i):
+                result *= float(i)
+            else:
+                return
+        return '{:f}'.format(result)
+    else:
+        return result
 
-def divide(a:str,b:str):
-    if is_num(a) and is_num(b):
-        return '{:f}'.format(float(a)/float(b))
-    return
+def divide(*args):
+    result = 0
+    if args and is_num(args[0]):
+        result = args[0]
+        for i in args[1:]:
+            if is_num(i) and float(i) != 0:
+                result /= float(i)
+            else:
+                return
+        return '{:f}'.format(result)
+    else:
+        return result
 
 def is_num(s:str=''):
     s = str(s)
     if s.count('.') ==1:
         tmp = s.split('.')
-        return tmp[0].isdigit() and tmp[1].isdigit()
+        return tmp[0].lstrip('-').isdigit() and tmp[1].isdigit()
     else:
-        return s.isdigit()
+        return s.lstrip('-').isdigit()
 
 jinja_globals = {
     'md5': md5string,
