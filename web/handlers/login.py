@@ -131,6 +131,10 @@ class RegisterHandler(BaseHandler):
                 if config.https:
                     setcookie['secure'] = True
                 self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
+                usertmp = self.db.user.list()
+                if len(usertmp) == 1 and config.user0isadmin:
+                    if (usertmp[0]['email'] == email):
+                        self.db.user.mod(usertmp[0]['id'], role='admin')
 
                 if siteconfig['MustVerifyEmailEn'] != 1:
                     next = self.get_argument('next', '/my/')

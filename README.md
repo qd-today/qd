@@ -183,8 +183,9 @@ CURL_ENCODING|否|True|是否允许使用Curl进行Encoding操作
 CURL_CONTENT_LENGTH|否|True|是否允许Curl使用Headers中自定义Content-Length请求
 NOT_RETRY_CODE|否|<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py">详见配置</a>...|<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py">详见配置</a>...
 EMPTY_RETRY|否|True|<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py">详见配置</a>...
-
+USER0ISADMIN|否|True|第一个注册用户为管理员，False关闭
 > 详细信息请查阅<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py">config.py</a>
+
 
 ## 旧版local_config.py迁移
 |  Line  |  Delete  |  Modify  |
@@ -210,6 +211,8 @@ sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程
 
 更新日志
 ===========
+## 2021.10.31 更新
+1. 第一个用户默认为管理员，在config.py中关闭或者变量USER0ISADMIN
 
 ## 2021.10.23 更新
 1. CRON添加随机延时 (by [acooler15](https://github.com/qiandao-today/qiandao/commits?author=acooler15))

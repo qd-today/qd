@@ -96,6 +96,7 @@ mailgun_key = ""                                                            # �
 
 # google analytics
 ga_key = ""                                                                 # google analytics密钥
+user0isadmin = bool(strtobool(os.getenv('USER0ISADMIN','True'))) 
 
 try:
     from local_config import *                                              # 修改local_config.py文件的内容不受通过git更新源码的影响

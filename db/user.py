@@ -108,6 +108,19 @@ class UserDB(BaseDB):
 
         return self._update(where="id=%s" % self.placeholder, where_values=(id, ), **kwargs)
 
+    def mod2(self, id, **kwargs):
+        assert 'id' not in kwargs, 'id not modifiable'
+        assert 'email' not in kwargs, 'email not modifiable'
+        assert 'userkey' not in kwargs, 'userkey not modifiable'
+
+        if 'password' in kwargs:
+            kwargs['password'] = self.encrypt(id, crypto.password_hash(kwargs['password']))
+            
+        if 'token' in kwargs:
+            kwargs['token'] = self.encrypt(id, crypto.password_hash(kwargs['token']))
+
+        return self._update(where="id=%s" % self.placeholder, where_values=(id, ), **kwargs)
+
     @utils.method_cache
     def __getuserkey(self, id):
         for (userkey, ) in self._select(what='userkey',
@@ -166,8 +179,8 @@ class UserDB(BaseDB):
             else:
                 where += ' and %s = %s' % (self.escape(key), self.placeholder)
             where_values.append(value)
-        for tpl in self._select2dic(what=fields, where=where, where_values=where_values, limit=limit):
-            yield tpl
+
+        return self._select2dic(what=fields, where=where, where_values=where_values, limit=limit)
 
     def delete(self, id):
         self._delete(where="id=%s" % self.placeholder, where_values=(id, ))
