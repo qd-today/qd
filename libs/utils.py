@@ -356,7 +356,7 @@ def timestamp(type='int'):
 def add(*args):
     result = 0
     if args and is_num(args[0]):
-        result = args[0]
+        result = float(args[0])
         for i in args[1:]:
             if is_num(i):
                 result += float(i)
@@ -369,7 +369,7 @@ def add(*args):
 def sub(*args):
     result = 0
     if args and is_num(args[0]):
-        result = args[0]
+        result = float(args[0])
         for i in args[1:]:
             if is_num(i):
                 result -= float(i)
@@ -382,7 +382,7 @@ def sub(*args):
 def multiply(*args):
     result = 0
     if args and is_num(args[0]):
-        result = args[0]
+        result = float(args[0])
         for i in args[1:]:
             if is_num(i):
                 result *= float(i)
@@ -395,7 +395,7 @@ def multiply(*args):
 def divide(*args):
     result = 0
     if args and is_num(args[0]):
-        result = args[0]
+        result = float(args[0])
         for i in args[1:]:
             if is_num(i) and float(i) != 0:
                 result /= float(i)
