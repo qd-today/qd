@@ -211,8 +211,12 @@ sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程
 
 更新日志
 ===========
-## 2021.10.31 更新
-1. 第一个用户默认为管理员，在config.py中关闭或者变量USER0ISADMIN
+## 2021.11.02 更新
+1. 修复前端无正则匹配显示结果
+2. 修复工具箱-记事本
+3. 更新update.sh以允许自定义更新方式
+4. 加减乘除实现多组数据计算 fix qiandao-today/qiandao#136
+5. 第一个用户默认为管理员，在config.py中设置或修改环境变量USER0ISADMIN (by [AragonSnow](https://github.com/qiandao-today/qiandao/commits?author=AragonSnow))
 
 ## 2021.10.23 更新
 1. CRON添加随机延时 (by [acooler15](https://github.com/qiandao-today/qiandao/commits?author=acooler15))
