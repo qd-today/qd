@@ -21,7 +21,7 @@
   {% if pvar.init_env_name ==  var %}
       <div class="form-group">
         <label class="control-label" for="input-{{ var }}">{{ varname_format(var) }}</label>
-        <input type="text" class="form-control" name="{{ var }}" id="input-{{ var }}">
+        <input type="text" class="form-control" name="{{ var }}" id="input-{{ var }}" value="{{ pvar.data }}">
         {% if pvar.data %}
           前值：<div class="autowrap showbut" id="pvar-{{ var }}">{{ pvar.data }}
             <div class="btn hljs-button" data-clipboard-target="#pvar-{{ var }}" style="vertical-align:top">复制</div>
