@@ -29,8 +29,8 @@
   <!-- MY页面-添加签到-增加提示语 -->
     <input type="text" class="form-control" name="_binux_note" value="{{ task.note or '' }}" id="note" placeholder="尽可能填写15个字符以内">
     {%if task.note %}
-      前值： <div class="autowrap showbut" id="pvar" >{{ task.note }}
-        <div class="btn hljs-button" data-clipboard-target="#pvar" style="vertical-align:top">复制</div>
+      前值： <div class="autowrap showbut" id="pvar_note" >{{ task.note }}
+        <div class="btn hljs-button" data-clipboard-target="#pvar_note" style="vertical-align:top">复制</div>
       </div>
     {% endif %}
     <!-- MY页面-添加签到-增加备注图标 -->
@@ -48,8 +48,8 @@
       {% for pvar in init_env %}
         {% if pvar.init_env_name ==  '_proxy' %}
           {% if pvar.data %}
-          <div class="text">前值: </div><div class="autowrap showbut" id="pvar" >{{ pvar.data }}
-            <div class="btn hljs-button" data-clipboard-target="#pvar" style="vertical-align:top">复制</div>
+          <div class="text">前值: </div><div class="autowrap showbut" id="pvar_proxy" >{{ pvar.data }}
+            <div class="btn hljs-button" data-clipboard-target="#pvar_proxy" style="vertical-align:top">复制</div>
           </div>
           {% endif %}
         {% endif %}
@@ -69,8 +69,8 @@
       <option value="8">默认</option>
     </datalist>
     {%if retry_count != '' %}
-    <div class="text">前值: </div><div class="autowrap showbut" id="pvar">{{ retry_count }}
-      <div class="btn hljs-button" data-clipboard-target="#pvar" style="vertical-align:top">复制</div>
+    <div class="text">前值: </div><div class="autowrap showbut" id="pvar_retry_count">{{ retry_count }}
+      <div class="btn hljs-button" data-clipboard-target="#pvar_retry_count" style="vertical-align:top">复制</div>
     </div>
     {% endif %}
   </div>
@@ -96,8 +96,8 @@
       <option value="" disabled>最短1分钟!</option>
     </datalist>
     {%if retry_interval %}
-    <div class="text">前值: </div><div class="autowrap showbut" id="pvar">{{ retry_interval }}
-      <div class="btn hljs-button" data-clipboard-target="#pvar" style="vertical-align:top">复制</div>
+    <div class="text">前值: </div><div class="autowrap showbut" id="pvar_retry_interval">{{ retry_interval }}
+      <div class="btn hljs-button" data-clipboard-target="#pvar_retry_interval" style="vertical-align:top">复制</div>
     </div>
     {% endif %}
   </div>
