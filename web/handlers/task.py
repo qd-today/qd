@@ -138,7 +138,9 @@ class TaskEditHandler(TaskNewHandler):
             value = task['init_env'][var] if var in task['init_env'] else ''
             init_env.append({'name':var, 'value':value})
 
-        self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=init_env, retry_count=task['retry_count'], retry_interval=task['retry_interval'])
+        proxy = task['init_env']['_proxy'] if '_proxy' in task['init_env'] else ''
+
+        self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=init_env, proxy=proxy, retry_count=task['retry_count'], retry_interval=task['retry_interval'])
 
 class TaskRunHandler(BaseHandler):
     @tornado.web.authenticated
