@@ -128,18 +128,17 @@ class TaskEditHandler(TaskNewHandler):
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid',
             'tplid', 'disabled', 'note', 'retry_count', 'retry_interval')), 'w')
         task['init_env'] = self.db.user.decrypt(user['id'], self.db.task.get(taskid, 'init_env')['init_env'])
-        envs = []
-        for key, value in task['init_env'].items():
-            tmp = {'init_env_name':key}
-            tmp['data'] = value
-            envs.append(tmp)
-        task['init_env'] = envs
 
         tpl = self.check_permission(self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'note',
             'sitename', 'siteurl', 'variables')))
-
         variables = json.loads(tpl['variables'])
-        self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=task['init_env'], retry_count=task['retry_count'], retry_interval=task['retry_interval'])
+
+        init_env = []
+        for var in variables:
+            value = task['init_env'][var] if var in task['init_env'] else ''
+            init_env.append({'name':var, 'value':value})
+
+        self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=init_env, retry_count=task['retry_count'], retry_interval=task['retry_interval'])
 
 class TaskRunHandler(BaseHandler):
     @tornado.web.authenticated

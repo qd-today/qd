@@ -15,23 +15,19 @@
 {% endmacro %}
 
 {%if task and task.init_env %}
-{% for var in variables %}
-  {% for pvar in task.init_env %}
-  {% if pvar.init_env_name ==  var %}
-      <div class="form-group">
-        <label class="control-label" for="input-{{ var }}">{{ varname_format(var) }}</label>
-        <input type="text" class="form-control" name="{{ var }}" id="input-{{ var }}" value="{{ pvar.data }}">
-        {% if pvar.data %}
-          前值：<div class="autowrap showbut" id="pvar-{{ var }}">{{ pvar.data }}
-            <div class="btn hljs-button" data-clipboard-target="#pvar-{{ var }}" style="vertical-align:top">复制</div>
-          </div>
-        {% endif %}
-        <!-- 未登录首页-加图标 -->
-        <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
-        {{ var_tips(var) }}
+{% for env in init_env %}
+  <div class="form-group">
+    <label class="control-label" for="input-{{ env.name }}">{{ varname_format(env.name) }}</label>
+    <input type="text" class="form-control" name="{{ env.name }}" id="input-{{ env.name }}" value="{{ env.value }}">
+    {% if env.value %}
+      前值：<div class="autowrap showbut" id="pvar-{{ env.name }}">{{ env.value }}
+        <div class="btn hljs-button" data-clipboard-target="#pvar-{{ env.name }}" style="vertical-align:top">复制</div>
       </div>
-  {% endif %}
-  {% endfor %}
+    {% endif %}
+    <!-- 未登录首页-加图标 -->
+    <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+    {{ var_tips(env.name) }}
+  </div>
 {% endfor %}
 {% else %}
 {% for var in variables %}
