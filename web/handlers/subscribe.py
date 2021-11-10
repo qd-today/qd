@@ -110,13 +110,16 @@ class SubscribeUpdatingHandler(BaseHandler):
                                 self.db.pubtpl.add(har)
                     else:
                         msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
-                if msg == '':
-                    repos["lastupdate"] = now_ts
-                    self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
+            repos["lastupdate"] = now_ts
+            self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
+            
+            if msg:
+                raise Exception(msg)
 
             tpls = self.db.pubtpl.list()
 
             self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
+            return
 
         except Exception as e:
             traceback.print_exc()
