@@ -211,12 +211,26 @@ sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程
 
 更新日志
 ===========
+
+## 2021.11.15 更新
+1. 编辑任务时变量默认值为前值(by billypon)
+2. 修复编辑任务时无法识别模板的新变量(by billypon)
+3. 编辑任务逻辑优化(by billypon)
+4. 修改备注长度
+5. 修复更新错误后无法停止的bug
+
 ## 2021.11.02 更新
 1. 修复前端无正则匹配显示结果
 2. 修复工具箱-记事本
 3. 更新update.sh以允许自定义更新方式
 4. 加减乘除实现多组数据计算 fix qiandao-today/qiandao#136
 5. 第一个用户默认为管理员，在config.py中设置或修改环境变量USER0ISADMIN (by [AragonSnow](https://github.com/qiandao-today/qiandao/commits?author=AragonSnow))
+
+<details>
+
+<summary>
+历史更新日志
+</summary>
 
 ## 2021.10.23 更新
 1. CRON添加随机延时 (by [acooler15](https://github.com/qiandao-today/qiandao/commits?author=acooler15))
@@ -226,12 +240,6 @@ sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程
 5. 缩短手动执行任务前端响应时间
 6. 修复无法将签到任务的重试次数设为0
 7. 修复UnboundLocalError
-
-<details>
-
-<summary>
-历史更新日志
-</summary>
 
 ## 2021.10.17 更新
 1. 修复请求测试按钮绑定事件失效的bug
