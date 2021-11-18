@@ -1,7 +1,7 @@
 {
     "version": 20211115,
     "Repo": ["https://github.com/a76yyyy/qiandao", "https://github.com/AragonSnow/qiandao", "https://github.com/binux/qiandao"],
-    "Author&Collaborator": ["a76yyyy", "AragonSnow", "binux", "acooler15", "billypon", "liubei121212", "gxitm", "戏如人生", "buzhibujuelb", "powersee", "cxk000"],
+    "Author&Collaborator": ["binux", "Mark", "PiDan", "AragonSnow", "a76yyyy", "acooler15", "billypon", "liubei121212", "gxitm", "戏如人生", "buzhibujuelb", "powersee", "cxk000"],
     "Theme": {
         "version": 20191106,
         "Pidan": "0.1.2",

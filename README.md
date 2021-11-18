@@ -64,7 +64,7 @@
 
 **请勿同时运行新旧版签到框架, 或将不同运行中容器的数据库映射为同一文件, 更新后请重启容器或清空浏览器缓存**
 
-使用Docker部署站点
+使用Docker部署方式
 ==========
 
 1. docker地址 : [https://hub.docker.com/r/a76yyyy/qiandao](https://hub.docker.com/r/a76yyyy/qiandao)
@@ -95,15 +95,7 @@
 
 8. **Docker已预装Curl环境, 默认安装pycurl模组**
 
-```bash
-# 如需使用Proxy功能请安装PyCurl
-# Windows源码运行, 请执行 pip install pycurl==7.43.0.5 
-pip install pycurl # pip3 install pycurl
-# 如因curl导致500或599错误, 请卸载PyCurl或修改环境变量USE_PYCURL为False
-# pip uninstall pycurl
-```
-
-Web源码部署
+Web源码部署方式
 ===========
 
 ## 1. Version: python3.8
@@ -149,7 +141,7 @@ python ./chrole.py your@email.address admin
 python ./qiandao.py tpl.har [--key=value]* [env.json]
 ```
 
-config.py-配置变量
+config.py-配置环境变量
 ===========
 
 变量名|是否必须|默认值|说明
@@ -208,6 +200,10 @@ sh ./update.sh # 先cd到源码所在目录, 执行命令后重启进程
 sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程 
 ```
 
+## 3. 强制同步最新源码
+```
+sh ./update.sh -f 
+```
 
 更新日志
 ===========
@@ -358,14 +354,20 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 5. 修复pycurl导致若干500和599错误
 6. 更新需求模块
 
-
-
 ## 2021.09.02 更新
 1. 修复Image解码失败的bug
 2. 添加请求时限设置
 3. 修复延时API超过请求时限导致的bug
 4. 查看任务的模板数据时自动导入任务变量(by [billypon](https://github.com/billypon/qiandao))
 5. 默认去除pycurl模组, 解决部分500和599错误
+
+```bash
+# 如需使用Proxy功能请安装PyCurl
+# Windows源码运行, 请执行 pip install pycurl==7.43.0.5 
+pip install pycurl # pip3 install pycurl
+# 如因curl导致500或599错误, 请卸载PyCurl或修改环境变量USE_PYCURL为False
+# pip uninstall pycurl
+```
 
 ## 2021.08.07 更新
 1. 更新Wiki
@@ -686,12 +688,17 @@ ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1;
 
 鸣谢
 ===========
+[Binux](https://github.com/binux/qiandao)
 
-[Mark  https://www.quchao.net/](https://www.quchao.net/) 
+[Mark](https://www.quchao.net/) 
 
-[戏如人生 https://49594425.xyz/](https://49594425.xyz/)
+[PiDan](https://github.com/cdpidan) 
 
-[AragonSnow https://hexo.aragon.wang/](https://hexo.aragon.wang/)
+[AragonSnow](https://hexo.aragon.wang/)
+
+[AragonSnow/qiandao](https://github.com/aragonsnow/qiandao) 
+
+[戏如人生](https://49594425.xyz/)
 
 [buzhibujuelb](https://github.com/buzhibujuelb) 
 
@@ -699,9 +706,9 @@ ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1;
 
 [powersee](https://github.com/powersee) 
 
-[AragonSnow/qiandao](https://github.com/aragonsnow/qiandao) 
+[acooler15](https://github.com/acooler15)
 
-[a76yyyy/qiandao](https://github.com/a76yyyy/qiandao) 
+[a76yyyy](https://github.com/a76yyyy/qiandao) 
 
 <a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/version.json">……</a>
 
