@@ -609,9 +609,8 @@
               result = data.match(re);
             }
             console.log('The original result is ', result);
-            result = result.toString();
-            console.log('The result of toString() is ' + result);
-            return result.toString();
+            console.log('The result of toString() is ' + result.toString());
+            return result;
           } else {
             if (m = data.match(re)) {
               if (m[1]) {
