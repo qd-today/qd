@@ -1,6 +1,6 @@
 {
   "name": "qiandao_for_python3",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "authors": [
     "(a76yyyy <admin@a76yyyy.cn>",
     "AragonSnow",
@@ -25,7 +25,9 @@
     "bootstrap": "=3.2.0",
     "seajs": "=2.3.0",
     "select2": "^4.0.13",
-    "nprogress": "^0.2.0"
+    "nprogress": "^0.2.0",
+    "jquery.tablesorter": "^2.31.3",
+    "Font-Awesome": "^4.7.0"
   },
   "main": "",
   "license": "MIT",

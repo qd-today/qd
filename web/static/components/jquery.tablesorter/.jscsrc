@@ -1,0 +1,65 @@
+{
+  "disallowDanglingUnderscores": true,
+  "disallowEmptyBlocks": true,
+  "disallowKeywords": [
+    "with"
+  ],
+  "disallowMixedSpacesAndTabs": "smart",
+  "disallowMultipleLineBreaks": true,
+  "disallowMultipleLineStrings": true,
+  "disallowNewlineBeforeBlockStatements": true,
+  "disallowOperatorBeforeLineBreak": [
+    "."
+  ],
+  "disallowSpaceAfterPrefixUnaryOperators": true,
+  "disallowSpaceBeforeBinaryOperators": [
+    ","
+  ],
+  "disallowSpaceBeforePostfixUnaryOperators": true,
+  "disallowSpacesInCallExpression": true,
+
+  "disallowTrailingComma": true,
+  "maximumLineLength": {
+    "allowRegex": true,
+    "allowUrlComments": true,
+    "tabSize": 2,
+    "value": 180
+  },
+  "requireBlocksOnNewline": 1,
+  "requireCommaBeforeLineBreak": true,
+  "requireCurlyBraces": [
+    "do"
+  ],
+  "requireDollarBeforejQueryAssignment": true,
+  "requireDotNotation": true,
+  "requireLineFeedAtFileEnd": true,
+  "requireParenthesesAroundIIFE": true,
+  "requireSemicolons": true,
+  "requireSpaceAfterBinaryOperators": true,
+  "requireSpaceAfterKeywords": [
+    "if",
+    "else",
+    "for",
+    "while",
+    "do",
+    "switch",
+    "case",
+    "return",
+    "try",
+    "catch",
+    "typeof"
+  ],
+  "requireSpaceAfterLineComment": true,
+  "requireSpaceBeforeBinaryOperators": true,
+  "requireSpacesInConditionalExpression": true,
+  "requireSpacesInForStatement": true,
+  "requireSpacesInsideArrayBrackets": "all",
+  "validateIndentation": {
+   "allExcept": ["emptyLines", "comments"],
+    "value": "\t"
+  },
+  "validateQuoteMarks": {
+    "escape": true,
+    "mark": "'"
+  }
+}

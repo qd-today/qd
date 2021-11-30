@@ -1,0 +1,67 @@
+{
+  "name": "tablesorter",
+  "description": "tablesorter (FORK) is a jQuery plugin to sort HTML tables with many options.",
+  "dependencies": {
+    "jquery": ">=1.2.6"
+  },
+  "keywords": [
+    "table",
+    "sort",
+    "sorting",
+    "alphanumeric",
+    "natural",
+    "jquery-plugin"
+  ],
+  "authors": [
+    { "name": "Christian Bach", "homepage": "http://tablesorter.com/" },
+    { "name": "Rob Garrison", "homepage": "https://mottie.github.io/tablesorter/docs/", "email": "wowmotty@gmail.com" },
+    { "name": "Justin F. Hallett", "homepage": "https://github.com/TheSin-" }
+  ],
+  "homepage": "https://mottie.github.io/tablesorter/",
+  "main": [
+    "dist/js/jquery.tablesorter.combined.js",
+    "dist/css/theme.blue.css"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Mottie/tablesorter.git"
+  },
+  "license" : [
+    "MIT",
+    "GPL-2.0+"
+  ],
+  "ignore": [
+    "/node_modules",
+    "/bower_components",
+    "/.git",
+    "/beta-testing",
+    "/docs",
+    "/testing",
+    "/Gruntfile.js",
+    "/package.json",
+    "/*.txt",
+    "/*.md",
+    "/*.html",
+    "/tablesorter.jquery.json"
+  ],
+  "moduleType": [
+    "amd",
+    "globals",
+    "node"
+  ],
+  "devDependencies": {
+    "grunt": "^1.0.1",
+    "grunt-cli": "^1.2.0",
+    "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-copy": "^1.0.0",
+    "grunt-contrib-cssmin": "^1.0.1",
+    "grunt-contrib-jshint": "^1.0.0",
+    "grunt-contrib-qunit": "^1.2.0",
+    "grunt-contrib-uglify": "^1.0.1",
+    "grunt-contrib-watch": "^1.0.0",
+    "grunt-htmlhint": "^0.9.13",
+    "grunt-jscs": "^3.0.0",
+    "grunt-string-replace": "^1.2.1"
+  }
+}

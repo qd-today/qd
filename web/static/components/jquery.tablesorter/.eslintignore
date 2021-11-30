@@ -1,0 +1,5 @@
+_test*.js
+*.min.js
+*mod.js
+*.metadata.js
+semver.js

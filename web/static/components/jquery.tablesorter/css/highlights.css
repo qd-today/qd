@@ -1,0 +1,104 @@
+/* CSS Column & Row Hightlights - matches the blue theme
+ * See https://mottie.github.io/tablesorter/docs/example-css-highlighting.html
+ */
+table.hover-highlight td:before,
+table.focus-highlight td:before {
+	background: #fff;
+}
+
+/* ODD ZEBRA STRIPE color (needs zebra widget) */
+.hover-highlight .odd td:before, .hover-highlight .odd th:before,
+.focus-highlight .odd td:before, .focus-highlight .odd th:before {
+	background: #ebf2fa;
+}
+/* EVEN ZEBRA STRIPE color (needs zebra widget) */
+.hover-highlight .even td:before, .hover-highlight .even th:before,
+.focus-highlight .even td:before, .focus-highlight .even th:before {
+	background-color: #fff;
+}
+
+/* FOCUS ROW highlight color (touch devices) */
+.focus-highlight td:focus::before, .focus-highlight th:focus::before {
+	background-color: lightblue;
+}
+/* FOCUS COLUMN highlight color (touch devices) */
+.focus-highlight td:focus::after, .focus-highlight th:focus::after {
+	background-color: lightblue;
+}
+/* FOCUS CELL highlight color */
+.focus-highlight th:focus, .focus-highlight td:focus,
+.focus-highlight .even th:focus, .focus-highlight .even td:focus,
+.focus-highlight .odd th:focus, .focus-highlight .odd td:focus {
+	background-color: #d9d9d9;
+	color: #333;
+}
+
+/* HOVER ROW highlight colors */
+table.hover-highlight tbody > tr:hover > td, /* override tablesorter theme row hover */
+table.hover-highlight tbody > tr.odd:hover > td,
+table.hover-highlight tbody > tr.even:hover > td {
+	background-color: #ffa;
+}
+/* HOVER COLUMN highlight colors */
+.hover-highlight tbody tr td:hover::after,
+.hover-highlight tbody tr th:hover::after {
+	background-color: #ffa;
+}
+
+/* ************************************************* */
+/* **** No need to modify the definitions below **** */
+/* ************************************************* */
+.focus-highlight td:focus::after, .focus-highlight th:focus::after,
+.hover-highlight td:hover::after, .hover-highlight th:hover::after {
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 999em;
+	left: 0;
+	top: -555em;
+	z-index: -1;
+}
+.focus-highlight td:focus::before, .focus-highlight th:focus::before {
+	content: '';
+	position: absolute;
+	width: 999em;
+	height: 100%;
+	left: -555em;
+	top: 0;
+	z-index: -2;
+}
+/* required styles */
+.hover-highlight,
+.focus-highlight {
+	overflow: hidden;
+}
+.hover-highlight td, .hover-highlight th,
+.focus-highlight td, .focus-highlight th {
+	position: relative;
+	outline: 0;
+}
+/* override the tablesorter theme styling */
+table.hover-highlight, table.hover-highlight tbody > tr > td,
+table.focus-highlight, table.focus-highlight tbody > tr > td,
+/* override zebra styling */
+table.hover-highlight tbody tr.even > th,
+table.hover-highlight tbody tr.even > td,
+table.hover-highlight tbody tr.odd > th,
+table.hover-highlight tbody tr.odd > td,
+table.focus-highlight tbody tr.even > th,
+table.focus-highlight tbody tr.even > td,
+table.focus-highlight tbody tr.odd > th,
+table.focus-highlight tbody tr.odd > td {
+	background: transparent;
+}
+/* table background positioned under the highlight */
+table.hover-highlight td:before,
+table.focus-highlight td:before {
+	content: '';
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	left: 0;
+	top: 0;
+	z-index: -3;
+}
