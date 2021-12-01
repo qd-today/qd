@@ -324,16 +324,18 @@
             </div>
             <div class="btn-group">
               <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
-                API插入
+                插入API
                 <span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
                 <li class="dropdown-header">时间处理</li>
                 <li ng-click="add_delay_request()"><a href="javascript:void(0)">插入延时</a></li>
+                <li ng-click="add_timestamp_request()"><a href="javascript:void(0)">插入时间戳</a></li>
                 <li class="divider"></li>
                 <li class="dropdown-header">编码解码</li>
-                <li ng-click="add_unicode_request()"><a href="javascript:void(0)">插入unicode转换</a></li>
-                <li ng-click="add_urldecode_request()"><a href="javascript:void(0)">插入url解码</a></li>
+                <li ng-click="add_unicode_request()"><a href="javascript:void(0)">插入Unicode转换</a></li>
+                <li ng-click="add_urldecode_request()"><a href="javascript:void(0)">插入URL解码</a></li>
+                <li ng-click="add_gb2312_request()"><a href="javascript:void(0)">插入GB2312编码</a></li>
                 <li class="divider"></li>
                 <li class="dropdown-header">字符串处理</li>
                 <li ng-click="add_regex_request()"><a href="javascript:void(0)">插入正则表达式</a></li>
@@ -341,6 +343,7 @@
                 <li class="divider"></li>
                 <li class="dropdown-header">加密解密</li>
                 <li ng-click="add_RSA_Encrypt_request()"><a href="javascript:void(0)">插入RSA加密</a></li>
+                <li ng-click="add_RSA_Decrypt_request()"><a href="javascript:void(0)">插入RSA解密</a></li>
                 <li class="divider"></li>
                 <li class="dropdown-header">记事本工具</li>
                 <li ng-click="add_read_notepad_request()"><a href="javascript:void(0)">读取记事本</a></li>

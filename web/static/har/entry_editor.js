@@ -176,6 +176,30 @@
           response: {}
         });
       };
+      $scope.add_timestamp_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: '返回当前时间戳和时间',
+          request: {
+            method: 'GET',
+            url: [local_protocol, '//', local_host, '/util/timestamp'].join(''),
+            postData: {
+              test: ''
+            },
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            }
+          ]
+        });
+      };
       $scope.add_delay_request = function() {
         return $scope.insert_request(1, {
           checked: true,
@@ -205,7 +229,7 @@
           checked: true,
           pageref: $scope.entry.pageref,
           recommend: true,
-          comment: 'unicode转换',
+          comment: 'Unicode转换',
           request: {
             method: 'GET',
             url: [local_protocol, '//', local_host, '/util/unicode?content='].join(''),
@@ -236,10 +260,41 @@
           checked: true,
           pageref: $scope.entry.pageref,
           recommend: true,
-          comment: 'url解码',
+          comment: 'URL解码',
           request: {
             method: 'GET',
             url: [local_protocol, '//', local_host, '/util/urldecode?content='].join(''),
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            }, {
+              re: "\"状态\": \"200\"",
+              from: "content"
+            }
+          ],
+          extract_variables: [
+            {
+              name: '',
+              re: '"转换后": "(.*)"',
+              from: 'content'
+            }
+          ]
+        });
+      };
+      $scope.add_gb2312_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: 'GB2312编码',
+          request: {
+            method: 'GET',
+            url: [local_protocol, '//', local_host, '/util/gb2312?content='].join(''),
             headers: [],
             cookies: []
           },
@@ -333,6 +388,34 @@
           request: {
             method: 'GET',
             url: [local_protocol, '//', local_host, '/util/rsa?key=&data=&f=encode'].join(''),
+            headers: [],
+            cookies: []
+          },
+          response: {},
+          success_asserts: [
+            {
+              re: "200",
+              from: "status"
+            }
+          ],
+          extract_variables: [
+            {
+              name: '',
+              re: '(.*)',
+              from: 'content'
+            }
+          ]
+        });
+      };
+      $scope.add_RSA_Decrypt_request = function() {
+        return $scope.insert_request(1, {
+          checked: true,
+          pageref: $scope.entry.pageref,
+          recommend: true,
+          comment: 'RSA解密',
+          request: {
+            method: 'GET',
+            url: [local_protocol, '//', local_host, '/util/rsa?key=&data=&f=decode'].join(''),
             headers: [],
             cookies: []
           },
