@@ -303,32 +303,50 @@
         <div class="modal-footer">
           <div class="add-request">
             在
-            <button type=button class="btn btn-default btn-xs" ng-click="add_request(0)">前面</button>
-            <button type=button class="btn btn-default btn-xs" ng-click="add_request(1)">后面</button>
+            <div class="btn-group">
+              <button type=button class="btn btn-default btn-xs" ng-click="add_request(0)">前面</button>
+              <button type=button class="btn btn-default btn-xs" ng-click="add_request(1)">后面</button>
+            </div>
             插入一个请求，
-           
-            <button type=button class="btn btn-default btn-xs" ng-click="copy_request()">复制</button>
-            <button type=button ng-if="copy_entry" class="btn btn-default btn-xs" ng-click="paste_request(0)">粘帖到前面</button>
-            <button type=button ng-if="copy_entry" class="btn btn-default btn-xs" ng-click="paste_request(1)">粘帖到后面</button>
-            <button type=button class="btn btn-default btn-xs" ng-click="del_request(0)">删除</button>
-          </div>
-          <div class="dropdown">
-            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-              插入API
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu">
-              <button type=button class="btn btn-default btn-xs" ng-click="add_delay_request()">插入延时</button>
-              <li class="dropdown-header">--编码解码--</li>
-            
-            <button type=button class="btn btn-default btn-xs" ng-click="add_unicode_request()">插入unicode转换</button>
-            <button type=button class="btn btn-default btn-xs" ng-click="add_urldecode_request()">插入url解码</button>
-            <li class="dropdown-header">--编码解码--</li>
-            <button type=button class="btn btn-default btn-xs" ng-click="add_regex_request()">插入正则表达式</button>
-            <button type=button class="btn btn-default btn-xs" ng-click="add_string_replace_request()">插入字符串替换</button>
-            <button type=button class="btn btn-default btn-xs" ng-click="add_RSA_Encrypt_request()">插入RSA加密</button>
-            <button type=button class="btn btn-default btn-xs" ng-click="add_read_notepad_request()">读取记事本</button>
-            <button type=button class="btn btn-default btn-xs" ng-click="add_append_notepad_request()">追加记事本</button>
+            <div class="btn-group">
+              <button type=button class="btn btn-default btn-xs" ng-click="copy_request()">复制</button>
+              <div class="btn-group">
+                <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+                  粘贴
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li ng-if="copy_entry" ng-click="paste_request(0)"><a href="javascript:void(0)">粘帖到前面</a></li>
+                  <li ng-if="copy_entry" ng-click="paste_request(1)"><a href="javascript:void(0)">粘帖到后面</a></li>
+                </ul>
+              </div>
+              <button type=button class="btn btn-default btn-xs" ng-click="del_request(0)">删除</button>
+            </div>
+            <div class="btn-group">
+              <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+                API插入
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li class="dropdown-header">时间处理</li>
+                <li ng-click="add_delay_request()"><a href="javascript:void(0)">插入延时</a></li>
+                <li class="divider"></li>
+                <li class="dropdown-header">编码解码</li>
+                <li ng-click="add_unicode_request()"><a href="javascript:void(0)">插入unicode转换</a></li>
+                <li ng-click="add_urldecode_request()"><a href="javascript:void(0)">插入url解码</a></li>
+                <li class="divider"></li>
+                <li class="dropdown-header">字符串处理</li>
+                <li ng-click="add_regex_request()"><a href="javascript:void(0)">插入正则表达式</a></li>
+                <li ng-click="add_string_replace_request()"><a href="javascript:void(0)">插入字符串替换</a></li>
+                <li class="divider"></li>
+                <li class="dropdown-header">加密解密</li>
+                <li ng-click="add_RSA_Encrypt_request()"><a href="javascript:void(0)">插入RSA加密</a></li>
+                <li class="divider"></li>
+                <li class="dropdown-header">记事本工具</li>
+                <li ng-click="add_read_notepad_request()"><a href="javascript:void(0)">读取记事本</a></li>
+                <li ng-click="add_append_notepad_request()"><a href="javascript:void(0)">追加记事本</a></li>
+              </ul>
+            </div>
           </div>
           <button type="button" class="btn btn-success do-test" data-loading-test="Loading..."
             ng-show="panel=='test' || panel=='preview' || panel=='preview-headers'"
