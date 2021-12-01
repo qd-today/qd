@@ -474,7 +474,7 @@
       even         : '', // even row zebra striping
       odd          : ''  // odd row zebra striping
     };
-    $("#task_list").tablesorter({
+    $("#task_list,#tpl_list").tablesorter({
       theme: "bootstrap",
       // sortList:[[4,1],[2,0]],
       headers:{
@@ -483,34 +483,7 @@
         2:{sorter: false},
         3:{sorter: false},
         4:{sorter: false},
-      },
-      headerTemplate : '{content} {icon}', // needed to add icon for jui theme
-      widgets : ['uitheme', 'filter'],
-      widgetOptions : {
-        // using the default zebra striping class name, so it actually isn't included in the theme variable above
-        // this is ONLY needed for bootstrap theming if you are using the filter widget, because rows are hidden
-        // zebra : ["even", "odd"],
-        // class names added to columns when sorted
-        // reset filters button
-        filter_reset : ".reset",
-        filter_external : '.search',
-        filter_columnFilters: false,
-        // extra css class name (string or array) added to the filter element (input or select)
-        filter_cssFilter: "form-control"
-        // set the uitheme widget to use the bootstrap theme class names
-        // this is no longer required, if theme is set
-        // ,uitheme : "bootstrap"
-      }
-    });
-    $("#tpl_list").tablesorter({
-      theme: "bootstrap",
-      // sortList:[[4,1],[2,0]],
-      headers:{
-        0:{sorter: false},
-        1:{sorter: false},
-        2:{sorter: false},
-        3:{sorter: false},
-        4:{sorter: false},
+        5:{sorter: false, parser:false},
       },
       headerTemplate : '{content} {icon}', // needed to add icon for jui theme
       widgets : ['uitheme', 'filter'],
