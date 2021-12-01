@@ -156,6 +156,34 @@ class UniCodeHandler(BaseHandler):
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
         return
 
+class GB2312Handler(BaseHandler):
+    async def get(self):
+        Rtv = {}
+        try:
+            content = self.get_argument("content", "")
+            tmp = urllib.parse.quote(content,encoding="gb2312")
+            Rtv[u"转换后"] = tmp
+            Rtv[u"状态"] = "200"
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
+
+    async def post(self):
+        Rtv = {}
+        try:
+            content = self.get_argument("content", "")
+            tmp = urllib.parse.quote(content,encoding="gb2312")
+            Rtv[u"转换后"] = tmp
+            Rtv[u"状态"] = "200"
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
 
 class UrlDecodeHandler(BaseHandler):
     async def get(self):
@@ -389,6 +417,7 @@ handlers = [
     ('/util/timestamp', TimeStampHandler),
     ('/util/unicode', UniCodeHandler),
     ('/util/urldecode', UrlDecodeHandler),
+    ('/util/gb2312', GB2312Handler),
     ('/util/regex', UtilRegexHandler),
     ('/util/string/replace', UtilStrReplaceHandler),
     ('/util/rsa', UtilRSAHandler),

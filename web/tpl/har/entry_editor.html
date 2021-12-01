@@ -312,10 +312,18 @@
             <button type=button ng-if="copy_entry" class="btn btn-default btn-xs" ng-click="paste_request(1)">粘帖到后面</button>
             <button type=button class="btn btn-default btn-xs" ng-click="del_request(0)">删除</button>
           </div>
-          <div >
-            <button type=button class="btn btn-default btn-xs" ng-click="add_delay_request()">插入延时</button>
+          <div class="dropdown">
+            <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+              插入API
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu">
+              <button type=button class="btn btn-default btn-xs" ng-click="add_delay_request()">插入延时</button>
+              <li class="dropdown-header">--编码解码--</li>
+            
             <button type=button class="btn btn-default btn-xs" ng-click="add_unicode_request()">插入unicode转换</button>
             <button type=button class="btn btn-default btn-xs" ng-click="add_urldecode_request()">插入url解码</button>
+            <li class="dropdown-header">--编码解码--</li>
             <button type=button class="btn btn-default btn-xs" ng-click="add_regex_request()">插入正则表达式</button>
             <button type=button class="btn btn-default btn-xs" ng-click="add_string_replace_request()">插入字符串替换</button>
             <button type=button class="btn btn-default btn-xs" ng-click="add_RSA_Encrypt_request()">插入RSA加密</button>
