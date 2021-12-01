@@ -211,7 +211,7 @@ class pusher(object):
                 headerstmp = {}
 
             if (diypusher['mode'] == 'POST'):
-                postDatatmp = diypusher['postData'].replace('{log}', log).replace("{t}", t).replace("\\r\\n","\r\n" )
+                postDatatmp = diypusher['postData'].replace('{log}', log).replace("{t}", t)
                 if (postDatatmp != ''):
                     postDatatmp = json.loads(postDatatmp)
                 if headerstmp:
