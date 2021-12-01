@@ -64,8 +64,6 @@ class pusher(object):
                 send2tg = self.send2tg if (pusher["tgpushersw"]) else nonepush 
                 send2dingding = self.send2dingding if (pusher["dingdingpushersw"]) else nonepush 
 
-
-            if (pushsw['pushen']):
                 await gen.convert_yielded([send2bark(notice['barkurl'], title, content),
                                            send2s(notice['skey'], title, content),
                                            send2wxpusher( notice['wxpusher'], title+u"  "+content),

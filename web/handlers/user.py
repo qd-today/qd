@@ -173,7 +173,9 @@ class UserRegPushSw(BaseHandler):
             task['tpl'] = tpl
             task['pushsw'] = json.loads(task['pushsw'])
             tasks.append(task)
-        temp = self.db.user.get(userid, fields=('noticeflg'))
+        temp = self.db.user.get(userid, fields=('noticeflg','push_batch'))
+        push_batch = json.loads(temp['push_batch'])
+        push_batch['time']=time.strftime("%H:%M:%S",time.localtime(int(push_batch['time'])))
         temp = temp['noticeflg']
         flg = {}
         flg['barksw']        = False if ((temp & 0x040) == 0) else True 
@@ -194,7 +196,7 @@ class UserRegPushSw(BaseHandler):
         if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0
         
 
-        self.render('user_register_pushsw.html', userid=userid, flg=flg, tasks=tasks, logtime=logtime)
+        self.render('user_register_pushsw.html', userid=userid, flg=flg, tasks=tasks, logtime=logtime, push_batch=push_batch)
 
     @tornado.web.authenticated
     def post(self, userid):
@@ -207,7 +209,7 @@ class UserRegPushSw(BaseHandler):
                 task['pushsw']["logen"] = False
                 task['pushsw']["pushen"] = False
                 tasks.append(task)
-            temp = self.db.user.get(userid, fields=('noticeflg'))
+            temp = self.db.user.get(userid, fields=('noticeflg','push_batch'))
             envs = {}
             for key in self.request.body_arguments:
                 envs[key] = self.get_body_arguments(key)
@@ -218,6 +220,15 @@ class UserRegPushSw(BaseHandler):
             if (logtime['ErrTolerateCnt'] != int(env['ErrTolerateCnt'])):
                 logtime['ErrTolerateCnt'] = int(env['ErrTolerateCnt'])
                 self.db.user.mod(userid, logtime=json.dumps(logtime))
+
+            push_batch = json.loads(temp['push_batch'])
+            if env.get("push_batch_sw") == "on":
+                push_batch["sw"] = True
+            else:
+                push_batch["sw"] = False
+            if env.get("push_batch_value"):
+                push_batch["time"] = time.mktime(time.strptime(time.strftime("%Y-%m-%d",time.localtime(time.time()))+env["push_batch_value"],"%Y-%m-%d%H:%M:%S"))
+            self.db.user.mod(userid, push_batch=json.dumps(push_batch))
 
             barksw_flg        = 1 if ("barksw" in env) else 0 
             schansw_flg       = 1 if ("schansw" in env) else 0 

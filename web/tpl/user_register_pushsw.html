@@ -55,8 +55,20 @@
   </div>
 
   <div class="form-group">
-    <label class="control-label" for="note">自动错误几次后提醒：</label>
+    <label class="control-label" for="note">自动错误几次后提醒: </label>
     <select id="ErrTolerateCnt" NAME="ErrTolerateCnt" ></select>
+  </div>
+
+  <label>任务结果批量推送</label>
+  <div class="checkbox">
+    <label>
+      <input type="checkbox" id="push_batch_sw" name="push_batch_sw" {% if push_batch.sw %}  checked="" {% endif %}> 开启每日批量推送
+    </label>
+  </div>
+  <div style="display: block;">
+    批量推送时间设置: 
+    <input type="time" id="push_batch_val" value="{{ push_batch.time }}" name='push_batch_value' , step="1" />
+    
   </div>
 
   <div id="taskpushsw">

@@ -43,7 +43,8 @@ class DBnew(BaseDB):
                 `wxpusher` VARBINARY(128) NOT NULL DEFAULT '',
                 `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1,
                 `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{"en":false,"time":"20:00:00","ts":0,"schanEn":false,"WXPEn":false}',
-                `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable'
+                `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
+                `push_batch`  VARBINARY(1024) NOT NULL DEFAULT '{"sw":false,"time":0}'
                 );
                 CREATE TABLE IF NOT EXISTS `tpl` (
                 `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -121,7 +122,7 @@ class DBnew(BaseDB):
             # 获取数据库信息            
             userid = int(userid)
             user = maindb.db.user.get(id=userid, fields=('id', 'role', 'status', 'email','email_verified', 'password', 'nickname', 
-                                                        'ctime','mtime','atime','cip', 'mip','aip','skey','barkurl', 'wxpusher', 'noticeflg','logtime'))
+                                                        'ctime','mtime','atime','cip', 'mip','aip','skey','barkurl', 'wxpusher', 'noticeflg','logtime','push_batch'))
             userkey = maindb.db.user.__getuserkey(user['env'])
             tpls = []
             for tpl in maindb.db.tpl.list(fields=('id', 'userid', 'siteurl', 'banner', 'disabled', 'public', 'lock', 'fork', 'har', 'tpl', 'variables', 'interval', 
