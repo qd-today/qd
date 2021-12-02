@@ -81,7 +81,7 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
 
 new_task_delay = 1                                                          # 新建任务后准备时间
 
-# 发送邮件内链接域名, 如果是通过IP+端口Port方式请正确输入`IP:Port`
+# 发送邮件及微信推送内链接域名, 如果是通过IP+端口Port方式请正确输入`IP:Port`
 domain = os.getenv('DOMAIN', 'qiandao.today')                               # 指定域名, 建议修改, 不然邮件重置密码之类的功能无效
 
 # 邮件发送相关配置

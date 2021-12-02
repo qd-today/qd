@@ -10,6 +10,9 @@ import traceback
 import random
 import time
 import datetime
+import requests
+import asyncio
+import functools
 
 import config
 from libs import utils
@@ -240,6 +243,24 @@ class pusher(object):
             r = traceback.format_exc()
         return r
 
+    # 获取Access_Token
+    async def get_access_token(self,qywx):
+        access_url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={id}&corpsecret={secret}'.format(id=qywx[u'企业ID'], secret=qywx[u'应用密钥'])
+        obj = {'request': {'method': 'GET', 'url': access_url, 'headers': [], 'cookies': []}, 'rule': {
+                'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+        _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+        get_access_token_res = json.loads(res.body)
+        return get_access_token_res
+
+    #上传临时素材,返回素材id
+    async def get_ShortTimeMedia(self,pic_url,access_token):
+        obj = {'request': {'method': 'GET', 'url': pic_url, 'headers': {}, 'cookies': []}, 'rule': {
+                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+        _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+        url='https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token={access_token}&type=image'.format(access_token = access_token)
+        r = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, url, files={'image':res.body}, json=True))
+        return json.loads(r.text)['media_id']
+
     async def qywx_pusher_send(self, qywx_token, t, log):
         r = 'False'
         try:
@@ -252,28 +273,35 @@ class pusher(object):
                 qywx[u'图片'] = tmp[3] if len(tmp) >= 4 else ''
             else:
                 raise Exception(u'企业微信token错误')
-            
-            access_url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={id}&corpsecret={secret}'.format(id=qywx[u'企业ID'], secret=qywx[u'应用密钥'])
-            obj = {'request': {'method': 'GET', 'url': access_url, 'headers': [], 'cookies': []}, 'rule': {
-                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-            _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
-            get_access_token_res = json.loads(res.body)
+
+            get_access_token_res = await self.get_access_token(qywx)
+            pic_url = config.push_pic if qywx[u'图片'] == '' else qywx[u'图片']
             if (get_access_token_res['access_token'] != '' and get_access_token_res['errmsg'] == 'ok'):
-                msgUrl = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={0}'.format(get_access_token_res['access_token'])
-                postData = {"touser" : "@all",
-                            "msgtype" : "news",
-                            "agentid" : qywx[u'应用ID'],
-                            "news" : {
-                                "articles" : [
-                                        {
-                                            "title" : t,
-                                            "description" : log.replace("\\r\\n","\n" ),
-                                            "url" : "",
-                                            "picurl" : config.push_pic if qywx[u'图片'] == '' else qywx[u'图片']
-                                        }
-                                    ]
+                access_token = get_access_token_res["access_token"]
+                media_id = await self.get_ShortTimeMedia(pic_url,access_token)
+                msgUrl = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={0}'.format(access_token)
+                postData = {"touser": "@all",
+                            "toparty": "@all",
+                            "totag": "@all",
+                            "msgtype": "mpnews",
+                            "agentid": qywx[u'应用ID'],
+                            "mpnews": {
+                                "articles": [
+                                    {
+                                        "title": t,
+                                        "digest": log.replace("\\r\\n", "\n"),
+                                        "content": log.replace("\\r\\n", "<br>"),
+                                        "author": "私有签到框架",
+                                        "content_source_url": config.domain,
+                                        "thumb_media_id": media_id
+                                    }
+                                ]
+                            },
+                            "safe": 0,
+                            "enable_id_trans": 0,
+                            "enable_duplicate_check": 0,
+                            "duplicate_check_interval": 1800
                             }
-                }
                 obj = {'request': {'method': 'POST', 'url': msgUrl, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(postData)}, 'rule': {
                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
                 _,_,msg_res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
