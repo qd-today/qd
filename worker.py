@@ -77,12 +77,12 @@ class MainWorker(object):
             if user['status'] == "Enable" and push_batch["sw"] and time.time() >= push_batch['time']:
                 title = u"今日签到日志"
                 delta =  24 * 60 * 60
-                logtemp = "{}\\r\\n".format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(push_batch['time'])))
+                logtemp = "{}".format(time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(push_batch['time'])))
                 tmp = ""
                 for task in self.db.task.list(userid = userid, fields=('id','tplid','note','disabled','last_success','last_failed','pushsw')):
                     pushsw = json.loads(task['pushsw'])
                     if pushsw["pushen"] and (task["disabled"] == 0 or (task.get("last_success",0) and task.get("last_success",0) >= push_batch['time']-delta) or (task.get("last_failed",0) and task.get("last_failed",0) >= push_batch['time']-delta)):
-                        tmp = "\\r\\n任务: {0}-{1}".format(self.db.tpl.get(task['tplid'], fields=('sitename'))['sitename'], task['note'])
+                        tmp = "\\r\\n\\r\\n-----任务: {0}-{1}-----".format(self.db.tpl.get(task['tplid'], fields=('sitename'))['sitename'], task['note'])
                         tmp0 = ""
                         for log in self.db.tasklog.list(taskid = task["id"], fields=('success', 'ctime','msg')):
                             if (push_batch['time'] - log['ctime']) <= delta:
