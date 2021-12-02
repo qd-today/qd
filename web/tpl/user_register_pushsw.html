@@ -62,13 +62,29 @@
   <label>任务结果批量推送</label>
   <div class="checkbox">
     <label>
-      <input type="checkbox" id="push_batch_sw" name="push_batch_sw" {% if push_batch.sw %}  checked="" {% endif %}> 开启每日批量推送
+      <input type="checkbox" id="push_batch_sw" name="push_batch_sw" {% if push_batch.sw %}  checked="" {% endif %}> 开启定期批量推送
     </label>
   </div>
   <div style="display: block;">
-    批量推送时间设置: 
+    <span>批量推送时间设置:</span> 
     <input type="time" id="push_batch_val" value="{{ push_batch.time }}" name='push_batch_value' , step="1" />
-    
+  </div>
+  <div style="display: block;">
+    <span>批量推送时间间隔:</span> 
+    <input type="number" name="push_batch_delta" list="push_batch_delta" value="{{ push_batch.delta }}" min="60" placeholder="不填默认每天, 单位/秒">
+    <datalist id="push_batch_delta" style="display:none;">
+      <option selected="selected" value="">请选择</option>
+      <option value="1800">每30分钟</option>
+      <option value="3600">每1小时</option>
+      <option value="7200">每2小时</option>
+      <option value="43200">每12小时</option>
+      <option value="86400">每24小时</option>
+      <option value="604800">每周</option>
+      <option value="2628000">每月</option>
+      <option value="7884000">每季</option>
+      <option value="31536000">每年</option>
+      <option value="" disabled>最短1分钟!</option>
+    </datalist>
   </div>
 
   <div id="taskpushsw">

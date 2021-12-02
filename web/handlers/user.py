@@ -228,6 +228,10 @@ class UserRegPushSw(BaseHandler):
                 push_batch["sw"] = False
             if env.get("push_batch_value"):
                 push_batch["time"] = time.mktime(time.strptime(time.strftime("%Y-%m-%d",time.localtime(time.time()))+env["push_batch_value"],"%Y-%m-%d%H:%M:%S"))
+            if env.get("push_batch_delta"):
+                push_batch["delta"] = int(env["push_batch_delta"])
+            else:
+                push_batch["delta"] = 86400
             self.db.user.mod(userid, push_batch=json.dumps(push_batch))
 
             barksw_flg        = 1 if ("barksw" in env) else 0 

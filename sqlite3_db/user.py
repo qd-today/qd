@@ -38,7 +38,7 @@ class UserDB(_UserDB, BaseDB):
           `qywx_token` VARBINARY(1024) NOT NULL DEFAULT '',
           `tg_token` VARBINARY(1024) NOT NULL DEFAULT '',
           `dingding_token` VARBINARY(1024) NOT NULL DEFAULT '',
-          `push_batch`  VARBINARY(1024) NOT NULL DEFAULT '{\"sw\":false,\"time\":0}'
+          `push_batch`  VARBINARY(1024) NOT NULL DEFAULT '{\"sw\":false,\"time\":0,\"delta\":86400}'
         )''' % self.__tablename__)
 
         for each in ('email', 'nickname'):

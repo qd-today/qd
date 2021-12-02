@@ -29,6 +29,7 @@ class DBnew(BaseDB):
                 `email` VARCHAR(256) NOT NULL,
                 `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
                 `password` VARBINARY(128) NOT NULL,
+                `password_md5` VARBINARY(128) NOT NULL DEFAULT '',
                 `userkey` VARBINARY(128) NOT NULL,
                 `nickname` VARCHAR(64) NULL,
                 `role` VARCHAR(128) NULL,
@@ -44,7 +45,12 @@ class DBnew(BaseDB):
                 `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1,
                 `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{"en":false,"time":"20:00:00","ts":0,"schanEn":false,"WXPEn":false}',
                 `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
-                `push_batch`  VARBINARY(1024) NOT NULL DEFAULT '{"sw":false,"time":0}'
+                `notepad` TEXT NULL,
+                `diypusher` VARBINARY(1024) NOT NULL DEFAULT '',
+                `qywx_token` VARBINARY(1024) NOT NULL DEFAULT '',
+                `tg_token` VARBINARY(1024) NOT NULL DEFAULT '',
+                `dingding_token` VARBINARY(1024) NOT NULL DEFAULT '',
+                `push_batch`  VARBINARY(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
                 );
                 CREATE TABLE IF NOT EXISTS `tpl` (
                 `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -68,7 +74,8 @@ class DBnew(BaseDB):
                 `mtime` INT UNSIGNED NOT NULL,
                 `atime` INT UNSIGNED NOT NULL,
                 `tplurl` VARCHAR(1024) NULL DEFAULT '',
-                `updateable` INT UNSIGNED NOT NULL DEFAULT 0
+                `updateable` INT UNSIGNED NOT NULL DEFAULT 0,
+                `_groups` VARCHAR(256) NOT NULL DEFAULT 'None'
                 );
                 CREATE TABLE IF NOT EXISTS `task` (
                 `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -116,8 +123,12 @@ class DBnew(BaseDB):
                 );
                 CREATE TABLE IF NOT EXISTS `site` (
                 `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
-                `regEn` INT UNSIGNED NOT NULL DEFAULT 1
-                );''' )
+                `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
+                `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0,
+                `logDay` INT UNSIGNED NOT NULL DEFAULT 365,
+                `repos` TEXT NOT NULL
+                );
+                ''' )
 
             # 获取数据库信息            
             userid = int(userid)

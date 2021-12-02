@@ -63,7 +63,7 @@ class DBconverter(_TaskDB, BaseDB):
             `qywx_token` VARBINARY(1024) NOT NULL DEFAULT '',
             `tg_token` VARBINARY(1024) NOT NULL DEFAULT '',
             `dingding_token` VARBINARY(1024) NOT NULL DEFAULT '',
-            `push_batch`  VARBINARY(1024) NOT NULL DEFAULT '{"sw":false,"time":0}'
+            `push_batch`  VARBINARY(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
             );''')
             self.db.site._execute('''CREATE TABLE IF NOT EXISTS `tpl` (
             `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
@@ -208,7 +208,7 @@ class DBconverter(_TaskDB, BaseDB):
         try:
             self.db.user.get("1", fields=('push_batch'))
         except :
-            exec_shell("ALTER TABLE `user` ADD `push_batch` VARBINARY(1024) NOT NULL DEFAULT '{\"sw\":false,\"time\":0}' " ) 
+            exec_shell("ALTER TABLE `user` ADD `push_batch` VARBINARY(1024) NOT NULL DEFAULT '{\"sw\":false,\"time\":0,\"delta\":86400}' " ) 
 
         try:
             self.db.tpl.get("1", fields=('tplurl'))
@@ -427,7 +427,7 @@ class DBconverter(_TaskDB, BaseDB):
                     `qywx_token` VARBINARY(1024) NOT NULL DEFAULT '',
                     `tg_token` VARBINARY(1024) NOT NULL DEFAULT '',
                     `dingding_token` VARBINARY(1024) NOT NULL DEFAULT '',
-                    `push_batch`  VARBINARY(1024) NOT NULL DEFAULT '{"sw":false,"time":0}'
+                    `push_batch`  VARBINARY(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
                     );''' % autokey)
                 exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`notepad`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token`,`push_batch` FROM `userold` ")
                 exec_shell("DROP TABLE `userold` ")
