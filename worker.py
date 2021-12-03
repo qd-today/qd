@@ -96,7 +96,7 @@ class MainWorker(object):
                 push_batch["time"] = push_batch['time'] + delta
                 self.db.user.mod(userid, push_batch=json.dumps(push_batch))
                 if tmp:
-                    yield pushtool.pusher(userid, {"pushen": push_batch["sw"]}, 4080, title, logtemp)
+                    yield pushtool.pusher(userid, {"pushen": bool(push_batch.get("sw",False))}, 4080, title, logtemp)
                     logger.info(
                         "Success push today log for {}".format(user['email']))
       

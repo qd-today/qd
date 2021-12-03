@@ -9,7 +9,7 @@ from db.task import TaskDB as _TaskDB
 from sqlite3_db.basedb import BaseDB
 from db.basedb import BaseDB as myBaseDB
 import db.task as task 
-import os
+import json
 
 class DBconverter(_TaskDB, BaseDB):
     def __init__(self, path=config.sqlite3.path):
@@ -209,6 +209,15 @@ class DBconverter(_TaskDB, BaseDB):
             self.db.user.get("1", fields=('push_batch'))
         except :
             exec_shell("ALTER TABLE `user` ADD `push_batch` VARBINARY(1024) NOT NULL DEFAULT '{\"sw\":false,\"time\":0,\"delta\":86400}' " ) 
+
+        try:
+            for user in self.db.user.list(fields=('id','push_batch')):
+                push_batch_i = json.loads(user['push_batch'])
+                if not push_batch_i.get('delta'):
+                    push_batch_i['delta'] = 86400
+                    self.db.user.mod(user['id'], push_batch=json.dumps(push_batch_i))
+        except Exception as e:
+            raise e
 
         try:
             self.db.tpl.get("1", fields=('tplurl'))
