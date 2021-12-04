@@ -15,7 +15,7 @@ import os
 import config
 from .base import *
 
-import sqlite3
+from Crypto.Hash import MD5
 
 from backup import DBnew
 
@@ -615,6 +615,11 @@ class UserSetNewPWDHandler(BaseHandler):
             if self.db.user.challenge_MD5(envs['adminmail'], envs['adminpwd']) and (adminuser['role'] == 'admin'):
                 if (len(newPWD) >= 6):
                     self.db.user.mod(userid, password=newPWD)
+                    hash = MD5.new()
+                    hash.update(newPWD.encode('utf-8'))
+                    tmp = hash.hexdigest()
+                    if (self.db.user.get(email = self.db.user.get(userid, fields=('email'))['email'], fields=('password_md5'))['password_md5'] != tmp):
+                        self.db.user.mod(userid, password_md5=tmp)
                     if not (self.db.user.challenge(envs['usermail'], newPWD)):
                         raise Exception(u'修改失败')
                 else:
