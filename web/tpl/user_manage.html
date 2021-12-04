@@ -141,7 +141,10 @@
       $("#user_table").tablesorter({
         theme: "bootstrap",
         sortList: [[3, 1]],
-        headers: { 0: { sorter: false, parser: false } },
+        headers: {
+          0: { sorter: false, parser: false },
+          5: { sorter: false, parser: false }
+        },
         headerTemplate: '{content} {icon}', // needed to add icon for jui theme
         widgets: ['uitheme']
       });
