@@ -69,36 +69,43 @@ class MainWorker(object):
 
     @gen.coroutine
     def push_batch(self):
-        userlist = self.db.user.list(fields=('id', 'email', 'status', 'push_batch'))
-        pushtool = pusher()
-        for user in userlist:
-            userid = user['id']
-            push_batch = json.loads(user['push_batch'])
-            if user['status'] == "Enable" and push_batch["sw"] and time.time() >= push_batch['time']:
-                title = u"定期签到日志推送"
-                delta = push_batch.get("delta", 86400)
-                logtemp = "{}".format(time.strftime(
-                    "%Y-%m-%d %H:%M:%S", time.localtime(push_batch['time'])))
-                tmp = ""
-                for task in self.db.task.list(userid=userid, fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'last_failed', 'pushsw')):
-                    pushsw = json.loads(task['pushsw'])
-                    if pushsw["pushen"] and (task["disabled"] == 0 or (task.get("last_success", 0) and task.get("last_success", 0) >= push_batch['time']-delta) or (task.get("last_failed", 0) and task.get("last_failed", 0) >= push_batch['time']-delta)):
-                        tmp = "\\r\\n\\r\\n-----任务: {0}-{1}-----".format(self.db.tpl.get(task['tplid'], fields=('sitename'))['sitename'], task['note'])
-                        tmp0 = ""
-                        for log in self.db.tasklog.list(taskid=task["id"], fields=('success', 'ctime', 'msg')):
-                            if (push_batch['time'] - delta) < log['ctime'] <= push_batch['time']:
-                                tmp0 += "\\r\\n时间: {}\\r\\n日志: {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(log['ctime'])), log['msg'])
-                        if tmp0:
-                            tmp += tmp0
-                        else:
-                            tmp += "\\r\\n记录期间未执行签到，请检查任务! "
-                        logtemp += tmp
-                push_batch["time"] = push_batch['time'] + delta
-                self.db.user.mod(userid, push_batch=json.dumps(push_batch))
-                if tmp:
-                    yield pushtool.pusher(userid, {"pushen": bool(push_batch.get("sw",False))}, 4080, title, logtemp)
-                    logger.info(
-                        "Success push today log for {}".format(user['email']))
+        try:
+            userlist = self.db.user.list(fields=('id', 'email', 'status', 'push_batch'))
+            pushtool = pusher()
+            logging.debug('scaned push_batch task, waiting...')
+            if userlist:
+                for user in userlist:
+                    userid = user['id']
+                    push_batch = json.loads(user['push_batch'])
+                    if user['status'] == "Enable" and push_batch["sw"] and time.time() >= push_batch['time']:
+                        title = u"定期签到日志推送"
+                        delta = push_batch.get("delta", 86400)
+                        logtemp = "{}".format(time.strftime(
+                            "%Y-%m-%d %H:%M:%S", time.localtime(push_batch['time'])))
+                        tmp = ""
+                        for task in self.db.task.list(userid=userid, fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'last_failed', 'pushsw')):
+                            pushsw = json.loads(task['pushsw'])
+                            if pushsw["pushen"] and (task["disabled"] == 0 or (task.get("last_success", 0) and task.get("last_success", 0) >= push_batch['time']-delta) or (task.get("last_failed", 0) and task.get("last_failed", 0) >= push_batch['time']-delta)):
+                                tmp = "\\r\\n\\r\\n-----任务: {0}-{1}-----".format(self.db.tpl.get(task['tplid'], fields=('sitename'))['sitename'], task['note'])
+                                tmp0 = ""
+                                for log in self.db.tasklog.list(taskid=task["id"], fields=('success', 'ctime', 'msg')):
+                                    if (push_batch['time'] - delta) < log['ctime'] <= push_batch['time']:
+                                        tmp0 += "\\r\\n时间: {}\\r\\n日志: {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(log['ctime'])), log['msg'])
+                                if tmp0:
+                                    tmp += tmp0
+                                else:
+                                    tmp += "\\r\\n记录期间未执行签到，请检查任务! "
+                                logtemp += tmp
+                        push_batch["time"] = push_batch['time'] + delta
+                        self.db.user.mod(userid, push_batch=json.dumps(push_batch))
+                        if tmp:
+                            user_email = user.get('email','Unkown')
+                            logger.debug("Start push batch log for {}".format(user_email))
+                            yield pushtool.pusher(userid, {"pushen": bool(push_batch.get("sw",False))}, 4080, title, logtemp)
+                            logger.info("Success push batch log for {}".format(user_email))
+        except Exception as e:
+            traceback.print_exc()
+            logger.error('push batch task failed: {}'.format(str(e)))
       
     @gen.coroutine
     def run(self):

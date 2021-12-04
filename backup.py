@@ -132,12 +132,11 @@ class DBnew(BaseDB):
 
             # 获取数据库信息            
             userid = int(userid)
-            user = maindb.db.user.get(id=userid, fields=('id', 'role', 'status', 'email','email_verified', 'password', 'nickname', 
-                                                        'ctime','mtime','atime','cip', 'mip','aip','skey','barkurl', 'wxpusher', 'noticeflg','logtime','push_batch'))
+            user = maindb.db.user.get(id=userid, fields=('id', 'email', 'email_verified', 'password', 'password_md5', 'userkey', 'nickname', 'role', 'ctime', 'mtime', 'atime', 'cip',
+                                      'mip', 'aip', 'skey', 'barkurl', 'wxpusher', 'noticeflg', 'logtime', 'status', 'notepad', 'diypusher', 'qywx_token', 'tg_token', 'dingding_token', 'push_batch'))
             userkey = maindb.db.user.__getuserkey(user['env'])
             tpls = []
-            for tpl in maindb.db.tpl.list(fields=('id', 'userid', 'siteurl', 'banner', 'disabled', 'public', 'lock', 'fork', 'har', 'tpl', 'variables', 'interval', 
-                                                'note', 'success_count', 'failed_count', 'last_success', 'ctime', 'mtime', 'atime', 'tplurl', 'updateable'), limit=None):
+            for tpl in maindb.db.tpl.list(fields=('id', 'userid', 'siteurl', 'sitename', 'banner', 'disabled', 'public', 'lock', 'fork', 'har', 'tpl', 'variables', 'interval', 'note', 'success_count', 'failed_count', 'last_success', 'ctime', 'mtime', 'atime', 'tplurl', 'updateable', '_groups'), limit=None):
                 if tpl['userid'] == userid:
                     tpls.append(tpl)
             tasks = []
