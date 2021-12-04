@@ -19,7 +19,7 @@ from libs.funcs import pusher
 from libs.funcs import cal
 from codecs import escape_decode
 class TaskNewHandler(BaseHandler):    
-    def get(self):
+    async def get(self):
         user = self.current_user
         tplid = self.get_argument('tplid', None)
         fields = ('id', 'sitename', 'success_count')
@@ -49,9 +49,9 @@ class TaskNewHandler(BaseHandler):
                     if (temp not  in _groups):
                         _groups.append(temp)
             
-            self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=tpl['variables'])
+            await self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=tpl['variables'])
         else:
-            self.render('utils_run_result.html', log=u'请先添加模板！', title=u'设置失败', flg='danger')
+            await self.render('utils_run_result.html', log=u'请先添加模板！', title=u'设置失败', flg='danger')
 
     @tornado.web.authenticated
     def post(self, taskid=None):
@@ -123,7 +123,7 @@ class TaskNewHandler(BaseHandler):
 
 class TaskEditHandler(TaskNewHandler):
     @tornado.web.authenticated
-    def get(self, taskid):
+    async def get(self, taskid):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid',
             'tplid', 'disabled', 'note', 'retry_count', 'retry_interval')), 'w')
@@ -140,7 +140,7 @@ class TaskEditHandler(TaskNewHandler):
 
         proxy = task['init_env']['_proxy'] if '_proxy' in task['init_env'] else ''
 
-        self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=init_env, proxy=proxy, retry_count=task['retry_count'], retry_interval=task['retry_interval'])
+        await self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=init_env, proxy=proxy, retry_count=task['retry_count'], retry_interval=task['retry_interval'])
 
 class TaskRunHandler(BaseHandler):
     @tornado.web.authenticated
@@ -186,7 +186,7 @@ class TaskRunHandler(BaseHandler):
             logtmp = u"{0} \\r\\n日志：{1}".format(t, e)
 
             self.db.tasklog.add(task['id'], success=False, msg=str(e))
-            self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+            await self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
 
             await pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
             return
@@ -216,7 +216,7 @@ class TaskRunHandler(BaseHandler):
         logtmp = u"{0} \\r\\n日志：{1}".format(t, logtmp)
 
         self.db.tpl.incr_success(tpl['id'])
-        self.finish('<h1 class="alert alert-success text-center">签到成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+        await self.finish('<h1 class="alert alert-success text-center">签到成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
         
         await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
         logDay = int(self.db.site.get(1, fields=('logDay'))['logDay'])
@@ -227,13 +227,13 @@ class TaskRunHandler(BaseHandler):
 
 class TaskLogHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, taskid):
+    async def get(self, taskid):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'disabled')))
 
         tasklog = self.db.tasklog.list(taskid = taskid, fields=('success', 'ctime', 'msg'))
 
-        self.render('tasklog.html', task=task, tasklog=tasklog)
+        await self.render('tasklog.html', task=task, tasklog=tasklog)
 
 class TaskLogDelHandler(BaseHandler):
     @tornado.web.authenticated
@@ -293,7 +293,7 @@ class TaskDisableHandler(BaseHandler):
         
 class TaskSetTimeHandler(TaskNewHandler):
     @tornado.web.authenticated
-    def get(self, taskid):
+    async def get(self, taskid):
         user = self.current_user
         task = self.check_permission(self.db.task.get(taskid, fields=('id', 'userid',
             'tplid', 'disabled', 'note', 'ontime', 'ontimeflg', 'newontime')), 'w')
@@ -306,10 +306,10 @@ class TaskSetTimeHandler(TaskNewHandler):
             ontime = newontime
         today_date = time.strftime("%Y-%m-%d",time.localtime())
 
-        self.render('task_setTime.html', task=task, ontime=ontime, today_date=today_date)
+        await self.render('task_setTime.html', task=task, ontime=ontime, today_date=today_date)
     
     @tornado.web.authenticated
-    def post(self, taskid):
+    async def post(self, taskid):
         log = u'设置成功'
         try:
             envs = {}
@@ -343,15 +343,15 @@ class TaskSetTimeHandler(TaskNewHandler):
 
         except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
-        self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
+        await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
         return
         
 class TaskGroupHandler(TaskNewHandler):
     @tornado.web.authenticated
-    def get(self, taskid):
+    async def get(self, taskid):
         user = self.current_user      
         groupNow = self.db.task.get(taskid, fields=('_groups'))['_groups']
         _groups = []
@@ -360,7 +360,7 @@ class TaskGroupHandler(TaskNewHandler):
             if (temp not  in _groups):
                 _groups.append(temp)
 
-        self.render('task_setgroup.html', taskid=taskid, _groups=_groups, groupNow=groupNow)
+        await self.render('task_setgroup.html', taskid=taskid, _groups=_groups, groupNow=groupNow)
     
     @tornado.web.authenticated
     def post(self, taskid):        
@@ -385,7 +385,7 @@ class TaskGroupHandler(TaskNewHandler):
         
 class TasksDelHandler(BaseHandler):
     @tornado.web.authenticated
-    def post(self, userid):
+    async def post(self, userid):
         try:
             user = self.current_user
             envs = {}
@@ -408,10 +408,10 @@ class TasksDelHandler(BaseHandler):
                 for taskid in taskids:
                     self.db.task.mod(taskid, groups=New_group)
                     
-            self.finish('<h1 class="alert alert-success text-center">操作成功</h1>')
+            await self.finish('<h1 class="alert alert-success text-center">操作成功</h1>')
         except Exception as e:
             traceback.print_exc()
-            self.render('tpl_run_failed.html', log=str(e))
+            await self.render('tpl_run_failed.html', log=str(e))
             return
 
 class GetGroupHandler(TaskNewHandler):

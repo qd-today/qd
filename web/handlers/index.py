@@ -9,7 +9,7 @@ import json
 from .base import *
 
 class IndexHandlers(BaseHandler):
-    def get(self):
+    async def get(self):
         if self.current_user:
             self.redirect('/my/')
             return
@@ -18,7 +18,7 @@ class IndexHandlers(BaseHandler):
         fields = ('id', 'sitename', 'success_count')
         tpls = sorted(self.db.tpl.list(userid=None, fields=fields, limit=None), key=lambda t: -t['success_count'])
         if not tpls:
-            return self.render('index.html', tpls=[], tplid=0, tpl=None, variables=[])
+            return await self.render('index.html', tpls=[], tplid=0, tpl=None, variables=[])
 
         if not tplid:
             for tpl in tpls:
@@ -29,7 +29,7 @@ class IndexHandlers(BaseHandler):
         tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'sitename', 'siteurl', 'note', 'variables')))
         variables = json.loads(tpl['variables'])
         
-        return self.render('index.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables)
+        return await self.render('index.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables)
 
 handlers = [
         ('/', IndexHandlers),

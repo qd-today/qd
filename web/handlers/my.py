@@ -29,7 +29,7 @@ def my_status(task):
 class MyHandler(BaseHandler):
     @tornado.web.addslash
     @tornado.web.authenticated
-    def get(self):
+    async def get(self):
         user = self.current_user
         adminflg = False
         # 验证用户是否存在
@@ -70,14 +70,14 @@ class MyHandler(BaseHandler):
                 if (temp not  in tplgroups):
                     tplgroups.append(temp)
                     
-            self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=_groups,  tplgroups=tplgroups, adminflg=adminflg)
+            await self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=_groups,  tplgroups=tplgroups, adminflg=adminflg)
         else:
             return self.redirect('/login')
 
 class CheckUpdateHandler(BaseHandler):
     @tornado.web.addslash
     @tornado.web.authenticated
-    def get(self):
+    async def get(self):
         user = self.current_user
         tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable",), limit=None)
         
@@ -131,7 +131,7 @@ class CheckUpdateHandler(BaseHandler):
             if (temp not  in tplgroups):
                 _groups.append(temp)
 
-        self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=_groups, tplgroups=tplgroups)
+        await self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=_groups, tplgroups=tplgroups)
 
 handlers = [
         ('/my/?', MyHandler),

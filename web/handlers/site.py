@@ -17,7 +17,7 @@ from sqlite3_db.basedb import BaseDB
     
 class SiteManagerHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, userid):
+    async def get(self, userid):
         adminflg = False
         site = {'regEn': False}
         user = self.db.user.get(userid, fields=('role'))
@@ -27,11 +27,11 @@ class SiteManagerHandler(BaseHandler):
             site['regEn'] = False if site['regEn'] == 1 else True
             site['MustVerifyEmailEn'] = False if site['MustVerifyEmailEn'] == 0 else True
 
-        self.render("site_manage.html", userid=userid, adminflg=adminflg, site=site, logDay=site['logDay'])
+        await self.render("site_manage.html", userid=userid, adminflg=adminflg, site=site, logDay=site['logDay'])
         return
 
     @tornado.web.authenticated
-    def post(self, userid):
+    async def post(self, userid):
         try:
             user = self.db.user.get(userid, fields=('email', 'role', 'email_verified'))
             if user and user['role'] == "admin":
@@ -76,7 +76,7 @@ class SiteManagerHandler(BaseHandler):
             traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('tpl_run_failed.html', log=str(e))
+            await self.render('tpl_run_failed.html', log=str(e))
             return
             
         self.redirect('/my/')

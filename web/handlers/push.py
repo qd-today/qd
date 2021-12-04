@@ -14,7 +14,7 @@ from .base import *
 
 class PushListHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, status=None):
+    async def get(self, status=None):
         user = self.current_user
         isadmin = user['isadmin']
 
@@ -69,7 +69,7 @@ class PushListHandler(BaseHandler):
             for each in self.db.push_request.list(to_userid = None, **_f):
                 pulls.append(join(each))
 
-        self.render('push_list.html', pushs=pushs, pulls=pulls)
+        await self.render('push_list.html', pushs=pushs, pulls=pulls)
 
 class PushActionHandler(BaseHandler):
     @tornado.web.authenticated
@@ -161,11 +161,11 @@ class PushActionHandler(BaseHandler):
 
 class PushViewHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, prid):
-        return self.render('har/editor.html')
+    async def get(self, prid):
+        return await self.render('har/editor.html')
 
     @tornado.web.authenticated
-    def post(self, prid):
+    async def post(self, prid):
         user = self.current_user
         pr = self.db.push_request.get(prid, fields=('id', 'from_tplid', 'from_userid', 'to_tplid', 'to_userid', 'status'))
         if not pr:
@@ -195,7 +195,7 @@ class PushViewHandler(BaseHandler):
         tpl['har'] = self.fetcher.tpl2har(
                 self.db.user.decrypt(pr['from_userid'], tpl['tpl']))
         tpl['variables'] = json.loads(tpl['variables'])
-        self.finish(dict(
+        await self.finish(dict(
             filename = tpl['sitename'] or '未命名模板',
             har = tpl['har'],
             env = dict((x, '') for x in tpl['variables']),

@@ -7,7 +7,8 @@
 
 import time
 import datetime
-import pytz
+import asyncio
+import functools
 import logging
 import tornado.log
 import tornado.ioloop
@@ -67,10 +68,9 @@ class MainWorker(object):
             if (time.time() - log['ctime']) > (logDay * 24 * 60 * 60):
                 self.db.tasklog.delete(log['id'])
 
-    @gen.coroutine
-    def push_batch(self):
+    async def push_batch(self):
         try:
-            userlist = self.db.user.list(fields=('id', 'email', 'status', 'push_batch'))
+            userlist = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(self.db.user.list,fields=('id', 'email', 'status', 'push_batch'))),timeout=3.0)
             pushtool = pusher()
             logging.debug('scaned push_batch task, waiting...')
             if userlist:
@@ -80,15 +80,16 @@ class MainWorker(object):
                     if user['status'] == "Enable" and push_batch["sw"] and time.time() >= push_batch['time']:
                         title = u"定期签到日志推送"
                         delta = push_batch.get("delta", 86400)
-                        logtemp = "{}".format(time.strftime(
-                            "%Y-%m-%d %H:%M:%S", time.localtime(push_batch['time'])))
+                        logtemp = "{}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(push_batch['time'])))
                         tmp = ""
-                        for task in self.db.task.list(userid=userid, fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'last_failed', 'pushsw')):
+                        task_list = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(self.db.task.list,userid=userid, fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'last_failed', 'pushsw'))),timeout=3.0)
+                        for task in task_list:
                             pushsw = json.loads(task['pushsw'])
                             if pushsw["pushen"] and (task["disabled"] == 0 or (task.get("last_success", 0) and task.get("last_success", 0) >= push_batch['time']-delta) or (task.get("last_failed", 0) and task.get("last_failed", 0) >= push_batch['time']-delta)):
                                 tmp = "\\r\\n\\r\\n-----任务: {0}-{1}-----".format(self.db.tpl.get(task['tplid'], fields=('sitename'))['sitename'], task['note'])
                                 tmp0 = ""
-                                for log in self.db.tasklog.list(taskid=task["id"], fields=('success', 'ctime', 'msg')):
+                                tasklog_list = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(self.db.tasklog.list,taskid=task["id"], fields=('success', 'ctime', 'msg'))),timeout=3.0)
+                                for log in tasklog_list:
                                     if (push_batch['time'] - delta) < log['ctime'] <= push_batch['time']:
                                         tmp0 += "\\r\\n时间: {}\\r\\n日志: {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(log['ctime'])), log['msg'])
                                 if tmp0:
@@ -101,7 +102,7 @@ class MainWorker(object):
                         if tmp:
                             user_email = user.get('email','Unkown')
                             logger.debug("Start push batch log for {}".format(user_email))
-                            yield pushtool.pusher(userid, {"pushen": bool(push_batch.get("sw",False))}, 4080, title, logtemp)
+                            await pushtool.pusher(userid, {"pushen": bool(push_batch.get("sw",False))}, 4080, title, logtemp)
                             logger.info("Success push batch log for {}".format(user_email))
         except Exception as e:
             traceback.print_exc()

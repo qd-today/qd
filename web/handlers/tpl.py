@@ -14,24 +14,24 @@ from codecs import escape_decode
 
 class TPLPushHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, tplid):
+    async def get(self, tplid):
         user = self.current_user
         tpl = self.db.tpl.get(tplid, fields=('id', 'userid', 'sitename'))
         if not self.permission(tpl, 'w'):
             self.evil(+5)
-            self.finish(u'<span class="alert alert-danger">没有权限</span>')
+            await self.finish(u'<span class="alert alert-danger">没有权限</span>')
             return
         tpls = self.db.tpl.list(userid=None, limit=None, fields=('id', 'sitename'))
-        self.render('tpl_push.html', tpl=tpl, tpls=tpls)
+        await self.render('tpl_push.html', tpl=tpl, tpls=tpls)
 
     @tornado.web.authenticated
-    def post(self, tplid):
+    async def post(self, tplid):
         user = self.current_user
         tplid = int(tplid)
         tpl = self.db.tpl.get(tplid, fields=('id', 'userid', ))
         if not self.permission(tpl, 'w'):
             self.evil(+5)
-            self.finish(u'<span class="alert alert-danger">没有权限</span>')
+            await self.finish(u'<span class="alert alert-danger">没有权限</span>')
             return
 
         to_tplid = int(self.get_argument('totpl'))
@@ -43,7 +43,7 @@ class TPLPushHandler(BaseHandler):
             totpl = self.db.tpl.get(to_tplid, fields=('id', 'userid', ))
             if not totpl:
                 self.evil(+1)
-                self.finish(u'<span class="alert alert-danger">模板不存在</span>')
+                await self.finish(u'<span class="alert alert-danger">模板不存在</span>')
                 return
             to_userid = totpl['userid']
 
@@ -55,14 +55,14 @@ class TPLPushHandler(BaseHandler):
         self.redirect('/pushs')
 
 class TPLVarHandler(BaseHandler):
-    def get(self, tplid):
+    async def get(self, tplid):
         user = self.current_user
         tpl = self.db.tpl.get(tplid, fields=('id', 'note', 'userid', 'sitename', 'siteurl', 'variables'))
         if not self.permission(tpl):
             self.evil(+5)
-            self.finish('<span class="alert alert-danger">没有权限</span>')
+            await self.finish('<span class="alert alert-danger">没有权限</span>')
             return
-        self.render('task_new_var.html', tpl=tpl, variables=json.loads(tpl['variables']))
+        await self.render('task_new_var.html', tpl=tpl, variables=json.loads(tpl['variables']))
 
 class TPLDelHandler(BaseHandler):
     @tornado.web.authenticated
@@ -102,7 +102,7 @@ class TPLRunHandler(BaseHandler):
                 fetch_tpl = json.loads(self.get_argument('tpl'))
             except:
                 if not user:
-                    return self.render('tpl_run_failed.html', log="请先登录!")
+                    return await self.render('tpl_run_failed.html', log="请先登录!")
                 raise HTTPError(400)
 
         env = data.get('env')
@@ -132,24 +132,24 @@ class TPLRunHandler(BaseHandler):
                 result = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, proxies=[]))
         except Exception as e:
             traceback.print_exc()
-            self.render('tpl_run_failed.html', log=str(e))
+            await self.render('tpl_run_failed.html', log=str(e))
             return
 
         if tpl:
             self.db.tpl.incr_success(tpl['id'])
-        self.render('tpl_run_success.html', log = result.get('variables', {}).get('__log__'))
+        await self.render('tpl_run_success.html', log = result.get('variables', {}).get('__log__'))
         return
 
 class PublicTPLHandler(BaseHandler):
-    def get(self):
+    async def get(self):
         tpls = self.db.tpl.list(userid=None, limit=None, fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'success_count'))
         tpls = sorted(tpls, key=lambda t: -t['success_count'])
 
-        self.render('tpls_public.html', tpls=tpls)
+        await self.render('tpls_public.html', tpls=tpls)
 
 class TPLGroupHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, tplid):
+    async def get(self, tplid):
         user = self.current_user      
         groupNow = self.db.tpl.get(tplid, fields=('_groups'))['_groups']
         tasks = []
@@ -160,7 +160,7 @@ class TPLGroupHandler(BaseHandler):
             if (temp not  in _groups):
                 _groups.append(temp)
 
-        self.render('tpl_setgroup.html', tplid=tplid, _groups=_groups, groupNow=groupNow)
+        await self.render('tpl_setgroup.html', tplid=tplid, _groups=_groups, groupNow=groupNow)
     
     @tornado.web.authenticated
     def post(self, tplid):        

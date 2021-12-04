@@ -18,44 +18,44 @@ from .base import *
 from libs import utils
 
 class ForbiddenHandler(BaseHandler):
-    def get(self):
-        return self.render('Forbidden.html')
+    async def get(self):
+        return await self.render('Forbidden.html')
 
 class LoginHandler(BaseHandler):
-    def get(self):
+    async def get(self):
         if (self.current_user) and (self.db.user.get(self.current_user['id'], fields=('id'))):
             self.redirect('/my/')
             return
         regFlg = False if  self.db.site.get(1, fields=('regEn'))['regEn'] == 0 else True
         
-        return self.render('login.html', regFlg=regFlg)
+        return await self.render('login.html', regFlg=regFlg)
 
-    def post(self):
+    async def post(self):
         email = self.get_argument('email')
         password = self.get_argument('password')
         siteconfig = self.db.site.get(1, fields=('MustVerifyEmailEn'))
         regFlg = False if  self.db.site.get(1, fields=('regEn'))['regEn'] == 0 else True
         if not email or not password:
-            self.render('login.html', password_error=u'请输入用户名和密码', email=email, regFlg=regFlg)
+            await self.render('login.html', password_error=u'请输入用户名和密码', email=email, regFlg=regFlg)
             return
 
         user_try = self.db.user.get(email=email, fields=('id', 'role', 'status'))
         if (user_try):
             if (user_try['status'] != 'Enable') and (user_try['role'] != 'admin'):
-                self.render('login.html', password_error=u'账号已被禁用，请联系管理员', email=email, regFlg=regFlg)
+                await self.render('login.html', password_error=u'账号已被禁用，请联系管理员', email=email, regFlg=regFlg)
                 return
         else:
-            self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
+            await self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
             return
 
         if self.db.user.challenge(email, password):
             user = self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role', 'email_verified'))
             if not user:
-                self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
+                await self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
                 return
             
             if (siteconfig['MustVerifyEmailEn'] != 0) and (user['email_verified'] == 0):
-                self.render('login.html', password_error=u'未验证邮箱，请点击注册重新验证邮箱', email=email, regFlg=regFlg)
+                await self.render('login.html', password_error=u'未验证邮箱，请点击注册重新验证邮箱', email=email, regFlg=regFlg)
                 return
 
             setcookie = dict(
@@ -78,7 +78,7 @@ class LoginHandler(BaseHandler):
             self.redirect(next)
         else:
             self.evil(+5)
-            self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
+            await self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
 
 class LogoutHandler(BaseHandler):
     def get(self):
@@ -86,13 +86,13 @@ class LogoutHandler(BaseHandler):
         self.redirect('/')
 
 class RegisterHandler(BaseHandler):
-    def get(self):
+    async def get(self):
         if self.current_user:
             self.redirect('/my/')
             return
 
         regFlg = False if  self.db.site.get(1, fields=('regEn'))['regEn'] == 0 else True
-        return self.render('register.html', regFlg=regFlg)
+        return await self.render('register.html', regFlg=regFlg)
 
     async def post(self):
         siteconfig = self.db.site.get(1, fields=('regEn', 'MustVerifyEmailEn'))
@@ -103,13 +103,13 @@ class RegisterHandler(BaseHandler):
         password = self.get_argument('password')
         
         if not email:
-            self.render('register.html', email_error=u'请输入邮箱', regFlg=regFlg)
+            await self.render('register.html', email_error=u'请输入邮箱', regFlg=regFlg)
             return
         if email.count('@') != 1 or email.count('.') == 0:
-            self.render('register.html', email_error=u'邮箱格式不正确', regFlg=regFlg)
+            await self.render('register.html', email_error=u'邮箱格式不正确', regFlg=regFlg)
             return
         if len(password) < 6:
-            self.render('register.html', password_error=u'密码需要大于6位', email=email, regFlg=regFlg)
+            await self.render('register.html', password_error=u'密码需要大于6位', email=email, regFlg=regFlg)
             return
 
         user = self.db.user.get(email = email, fields=('id', 'email', 'email_verified', 'nickname', 'role'))
@@ -120,7 +120,7 @@ class RegisterHandler(BaseHandler):
                     self.db.user.add(email=email, password=password, ip=self.ip2varbinary)
                 except self.db.user.DeplicateUser as e:
                     self.evil(+3)
-                    self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
+                    await self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
                     return
                 user = self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role'))
 
@@ -140,21 +140,21 @@ class RegisterHandler(BaseHandler):
                     next = self.get_argument('next', '/my/')
                     self.redirect(next)
                 else:
-                    self.render('register.html', email_error=u'请验证邮箱后再登陆', regFlg=regFlg)
+                    await self.render('register.html', email_error=u'请验证邮箱后再登陆', regFlg=regFlg)
                 await gen.convert_yielded(self.send_mail(user))
                 
             else:
-                self.render('register.html', email_error=u'管理员关闭注册', regFlg=regFlg)
+                await self.render('register.html', email_error=u'管理员关闭注册', regFlg=regFlg)
             return
         else:
             if (MustVerifyEmailEn == 1):
                 if (user['email_verified'] != 1):
-                    self.render('register.html', email_error=u'email地址未验证，邮件已发送，请验证邮件后登陆')
+                    await self.render('register.html', email_error=u'email地址未验证，邮件已发送，请验证邮件后登陆')
                     await gen.convert_yielded(self.send_mail(user))
                 else:
-                    self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
+                    await self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
             else:
-                self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
+                await self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
         return
 
     async def send_mail(self, user):
@@ -180,7 +180,7 @@ class RegisterHandler(BaseHandler):
         return
 
 class VerifyHandler(BaseHandler):
-    def get(self, code):
+    async def get(self, code):
         try:
             verified_code = base64.b64decode(code)
             userid, verified_code = self.db.user.decrypt(0, verified_code)
@@ -195,18 +195,18 @@ class VerifyHandler(BaseHandler):
                     email_verified=True,
                     mtime=time.time()
                     )
-            self.finish('验证成功')
+            await self.finish('验证成功')
         except Exception as e:
             self.evil(+5)
             logger.error('%r',e)
             self.set_status(400)
-            self.finish('验证失败')
+            await self.finish('验证失败')
 
 
 class PasswordResetHandler(BaseHandler):
-    def get(self, code):
+    async def get(self, code):
         if not code:
-            return self.render('password_reset_email.html')
+            return await self.render('password_reset_email.html')
 
         try:
             verified_code = base64.b64decode(code)
@@ -220,10 +220,10 @@ class PasswordResetHandler(BaseHandler):
             self.evil(+10)
             logger.error('%r',e)
             self.set_status(400)
-            self.finish('Bad Request')
+            await self.finish('Bad Request')
             return
 
-        return self.render('password_reset.html')
+        return await self.render('password_reset.html')
 
     async def post(self, code):
         if not code:
@@ -231,10 +231,10 @@ class PasswordResetHandler(BaseHandler):
 
             email = self.get_argument('email')
             if not email:
-                return self.render('password_reset_email.html',
+                return await self.render('password_reset_email.html',
                                    email_error=u'请输入邮箱')
             if email.count('@') != 1 or email.count('.') == 0:
-                return self.render('password_reset_email.html',
+                return await self.render('password_reset_email.html',
                                    email_error=u'邮箱格式不正确')
 
             user = self.db.user.get(email=email, fields=('id', 'email', 'mtime', 'nickname', 'role'))
@@ -243,11 +243,11 @@ class PasswordResetHandler(BaseHandler):
                 await gen.convert_yielded(self.send_mail(user))
 
 
-            return self.finish("如果用户存在，会将发送密码重置邮件到您的邮箱，请注意查收。（如果您没有收到过激活邮件，可能无法也无法收到密码重置邮件）")
+            return await self.finish("如果用户存在，会将发送密码重置邮件到您的邮箱，请注意查收。（如果您没有收到过激活邮件，可能无法也无法收到密码重置邮件）")
         else:
             password = self.get_argument('password')
             if len(password) < 6:
-                return self.render('password_reset.html', password_error=u'密码需要大于6位')
+                return await self.render('password_reset.html', password_error=u'密码需要大于6位')
 
             try:
                 verified_code = base64.b64decode(code)
@@ -261,7 +261,7 @@ class PasswordResetHandler(BaseHandler):
                 self.evil(+10)
                 logger.error('%r',e)
                 self.set_status(400)
-                self.finish('Bad Request')
+                await self.finish('Bad Request')
                 return
 
             self.db.user.mod(userid,

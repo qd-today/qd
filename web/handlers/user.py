@@ -33,8 +33,8 @@ def tostr(s):
 
 class UserRegPush(BaseHandler):
     @tornado.web.authenticated
-    def get(self, userid):
-        self.render('user_register_pusher.html', userid=userid)
+    async def get(self, userid):
+        await self.render('user_register_pusher.html', userid=userid)
     
     @tornado.web.authenticated
     async def post(self, userid):
@@ -109,10 +109,10 @@ class UserRegPush(BaseHandler):
 
             except Exception as e:
                 traceback.print_exc()
-                self.render('tpl_run_failed.html', log=str(e))
+                await self.render('tpl_run_failed.html', log=str(e))
                 return
             
-            self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
+            await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
             return
 
         else:
@@ -158,15 +158,15 @@ class UserRegPush(BaseHandler):
 
             except Exception as e:
                 traceback.print_exc()
-                self.render('tpl_run_failed.html', log=str(e))
+                await self.render('tpl_run_failed.html', log=str(e))
                 return
 
-            self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
+            await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
             return
 
 class UserRegPushSw(BaseHandler):
     @tornado.web.authenticated
-    def get(self, userid):
+    async def get(self, userid):
         tasks = []
         for task in self.db.task.list(userid, fields=('id', 'tplid', 'note', 'disabled', 'ctime', 'pushsw'), limit=None):
             tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
@@ -196,10 +196,10 @@ class UserRegPushSw(BaseHandler):
         if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0
         
 
-        self.render('user_register_pushsw.html', userid=userid, flg=flg, tasks=tasks, logtime=logtime, push_batch=push_batch)
+        await self.render('user_register_pushsw.html', userid=userid, flg=flg, tasks=tasks, logtime=logtime, push_batch=push_batch)
 
     @tornado.web.authenticated
-    def post(self, userid):
+    async def post(self, userid):
         try:
             tasks = []
             for task in self.db.task.list(userid, fields=('id', 'tplid', 'note', 'disabled', 'ctime', 'pushsw'), limit=None):
@@ -274,14 +274,14 @@ class UserRegPushSw(BaseHandler):
                 
         except Exception as e:
             traceback.print_exc()
-            self.render('tpl_run_failed.html', log=str(e))
+            await self.render('tpl_run_failed.html', log=str(e))
             return
-        self.render('utils_run_result.html', log=u"设置完成", title=u'设置成功', flg='success')
+        await self.render('utils_run_result.html', log=u"设置完成", title=u'设置成功', flg='success')
         return
     
 class UserManagerHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, userid):
+    async def get(self, userid):
         flg = self.get_argument("flg", '')
         title = self.get_argument("title", '')
         log = self.get_argument("log", '')
@@ -298,11 +298,11 @@ class UserManagerHandler(BaseHandler):
                     user['email_verified'] = True
                 users.append(user)
 
-        self.render("user_manage.html", users=users, userid=userid, adminflg=adminflg, flg=flg, title=title,log=log)
+        await self.render("user_manage.html", users=users, userid=userid, adminflg=adminflg, flg=flg, title=title,log=log)
         return
 
     @tornado.web.authenticated
-    def post(self, userid):
+    async def post(self, userid):
         try:
             user = self.db.user.get(userid, fields=('role'))
             if user and user['role'] == "admin":
@@ -347,23 +347,23 @@ class UserManagerHandler(BaseHandler):
         except Exception as e:
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
+            await self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
             return
-        self.render('utils_run_result.html', title='操作成功', flg='success')
+        await self.render('utils_run_result.html', title='操作成功', flg='success')
         return
 
 class UserDBHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, userid):
+    async def get(self, userid):
         adminflg = False
         user = self.db.user.get(userid, fields=('role'))
         if user and user['role'] == "admin":
             adminflg = True 
-        self.render("DB_manage.html", userid=userid, adminflg=adminflg)
+        await self.render("DB_manage.html", userid=userid, adminflg=adminflg)
         return
     
     @tornado.web.authenticated
-    def post(self, userid):
+    async def post(self, userid):
         try:
             user = self.db.user.get(userid, fields=('role', 'email'))
             envs = {}
@@ -374,7 +374,7 @@ class UserDBHandler(BaseHandler):
             now=datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
             if ('backupbtn' in envs):
-                if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
+                if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
                     if user and user['role'] == "admin":
                         if config.db_type != "sqlite3":
                             raise Exception(u"抱歉，暂不支持通过本页面备份MySQL数据！ﾍ(;´Д｀ﾍ)")
@@ -388,7 +388,7 @@ class UserDBHandler(BaseHandler):
                                 if not data:
                                     break
                                 self.write(data)
-                        self.finish()
+                        await self.finish()
                         return
                     else:
                         raise Exception(u"管理员才能备份数据库") 
@@ -425,7 +425,7 @@ class UserDBHandler(BaseHandler):
                                 break
                             self.write(data)
                     os.remove(savename)
-                    self.finish()
+                    await self.finish()
                     return
                     
                 if ('recoverytplsbtn' in envs):
@@ -476,7 +476,7 @@ class UserDBHandler(BaseHandler):
                                                      pushsw = newtask['pushsw'],
                                                      newontime = newtask['newontime']
                                             )
-                        self.render('utils_run_result.html', log=u"设置完成", title=u'设置成功', flg='success')
+                        await self.render('utils_run_result.html', log=u"设置完成", title=u'设置成功', flg='success')
                         return
                     else:
                         raise Exception(u"请上传文件")
@@ -486,20 +486,20 @@ class UserDBHandler(BaseHandler):
             traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('tpl_run_failed.html', log=str(e))
+            await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
         return 
      
 class toolbox_notpad_Handler(BaseHandler):
     @tornado.web.authenticated
-    def get(self,userid):
+    async def get(self,userid):
         user = self.current_user
         text_data = self.db.user.get(userid, fields=('notepad'))['notepad']
-        self.render('toolbox-notepad.html', text_data = text_data, userid=userid)
+        await self.render('toolbox-notepad.html', text_data = text_data, userid=userid)
         return
 
     @tornado.web.authenticated
-    def post(self,userid):
+    async def post(self,userid):
         try:
             user = self.db.user.get(userid, fields=('role', 'email'))
             envs = {}
@@ -525,13 +525,13 @@ class toolbox_notpad_Handler(BaseHandler):
             traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('tpl_run_failed.html', log=str(e))
+            await self.render('tpl_run_failed.html', log=str(e))
             return
         return
 
 class UserPushShowPvar(BaseHandler):
     @tornado.web.authenticated
-    def post(self,userid):
+    async def post(self,userid):
         try:
             user = self.db.user.get(userid, fields=('role', 'email'))
             envs = {}
@@ -548,7 +548,7 @@ class UserPushShowPvar(BaseHandler):
                           qywx_token = key['qywx_token'],
                           tg_token = key['tg_token'],
                           dingding_token = key['dingding_token'])
-                self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
+                await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
                 return
             else:
                 raise Exception(u"账号/密码错误")   
@@ -556,16 +556,16 @@ class UserPushShowPvar(BaseHandler):
             traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.render('tpl_run_failed.html', log=str(e))
+            await self.render('tpl_run_failed.html', log=str(e))
             print(e)
             return
 
 class custom_pusher_Handler(BaseHandler):
     @tornado.web.authenticated
-    def get(self,userid):
+    async def get(self,userid):
         diypusher = self.db.user.get(userid, fields=('diypusher'))['diypusher']
         diypusher = json.loads(diypusher) if (diypusher != '') else {'mode':'GET'}
-        self.render('user_register_cus_pusher.html', userid=userid, diypusher=diypusher)
+        await self.render('user_register_cus_pusher.html', userid=userid, diypusher=diypusher)
         return
         
     @tornado.web.authenticated
@@ -589,21 +589,21 @@ class custom_pusher_Handler(BaseHandler):
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
             traceback.print_exc()
-            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
-        self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
+        await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
         return
 
 class UserSetNewPWDHandler(BaseHandler):
     @tornado.web.authenticated
-    def get(self,userid):
+    async def get(self,userid):
         email = self.db.user.get(userid, fields=('email'))['email']
-        self.render('user_setnewpwd.html', userid=userid, usermail=email)
+        await self.render('user_setnewpwd.html', userid=userid, usermail=email)
         return
         
     @tornado.web.authenticated
-    def post(self,userid):
+    async def post(self,userid):
         try:
             log = u'设置成功'
             envs = {}
@@ -623,10 +623,10 @@ class UserSetNewPWDHandler(BaseHandler):
                 raise Exception(u'管理员用户名/密码错误')
         except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
-        self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
+        await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
         return
 
 handlers = [

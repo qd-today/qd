@@ -38,17 +38,17 @@ class SubscribeHandler(BaseHandler):
             # 如果上次更新时间大于1天则更新模板仓库
             if (now_ts - int(repos['lastupdate']) > 24 * 3600):
                 tpls = self.db.pubtpl.list()
-                self.render('pubtpl_wait.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
+                await self.render('pubtpl_wait.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
                 return
 
             tpls = self.db.pubtpl.list()
-            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
+            await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
 
         except Exception as e:
             traceback.print_exc()
             user = self.current_user
             tpls = self.db.pubtpl.list()
-            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
+            await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
             return
 
 class SubscribeUpdatingHandler(BaseHandler):
@@ -118,19 +118,19 @@ class SubscribeUpdatingHandler(BaseHandler):
 
             tpls = self.db.pubtpl.list()
 
-            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
+            await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
             return
 
         except Exception as e:
             traceback.print_exc()
             user = self.current_user
             tpls = self.db.pubtpl.list()
-            self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
+            await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
             return
 
 class SubscribeRefreshHandler(BaseHandler):
     @tornado.web.authenticated
-    def post(self, userid):
+    async def post(self, userid):
         try:
             user = self.current_user
             op = self.get_argument('op', '')
@@ -148,7 +148,7 @@ class SubscribeRefreshHandler(BaseHandler):
                 raise Exception('没有权限操作')
         except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
         self.redirect('/subscribe/{0}/'.format(userid) ) 
@@ -156,16 +156,16 @@ class SubscribeRefreshHandler(BaseHandler):
 
 class Subscrib_signup_repos_Handler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, userid):
+    async def get(self, userid):
         user = self.current_user
         if (user['id'] == int(userid)) and (user['role'] == u'admin'):
-            self.render('pubtpl_register.html', userid=userid)
+            await self.render('pubtpl_register.html', userid=userid)
         else:
-            self.render('utils_run_result.html', log='非管理员用户，不可设置', title=u'设置失败', flg='danger')
+            await self.render('utils_run_result.html', log='非管理员用户，不可设置', title=u'设置失败', flg='danger')
         return
 
     @tornado.web.authenticated
-    def post(self, userid):
+    async def post(self, userid):
         try:
             user = self.current_user
             if (user['id'] == int(userid)) and (user['role'] == u'admin'):
@@ -204,15 +204,15 @@ class Subscrib_signup_repos_Handler(BaseHandler):
 
         except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
-        self.render('utils_run_result.html', log=u'设置成功，请关闭操作对话框或刷新页面查看', title=u'设置成功', flg='success')
+        await self.render('utils_run_result.html', log=u'设置成功，请关闭操作对话框或刷新页面查看', title=u'设置成功', flg='success')
         return
 
 class GetReposInfoHandler(BaseHandler):
     @tornado.web.authenticated
-    def post(self, userid):
+    async def post(self, userid):
         try:
             user = self.current_user
             if (user['id'] == int(userid)) and (user['role'] == u'admin'):
@@ -230,29 +230,29 @@ class GetReposInfoHandler(BaseHandler):
                 raise Exception('非管理员用户，不可查看')
         except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=str(e), title=u'获取信息失败', flg='danger')
+            await self.render('utils_run_result.html', log=str(e), title=u'获取信息失败', flg='danger')
             return
 
-        self.render('pubtpl_reposinfo.html',  repos=repos)
+        await self.render('pubtpl_reposinfo.html',  repos=repos)
         return
 
 class unsubscribe_repos_Handler(BaseHandler):
     @tornado.web.authenticated
-    def get(self, userid):
+    async def get(self, userid):
         try:
             user = self.current_user
             if (user['id'] == int(userid)) and (user['role'] == u'admin'):
-                self.render('pubtpl_unsubscribe.html', user=user)
+                await self.render('pubtpl_unsubscribe.html', user=user)
             else:
                 raise Exception('非管理员用户，不可设置')
             return
         except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=str(e), title=u'打开失败', flg='danger')
+            await self.render('utils_run_result.html', log=str(e), title=u'打开失败', flg='danger')
             return
     
     @tornado.web.authenticated
-    def post(self, userid):
+    async def post(self, userid):
         try:
             user = self.current_user
             if (user['id'] == int(userid)) and (user['role'] == u'admin'):
@@ -283,10 +283,10 @@ class unsubscribe_repos_Handler(BaseHandler):
 
         except Exception as e:
             traceback.print_exc()
-            self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             return
 
-        self.render('utils_run_result.html', log=u'设置成功，请关闭操作对话框或刷新页面查看', title=u'设置成功', flg='success')
+        await self.render('utils_run_result.html', log=u'设置成功，请关闭操作对话框或刷新页面查看', title=u'设置成功', flg='success')
         return
 
 handlers = [

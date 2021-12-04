@@ -7,7 +7,8 @@
 
 import time
 import json
-import os
+import asyncio
+import functools
 
 import umsgpack
 from tornado import gen
@@ -17,25 +18,25 @@ from libs import utils
 from .base import *
 
 class HAREditor(BaseHandler):
-    def get(self, id=None):
+    async def get(self, id=None):
         reponame = self.get_argument("reponame", "")
         harname = self.get_argument("name", "")
 
         if (reponame != '') and (harname != ''):
-            tpl = self.db.pubtpl.list(filename = harname, 
+            tpl = await asyncio.get_event_loop().run_in_executor(None, functools.partial(self.db.pubtpl.list,filename = harname, 
                                       reponame = reponame,
-                                      fields=('id', 'name', 'content'))
+                                      fields=('id', 'name', 'content')))
             if (len(tpl) > 0):
                 hardata = tpl[0]['content']
             else:
-                self.render('tpl_run_failed.html', log=u'此模板不存在')
+                await self.render('tpl_run_failed.html', log=u'此模板不存在')
                 return
         else:
             hardata = ''
 
-        return self.render('har/editor.html', tplid=id, harpath=reponame, harname=harname, hardata=hardata)
+        return await self.render('har/editor.html', tplid=id, harpath=reponame, harname=harname, hardata=hardata)
 
-    def post(self, id):
+    async def post(self, id):
         user = self.current_user
         taskid = self.get_query_argument('taskid', '')
 
@@ -48,7 +49,7 @@ class HAREditor(BaseHandler):
         envs = self.db.user.decrypt(user['id'], self.db.task.get(taskid, 'init_env')['init_env']) if taskid and self.db.task.get(taskid) else {}
 
         #self.db.tpl.mod(id, atime=time.time())
-        self.finish(dict(
+        await self.finish(dict(
             filename = tpl['sitename'] or '未命名模板',
             har = tpl['har'],
             env = dict((x, envs[x] if x in envs else '') for x in tpl['variables']),
@@ -82,7 +83,7 @@ class HARTest(BaseHandler):
                     }
                 }
 
-        self.finish(result)
+        await self.finish(result)
 
 class HARSave(BaseHandler):
     @staticmethod
@@ -119,7 +120,7 @@ class HARSave(BaseHandler):
         return variables
 
     @tornado.web.authenticated
-    def post(self, id):
+    async def post(self, id):
         self.evil(+1)
         reponame = self.get_argument("reponame", "")
         harname = self.get_argument("name", "")
@@ -139,11 +140,11 @@ class HARSave(BaseHandler):
             _tmp = self.check_permission(self.db.tpl.get(id, fields=('id', 'userid', 'lock')), 'w')
             if not _tmp['userid']:
                 self.set_status(403)
-                self.finish(u'公开模板不允许编辑')
+                await self.finish(u'公开模板不允许编辑')
                 return
             if _tmp['lock']:
                 self.set_status(403)
-                self.finish(u'模板已锁定')
+                await self.finish(u'模板已锁定')
                 return
 
             self.db.tpl.mod(id, har=har, tpl=tpl, variables=variables)
@@ -167,7 +168,7 @@ class HARSave(BaseHandler):
                 mtime=time.time(),
                 updateable=0,
                 _groups=groupName)
-        self.finish({
+        await self.finish({
             'id': id
             })
 
