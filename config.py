@@ -30,7 +30,10 @@ empty_retry = bool(strtobool(os.getenv('EMPTY_RETRY', 'True')))             # �
 cookie_days = int(os.getenv('COOKIE_DAY', 5))                               # Cookie在客户端保留时间
 mysql_url = urlparse(os.getenv('JAWSDB_MARIA_URL', ''))                     # 格式: mysql://用户名:密码@hostname:port/数据库名
 redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))                       # 格式: (redis/http)://rediscloud:密码@hostname:port
+
+# 日志推送设置
 push_pic = os.getenv('PUSH_PIC_URL', 'https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png')      # 日志推送默认图片地址
+push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送签到任务日志, 默认为True
 
 class mysql(object):
     host = mysql_url.hostname or 'localhost'                                # 访问MySQL的Hostname

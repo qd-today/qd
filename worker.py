@@ -131,7 +131,8 @@ class MainWorker(object):
                     success += 1
                 else:
                     failed += 1
-            yield self.push_batch()
+            if config.push_batch_sw:
+                yield self.push_batch()
         except Exception as e:
             logging.exception(e)
         return (success, failed)

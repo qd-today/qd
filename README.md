@@ -157,6 +157,7 @@ JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 mysql://用户名:�
 REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时, <br>设置为 http://rediscloud:密码@hostname:port
 REDIS_DB_INDEX|否|1|默认为1
 PUSH_PIC_URL|否|<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png">push_pic.png</a>|默认为<a href="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png">push_pic.png</a>
+PUSH_BATCH_SW|否|True|是否允许开启定期推送签到任务日志, 默认为True
 ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS, <br>非程序使用HTTPS, 需要HTTPS需要使用反向代理
 DOMAIN|否|qiandao.today|指定访问域名, <br>建议修改, 否则邮件重置密码等功能无效
 MAIL_SMTP|否|""|邮箱SMTP服务器
