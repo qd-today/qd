@@ -30,7 +30,7 @@
 [Gitee-image]: https://img.shields.io/static/v1?label=Gitee&message=a76yyyy&color=brightgreen
 [Gitee-url]: https://gitee.com/a76yyyy/qiandao/
 [github-license-image]: https://img.shields.io/github/license/qiandao-today/qiandao
-[github-license-url]: https://github.com/qiandao-today/qiandao/blob/main/LICENSE
+[github-license-url]: https://github.com/qiandao-today/qiandao/blob/master/LICENSE
 [last-commit-image]: https://img.shields.io/github/last-commit/qiandao-today/qiandao
 [last-commit-url]: https://github.com/qiandao-today/qiandao/
 [commit-activity-image]: https://img.shields.io/github/commit-activity/m/qiandao-today/qiandao
