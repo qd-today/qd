@@ -36,8 +36,9 @@
   }
 
   define(function(require, exports, module) {
-    var analyze_cookies, headers, mime_type, post_data, replace_variables, rm_content, sort, utils, xhr;
+    var analyze_cookies, containSpecial, headers, mime_type, post_data, replace_variables, rm_content, sort, utils, xhr;
     utils = require('/static/components/utils');
+    containSpecial = RegExp(/[(\ )(\~)(\!)(\@)(\#)(\$)(\%)(\^)(\&)(\*)(\()(\))(\-)(\+)(\=)(\[)(\])(\{)(\})(\|)(\\)(\;)(\:)(\')(\")(\,)(\.)(\/)(\<)(\>)(\?)(\)]+/);
     xhr = function(har) {
       var entry, h, j, len, ref;
       ref = har.log.entries;
@@ -403,17 +404,29 @@
         return har;
       },
       variables: function(string) {
-        var m, re, results;
+        var j, len, list_tmp, list_tmp_v, m, re, tmp, tmp1, tmp_v, variables_results;
         re = /{{\s*([\w]+)[^}]*?\s*}}/g;
-        results = [];
+        variables_results = [];
         while (m = re.exec(string)) {
           if (jQuery.inArray(m[1], jinja_globals) < 0) {
-            results.push(m[1]);
+            variables_results.push(m[1]);
           } else {
-            results.push(void 0);
+            tmp = /{{\s*\w+\s*\((.*)\)[^}]*?\s*}}/;
+            tmp = tmp.exec(m[0]);
+            if ((tmp != null ? tmp.length : void 0) > 1) {
+              list_tmp = tmp[1].split(",");
+              for (j = 0, len = list_tmp.length; j < len; j++) {
+                list_tmp_v = list_tmp[j];
+                tmp1 = /(^[^\d\"\'][\w]+).*?/;
+                tmp_v = tmp1.exec(list_tmp_v);
+                if ((tmp_v != null) && !containSpecial.test(tmp_v[1]) && jQuery.inArray(tmp_v[1], jinja_globals) < 0) {
+                  variables_results.push(tmp_v[1]);
+                }
+              }
+            }
           }
         }
-        return results;
+        return variables_results;
       },
       variables_in_entry: function(entry) {
         var c, h, ref, result;
@@ -470,12 +483,12 @@
           for (j = 0, len = list.length; j < len; j++) {
             string = list[j];
             results.push((function() {
-              var l, len1, ref, results1;
+              var l, len1, ref, ref1, results1;
               ref = exports.variables(string);
               results1 = [];
               for (l = 0, len1 = ref.length; l < len1; l++) {
                 each = ref[l];
-                if (indexOf.call(result, each) < 0) {
+                if (ref1 = each != null, indexOf.call(result, ref1) < 0) {
                   results1.push(result.push(each));
                 } else {
                   results1.push(void 0);

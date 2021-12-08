@@ -16,6 +16,7 @@ Array.prototype.every ?= (f) ->
 
 define (require, exports, module) ->
   utils = require('/static/components/utils')
+  containSpecial = RegExp(/[(\ )(\~)(\!)(\@)(\#)(\$)(\%)(\^)(\&)(\*)(\()(\))(\-)(\+)(\=)(\[)(\])(\{)(\})(\|)(\\)(\;)(\:)(\')(\")(\,)(\.)(\/)(\<)(\>)(\?)(\)]+/)
 
   xhr = (har) ->
     for entry in har.log.entries
@@ -229,9 +230,22 @@ define (require, exports, module) ->
 
     variables: (string) ->
       re = /{{\s*([\w]+)[^}]*?\s*}}/g
+      variables_results = []
       while m = re.exec(string)
         if jQuery.inArray(m[1], jinja_globals) < 0
-          m[1]
+          variables_results.push(m[1])
+        else
+          tmp = /{{\s*\w+\s*\((.*)\)[^}]*?\s*}}/
+          tmp = tmp.exec(m[0])
+          if tmp?.length > 1
+            list_tmp = tmp[1].split(",")
+            for list_tmp_v in list_tmp
+              tmp1 = /(^[^\d\"\'][\w]+).*?/
+              tmp_v = tmp1.exec(list_tmp_v)
+              if tmp_v? and not containSpecial.test(tmp_v[1]) and jQuery.inArray(tmp_v[1], jinja_globals) < 0
+                variables_results.push(tmp_v[1])
+      return variables_results
+
 
     variables_in_entry: (entry) ->
       result = []
@@ -245,7 +259,7 @@ define (require, exports, module) ->
       ].map((list) ->
         for string in list
           for each in exports.variables(string)
-            if each not in result
+            if each? not in result
               result.push(each)
       )
       if result.length > 0
