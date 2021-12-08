@@ -46,7 +46,7 @@ define (require, exports, module) ->
           # update env from extract_variables
           env = utils.list2dict($scope.env)
           for rule in $scope.entry.extract_variables
-            if ret = $scope.preview_match(rule.re, rule.from)
+            if ret = $scope.preview_match?(rule.re, rule.from)
               env[rule.name] = ret
           $scope.env = utils.dict2list(env)
 

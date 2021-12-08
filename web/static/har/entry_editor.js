@@ -43,7 +43,7 @@
             ref1 = $scope.entry.extract_variables;
             for (i = 0, len = ref1.length; i < len; i++) {
               rule = ref1[i];
-              if (ret = $scope.preview_match(rule.re, rule.from)) {
+              if (ret = typeof $scope.preview_match === "function" ? $scope.preview_match(rule.re, rule.from) : void 0) {
                 env[rule.name] = ret;
               }
             }
