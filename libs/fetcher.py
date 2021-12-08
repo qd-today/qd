@@ -44,6 +44,8 @@ class Fetcher(object):
         self.download_size_limit = download_size_limit
         self.jinja_env = Environment()
         self.jinja_env.globals = utils.jinja_globals
+        self.jinja_env.globals.update(utils.jinja_inner_globals)
+        self.jinja_env.filters.update(utils.jinja_globals)
 
     def render(self, request, env, session=[]):
         request = dict(request)

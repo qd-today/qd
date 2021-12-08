@@ -3,7 +3,7 @@
   var base, base1, jinja_globals,
     indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-  window.jinja_globals = ['md5', 'quote_chinese', 'utf8', 'unicode', 'timestamp', 'random', 'date_time', 'is_num', 'add', 'sub', 'multiply', 'divide'];
+  window.jinja_globals = ['md5', 'quote_chinese', 'utf8', 'unicode', 'timestamp', 'random', 'date_time', 'is_num', 'add', 'sub', 'multiply', 'divide', 'dict', 'lipsum'];
 
   jinja_globals = window.jinja_globals;
 

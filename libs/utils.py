@@ -8,6 +8,7 @@
 import socket
 import struct
 import ipaddress
+import jinja2
 from tornado import gen
 
 def ip2int(addr):
@@ -413,6 +414,7 @@ def is_num(s:str=''):
     else:
         return s.lstrip('-').isdigit()
 
+
 jinja_globals = {
     'md5': md5string,
     'quote_chinese': quote_chinese,
@@ -421,11 +423,16 @@ jinja_globals = {
     'timestamp': timestamp,
     'random': get_random,
     'date_time': get_date_time,
-    'is_num':is_num,
-    'add':add,
-    'sub':sub,
-    'multiply':multiply,
-    'divide':divide,
+    'is_num': is_num,
+    'add': add,
+    'sub': sub,
+    'multiply': multiply,
+    'divide': divide,
+}
+
+jinja_inner_globals = {
+    'dict': dict,
+    'lipsum': jinja2.utils.generate_lorem_ipsum
 }
 
 import re
