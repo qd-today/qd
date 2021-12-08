@@ -17,6 +17,7 @@ from datetime import datetime
 
 from tornado.httputil import HTTPHeaders
 from tornado.escape import native_str
+from io import BytesIO
 
 from jinja2.sandbox import SandboxedEnvironment as Environment
 from tornado import gen, httpclient, simple_httpclient
@@ -56,9 +57,12 @@ class Fetcher(object):
         def _render(obj, key):
             if not obj.get(key):
                 return
-            
-            obj[key] = self.jinja_env.from_string(obj[key]).render(_cookies=_cookies, **env)
-            return True
+            try:
+                obj[key] = self.jinja_env.from_string(obj[key]).render(_cookies=_cookies, **env)
+                return True
+            except Exception as e:
+                log_error = 'The error occurred when rendering template {}: {} \\r\\n {}'.format(key,obj[key],repr(e))
+                raise httpclient.HTTPError(500,log_error)
 
         _render(request, 'method')
         _render(request, 'url')
@@ -184,8 +188,9 @@ class Fetcher(object):
 
         def build_headers(headers):
             result = []
-            for k, v in headers.get_all():
-                result.append(dict(name=k, value=v))
+            if headers:
+                for k, v in headers.get_all():
+                    result.append(dict(name=k, value=v))
             return result
 
         def build_request(request):
@@ -439,17 +444,27 @@ class Fetcher(object):
                         req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=CURL_ENCODING,CURL_CONTENT_LENGTH=False)
                         e.response =  await gen.convert_yielded(self.client.fetch(req))
                     elif e.code not in NOT_RETYR_CODE or (EMPTY_RETRY and not e.response):
-                        logger.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
-                        client = simple_httpclient.SimpleAsyncHTTPClient()
-                        e.response =  await gen.convert_yielded(client.fetch(req))
+                        try:
+                            logger.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
+                            client = simple_httpclient.SimpleAsyncHTTPClient()
+                            e.response =  await gen.convert_yielded(client.fetch(req))
+                        except Exception:
+                            logger.error(e.message or e.response or Exception)
                     else:
-                        logger.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
+                        try:
+                            logger.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
+                        except Exception:
+                            logger.error(e.message or e.response or Exception)
                 else:
                     logger.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
             finally:
+                if 'req' not in locals().keys():
+                    tmp = {'env':obj['env'],'rule':obj['rule']}
+                    tmp['request'] = {'method': 'GET', 'url': 'http://127.0.0.1:8923/util/unicode?content=', 'headers': [], 'cookies': []}
+                    req, rule, env = self.build_request(tmp)
+                    e.response = httpclient.HTTPResponse(request=req,code=e.code,reason=e.message,buffer=BytesIO(str(e).encode()))
                 if not e.response:
                     traceback.print_exc()
-                    from io import BytesIO
                     e.response = httpclient.HTTPResponse(request=req,code=e.code,reason=e.message,buffer=BytesIO(str(e).encode()))
                 return rule, env, e.response
         return rule, env, response
