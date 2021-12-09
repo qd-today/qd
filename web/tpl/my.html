@@ -17,36 +17,32 @@
       <a href="/task/new" class="btn btn-default btn-xs modal_load glyphicon glyphicon-plus"></a>
       {% if adminflg %}
       <script src="{{ static_url('components/blueimp-md5/js/md5.js') }}"></script>
-      <span type="span" class="btn btn-default">
-        <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/manage" title="管理用户">管理用户</a>
-      </span>
-      <span type="span" class="btn btn-default">
-        <a data-load-method="GET" class="modal_load" href="/site/{{ userid }}/manage" title="管理网站">管理网站</a>
-      </span>
+      <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/user/{{ userid }}/manage" title="管理用户">管理用户
+      </button>
+      <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/site/{{ userid }}/manage" title="管理网站">管理网站
+      </button>
       {% endif %}
-      <span type="span" class="btn btn-default">
-        <a data-load-method="GET" class="modal_load" href="/user/{{ userid }}/database" title="备份数据库">数据库</a>
-      </span>
-      <span type="span" class="btn btn-default">
-        <a data-load-method="GET" class="modal_load" href="/util/toolbox/{{ userid }}" title="工具箱">工具箱</a>
-      </span>
+      <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/user/{{ userid }}/database" title="备份数据库">数据库
+      </button>
+      <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/util/toolbox/{{ userid }}" title="工具箱">工具箱
+      </button>
     </h2>
     <div class="text-left" style="float:left;margin-right:5px;margin-bottom: 5px;">
       <span class="btn-group">
-        <button type="button" class="btn btn-default">
-          <a data-load-method="GET" class="modal_load" href="/task/{{ userid }}/multi?op=disable" title="禁用多个任务" >禁用</a>
+        <button type="button" class="btn btn-default modal_load" data-load-method="GET"
+          href="/task/{{ userid }}/multi?op=disable" title="禁用多个任务">禁用
         </button>
-        <button type="button" class="btn btn-default">
-          <a data-load-method="GET" class="modal_load" href="/task/{{ userid }}/multi?op=enable" title="启用多个任务">启用</a>
+        <button type="button" class="btn btn-default modal_load" data-load-method="GET"
+          href="/task/{{ userid }}/multi?op=enable" title="启用多个任务">启用
         </button>
-        <button type="button" class="btn btn-default">
-          <a data-load-method="GET" class="modal_load" href="/task/{{ userid }}/multi?op=delete" title="启用多个任务">删除</a>
+        <button type="button" class="btn btn-default modal_load" data-load-method="GET"
+          href="/task/{{ userid }}/multi?op=delete" title="启用多个任务">删除
         </button>
-        <button type="button" class="btn btn-default">
-          <a data-load-method="GET" class="modal_load" href="/task/{{ userid }}/multi?op=settime" title="定时多个任务">定时</a>
+        <button type="button" class="btn btn-default modal_load" data-load-method="GET"
+          href="/task/{{ userid }}/multi?op=settime" title="定时多个任务">定时
         </button>
-        <button type="button" class="btn btn-default">
-          <a data-load-method="GET" class="modal_load" href="/task/{{ userid }}/multi?op=setgroup" title="分组多个任务">分组</a>
+        <button type="button" class="btn btn-default modal_load" data-load-method="GET"
+          href="/task/{{ userid }}/multi?op=setgroup" title="分组多个任务">分组
         </button>
       </span>
     </div>
@@ -108,15 +104,15 @@
           <td style="text-align:center">
             <div class="btn-group btn-group-xs" role="group">
               {% if task.tpl %}
-              <span type="span" class="btn btn-default"><a class="modal_load" href="/task/{{ task.id }}/edit" title="修改签到数据">修改</a></span>
+              <button type="button" class="btn btn-default modal_load" href="/task/{{ task.id }}/edit" title="修改签到数据">修改</button>
               {% else %}
-              <span type="span" class="btn btn-default"><a data-method="POST" href="/task/{{ task.id }}/del" data-confirm="是否要删除任务?">删除</a></span>
+              <button type="button" class="btn btn-default" data-method="POST" href="/task/{{ task.id }}/del" data-confirm="是否要删除任务?">删除</button>
               {% endif %}
-              <span type="span" class="btn btn-default"><a data-load-method="POST" class="modal_load" href="/task/{{ task.id }}/run" title="立即执行签到任务">执行</a></span>
-              <span type="span" class="btn btn-default"><a href="/tpl/{{ task.tplid }}/edit?taskid={{ task.id }}" target="_blank" title="查看模板数据">模板</a></span>
-              <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/task/{{ task.id }}/settime" title="修改执行时间">定时</a></span>
-              <span type="span" class="btn btn-default"><a href="/task/{{ task.id }}/log" target="_blank" title="查看执行日志">日志</a></span>
-              <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/task/{{ task.id }}/group" title="将任务分组">分组</a></span>
+              <button type="button" class="btn btn-default modal_load" data-load-method="POST" href="/task/{{ task.id }}/run" title="立即执行签到任务">执行</button>
+              <a class="btn btn-default" href="/tpl/{{ task.tplid }}/edit?taskid={{ task.id }}" target="_blank" title="查看模板数据">模板</a>
+              <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/task/{{ task.id }}/settime" title="修改执行时间">定时</button>
+              <a type="button" class="btn btn-default" href="/task/{{ task.id }}/log" target="_blank" title="查看执行日志">日志</a>
+              <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/task/{{ task.id }}/group" title="将任务分组">分组</button>
             </div>
           </td>
           
@@ -139,7 +135,7 @@
     <h2>
       我的模板
       <a href="/har/edit" class="btn btn-default btn-xs glyphicon glyphicon-plus" target="_blank"></a>
-      <span type="span" class="btn btn-default"><a href="/subscribe/{{ userid }}/" target="_blank" title="查看公共模板">公共模板</a></span>
+      <a class="btn btn-default" href="/subscribe/{{ userid }}/" target="_blank" title="查看公共模板">公共模板</a>
     </h2>
     <table id="tpl_list" class="table table-hover tablesorter">
       <thead>
@@ -167,10 +163,8 @@
         <tr class="{{ tplgroup }} tplgroup" >
           <td>
             {% if  tpl.updateable == 1 %}
-            <span type="span" class="btn btn-default">
-              <a href="/tpl/{{ tpl.id }}/edit?tplurl={{ tpl.tplurl | urlencode }}?tpldata={{ tpl.tpldata | urlencode }}" target="_blank" title="更新模板">更新
-              </a>
-            </span>
+            <a class="btn btn-default btn-xs" href="/tpl/{{ tpl.id }}/edit?tplurl={{ tpl.tplurl | urlencode }}?tpldata={{ tpl.tpldata | urlencode }}" target="_blank" title="更新模板">更新
+            </a>
             {% endif %}
             {{ utils.tplname(tpl) }}
     
@@ -193,12 +187,12 @@
               {% if tpl.lock %}
               [锁定]
               {% else %}
-              <span type="span" class="btn btn-default"><a href="/tpl/{{ tpl.id }}/edit" target="_blank" title="编辑模板数据">编辑</a></span>
-              <span type="span" class="btn btn-default"><a data-method="POST" href="/tpl/{{ tpl.id }}/del" data-confirm="是否要删除模板?" title="删除模板数据">删除</a></span>
+              <a class="btn btn-default" href="/tpl/{{ tpl.id }}/edit" target="_blank" title="编辑模板数据">编辑</a>
+              <a class="btn btn-default " data-method="POST" href="/tpl/{{ tpl.id }}/del" data-confirm="是否要删除模板?" title="删除模板数据">删除</a>
               {% endif %}
-              <span type="span" class="btn btn-default"><a class="modal_load" href="/task/new?tplid={{ tpl.id }}" title="通过此模板新建签到">新建</a></span>
-              <span type="span" class="btn btn-default"><a class="modal_load" href="/tpl/{{ tpl.id }}/push" title="发布自己创建的模板">发布</a></span>
-              <span type="span" class="btn btn-default"><a data-load-method="GET" class="modal_load" href="/tpl/{{ tpl.id }}/group" title="将模板分组">分组</a></span>
+              <button type="button" class="btn btn-default modal_load" href="/task/new?tplid={{ tpl.id }}" title="通过此模板新建签到">新建</button>
+              <button type="button" class="btn btn-default modal_load" href="/tpl/{{ tpl.id }}/push" title="发布自己创建的模板">发布</button>
+              <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/tpl/{{ tpl.id }}/group" title="将模板分组">分组</button>
             </div>
           </td>
         
