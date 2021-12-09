@@ -135,11 +135,26 @@
         return analysis.recommend($scope.har);
       };
       $scope.download = function() {
-        var tpl;
         $scope.pre_save();
-        tpl = btoa(unescape(encodeURIComponent(angular.toJson(har2tpl($scope.har)))));
-        angular.element('#download-har').attr('download', $scope.setting.sitename + '.har').attr('href', 'data:application/json;base64,' + tpl);
+        $scope.export_add($scope.setting.sitename + '.har', decodeURIComponent(encodeURIComponent(angular.toJson(har2tpl($scope.har)))));
         return true;
+      };
+      $scope.ev_click = function(obj) {
+        var ev;
+        ev = document.createEvent("MouseEvents");
+        ev.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        return obj.dispatchEvent(ev);
+      };
+      $scope.export_add = function(name, data) {
+        var export_blob, save_link, urlObject;
+        urlObject = window.URL || window.webkitURL || window;
+        export_blob = new Blob([data], {
+          type: "application/json"
+        });
+        save_link = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
+        save_link.href = urlObject.createObjectURL(export_blob);
+        save_link.download = name;
+        return $scope.ev_click(save_link);
       };
       $scope.pre_save = function() {
         var alert_elem, alert_info_elem, base, base1, error, first_entry, parsed_url;
