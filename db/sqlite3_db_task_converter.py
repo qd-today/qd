@@ -10,6 +10,8 @@ from sqlite3_db.basedb import BaseDB
 from db.basedb import BaseDB as myBaseDB
 import db.task as task 
 import json
+import re
+from libs import mcrypto as crypto
 
 class DBconverter(_TaskDB, BaseDB):
     def __init__(self, path=config.sqlite3.path):
@@ -400,6 +402,9 @@ class DBconverter(_TaskDB, BaseDB):
 
         try:
             self.db.user.get("1", fields=('password_md5'))
+            for user in self.db.user.list(fields=('id', 'password', 'password_md5')):
+                if isinstance(user['password_md5'],str) and re.match(r'^[a-z0-9]{32}$',user['password_md5']):
+                    self.db.user.mod(user['id'],password_md5=crypto.password_hash(user['password_md5'],self.db.user.decrypt(user['id'], user['password'])))
         except :
             exec_shell("ALTER TABLE `user` ADD  `password_md5` VARBINARY(128) NOT NULL DEFAULT '' ") 
 

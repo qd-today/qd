@@ -53,7 +53,7 @@ class UserDB(BaseDB):
 
         hash = MD5.new()
         hash.update(password.encode('utf-8'))
-        password_md5 = hash.hexdigest()
+        password_md5_hash = crypto.password_hash(hash.hexdigest(),userkey)
 
         insert = dict(
                 email = email,
@@ -69,7 +69,7 @@ class UserDB(BaseDB):
                 cip = ip,
                 mip = ip,
                 aip = ip,
-                password_md5 = password_md5,
+                password_md5 = password_md5_hash,
                 )
         return self._insert(**insert)
 
@@ -83,32 +83,20 @@ class UserDB(BaseDB):
 
         return False
 
-    def challenge_MD5(self, email, password):
-        user = self.get(email=email, fields=('id', 'password_md5'))
+    def challenge_MD5(self, email, password_md5):
+        user = self.get(email=email, fields=('id', 'password', 'password_md5'))
         if not user:
             return False
         else:
             if (user['password_md5'] == ''):
                 pass
             else:
-                if password == user['password_md5']:
+                password_hash = self.decrypt(user['id'], user['password'])
+                if crypto.password_hash(password_md5, password_hash) == user['password_md5']:
                     return True
         return False
 
     def mod(self, id, **kwargs):
-        assert 'id' not in kwargs, 'id not modifiable'
-        assert 'email' not in kwargs, 'email not modifiable'
-        assert 'userkey' not in kwargs, 'userkey not modifiable'
-
-        if 'password' in kwargs:
-            kwargs['password'] = self.encrypt(id, crypto.password_hash(kwargs['password']))
-            
-        if 'token' in kwargs:
-            kwargs['token'] = self.encrypt(id, crypto.password_hash(kwargs['token']))
-
-        return self._update(where="id=%s" % self.placeholder, where_values=(id, ), **kwargs)
-
-    def mod2(self, id, **kwargs):
         assert 'id' not in kwargs, 'id not modifiable'
         assert 'email' not in kwargs, 'email not modifiable'
         assert 'userkey' not in kwargs, 'userkey not modifiable'
