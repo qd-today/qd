@@ -53,13 +53,13 @@ class UserDB(BaseDB):
 
         hash = MD5.new()
         hash.update(password.encode('utf-8'))
-        password_md5_hash = crypto.password_hash(hash.hexdigest(),userkey)
+        password_hash = crypto.password_hash(password)
+        password_md5_hash = crypto.password_hash(hash.hexdigest(),password_hash)
 
         insert = dict(
                 email = email,
                 email_verified = 0,
-                password = crypto.aes_encrypt(
-                    crypto.password_hash(password), userkey),
+                password = crypto.aes_encrypt(password_hash, userkey),
                 userkey = crypto.aes_encrypt(userkey),
                 nickname = None,
                 role = None,
