@@ -4,9 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-grunt = "*"
 tornado = "*"
-u-msgpack-python = "*"
 chardet = "*"
 requests = "*"
 pbkdf2 = "*"
@@ -14,13 +12,14 @@ pycryptodome = "*"
 pytz = "*"
 croniter = "*"
 Jinja2 = "*"
-umsgpack = "*"
 redis = "*"
 mysql-connector-python = "*"
 incremental = "*"
+u-msgpack-python = "*"
 
 [dev-packages]
 pycurl = "<7.43.0.6"
+grunt = "*"
 
 [requires]
 python_version = "3.8"

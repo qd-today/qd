@@ -11,16 +11,14 @@ chardet==4.0.0
 charset-normalizer==2.0.9; python_version >= '3'
 croniter==1.1.0
 deprecated==1.2.13; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-grunt==0.1.1
 idna==3.3; python_version >= '3'
 incremental==21.3.0
 jinja2==3.0.3
 markupsafe==2.0.1; python_version >= '3.6'
-msgpack-python==0.5.6
 mysql-connector-python==8.0.27
 pbkdf2==1.3
 protobuf==3.19.1; python_version >= '3.5'
-pycryptodome==3.11.0
+pycryptodome==3.12.0
 # pycurl==7.43.0.5
 python-dateutil==2.8.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 pytz==2021.3
@@ -29,6 +27,5 @@ requests==2.26.0
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 tornado==6.1
 u-msgpack-python==2.7.1
-umsgpack==0.1.0
 urllib3==1.26.7; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'
 wrapt==1.13.3; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
