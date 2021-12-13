@@ -43,7 +43,7 @@ function send2notepad(mode){
   data = {}
   data['mode'] = mode
   data['adminmail'] = $('#adminmail')[0].value;
-  data['adminpwd'] = $('#adminpwd')[0].value;
+  data['adminpwd'] = md5($('#adminpwd')[0].value);
   data['content'] = $('#New_notepad_content')[0].value;
   $.ajax("/util/toolbox/{{ userid }}/notepad", {
         type: 'POST',

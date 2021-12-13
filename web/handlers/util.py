@@ -390,7 +390,7 @@ class toolboxHandler(BaseHandler):
             pwd = self.get_argument("pwd", "")
             f = self.get_argument("f", "")
             if (email) and (pwd) and (f):
-                if self.db.user.challenge(email, pwd):
+                if self.db.user.challenge_MD5(email, pwd) or self.db.user.challenge(email, pwd):
                     userid = self.db.user.get(email=email, fields=('id'))['id']
                     text_data = self.db.user.get(email=email, fields=('notepad'))['notepad']
                     new_data = self.get_argument("data", "")

@@ -22,6 +22,7 @@ from backup import DBnew
 import codecs
 import traceback
 from libs.funcs import pusher
+from libs import mcrypto as crypto
 
 def tostr(s):
     if isinstance(s, bytes):
@@ -507,7 +508,7 @@ class toolbox_notpad_Handler(BaseHandler):
                 envs[k] = self.get_body_argument(k)
             mail = envs['adminmail']
             pwd = envs['adminpwd']
-            if self.db.user.challenge(mail, pwd) and (user['email'] == mail):
+            if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
                 if ('mode' in envs) and ('content' in envs):
                     if (envs['mode'] == 'write'):
                         new_data =  envs['content']
@@ -615,10 +616,11 @@ class UserSetNewPWDHandler(BaseHandler):
             if self.db.user.challenge_MD5(envs['adminmail'], envs['adminpwd']) and (adminuser['role'] == 'admin'):
                 if (len(newPWD) >= 6):
                     self.db.user.mod(userid, password=newPWD)
+                    user = self.db.user.get(userid, fields=('email','password','password_md5'))
                     hash = MD5.new()
                     hash.update(newPWD.encode('utf-8'))
-                    tmp = hash.hexdigest()
-                    if (self.db.user.get(email = self.db.user.get(userid, fields=('email'))['email'], fields=('password_md5'))['password_md5'] != tmp):
+                    tmp = crypto.password_hash(hash.hexdigest(), self.db.user.decrypt(userid, user['password']))
+                    if (user['password_md5'] != tmp):
                         self.db.user.mod(userid, password_md5=tmp)
                     if not (self.db.user.challenge(envs['usermail'], newPWD)):
                         raise Exception(u'修改失败')
