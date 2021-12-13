@@ -68,13 +68,13 @@ class LoginHandler(BaseHandler):
             self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
             self.db.user.mod(user['id'], atime=time.time(), aip=self.ip2varbinary)
             
-            # # 如果用户MD5不一致就更新MD5
-            # user = self.db.user.get(email=email, fields=('id', 'password', 'password_md5'))
-            # hash = MD5.new()
-            # hash.update(password.encode('utf-8'))
-            # tmp = crypto.password_hash(hash.hexdigest(),self.db.user.decrypt(user['id'], user['password']))
-            # if (user['password_md5'] != tmp):
-            #     self.db.user.mod(user['id'], password_md5=tmp)
+            # 如果用户MD5不一致就更新MD5
+            user = self.db.user.get(email=email, fields=('id', 'password', 'password_md5'))
+            hash = MD5.new()
+            hash.update(password.encode('utf-8'))
+            tmp = crypto.password_hash(hash.hexdigest(),self.db.user.decrypt(user['id'], user['password']))
+            if (user['password_md5'] != tmp):
+                self.db.user.mod(user['id'], password_md5=tmp)
 
             next = self.get_argument('next', '/my/')
             self.redirect(next)
