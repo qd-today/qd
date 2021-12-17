@@ -77,29 +77,37 @@ class MainWorker(object):
                 for user in userlist:
                     userid = user['id']
                     push_batch = json.loads(user['push_batch'])
-                    if user['status'] == "Enable" and push_batch["sw"] and time.time() >= push_batch['time']:
+                    if user['status'] == "Enable" and push_batch["sw"] and isinstance(push_batch['time'],(float,int)) and time.time() >= push_batch['time']:
                         title = u"定期签到日志推送"
                         delta = push_batch.get("delta", 86400)
                         logtemp = "{}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(push_batch['time'])))
+                        tmpdict = {}
                         tmp = ""
+                        numlog = 0
                         task_list = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(self.db.task.list,userid=userid, fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'last_failed', 'pushsw'))),timeout=3.0)
                         for task in task_list:
                             pushsw = json.loads(task['pushsw'])
                             if pushsw["pushen"] and (task["disabled"] == 0 or (task.get("last_success", 0) and task.get("last_success", 0) >= push_batch['time']-delta) or (task.get("last_failed", 0) and task.get("last_failed", 0) >= push_batch['time']-delta)):
-                                tmp = "\\r\\n\\r\\n-----任务: {0}-{1}-----".format(self.db.tpl.get(task['tplid'], fields=('sitename'))['sitename'], task['note'])
                                 tmp0 = ""
                                 tasklog_list = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(self.db.tasklog.list,taskid=task["id"], fields=('success', 'ctime', 'msg'))),timeout=3.0)
                                 for log in tasklog_list:
                                     if (push_batch['time'] - delta) < log['ctime'] <= push_batch['time']:
                                         tmp0 += "\\r\\n时间: {}\\r\\n日志: {}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(log['ctime'])), log['msg'])
+                                        numlog += 1
+                                tmplist = tmpdict.get(task['tplid'],[])
                                 if tmp0:
-                                    tmp += tmp0
+                                    tmplist.append("\\r\\n-----任务{0}-{1}-----{2}\\r\\n".format(len(tmplist)+1, task['note'], tmp0))
                                 else:
-                                    tmp += "\\r\\n记录期间未执行签到，请检查任务! "
-                                logtemp += tmp
+                                    tmplist.append("\\r\\n-----任务{0}-{1}-----\\r\\n记录期间未执行签到，请检查任务! \\r\\n".format(len(tmplist)+1, task['note']))
+                                tmpdict[task['tplid']] = tmplist
+                                
+                        for tmpkey in tmpdict:
+                            tmp = "\\r\\n\\r\\n=====签到: {0}=====".format(self.db.tpl.get(tmpkey, fields=('sitename'))['sitename'])
+                            tmp += ''.join(tmpdict[tmpkey])
+                            logtemp += tmp
                         push_batch["time"] = push_batch['time'] + delta
                         self.db.user.mod(userid, push_batch=json.dumps(push_batch))
-                        if tmp:
+                        if tmp and numlog:
                             user_email = user.get('email','Unkown')
                             logger.debug("Start push batch log for {}".format(user_email))
                             await pushtool.pusher(userid, {"pushen": bool(push_batch.get("sw",False))}, 4080, title, logtemp)
