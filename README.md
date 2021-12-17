@@ -212,6 +212,21 @@ sh ./update.sh -f
 更新日志
 ===========
 
+## 2021.12.17 更新
+
+1. 定期日志推送按模板分组 fix #153
+2. 自定义全局Jinja2函数支持管道符模式
+3. 支持dict和lispsum jinja2函数
+4. contenteditable只允许纯文本编辑
+5. 支持移动端下载模板
+6. Jinja2模板引擎渲染出错时在前端显示500错误信息
+7. 数据库password_md5字段加密，增加数据库安全性
+8. 工具箱及站点设置均使用MD5密码传输
+9. 修复使用jinja全局函数时前端变量显示undefined的bug
+10. 修复$scope.preview_match前端报错的bug
+11. 修复按钮空白区域无响应bug
+12. 移除无用包
+
 ## 2021.12.04 更新
 
 1. 修复前端全局匹配结果被toString()的bug
@@ -227,6 +242,12 @@ sh ./update.sh -f
 11. 优化异步性能，避免网页加载导致阻塞
 12. 更新软件包
 
+<details>
+
+<summary>
+历史更新日志
+</summary>
+
 ## 2021.11.15 更新
 
 1. 编辑任务时变量默认值为前值(by billypon)
@@ -234,12 +255,6 @@ sh ./update.sh -f
 3. 编辑任务逻辑优化(by billypon)
 4. 修改备注长度
 5. 修复更新错误后无法停止的bug
-
-<details>
-
-<summary>
-历史更新日志
-</summary>
 
 ## 2021.11.02 更新
 
