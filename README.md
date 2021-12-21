@@ -77,6 +77,12 @@ Docker容器部署方式
 
    ``` docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config   a76yyyy/qiandao sh -c "redis-server --daemonize yes && python /usr/src/app/run.py" ```
 
+- 容器内部无法连通外网时尝试该命令:  
+
+   ``` docker run -d --name qiandao --env PORT=8923 --net=host -v $(pwd)/qiandao/config:/usr/src/app/config a76yyyy/qiandao ```
+
+   > 请注意使用该命令创建容器后，请将模板里`http://localhost/`形式的请求手动改成`http://localhost:8923/`后才能正常完成相关API请求
+
 3. 数据库备份指令 : ```docker cp 容器名:/usr/src/app/config/database.db .```
 
 - 数据库恢复指令 : ```docker cp database.db 容器名:/usr/src/app/config/```
