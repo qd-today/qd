@@ -10,6 +10,7 @@ import struct
 import ipaddress
 import jinja2
 from tornado import gen
+from faker import Faker
 
 def ip2int(addr):
     try:
@@ -322,8 +323,8 @@ md5string = lambda x: hashlib.md5(utf8(x)).hexdigest()
 
 
 import random
-def get_random(min_num, max_mun, unit):
-    random_num = random.uniform(min_num, max_mun)
+def get_random(min_num, max_num, unit):
+    random_num = random.uniform(min_num, max_num)
     result = "%.{0}f".format(int(unit)) % random_num
     return result
 
@@ -428,6 +429,7 @@ jinja_globals = {
     'sub': sub,
     'multiply': multiply,
     'divide': divide,
+    'Faker': Faker
 }
 
 jinja_inner_globals = {

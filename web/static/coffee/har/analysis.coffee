@@ -3,7 +3,7 @@
 #         http://binux.me
 # Created on 2014-08-02 10:07:33
 
-window.jinja_globals = ['md5','quote_chinese','utf8','unicode','timestamp','random','date_time','is_num','add','sub','multiply','divide','dict','lipsum']
+window.jinja_globals = ['md5','quote_chinese','utf8','unicode','timestamp','random','date_time','is_num','add','sub','multiply','divide','Faker','dict','lipsum']
 jinja_globals = window.jinja_globals
 
 Array.prototype.some ?= (f) ->

@@ -17,6 +17,7 @@ mysql-connector-python = "*"
 incremental = "*"
 u-msgpack-python = "*"
 pysocks = "*"
+faker = "*"
 
 [dev-packages]
 pycurl = "<7.43.0.6"

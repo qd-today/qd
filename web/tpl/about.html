@@ -325,6 +325,13 @@ clipboard.on('error', function(e) {
       </tr>
       
       <tr>
+        <td>{{Faker(locale="zh_CN").function()}}</td>
+        <td>调用python包faker里的Faker类来创建伪数据, <br>locale为生成数据的文化选项, <br>需同时调用其提供的方法, 如name(), <br>Docs: <a href="https://faker.readthedocs.io/" target="_blank" rel="nofollow">https://faker.readthedocs.io/</a></td>
+        <td>{{Faker(locale='zh_CN').name()}}</td>
+        <td class="autowrap">苗桂芝</td>
+      </tr>
+
+      <tr>
         <td>{{timestamp(type)}}</td>
         <td>调用 python 里的 time.time() 函数, type: 'int'表示输出整数, 'float'表示输出小数,默认为'int'</td>
         <td>{{timestamp('float')}}</td>
