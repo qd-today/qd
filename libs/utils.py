@@ -422,7 +422,6 @@ jinja_globals = {
     'utf8': utf8,
     'unicode': conver2unicode,
     'timestamp': timestamp,
-    'random': get_random,
     'date_time': get_date_time,
     'is_num': is_num,
     'add': add,
@@ -433,6 +432,7 @@ jinja_globals = {
 }
 
 jinja_inner_globals = {
+    'random': get_random,
     'dict': dict,
     'lipsum': jinja2.utils.generate_lorem_ipsum
 }
