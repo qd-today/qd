@@ -200,19 +200,19 @@ USER0ISADMIN|否|True|第一个注册用户为管理员，False关闭
 ## 1. 源码部署更新
 
 ```
-sh ./update.sh # 先cd到源码所在目录, 执行命令后重启进程 
+sh ./update.sh && pip install -r requirements.txt # 先cd到源码所在目录, 执行命令后重启进程 
 ```
 
 ## 2. Docker容器部署更新
 
 ```
-sh /usr/src/app/update.sh # 先进入容器后台, 执行命令后重启进程 
+sh /usr/src/app/update.sh && pip install -r requirements.txt # 先进入容器后台, 执行命令后重启进程 
 ```
 
 ## 3. 强制同步最新源码
 
 ```
-sh ./update.sh -f 
+sh ./update.sh -f && pip install -r requirements.txt
 ```
 
 更新日志
