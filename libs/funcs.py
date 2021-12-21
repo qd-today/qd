@@ -83,9 +83,10 @@ class pusher(object):
             if (link[-1] != '/'): link=link+'/'
             content = content.replace('\\r\\n','\n')
             d = {"title":title,"body":content}
-            obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
-                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-            _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+            # obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
+            #        'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+            # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+            res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
             r = 'True'
         except Exception as e:
             r = traceback.format_exc()
@@ -100,9 +101,10 @@ class pusher(object):
                 link = u"https://sctapi.ftqq.com/{0}.send".format(skey.replace(".send", ""))
                 content = content.replace('\\r\\n','\n\n')
                 d = {'text': title, 'desp': content}
-                obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/x-www-form-urlencoded; charset=UTF-8'}], 'cookies': [], 'data':utils.urllib.parse.urlencode(d)}, 'rule': {
-                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                # obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/x-www-form-urlencoded; charset=UTF-8'}], 'cookies': [], 'data':utils.urllib.parse.urlencode(d)}, 'rule': {
+                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, data=d, verify=False)),timeout=3.0)
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
@@ -118,7 +120,7 @@ class pusher(object):
             tgToken = tmp[0]
             tgUserId = tmp[1]
             tgHost = tmp[2] if len(tmp) >= 3 else ''
-            proxy = utils.parse_url(tmp[3]) if len(tmp) >= 4 else ''
+            proxy = tmp[3] if len(tmp) >= 4 else ''
             pic = tmp[4] if len(tmp) >= 5 else ''
         if tgToken and tgUserId:
             try:
@@ -140,12 +142,18 @@ class pusher(object):
                 picurl = config.push_pic if pic == '' else pic
                 content = content.replace('\\r\\n','</pre>\n<pre>')
                 d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QianDao提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
-                obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
-                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                # obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
+                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
                 if proxy:
-                    _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj, proxy = proxy))
+                    proxies = {
+                        'http': proxy,
+                        'https': proxy
+                    }
+                    # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj, proxy = proxy))
+                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, proxies=proxies, verify=False)),timeout=3.0)
                 else:
-                    _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                    # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
@@ -163,10 +171,11 @@ class pusher(object):
                 link = u"https://oapi.dingtalk.com/robot/send?access_token={0}".format(dingding_token)
                 picurl = config.push_pic if pic == '' else pic
                 content = content.replace('\\r\\n','\n\n > ')
-                d = {"msgtype":"markdown","markdown":{"title":title,"text":"![QianDao](" + picurl + ")\n " + "#### "+ title + "\n > " +content}}
-                obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
-                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                d = {"msgtype": "markdown", "markdown": {"title": title, "text": "![QianDao](" + picurl + ")\n " + "#### " + title + "\n > " + content}}
+                # obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
+                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
@@ -190,9 +199,10 @@ class pusher(object):
                             wxpusher_uid
                         ]
                     }
-                obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
-                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                # obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
+                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
@@ -220,23 +230,26 @@ class pusher(object):
                     headerstmp.pop('Content-Type','')
                 if (diypusher['postMethod'] == 'x-www-form-urlencoded'):
                     headerstmp['Content-Type'] = "application/x-www-form-urlencoded; charset=UTF-8"
-                    headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
-                    obj = {'request': {'method': 'POST', 'url': curltmp, 'headers': headerstmp, 'cookies': [], 'data':utils.urllib.parse.urlencode(postDatatmp)}, 'rule': {
-                        'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                    # headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
+                    # obj = {'request': {'method': 'POST', 'url': curltmp, 'headers': headerstmp, 'cookies': [], 'data':utils.urllib.parse.urlencode(postDatatmp)}, 'rule': {
+                    #     'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, curltmp, headers=headerstmp, data=postDatatmp, verify=False)),timeout=3.0)
                 else:
                     headerstmp['Content-Type'] = "application/json; charset=UTF-8"
-                    headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
-                    obj = {'request': {'method': 'POST', 'url': curltmp, 'headers': headerstmp, 'cookies': [], 'data':json.dumps(postDatatmp)}, 'rule': {
-                        'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                    # headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
+                    # obj = {'request': {'method': 'POST', 'url': curltmp, 'headers': headerstmp, 'cookies': [], 'data':json.dumps(postDatatmp)}, 'rule': {
+                    #     'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, curltmp, headers=headerstmp, json=postDatatmp, verify=False)),timeout=3.0)
             elif (diypusher['mode'] == 'GET'):
-                headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
-                obj = {'request': {'method': 'GET', 'url': curltmp, 'headers': headerstmp, 'cookies': []}, 'rule': {
-                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                # headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
+                # obj = {'request': {'method': 'GET', 'url': curltmp, 'headers': headerstmp, 'cookies': []}, 'rule': {
+                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, curltmp, headers=headerstmp, verify=False)),timeout=3.0)
             else:
                 raise Exception(u'模式未选择')
-            _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+            # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
 
-            if (res.code == 200):
+            if (res.status_code == 200):
                 r = "True"
 
         except Exception as e:
@@ -302,10 +315,12 @@ class pusher(object):
                             "enable_duplicate_check": 0,
                             "duplicate_check_interval": 1800
                             }
-                obj = {'request': {'method': 'POST', 'url': msgUrl, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(postData)}, 'rule': {
-                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                _,_,msg_res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
-                tmp = json.loads(msg_res.body)
+                # obj = {'request': {'method': 'POST', 'url': msgUrl, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(postData)}, 'rule': {
+                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                # _,_,msg_res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+                # tmp = json.loads(msg_res.body)
+                msg_res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, msgUrl, json=postData, verify=False)),timeout=3.0)
+                tmp = msg_res.json()
                 if (tmp['errmsg'] == 'ok' and tmp['errcode'] == 0):
                     r = 'True'
 

@@ -16,6 +16,7 @@ redis = "*"
 mysql-connector-python = "*"
 incremental = "*"
 u-msgpack-python = "*"
+pysocks = "*"
 
 [dev-packages]
 pycurl = "<7.43.0.6"
