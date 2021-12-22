@@ -328,6 +328,12 @@ def get_random(min_num, max_num, unit):
     result = "%.{0}f".format(int(unit)) % random_num
     return result
 
+def random_fliter(*args, **kwargs):
+    try:
+        result = get_random(*args, **kwargs)
+    except:
+        result = random.choice(*args, **kwargs)
+    return result
 
 import datetime
 def get_date_time(date=True, time=True, time_difference=0):
@@ -428,11 +434,11 @@ jinja_globals = {
     'sub': sub,
     'multiply': multiply,
     'divide': divide,
+    'random': random_fliter,
     'Faker': Faker
 }
 
 jinja_inner_globals = {
-    'random': get_random,
     'dict': dict,
     'lipsum': jinja2.utils.generate_lorem_ipsum
 }

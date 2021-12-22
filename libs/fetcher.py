@@ -451,12 +451,12 @@ class Fetcher(object):
                             client = simple_httpclient.SimpleAsyncHTTPClient()
                             e.response =  await gen.convert_yielded(client.fetch(req))
                         except Exception:
-                            logger.error(e.message or e.response or Exception)
+                            logger.error(e.message.replace('\\r\\n','\r\n') or e.response.replace('\\r\\n','\r\n') or Exception)
                     else:
                         try:
                             logger.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
                         except Exception:
-                            logger.error(e.message or e.response or Exception)
+                            logger.error(e.message.replace('\\r\\n','\r\n') or e.response.replace('\\r\\n','\r\n') or Exception)
                 else:
                     logger.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
             finally:
