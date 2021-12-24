@@ -17,6 +17,8 @@ body:
           required: true
         - label: "这是 QianDao 框架存在的问题，并非我所使用的 QianDao早期版本（如 20210628及之前版号 等）或模板的特定问题"
           required: true
+        - label: "我提交的不是无意义的 催促更新或修复 请求"
+          required: true
   - type: input
     attributes:
       label: QianDao Version
