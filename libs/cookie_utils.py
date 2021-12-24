@@ -6,7 +6,10 @@
 # Created on 2012-09-12 22:39:57
 # form requests&tornado
 
-from collections import MutableMapping as DictMixin
+try:
+    from collections import MutableMapping as DictMixin
+except ImportError:
+    from collections.abc import MutableMapping as DictMixin
 import http.cookiejar as cookielib
 from urllib.parse import urlparse
 from tornado import httpclient, httputil
