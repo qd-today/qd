@@ -8,8 +8,9 @@ define (require, exports, module) ->
   require '/static/har/editablelist'
 
   utils = require '/static/components/utils'
-  local_protocol = window.location.protocol
-  local_host = window.location.host
+  # local_protocol = window.location.protocol
+  # local_host = window.location.host
+  api_host = "api://"
 
   angular.module('entry_editor', [
     'contenteditable'
@@ -171,7 +172,7 @@ define (require, exports, module) ->
         comment: '返回当前时间戳和时间'
         request:
           method: 'GET'
-          url: [local_protocol,'//',local_host,'/util/timestamp'].join('')
+          url: [api_host,'/util/timestamp'].join('')
           postData:
             test: ''
           headers: []
@@ -190,7 +191,7 @@ define (require, exports, module) ->
         comment: '延时3秒'
         request:
           method: 'GET'
-          url: [local_protocol,'//',local_host,'/util/delay/3'].join('')
+          url: [api_host,'/util/delay/3'].join('')
           postData:
             test: ''
           headers: []
@@ -209,7 +210,7 @@ define (require, exports, module) ->
         comment: 'Unicode转换',
         request: {
           method: 'GET',
-          url: [local_protocol,'//',local_host,'/util/unicode?content='].join(''),
+          url: [api_host,'/util/unicode?content='].join(''),
           headers: [],
           cookies: []
         },
@@ -241,7 +242,7 @@ define (require, exports, module) ->
         comment: 'URL解码',
         request: {
           method: 'GET',
-          url: [local_protocol,'//',local_host,'/util/urldecode?content='].join(''),
+          url: [api_host,'/util/urldecode?content='].join(''),
           headers: [],
           cookies: []
         },
@@ -273,7 +274,7 @@ define (require, exports, module) ->
         comment: 'GB2312编码',
         request: {
           method: 'GET',
-          url: [local_protocol,'//',local_host,'/util/gb2312?content='].join(''),
+          url: [api_host,'/util/gb2312?content='].join(''),
           headers: [],
           cookies: []
         },
@@ -305,7 +306,7 @@ define (require, exports, module) ->
         comment: '正则提取',
         request: {
           method: 'GET',
-          url: [local_protocol,'//',local_host,'/util/regex?p=&data='].join(''),
+          url: [api_host,'/util/regex?p=&data='].join(''),
           headers: [],
           cookies: []
         },
@@ -337,7 +338,7 @@ define (require, exports, module) ->
         comment: '字符串替换',
         request: {
           method: 'GET',
-          url: [local_protocol,'//',local_host,'/util/string/replace?r=json&p=&s=&t='].join(''),
+          url: [api_host,'/util/string/replace?r=json&p=&s=&t='].join(''),
           headers: [],
           cookies: []
         },
@@ -369,7 +370,7 @@ define (require, exports, module) ->
         comment: 'RSA加密',
         request: {
           method: 'GET',
-          url: [local_protocol,'//',local_host,'/util/rsa?key=&data=&f=encode'].join(''),
+          url: [api_host,'/util/rsa?key=&data=&f=encode'].join(''),
           headers: [],
           cookies: []
         },
@@ -397,7 +398,7 @@ define (require, exports, module) ->
         comment: 'RSA解密',
         request: {
           method: 'GET',
-          url: [local_protocol,'//',local_host,'/util/rsa?key=&data=&f=decode'].join(''),
+          url: [api_host,'/util/rsa?key=&data=&f=decode'].join(''),
           headers: [],
           cookies: []
         },
@@ -429,7 +430,7 @@ define (require, exports, module) ->
         },
         request: {
           method: 'POST',
-          url: [local_protocol,'//',local_host,'/util/toolbox/1'].join(''),
+          url: [api_host,'/util/toolbox/1'].join(''),
           headers: [],
           cookies: [],
           postData:{
@@ -460,7 +461,7 @@ define (require, exports, module) ->
         comment: '追加记事本',
         request: {
           method: 'POST',
-          url: [local_protocol,'//',local_host,'/util/toolbox/1'].join(''),
+          url: [api_host,'/util/toolbox/1'].join(''),
           headers: [],
           cookies: [],
           postData:{
