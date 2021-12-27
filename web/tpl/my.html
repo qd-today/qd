@@ -103,9 +103,9 @@
           <td style="text-align:center">
             <div class="btn-group btn-group-xs" role="group">
               {% if task.tpl %}
-              <button type="button" class="btn btn-default modal_load" href="/task/{{ task.id }}/edit" title="修改签到数据">修改</button>
+              <button type="button" class="btn btn-default modal_load" href="/task/{{ task.id }}/edit" title="修改签到任务">修改</button>
               {% else %}
-              <button type="button" class="btn btn-default" data-method="POST" href="/task/{{ task.id }}/del" data-confirm="是否要删除任务?">删除</button>
+              <a class="btn btn-default" data-method="POST" href="/task/{{ task.id }}/del" data-confirm="是否要删除任务?" title="删除签到任务">删除</a>
               {% endif %}
               <button type="button" class="btn btn-default modal_load" data-load-method="POST" href="/task/{{ task.id }}/run" title="立即执行签到任务">执行</button>
               <a class="btn btn-default" href="/tpl/{{ task.tplid }}/edit?taskid={{ task.id }}" target="_blank" title="查看模板数据">模板</a>
