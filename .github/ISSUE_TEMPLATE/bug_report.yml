@@ -8,7 +8,7 @@ body:
       value: |
         如果你可以自己 debug 并解决的话, 建议您直接提交 PR 或 描述解决方法, 非常感谢!
   - type: checkboxes
-    id: ensure
+    id: verify_step
     attributes:
       label: Verify steps
       description: |
@@ -79,29 +79,24 @@ body:
       label: Describe the Bug
       description: |
         对Bug本身清晰而简洁的描述.
-      placeholder: |
-        1. Go to ...
-        2. Click on ...
-        3. Scroll down to ...
-        4. See error
     validations:
       required: true
   - type: textarea
     id: qd_config
     attributes:
-      render: shell
       label: QianDao config
       description: |
         在下方附上 QianDao 脱敏后配置文件 或 创建容器命令及环境变量 的内容.
+      render: shell
     validations:
       required: false
   - type: textarea
     id: qd_log
     attributes:
-      render: shell
       label: QianDao log
       description: |
         在下方附上 QianDao后台报错 的日志.
+      render: shell
     validations:
       required: true
   - type: textarea
