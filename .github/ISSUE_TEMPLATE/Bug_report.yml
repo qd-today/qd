@@ -1,7 +1,7 @@
 name: Bug报告
 description: Create a report to help us improve
 title: "[Bug] <title>"
-labels: [bug]
+labels: ['bug']
 body:
   - type: checkboxes
     id: ensure
@@ -20,6 +20,7 @@ body:
         - label: "我提交的不是无意义的 催促更新或修复 请求"
           required: true
   - type: input
+    id: version
     attributes:
       label: QianDao Version
       description: "QianDao 版本号"
@@ -55,12 +56,14 @@ body:
         - Code Build/Linux 32位
         - Code Build/Linux 64位
   - type: textarea
+    id: reproduce
     attributes:
       label: To Reproduce
       description: "复现此Bug的步骤."
     validations:
       required: true
   - type: textarea
+    id: describe
     attributes:
       label: Describe the Bug
       description: "对Bug本身清晰而简洁的描述."
@@ -72,13 +75,15 @@ body:
     validations:
       required: true
   - type: textarea
+    id: config
     attributes:
       render: shell
-      label: "QianDao config"
+      label: QianDao config
       description: "在下方附上 QianDao 脱敏后配置文件 或 创建容器命令及环境变量 的内容."
     validations:
       required: false
   - type: textarea
+    id: log
     attributes:
       render: shell
       label: QianDao log
@@ -86,12 +91,14 @@ body:
     validations:
       required: true
   - type: textarea
+    id: excepted_behavior
     attributes:
       label: Expected behavior
       description: "对预期修复后情况的清晰明了的描述."
     validations:
       required: true
   - type: textarea
+    id: screenshots
     attributes:
       label: Screenshots
       description: "添加屏幕截图以帮助解释您的问题."
