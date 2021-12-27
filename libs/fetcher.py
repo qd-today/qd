@@ -33,6 +33,7 @@ if config.use_pycurl:
         pycurl = None
 else:
     pycurl = None
+local_host="http://localhost:" + str(config.port)
 NOT_RETYR_CODE = config.not_retry_code
 logger = logging.getLogger('qiandao.fetcher')
 
@@ -89,6 +90,9 @@ class Fetcher(object):
 
         method = request['method']
         url = request['url']
+        if str(url).startswith('api://'):
+            url = str(url).replace('api:/', local_host, 1)
+        
         headers = dict((e['name'], e['value']) for e in request['headers'])
         cookies = dict((e['name'], e['value']) for e in request['cookies'])
         data = request.get('data')
