@@ -11,6 +11,7 @@ import jinja2
 import tornado.web
 
 import config
+import json
 from libs import utils
 from libs.fetcher import Fetcher
 from web.handlers import handlers, ui_modules, ui_methods
@@ -52,11 +53,13 @@ class Application(tornado.web.Application):
         self.db = DB
 
         self.fetcher = Fetcher()
+        with open("version.json", "r", encoding='utf-8') as f:
+            version_data = json.load(f)
 
         self.jinja_env.globals.update({
             'config': config,
             'format_date': utils.format_date,
             'varbinary2ip': utils.varbinary2ip,
-            'version': '20211217'
+            'version': version_data['version']
             })
         self.jinja_env.filters.update(ui_methods)
