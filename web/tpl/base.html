@@ -40,6 +40,9 @@
   <script>
     seajs.config({
       base: "/static",
+      map: [
+        [ /^(.*\.(?:css|js))(.*)$/i, '$1?v={{ version }}' ]
+      ]
     })
     console = console || {};
     console.log = console.log || function () { };

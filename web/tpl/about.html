@@ -1,98 +1,15 @@
-<html lang="zh-CN"><head>
-  <meta charset="utf-8">
-  <title>关于</title>
-  <!--[if lt IE 9]>
-    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-  <![endif]-->
+{% extends "base.html" %}
 
-  <meta name="description" content="帮你每日签到，每天打卡！">
-  <meta name="author" content="binux">
-  <link rel="icon" type="image/png" href="/static/img/icon.png?v=805c611920555b870651cd98c6f93777">
+{% block title %}关于{% endblock %}
 
-<meta name="description" content="WEB自动化HAR重放工具">
-  <meta name="Keywords" content="HAR,WEB,自动化,应用,APP,Windows,Mac,Android,iOS,iPhone,手机,科技,重放,签到,qiandao,https">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="签到框架">
-  <meta property="og:title" content="签到框架">
-  <meta property="og:url" content="http://localhost:8923">
-  <meta property="og:description" content="WEB自动化">
-  <meta property="og:locale" content="zh_CN">
-  <meta property="og:image" content="/static/img/200.png?v=8555c81a420559e56767924d429ea9bc">
-  <link rel="icon" type="image/png" href="/static/img/16.png?v=4b7b3ae467cc62accde8ce6add200da2" sizes="16x16">
-  <link rel="icon" type="image/png" href="/static/img/32.png?v=ebcb13e909b99fecd6600cf7ba8b7ebd" sizes="32x32">
-  <link rel="icon" type="image/png" href="/static/img/96.png?v=913d03b94e9a508699a077be3b5e7ac0" sizes="96x96">
-  <link rel="icon" type="image/png" sizes="128x128" href="/static/img/128.png?v=757481b51e590696a35dc84d7c7d4a1b">
-  <link rel="icon" type="image/png" sizes="192x192" href="/static/img/192.png?v=e432dd914408cc6ab849a5ccb30e5317">
-  <meta name="apple-mobile-web-app-title" content="签到框架">
-  <link rel="apple-touch-icon" href="/static/img/180.png?v=e32ea7a0078bc4e7a50d9dbae27972c1">
-  <link rel="apple-touch-icon" sizes="152x152" href="/static/img/152.png?v=3b3865e0084c42beb63ccaf902dbc086">
-  <link rel="apple-touch-icon" sizes="180x180" href="/static/img/180.png?v=e32ea7a0078bc4e7a50d9dbae27972c1">
-  <link rel="apple-touch-icon" sizes="167x167" href="/static/img/167.png?v=2cb48dc64f2956e9b290ca5e5f97ae4f">
-  <link rel="apple-touch-icon" sizes="120x120" href="/static/img/120.png?v=ac1a71ac4c0fc430928014ab531619fc">
-  <link rel="apple-touch-icon-precomposed" sizes="180x180" href="/static/img/180.png?v=e32ea7a0078bc4e7a50d9dbae27972c1">	
-  <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.6/dist/clipboard.min.js"></script> 
+{% block head %}
+{{ super() }}
+<link href="{{ static_url('css/my.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
 
-  <script src="/static/components/seajs/dist/sea.js?v=68b90934d71ff423d948cf984c1e79f2"></script>
-  <script>
-    seajs.config({
-      base: "/static",
-    })
-    console = console || {};
-    console.log = console.log || function(){};
-    console.debug = console.debug || function(){};
-    console.info = console.info || function(){};
-    console.error = console.error || function(){};
-  </script>
-  
-
-  <link href="/static/components/bootstrap/dist/css/bootstrap.min.css?v=a971a69f9388cff60a911e73c26e00aa" rel="stylesheet" type="text/css">
-  <script src="/static/components/jquery/dist/jquery.min.js?v=e22f82a5194d1f03ecb712baad2df66c"></script>
-  <script src="/static/components/bootstrap/dist/js/bootstrap.min.js?v=987facf80adec365394402f2026b943d"></script>
-  <link href="/static/css/base.css?v=eda02c62956cd0a7b382319666991cc0" rel="stylesheet" type="text/css">
-  
-<link href="/static/css/my.css?v=501433e87c3a53f72fe42c94390ddabe" rel="stylesheet" type="text/css">
-
-
-  
-</head>
-
-<body>
-<script>
-var clipboard = new ClipboardJS('.btn');
-var cur;
-clipboard.on('success', function(e) {
-    //onsole.info('Action:', e.action);
-    //onsole.info('Text:', e.text);
-    //console.info('Trigger:', e.trigger);
-    e.clearSelection();
-    cur=e.trigger;
-    cur.innerHTML="复制成功";
-    setTimeout(function(){cur.innerHTML="复制";
-    }, 1000);
-});
-clipboard.on('error', function(e) {
-
-    console.error('Action:', e.action);
-    console.error('Trigger:', e.trigger);
-});
-</script>
-  
-
-<header>
-<div class="container">
-  <h2 class="text-center">私有签到框架<sup>20211217</sup></h2>
-  <div class="buttons">
-    <a href="/" class="btn btn-default pull-left">首页</a>
-    <a href="/about/" class="btn btn-default pull-left">常用API/过滤器</a>
-    
-    <a href="/logout" class="btn btn-default pull-right">登出</a>
-    
-    
-  </div>
-</div>
-</header>
-
-
+{% block body %}
+{{ utils.header(current_user) }}
+{% raw %}
 <section class="tpl">
 <div class="container">
   <h2>
@@ -454,7 +371,7 @@ clipboard.on('error', function(e) {
   </table>
 </div>
 </section>
-
+{% endraw %}
 <script>
 $(function() {
   $('[data-toggle=popover]').popover({
@@ -463,94 +380,10 @@ $(function() {
 })
 </script>
 
-
-<div class="modal fade" id="modal_load" tabindex="-1" role="dialog" aria-hidden="true">
-<div class="modal-dialog">
-  <div class="modal-content">
-  </div>
-</div>
-</div>
-
-<script>
-$(function() {
-  var lock = false;
-  $('#modal_load').on('hide.bs.modal', function() {
-    return !lock;
-  });
-  $(document).on('click', ".modal_load", function() {
-    if (lock) return false;
-
-    var $this = $(this);
-    var text = $this.text();
-    //$this.text('loading...');
-    lock = true;
-    $('#modal_load .modal-content').html('<h1 class="text-center alert alert-info">loading...</h1>');
-    $('#modal_load').modal('show');
-
-    $.ajax($this.attr('href'), {
-      type: $this.data('load-method') || 'GET',
-      data: $this.data('data-callback') && $this.data('data-callback')($this) || '',
-    })
-    .done(function(data) {
-      $('#modal_load .modal-content').html(data);
-    })
-    .fail(function(jxhr, data) {
-      $('#modal_load .modal-content')
-      .html('<h1 class="text-center alert alert-danger">FAIL</h1><div class="well"></div>')
-      .find('.well').text(jxhr.responseText);
-    })
-    .always(function() {
-      lock = false;
-    })
-    return false;
-  })
-})
-</script>
-
-
-<script>
-$(function() {
-  $(document).on('click', 'a[data-method]', function() {
-    var $this = $(this);
-    if ($this.data('confirm') && !window.confirm($this.data('confirm'))) {
-      return false;
-    }
-    var prompt_result = '';
-    if ($this.data('prompt') && !(prompt_result = window.prompt($this.data('prompt')))) {
-      return false;
-    }
-    var form = $('<form></form>')
-      .attr('method', $this.data('method'))
-      .attr('action', $this.attr('href'));
-    if (prompt_result) {
-      $('<input>')
-        .attr('name', 'prompt')
-        .attr('value', prompt_result)
-        .appendTo(form);
-    }
-    form
-      .appendTo(document.body)
-      .submit();
-    return false;
-  })
-})
-</script>
-
-
-  
-  <footer>
-<hr>
-    <div class="container">
-      <p class="text-center">源代码: <a href="https://github.com/qiandao-today/qiandao/" target="_blank" style="color: #000000;">qiandao</a>| Powered by <a href="http://binux.me/" target="_blank" style="color: #000000;">Binux</a> | Theme by <a href="http://www.quchao.net/" target="_blank" style="color: #000000;">Mark</a> © 2021.</p>
-  </div>
-  </footer>
-  
-  
-
-
 <!-- vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: --><div class="xl-chrome-ext-bar" id="xl_chrome_ext_{4DB361DE-01F7-4376-B494-639E489D19ED}" style="display: none;">
     <div class="xl-chrome-ext-bar__logo"></div>
 
     <a id="xl_chrome_ext_download" href="javascript:;" class="xl-chrome-ext-bar__option">下载视频</a>
     <a id="xl_chrome_ext_close" href="javascript:;" class="xl-chrome-ext-bar__close"></a>
-  </div></body></html>
+  </div>
+  {% endblock %}
