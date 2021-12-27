@@ -1,6 +1,6 @@
 name: 功能请求
 description: Suggest an idea for this project
-title: "[Feature] <title>"
+title: "[Feature] "
 labels: [enhancement]
 body:
   - type: markdown
