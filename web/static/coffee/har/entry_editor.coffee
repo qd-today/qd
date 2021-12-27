@@ -10,7 +10,7 @@ define (require, exports, module) ->
   utils = require '/static/components/utils'
   # local_protocol = window.location.protocol
   # local_host = window.location.host
-  api_host = "api://"
+  api_host = "api:/"
 
   angular.module('entry_editor', [
     'contenteditable'

@@ -5,7 +5,7 @@
     require('/static/har/contenteditable');
     require('/static/har/editablelist');
     utils = require('/static/components/utils');
-    api_host = "api://";
+    api_host = "api:/";
     return angular.module('entry_editor', ['contenteditable']).controller('EntryCtrl', function($scope, $rootScope, $sce, $http) {
       var changing;
       $scope.panel = 'request';
