@@ -28,6 +28,7 @@ class Application(tornado.web.Application):
                 cookie_secret = config.cookie_secret,
                 login_url = '/login',
                 )
+        version_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "version.json")
         super(Application, self).__init__(handlers, **settings)
 
         self.jinja_env = jinja2.Environment(
@@ -53,7 +54,8 @@ class Application(tornado.web.Application):
         self.db = DB
 
         self.fetcher = Fetcher()
-        with open("version.json", "r", encoding='utf-8') as f:
+        
+        with open(version_path, "r", encoding='utf-8') as f:
             version_data = json.load(f)
 
         self.jinja_env.globals.update({
