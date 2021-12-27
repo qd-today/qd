@@ -7,9 +7,10 @@ body:
     id: ensure
     attributes:
       label: Verify steps
-      description: "在提交之前，请确认 Please verify that you've followed these steps"
+      description: |
+        在提交之前, 请确认 Please verify that you've followed these steps.
       options:
-        - label: "如果你可以自己 debug 并解决的话，建议您直接提交 PR 或 描述解决方法，非常感谢！"
+        - label: "如果你可以自己 debug 并解决的话, 建议您直接提交 PR 或 描述解决方法, 非常感谢！"
           required: False
         - label: "我已经在 [Issue Tracker](……/) 中找过我要提出的问题"
           required: true
@@ -24,6 +25,7 @@ body:
     attributes:
       label: QianDao Version
       description: "QianDao 版本号"
+      placeholder: "20211217"
     validations:
       required: true
   - type: dropdown
@@ -38,6 +40,8 @@ body:
         - Windows
         - Linux
         - OpenBSD/FreeBSD
+    validations:
+      required: true
   - type: dropdown
     id: platform
     attributes:
@@ -55,6 +59,8 @@ body:
         - Code Build/Windows x64
         - Code Build/Linux 32位
         - Code Build/Linux 64位
+    validations:
+      required: true
   - type: textarea
     id: reproduce
     attributes:
@@ -63,15 +69,16 @@ body:
     validations:
       required: true
   - type: textarea
-    id: describe
+    id: describe_bug
     attributes:
       label: Describe the Bug
       description: "对Bug本身清晰而简洁的描述."
       placeholder: |
-        1. Go to '...'
-        2. Click on '....'
-        3. Scroll down to '....'
+        1. Go to "..."
+        2. Click on "...."
+        3. Scroll down to "...."
         4. See error
+      value: "A bug happened!"
     validations:
       required: true
   - type: textarea
