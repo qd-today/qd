@@ -72,6 +72,7 @@ update() {
         git reset --hard origin/master
         git checkout master
         git pull
+        pip install -r requirements.txt
     else
         echo "Info: 当前版本: $localversion , 无需更新!"
     fi
@@ -86,6 +87,7 @@ force_update() {
     git reset --hard origin/master
     git checkout master
     git pull
+    pip install -r requirements.txt
     if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器，或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi
@@ -95,6 +97,7 @@ update_version() {
     echo -e "Info: 正在强制切换至指定Tag版本: $1，请稍候..."
     git fetch --all
     git checkout -f $1
+    pip install -r requirements.txt
     if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器，或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi
