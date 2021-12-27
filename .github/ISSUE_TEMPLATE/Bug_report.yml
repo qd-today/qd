@@ -24,7 +24,8 @@ body:
     id: version
     attributes:
       label: QianDao Version
-      description: "QianDao 版本号"
+      description: |
+        QianDao 版本号
       placeholder: "20211217"
     validations:
       required: true
@@ -32,7 +33,8 @@ body:
     id: os
     attributes:
       label: Bug on OS
-      description: "发现问题所在的系统环境"
+      description: |
+        发现问题所在的系统环境
       multiple: true
       options:
         - All platform
@@ -46,7 +48,8 @@ body:
     id: platform
     attributes:
       label: Bug on Platform
-      description: "发现问题所在的平台"
+      description: |
+        发现问题所在的平台
       multiple: true
       options:
         - Docker/macOS
@@ -65,20 +68,21 @@ body:
     id: reproduce
     attributes:
       label: To Reproduce
-      description: "复现此Bug的步骤."
+      description: |
+        复现此Bug的步骤.
     validations:
       required: true
   - type: textarea
     id: describe_bug
     attributes:
       label: Describe the Bug
-      description: "对Bug本身清晰而简洁的描述."
+      description: |
+        对Bug本身清晰而简洁的描述.
       placeholder: |
-        1. Go to "..."
-        2. Click on "...."
-        3. Scroll down to "...."
+        1. Go to ...
+        2. Click on ...
+        3. Scroll down to ...
         4. See error
-      value: "A bug happened!"
     validations:
       required: true
   - type: textarea
@@ -86,7 +90,8 @@ body:
     attributes:
       render: shell
       label: QianDao config
-      description: "在下方附上 QianDao 脱敏后配置文件 或 创建容器命令及环境变量 的内容."
+      description: |
+        在下方附上 QianDao 脱敏后配置文件 或 创建容器命令及环境变量 的内容.
     validations:
       required: false
   - type: textarea
@@ -94,20 +99,23 @@ body:
     attributes:
       render: shell
       label: QianDao log
-      description: "在下方附上 QianDao后台报错 的日志."
+      description: |
+        在下方附上 QianDao后台报错 的日志.
     validations:
       required: true
   - type: textarea
     id: excepted_behavior
     attributes:
       label: Expected behavior
-      description: "对预期修复后情况的清晰明了的描述."
+      description: |
+        对预期修复后情况的清晰明了的描述.
     validations:
       required: true
   - type: textarea
     id: screenshots
     attributes:
       label: Screenshots
-      description: "添加屏幕截图以帮助解释您的问题."
+      description: |
+        添加屏幕截图以帮助解释您的问题.
     validations:
       required: false
