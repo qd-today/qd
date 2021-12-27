@@ -64,6 +64,7 @@
   <div class="text-right">
     <button id="ban" name="banbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">禁用</button>
     <button id="activate" name="activatebtn" type="submit" data-loading-text="loading..." class="btn btn-primary">启用</button>
+    <button id="verify" name="verifybtn" type="submit" data-loading-text="loading..." class="btn btn-primary">验证</button>
     <button id="del" name="delbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">删除</button>
   </div>
 
@@ -73,7 +74,7 @@
 
   <script>
     $(function() {
-      $('#ban,#activate,#del').on('click', function() {
+      $('#ban,#activate,#verify,#del').on('click', function() {
         var env = {};
         chkflg = false;
         tmp = document.querySelectorAll('.userlist-chkbox').forEach(function(el){

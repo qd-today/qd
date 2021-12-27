@@ -330,6 +330,9 @@ class UserManagerHandler(BaseHandler):
                                 for task in self.db.task.list(sub_user, fields=('id'), limit=None):
                                     self.db.task.mod(task['id'], disabled=False)
 
+                            if 'verifybtn' in envs:
+                                self.db.user.mod(sub_user, email_verified=True, mtime=time.time())
+
                             if 'delbtn' in envs:
                                 for task in self.db.task.list(sub_user, fields=('id'), limit=None):
                                     self.db.task.delete(task['id'])
