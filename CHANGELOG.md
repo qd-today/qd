@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+Nothing right now.
+
+## [20211228] - 2021.12.28 更新
+
 1. 修复jinja2模板变量导致推送日志失败的bug
 2. 修复非管理员用户公共模板页面无法使用searchbar的bug
 3. 添加Faker API函数用于创建伪数据
