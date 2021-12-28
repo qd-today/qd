@@ -28,7 +28,7 @@ body:
       label: QianDao Version
       description: |
         QianDao 版本号
-      placeholder: "20211217"
+      placeholder: "20211228"
     validations:
       required: true
   - type: dropdown
