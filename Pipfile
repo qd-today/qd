@@ -20,8 +20,8 @@ pysocks = "*"
 faker = "*"
 
 [dev-packages]
-pycurl = "<7.43.0.6"
+pycurl = {version = "*", file = "https://download.lfd.uci.edu/pythonlibs/x6hvwk7i/pycurl-7.44.1-cp39-cp39-win_amd64.whl", install-option = "--with-openssl"}
 grunt = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"
