@@ -28,7 +28,8 @@
     "nprogress": "^0.2.0",
     "jquery.tablesorter": "^2.31.3",
     "Font-Awesome": "^4.7.0",
-    "clipboard": "^2.0.8"
+    "clipboard": "#master",
+    "draggable-polyfill": "XboxYan/draggable-polyfill"
   },
   "main": "",
   "license": "MIT",

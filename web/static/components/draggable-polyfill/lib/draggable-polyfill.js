@@ -10,7 +10,7 @@
  * draggable polyfill
  */
 (function () {
-    if ("setDragImage" in window.DataTransfer.prototype) {
+    if ("setDragImage" in window.DataTransfer.prototype && document.body.animate) {
         var cloneObj = null;
         var offsetX = 0;
         var offsetY = 0;
