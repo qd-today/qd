@@ -179,7 +179,7 @@ MULTI_PROCESS|否|False|是否启用多进程模式, <br>Windows平台无效
 AUTO_RELOAD|否|False|是否启用自动热加载, <br>MULTI_PROCESS=True时无效
 COOKIE_DAY|否|5|Cookie在客户端保留天数
 DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
-JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 mysql://用户名:密码@hostname:port/数据库名
+JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 <mysql://用户名:密码@hostname:port/数据库名?auth_plugin=>
 REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时, <br>设置为 <http://rediscloud:密码@hostname:port>
 REDIS_DB_INDEX|否|1|默认为1
 PUSH_PIC_URL|否|[push_pic.png](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)|默认为[push_pic.png](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)

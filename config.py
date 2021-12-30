@@ -7,7 +7,7 @@
 
 import os
 import hashlib
-from urllib.parse import urlparse
+from urllib.parse import urlparse,parse_qs
 from distutils.util import strtobool
 
 debug = bool(strtobool(os.getenv('QIANDAO_DEBUG','False')))                 # 是否启用Debug
@@ -28,7 +28,7 @@ not_retry_code = list(map(int,os.getenv('NOT_RETRY_CODE', '301|302|303|304|305|3
 empty_retry = bool(strtobool(os.getenv('EMPTY_RETRY', 'True')))             # 启用后, 当满足PyCurl启用, 返回Response为空, 任务代理为空, 且'ALLOW_RETRY=True'时, 本次请求禁用Pycurl并重试
 
 cookie_days = int(os.getenv('COOKIE_DAY', 5))                               # Cookie在客户端保留时间
-mysql_url = urlparse(os.getenv('JAWSDB_MARIA_URL', ''))                     # 格式: mysql://用户名:密码@hostname:port/数据库名
+mysql_url = urlparse(os.getenv('JAWSDB_MARIA_URL', ''))                     # 格式: mysql://用户名:密码@hostname:port/数据库名?auth_plugin=
 redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))                       # 格式: (redis/http)://rediscloud:密码@hostname:port
 
 # 日志推送设置
@@ -41,6 +41,7 @@ class mysql(object):
     database = mysql_url.path[1:] or 'qiandao'                              # 签到框架的数据库名
     user = mysql_url.username or 'qiandao'                                  # 拥有访问MySQL签到框架数据库权限的用户名
     passwd = mysql_url.password or None                                     # 用户名对应的密码
+    auth_plugin = parse_qs(mysql_url.query).get('auth_plugin',[''])[0]      # auth_plugin, 默认为空, 可修改为'mysql_native_password','caching_sha2_password'
 
 class sqlite3(object):
     path = './config/database.db'                                           # Sqlite3数据库文件地址
@@ -103,6 +104,8 @@ user0isadmin = bool(strtobool(os.getenv('USER0ISADMIN','True')))
 
 try:
     from local_config import *                                              # 修改local_config.py文件的内容不受通过git更新源码的影响
+    if db_type == 'mysql' and not hasattr(mysql, 'auth_plugin'):
+        setattr(mysql, 'auth_plugin', parse_qs(mysql_url.query).get('auth_plugin',[''])[0])
 except ImportError:
     pass
 
