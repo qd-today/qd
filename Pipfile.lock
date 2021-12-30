@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "07b0bf89ac4797b4f74461bad7ab4f8b7d54b1194e0d3bf8ee3a2ced13df65b6"
+            "sha256": "069267b0555ea91bd8c581923461696326c66aef80dda6155890afd419cffd10"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -460,13 +460,18 @@
             "version": "==0.1.1"
         },
         "pycurl": {
-            "file": "https://download.lfd.uci.edu/pythonlibs/x6hvwk7i/pycurl-7.44.1-cp39-cp39-win_amd64.whl",
             "hashes": [
+                "sha256:5bcef4d988b74b99653602101e17d8401338d596b9234d263c728a0c3df003e8",
                 "sha256:944f35661be025ac9eca3324695d41c5a69640b66a923f95f99fdeb190b400a2"
             ],
-            "index": "pypi",
-            "install-option": "--with-openssl",
+            "markers": "sys_platform != 'win32'",
             "version": "==7.44.1"
+        },
+        "pycurl-win": {
+            "file": "https://download.lfd.uci.edu/pythonlibs/x6hvwk7i/pycurl-7.44.1-cp39-cp39-win_amd64.whl",
+            "install-option": "--with-openssl",
+            "markers": "sys_platform == 'win32'",
+            "version": "*"
         }
     }
 }
