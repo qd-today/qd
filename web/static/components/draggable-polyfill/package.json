@@ -1,0 +1,59 @@
+{
+  "_from": "draggable-polyfill",
+  "_id": "draggable-polyfill@1.1.1",
+  "_inBundle": false,
+  "_integrity": "sha512-ndmDhmG6zAA/JWkIHoPXO1rnK4I3v2miOhcIhF+acbFuylztdT7seCRpt0AV+c6ZDX6ci25EI4DQmj1kDlU2IQ==",
+  "_location": "/draggable-polyfill",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "tag",
+    "registry": true,
+    "raw": "draggable-polyfill",
+    "name": "draggable-polyfill",
+    "escapedName": "draggable-polyfill",
+    "rawSpec": "",
+    "saveSpec": null,
+    "fetchSpec": "latest"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/draggable-polyfill/-/draggable-polyfill-1.1.1.tgz",
+  "_shasum": "d1c0f182caedf66657304e1cb4f680224128847b",
+  "_spec": "draggable-polyfill",
+  "_where": "E:\\q9813\\OneDrive\\Desktop\\编程\\API\\qiandao\\web\\static\\components",
+  "author": {
+    "name": "XboxYan"
+  },
+  "bugs": {
+    "url": "https://github.com/XboxYan/draggable-polyfill/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "🌈 a beautify polyfill for native drag! ",
+  "directories": {
+    "example": "example"
+  },
+  "homepage": "https://github.com/XboxYan/draggable-polyfill#readme",
+  "keywords": [
+    "polyfill",
+    "draggable",
+    "drag",
+    "html5",
+    "dragover",
+    "dragend",
+    "drop"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "draggable-polyfill",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/XboxYan/draggable-polyfill.git"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "1.1.1"
+}

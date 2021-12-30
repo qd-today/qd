@@ -7,6 +7,7 @@
 <link href="{{ static_url('har/editor.css') }}" rel="stylesheet" type="text/css">
 <script src="{{ static_url('components/angular/angular.min.js') }}"></script>
 <script src="{{ static_url('components/js-base64/base64.js') }}"></script>
+<script src="{{ static_url('components/draggable-polyfill/lib/draggable-polyfill.js') }}"></script>
 {% endblock %}
 
 {% block body %}
@@ -17,8 +18,6 @@
   HARNAME = "{{ harname }}";
   HARDATA = "{{ hardata }}";
 </script>
-
-<script src="https://cdn.jsdelivr.net/gh/XboxYan/draggable-polyfill@master/lib/draggable-polyfill.js"></script>
 
 <div class="container">
   <div class="row" ng-controller="EntryList">
