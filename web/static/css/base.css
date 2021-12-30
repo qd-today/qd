@@ -1,4 +1,4 @@
-﻿/* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
+/* vim: set et sw=2 ts=2 sts=2 ff=unix fenc=utf8: */
 /* Author: Binux<i@binux.me> */
 /*         http://binux.me */
 /* Created on 2014-08-08 23:02:39 */
@@ -62,10 +62,10 @@ h1 > a:focus {
   color: #4d4d4d;
   background-color: white;
   padding: 2px 8px;
-  margin: 8px;
+  /* margin: 8px; */
   border-radius: 4px;
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2), 0 2px 4px rgba(0,0,0,0.2);
 }
 
 th,.apitable td{
