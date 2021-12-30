@@ -164,3 +164,6 @@ h1 {
 .add-request {
   float: left;
 }
+.plaintext_only {
+  -webkit-user-modify: read-write-plaintext-only;
+}

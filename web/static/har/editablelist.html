@@ -10,7 +10,7 @@
   <div class="contentedit-wrapper">
     <span ng-bind-html="variables_wrapper(each.name, 'name')"></span>
   </div>
-  <div contenteditable="plaintext-only" ng-model="each.name"></div>
+  <div class= "plaintext_only" contenteditable="" ng-model="each.name"></div>
   </dt>
 
   <!-- value -->
@@ -19,6 +19,6 @@
     ng-click="delete(each.$$hashKey, $list)"></span>
   <div class="contentedit-wrapper"
     ng-bind-html="variables_wrapper(each.value, ':empty')"></div>
-  <div contenteditable="plaintext-only" ng-model="each.value"></div>
+  <div class= "plaintext_only" contenteditable="" ng-model="each.value"></div>
   </dd>
 </dl>
