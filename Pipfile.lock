@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "069267b0555ea91bd8c581923461696326c66aef80dda6155890afd419cffd10"
+            "sha256": "dd3f20610a866d972cd6d4e5cfa3bdecf087bcade02459600097ca35bf0d3c95"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -452,13 +452,6 @@
         }
     },
     "develop": {
-        "grunt": {
-            "hashes": [
-                "sha256:470b52c2e5640307121b7a54e284e9aeb9d77b9262b838289215f9c3b4f68009"
-            ],
-            "index": "pypi",
-            "version": "==0.1.1"
-        },
         "pycurl": {
             "hashes": [
                 "sha256:5bcef4d988b74b99653602101e17d8401338d596b9234d263c728a0c3df003e8",

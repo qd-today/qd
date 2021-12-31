@@ -11,11 +11,23 @@
   "private": true,
   "ignore": [
     "**/.*",
+    ".bowerrc",
+    ".gitignore",
+    ".jshintignore",
+    ".jshintrc",
     "node_modules",
     "bower_components",
     "static/components",
     "test",
-    "tests"
+    "tests",
+    "src",
+    "source",
+    "spec",
+    "bower.json",
+    "gruntfile.js",
+    "package.json",
+    "package-lock.json",
+    "README.md"
   ],
   "dependencies": {
     "blueimp-md5": "^2.19.0",

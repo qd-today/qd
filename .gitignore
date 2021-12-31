@@ -19,3 +19,4 @@ local_config.py
 *.dccache
 __pycache__/
 node_modules/
+bower_components/
