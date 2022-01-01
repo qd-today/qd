@@ -24,7 +24,7 @@ jobs:
             if: startsWith(github.repository, 'qiandao-today/qiandao')
             with:
               publish: true
-              imageName: qiandao-today/qiandao # dockerid/imageName
+              imageName: ghcr.io/qiandao-today/qiandao # dockerid/imageName
               platform: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
               tag: latest
               dockerServer: ghcr.io
