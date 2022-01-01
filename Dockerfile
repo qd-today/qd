@@ -3,6 +3,7 @@ FROM a76yyyy/pycurl:latest
 
 # 维护者信息
 LABEL maintainer "a76yyyy <q981331502@163.com>"
+LABEL org.opencontainers.image.source=https://github.com/qiandao-today/qiandao
 
 # 签到版本 20190220
 # 集成皮蛋0.1.1  https://github.com/cdpidan/qiandaor

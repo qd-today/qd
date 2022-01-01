@@ -20,3 +20,5 @@ local_config.py
 __pycache__/
 node_modules/
 bower_components/
+.virtual_documents/
+.gitkeep

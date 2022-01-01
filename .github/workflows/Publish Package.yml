@@ -1,0 +1,32 @@
+
+name: Publish Latest Package
+on: 
+  push:
+    paths-ignore: 
+      - 'docs/**'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '**.md'
+      - '**.png'
+      - '**.json'
+    branches: [master]
+    tags: ["*"]
+
+jobs:
+  build:
+      runs-on: ubuntu-latest
+      name: Publish Package job
+      
+      steps:
+          - name: Checkout master
+            uses: actions/checkout@master
+          - name: Publish Latest Package
+            uses: ilteoood/docker_buildx@master
+            if: startsWith(github.repository, 'qiandao-today/qiandao')
+            with:
+              publish: true
+              imageName: qiandao-today/qiandao # dockerid/imageName
+              platform: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
+              tag: latest
+              dockerServer: ghcr.io
+              dockerUser: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
+              dockerPassword: ${{ secrets.GITHUB_TOKEN }} # dockerServer Token
