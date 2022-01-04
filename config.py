@@ -18,6 +18,9 @@ bind = str(os.getenv('BIND', '0.0.0.0'))                                    # �
 port = int(os.getenv('PORT', 8923))                                         # 监听端口Port
 https = bool(strtobool(os.getenv('ENABLE_HTTPS', 'False')))                 # 发送的邮件链接启用HTTPS, 非框架自身HTTPS开关, 需要HTTPS请使用外部反向代理
 
+# 发送邮件及微信推送内链接域名, 如果是通过IP+端口Port方式请正确输入`IP:Port`
+domain = os.getenv('DOMAIN', 'qiandao.today')                               # 指定域名, 建议修改, 不然邮件重置密码之类的功能无效
+
 # PyCurl 相关设置
 use_pycurl = bool(strtobool(os.getenv('USE_PYCURL','True')))                # 是否启用Pycurl模组, 当环境无PyCurl模组时无效
 allow_retry = bool(strtobool(os.getenv('ALLOW_RETRY', 'True')))             # 在Pycurl环境下部分请求可能导致Request错误时, 自动修改冲突设置并重发请求
@@ -84,9 +87,6 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
                 ) 
 
 new_task_delay = 1                                                          # 新建任务后准备时间
-
-# 发送邮件及微信推送内链接域名, 如果是通过IP+端口Port方式请正确输入`IP:Port`
-domain = os.getenv('DOMAIN', 'qiandao.today')                               # 指定域名, 建议修改, 不然邮件重置密码之类的功能无效
 
 # 邮件发送相关配置
 mail_smtp = os.getenv('MAIL_SMTP',"")                                       # 邮箱SMTP服务器
