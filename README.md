@@ -177,6 +177,10 @@ PORT|否|8923|监听端口
 QIANDAO_DEBUG|否|False|是否启用Debug模式
 MULTI_PROCESS|否|False|是否启用多进程模式, <br>Windows平台无效
 AUTO_RELOAD|否|False|是否启用自动热加载, <br>MULTI_PROCESS=True时无效
+ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS, <br>非程序使用HTTPS, 需要HTTPS需要使用反向代理
+DOMAIN|否|qiandao.today|指定访问域名, <br>**<建议修改>**, 否则邮件重置密码等功能无效
+AES_KEY|否|binux|AES加密密钥, **<强烈建议修改>**
+COOKIE_SECRET|否|binux|cookie加密密钥, **<强烈建议修改>**
 COOKIE_DAY|否|5|Cookie在客户端保留天数
 DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
 JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 <mysql://用户名:密码@hostname:port/数据库名?auth_plugin=>
@@ -184,15 +188,11 @@ REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时, <br>设置为 <http://r
 REDIS_DB_INDEX|否|1|默认为1
 PUSH_PIC_URL|否|[push_pic.png](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)|默认为[push_pic.png](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)
 PUSH_BATCH_SW|否|True|是否允许开启定期推送签到任务日志, 默认为True
-ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS, <br>非程序使用HTTPS, 需要HTTPS需要使用反向代理
-DOMAIN|否|qiandao.today|指定访问域名, <br>建议修改, 否则邮件重置密码等功能无效
 MAIL_SMTP|否|""|邮箱SMTP服务器
 MAIL_PORT|否|""|邮箱SMTP服务器端口
 MAIL_USER|否|""|邮箱用户名
 MAIL_PASSWORD|否|""|邮箱密码
 MAIL_DOMAIN|否|mail.qiandao.today|邮箱域名,没啥用, 使用的DOMAIN
-AES_KEY|否|binux|AES加密密钥, **强烈建议修改**
-COOKIE_SECRET|否|binux|cookie加密密钥, **强烈建议修改**
 PROXIES|否|""|全局代理域名列表,用"|"分隔
 PROXY_DIRECT_MODE|否|""|全局代理黑名单模式,默认不启用 <br>"url"为网址匹配模式;"regexp"为正则表达式匹配模式
 PROXY_DIRECT|否|""|全局代理黑名单匹配规则
