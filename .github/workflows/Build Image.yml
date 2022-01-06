@@ -1,24 +1,60 @@
 name: Build Image
-on: push
+on: 
+  push:
+    paths-ignore: 
+      - 'docs/**'
+      - '.github/**'
+      - '**.md'
+      - '**.png'
+      - '**.json'
+    branches: [master, dev]
+    tags: ["*"]
 jobs:
-  build:
-      runs-on: ubuntu-latest
-      name: Build image job
-      
-      steps:
-          - name: Checkout master
-            uses: actions/checkout@master
-          - name: Get version
-            id: get_version
-            if: startsWith(github.ref, 'refs/tags/') && startsWith(github.repository, 'qiandao-today/qiandao')
-            run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-          - name: Build and publish image
-            uses: ilteoood/docker_buildx@master
-            if: startsWith(github.ref, 'refs/tags/') && startsWith(github.repository, 'qiandao-today/qiandao')
-            with:
-              publish: true
-              imageName: a76yyyy/qiandao # dockerid/imageName
-              platform: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
-              tag: latest,${{ steps.get_version.outputs.VERSION }}
-              dockerUser: ${{ secrets.DOCKER_USERNAME }} # docker hub userid 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
-              dockerPassword: ${{ secrets.DOCKER_PASSWORD }} # docker hub password,在setting创建secrets name=DOCKER_PASSWORD  value=dockerpassword
+  docker:
+    if: startsWith(github.repository, 'qiandao-today/qiandao')
+    runs-on: ubuntu-latest
+    steps:
+        - 
+          name: Checkout
+          uses: actions/checkout@v2
+        -
+          name: Docker meta
+          id: meta
+          uses: docker/metadata-action@v3
+          with:
+            # list of Docker images to use as base name for tags
+            images: |
+              a76yyyy/qiandao
+              ghcr.io/qiandao-today/qiandao
+            # generate Docker tags
+            tags: |
+              type=ref,event=branch
+              type=ref,event=tag
+        -
+          name: Set up QEMU
+          uses: docker/setup-qemu-action@v1
+        -
+          name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v1
+        -
+          name: Login to DockerHub
+          uses: docker/login-action@v1 
+          with:
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
+        -
+          name: Login to GitHub Container Registry
+          uses: docker/login-action@v1 
+          with:
+            registry: ghcr.io
+            username: ${{ github.repository_owner }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+        -
+          name: Build and push
+          uses: docker/build-push-action@v2
+          with:
+            context: .
+            platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7
+            push: ${{ github.event_name != 'pull_request' }}
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}
