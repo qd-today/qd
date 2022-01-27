@@ -22,3 +22,4 @@ node_modules/
 bower_components/
 .virtual_documents/
 .gitkeep
+.lh/*

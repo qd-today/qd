@@ -18,6 +18,7 @@ incremental = "*"
 u-msgpack-python = "*"
 pysocks = "*"
 faker = "*"
+ddddocr = "*"
 
 [dev-packages]
 pycurl = {version = "*", markers="sys_platform != 'win32'"}
