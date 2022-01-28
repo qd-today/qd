@@ -40,7 +40,7 @@
     "nprogress": "^0.2.0",
     "jquery.tablesorter": "^2.31.3",
     "Font-Awesome": "^4.7.0",
-    "clipboard": "#master",
+    "clipboard": "^2.0.9",
     "draggable-polyfill": "XboxYan/draggable-polyfill"
   },
   "main": "",
