@@ -8,13 +8,17 @@ import time
 import urllib
 import pytz
 import traceback
+import ddddocr
+import requests
+import asyncio
+import functools
 from .base import *
 from tornado import gen
 import base64
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import  PKCS1_v1_5
 from Crypto import Random
-from config import delay_max_timeout
+from config import delay_max_timeout,strtobool
 
 def request_parse(req_data):
     '''解析请求数据并以json形式返回'''
@@ -410,6 +414,126 @@ class toolboxHandler(BaseHandler):
             self.write(str(e))
             return
 
+class DdddOCRServer(object):
+    def __init__(self):
+        self.oldocr = ddddocr.DdddOcr(old=True,show_ad=False)
+        self.ocr = ddddocr.DdddOcr(show_ad=False)
+        self.det = ddddocr.DdddOcr(det=True,show_ad=False)
+
+    def classification(self, img: bytes, old=False):
+        if old:
+            return self.oldocr.classification(img)
+        else:
+            return self.ocr.classification(img)
+
+    def detection(self, img: bytes):
+        return self.det.detection(img)
+
+DdddOCRServer = DdddOCRServer()
+
+class DdddOcrHandler(BaseHandler):
+    async def get(self):
+        Rtv = {}
+        try:
+            img = self.get_argument("img", "")
+            imgurl = self.get_argument("imgurl", "")
+            old = bool(strtobool(self.get_argument("old", "False"))) 
+            if img:
+                img = base64.b64decode(img)
+            elif imgurl:
+                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
+                base64_data = base64.b64encode(res.content).decode()
+                img = base64.b64decode(base64_data)
+            else:
+                raise Exception(400)
+            Rtv[u"Result"] = DdddOCRServer.classification(img,old=old)
+            Rtv[u"状态"] = "OK"
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
+
+    async def post(self):
+        Rtv = {}
+        try:
+            if self.request.headers.get("Content-Type", "").startswith("application/json"):
+                body_dict = json.loads(self.request.body)
+                img = body_dict.get("img", "")
+                imgurl = body_dict.get("imgurl", "")
+                old = bool(strtobool(body_dict.get("old", "False")))
+            else:
+                img = self.get_argument("img", "")
+                imgurl = self.get_argument("imgurl", "")
+                old = bool(strtobool(self.get_argument("old", "False"))) 
+            if img:
+                img = base64.b64decode(img)
+            elif imgurl:
+                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
+                base64_data = base64.b64encode(res.content).decode()
+                img = base64.b64decode(base64_data)
+            else:
+                raise Exception(400)
+            Rtv[u"Result"] = DdddOCRServer.classification(img,old=old)
+            Rtv[u"状态"] = "OK"
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
+
+class DdddDetHandler(BaseHandler):
+    async def get(self):
+        Rtv = {}
+        try:
+            img = self.get_argument("img", "")
+            imgurl = self.get_argument("imgurl", "")
+            if img:
+                img = base64.b64decode(img)
+            elif imgurl:
+                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
+                base64_data = base64.b64encode(res.content).decode()
+                img = base64.b64decode(base64_data)
+            else:
+                raise Exception(400)
+            Rtv[u"Result"] = DdddOCRServer.detection(img)
+            Rtv[u"状态"] = "OK"
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=None))
+        return
+
+    async def post(self):
+        Rtv = {}
+        try:
+            if self.request.headers.get("Content-Type", "").startswith("application/json"):
+                body_dict = json.loads(self.request.body)
+                img = body_dict.get("img", "")
+                imgurl = body_dict.get("imgurl", "")
+            else:
+                img = self.get_argument("img", "")
+                imgurl = self.get_argument("imgurl", "")
+            if img:
+                img = base64.b64decode(img)
+            elif imgurl:
+                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
+                base64_data = base64.b64encode(res.content).decode()
+                img = base64.b64decode(base64_data)
+            else:
+                raise Exception(400)
+            Rtv[u"Result"] = DdddOCRServer.detection(img)
+            Rtv[u"状态"] = "OK"
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=None))
+        return
+
 handlers = [
     ('/util/delay', UtilDelayParaHandler),
     ('/util/delay/(\d+)', UtilDelayIntHandler),
@@ -422,4 +546,6 @@ handlers = [
     ('/util/string/replace', UtilStrReplaceHandler),
     ('/util/rsa', UtilRSAHandler),
     ('/util/toolbox/(\d+)', toolboxHandler),
+    ('/util/dddd/ocr', DdddOcrHandler),
+    ('/util/dddd/det', DdddDetHandler),
 ]

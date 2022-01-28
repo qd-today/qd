@@ -104,7 +104,7 @@ user0isadmin = bool(strtobool(os.getenv('USER0ISADMIN','True')))
 
 try:
     from local_config import *                                              # 修改local_config.py文件的内容不受通过git更新源码的影响
-    if db_type == 'mysql' and not hasattr(mysql, 'auth_plugin'):
+    if not hasattr(mysql, 'auth_plugin'):
         setattr(mysql, 'auth_plugin', parse_qs(mysql_url.query).get('auth_plugin',[''])[0])
 except ImportError:
     pass

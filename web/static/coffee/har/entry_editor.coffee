@@ -91,7 +91,7 @@ define (require, exports, module) ->
         return
       if $scope.entry.request.url.substring(0, 2) == "{{" || $scope.entry.request.url.substring(0, 2) == "{%" 
         return
-      url = utils.url_parse($scope.entry.request.url);
+      url = utils.url_parse($scope.entry.request.url)
       if url.path.indexOf('%7B%7B') > -1
         url.path = url.path.replace('%7B%7B', '{{')
         url.path = url.path.replace('%7D%7D', '}}')
@@ -164,7 +164,7 @@ define (require, exports, module) ->
         response: {}
       })
 
-    $scope.add_timestamp_request = ()->
+    $scope.add_timestamp_request = () ->
       $scope.insert_request(1, {
         checked: true
         pageref: $scope.entry.pageref
@@ -172,18 +172,18 @@ define (require, exports, module) ->
         comment: '返回当前时间戳和时间'
         request:
           method: 'GET'
-          url: [api_host,'/util/timestamp'].join('')
+          url: [api_host, '/util/timestamp'].join('')
           postData:
             test: ''
           headers: []
           cookies: []
         response: {}
         success_asserts: [
-          {re: "200", from: "status"}
+          { re: "200", from: "status" }
         ]
       })
 
-    $scope.add_delay_request = ()->
+    $scope.add_delay_request = () ->
       $scope.insert_request(1, {
         checked: true
         pageref: $scope.entry.pageref
@@ -191,7 +191,7 @@ define (require, exports, module) ->
         comment: '延时3秒'
         request:
           method: 'GET'
-          url: [api_host,'/util/delay/3'].join('')
+          url: [api_host, '/util/delay/3'].join('')
           postData:
             test: ''
           headers: []
@@ -210,7 +210,7 @@ define (require, exports, module) ->
         comment: 'Unicode转换',
         request: {
           method: 'GET',
-          url: [api_host,'/util/unicode?content='].join(''),
+          url: [api_host, '/util/unicode?content='].join(''),
           headers: [],
           cookies: []
         },
@@ -242,7 +242,7 @@ define (require, exports, module) ->
         comment: 'URL解码',
         request: {
           method: 'GET',
-          url: [api_host,'/util/urldecode?content='].join(''),
+          url: [api_host, '/util/urldecode?content='].join(''),
           headers: [],
           cookies: []
         },
@@ -274,7 +274,7 @@ define (require, exports, module) ->
         comment: 'GB2312编码',
         request: {
           method: 'GET',
-          url: [api_host,'/util/gb2312?content='].join(''),
+          url: [api_host, '/util/gb2312?content='].join(''),
           headers: [],
           cookies: []
         },
@@ -306,7 +306,7 @@ define (require, exports, module) ->
         comment: '正则提取',
         request: {
           method: 'GET',
-          url: [api_host,'/util/regex?p=&data='].join(''),
+          url: [api_host, '/util/regex?p=&data='].join(''),
           headers: [],
           cookies: []
         },
@@ -338,7 +338,7 @@ define (require, exports, module) ->
         comment: '字符串替换',
         request: {
           method: 'GET',
-          url: [api_host,'/util/string/replace?r=json&p=&s=&t='].join(''),
+          url: [api_host, '/util/string/replace?r=json&p=&s=&t='].join(''),
           headers: [],
           cookies: []
         },
@@ -370,7 +370,7 @@ define (require, exports, module) ->
         comment: 'RSA加密',
         request: {
           method: 'GET',
-          url: [api_host,'/util/rsa?key=&data=&f=encode'].join(''),
+          url: [api_host, '/util/rsa?key=&data=&f=encode'].join(''),
           headers: [],
           cookies: []
         },
@@ -398,7 +398,7 @@ define (require, exports, module) ->
         comment: 'RSA解密',
         request: {
           method: 'GET',
-          url: [api_host,'/util/rsa?key=&data=&f=decode'].join(''),
+          url: [api_host, '/util/rsa?key=&data=&f=decode'].join(''),
           headers: [],
           cookies: []
         },
@@ -430,10 +430,10 @@ define (require, exports, module) ->
         },
         request: {
           method: 'POST',
-          url: [api_host,'/util/toolbox/1'].join(''),
+          url: [api_host, '/util/toolbox/1'].join(''),
           headers: [],
           cookies: [],
-          postData:{
+          postData: {
             text: "email={{qd_email|urlencode}}&pwd={{md5(qd_pwd)|urlencode}}&f=read"
           }
         },
@@ -461,10 +461,10 @@ define (require, exports, module) ->
         comment: '追加记事本',
         request: {
           method: 'POST',
-          url: [api_host,'/util/toolbox/1'].join(''),
+          url: [api_host, '/util/toolbox/1'].join(''),
           headers: [],
           cookies: [],
-          postData:{
+          postData: {
             text: "email={{qd_email|urlencode}}&pwd={{md5(qd_pwd)|urlencode}}&f=append&data="
           }
         },
@@ -484,14 +484,97 @@ define (require, exports, module) ->
         ]
       })
 
-    $scope.copy_request = ()->
+    $scope.add_dddd_OCR_request = () ->
+      $scope.insert_request(1, {
+        checked: true,
+        pageref: $scope.entry.pageref,
+        recommend: true,
+        comment: 'OCR识别',
+        request: {
+          method: 'POST',
+          url: [api_host, '/util/dddd/ocr'].join(''),
+          headers: [{
+              "name": "Content-Type",
+              "value": "application/json",
+              "checked": true
+            }],
+          cookies: [],
+          postData: {
+            text: "{\"img\":\"\",\"imgurl\":\"\",\"old\":\"False\"}"
+          }
+        },
+        response: {},
+        success_asserts: [
+          {
+            re: "200",
+            from: "status"
+          },
+          {
+            re: "\"状态\": \"OK\"",
+            from: "content"
+          }
+        ],
+        extract_variables: [
+          {
+            name: '',
+            re: '"Result": "(.*)"',
+            from: 'content'
+          }
+        ]
+      })
+
+    $scope.add_dddd_DET_request = () ->
+      $scope.insert_request(1, {
+        checked: true,
+        pageref: $scope.entry.pageref,
+        recommend: true,
+        comment: '目标检测',
+        request: {
+          method: 'POST',
+          url: [api_host, '/util/dddd/det'].join(''),
+          headers: [{
+              "name": "Content-Type",
+              "value": "application/json",
+              "checked": true
+            }],
+          cookies: [],
+          postData: {
+            text: "{\"img\":\"\",\"imgurl\":\"\"}"
+          }
+        },
+        response: {},
+        success_asserts: [
+          {
+            re: "200",
+            from: "status"
+          },
+          {
+            re: "\"状态\": \"OK\"",
+            from: "content"
+          }
+        ],
+        extract_variables: [
+          {
+            name: '',
+            re: '((\\d+, ){3}\\d+)',
+            from: 'content'
+          },
+          {
+            name: '',
+            re: '/((\\d+, ){3}\\d+)/g',
+            from: 'content'
+          }
+        ]
+      })
+
+    $scope.copy_request = () ->
       if not $scope.entry
         $scope.alert "can't find position to paste request"
         return
       $scope.copy_entry = angular.copy($scope.entry)
       utils.storage.set('copy_request', angular.toJson($scope.copy_entry))
 
-    $scope.paste_request = (pos)->
+    $scope.paste_request = (pos) ->
       $scope.copy_entry.comment ?= ''
       $scope.copy_entry.comment = 'Copy_' + $scope.copy_entry.comment
       $scope.copy_entry.pageref = $scope.entry.pageref
@@ -503,7 +586,7 @@ define (require, exports, module) ->
         if (current_pos = $scope.$parent.har.log.entries.indexOf($scope.entry)) == -1
           $scope.alert("can't find position to add request")
           return
-        current_pos += pos;
+        current_pos += pos
         $scope.$parent.har.log.entries.splice(current_pos, 1)
         $rootScope.$broadcast('har-change')
         return angular.element('#edit-entry').modal('hide')
@@ -592,7 +675,7 @@ define (require, exports, module) ->
         try
           if match = re.match(/^\/(.*?)\/([gimsu]*)$/)
             if match[1]
-              re = new RegExp(match[1], match[2]);
+              re = new RegExp(match[1], match[2])
             else
               throw new Error(match[0] +' is not allowed!')
           else
@@ -608,7 +691,8 @@ define (require, exports, module) ->
             while m = re.exec(data)
               result.push(if m[1] then m[1] else m[0])
               if m[0] == ''
-                re.lastIndex++; # throw new Error('the RegExp "' + re.toString() +'" has caused a loop error! Try using stringObject.match(regexp) method on this stringobject...' );
+                re.lastIndex++
+                # throw new Error('the RegExp "' + re.toString() +'" has caused a loop error! Try using stringObject.match(regexp) method on this stringobject...' )
           catch error
             console.error(error.message)
             result = data.match(re)

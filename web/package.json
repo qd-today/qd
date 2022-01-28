@@ -26,21 +26,23 @@
     "querystring": "^0.2.1",
     "tough-cookie": "^4.0.0",
     "url": "^0.11.0",
-    "util": "^0.12.4",
-    "webpack": "^5.58.2"
+    "util": "^0.12.4"
   },
   "engines": {
     "node": ">= 0.10.0"
   },
   "devDependencies": {
+    "bower": "^1.8.13",
+    "coffeescript": "^2.6.1",
     "grunt": "^1.4.1",
-    "grunt-bower-task": "^0.5.0",
+    "grunt-bower-task": "^0.6.1",
     "grunt-contrib-clean": "^2.0.0",
     "grunt-contrib-concat": "~0.4.0",
     "grunt-contrib-jshint": "^3.1.1",
     "grunt-contrib-nodeunit": "^4.0.0",
     "grunt-contrib-uglify": "^5.0.1",
     "grunt-contrib-watch": "^1.1.0",
+    "webpack": "^5.67.0",
     "webpack-cli": "^4.9.1"
   }
 }
