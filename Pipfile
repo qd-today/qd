@@ -18,6 +18,7 @@ incremental = "*"
 u-msgpack-python = "*"
 pysocks = "*"
 faker = "*"
+opencv-python-headless = "*"
 ddddocr = "*"
 
 [dev-packages]

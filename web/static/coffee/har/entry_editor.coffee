@@ -556,12 +556,12 @@ define (require, exports, module) ->
         extract_variables: [
           {
             name: '',
-            re: '((\\d+, ){3}\\d+)',
+            re: '(\\d+, \\d+, \\d+, \\d+)',
             from: 'content'
           },
           {
             name: '',
-            re: '/((\\d+, ){3}\\d+)/g',
+            re: '/(\\d+, \\d+, \\d+, \\d+)/g',
             from: 'content'
           }
         ]
