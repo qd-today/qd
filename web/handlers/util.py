@@ -8,7 +8,11 @@ import time
 import urllib
 import pytz
 import traceback
-import ddddocr
+try:
+    import ddddocr
+except ImportError as e:
+    print(e)
+    ddddocr = None
 import requests
 import asyncio
 import functools
@@ -428,26 +432,31 @@ class DdddOCRServer(object):
 
     def detection(self, img: bytes):
         return self.det.detection(img)
-
-DdddOCRServer = DdddOCRServer()
+if ddddocr:
+    DdddOCRServer = DdddOCRServer()
+else:
+    DdddOCRServer = None
 
 class DdddOcrHandler(BaseHandler):
     async def get(self):
         Rtv = {}
         try:
-            img = self.get_argument("img", "")
-            imgurl = self.get_argument("imgurl", "")
-            old = bool(strtobool(self.get_argument("old", "False"))) 
-            if img:
-                img = base64.b64decode(img)
-            elif imgurl:
-                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
-                base64_data = base64.b64encode(res.content).decode()
-                img = base64.b64decode(base64_data)
+            if DdddOCRServer:
+                img = self.get_argument("img", "")
+                imgurl = self.get_argument("imgurl", "")
+                old = bool(strtobool(self.get_argument("old", "False"))) 
+                if img:
+                    img = base64.b64decode(img)
+                elif imgurl:
+                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
+                    base64_data = base64.b64encode(res.content).decode()
+                    img = base64.b64decode(base64_data)
+                else:
+                    raise Exception(400)
+                Rtv[u"Result"] = DdddOCRServer.classification(img,old=old)
+                Rtv[u"状态"] = "OK"
             else:
-                raise Exception(400)
-            Rtv[u"Result"] = DdddOCRServer.classification(img,old=old)
-            Rtv[u"状态"] = "OK"
+                raise Exception(404)
         except Exception as e:
             Rtv[u"状态"] = str(e)
 
@@ -458,25 +467,28 @@ class DdddOcrHandler(BaseHandler):
     async def post(self):
         Rtv = {}
         try:
-            if self.request.headers.get("Content-Type", "").startswith("application/json"):
-                body_dict = json.loads(self.request.body)
-                img = body_dict.get("img", "")
-                imgurl = body_dict.get("imgurl", "")
-                old = bool(strtobool(body_dict.get("old", "False")))
+            if DdddOCRServer:
+                if self.request.headers.get("Content-Type", "").startswith("application/json"):
+                    body_dict = json.loads(self.request.body)
+                    img = body_dict.get("img", "")
+                    imgurl = body_dict.get("imgurl", "")
+                    old = bool(strtobool(body_dict.get("old", "False")))
+                else:
+                    img = self.get_argument("img", "")
+                    imgurl = self.get_argument("imgurl", "")
+                    old = bool(strtobool(self.get_argument("old", "False"))) 
+                if img:
+                    img = base64.b64decode(img)
+                elif imgurl:
+                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
+                    base64_data = base64.b64encode(res.content).decode()
+                    img = base64.b64decode(base64_data)
+                else:
+                    raise Exception(400)
+                Rtv[u"Result"] = DdddOCRServer.classification(img,old=old)
+                Rtv[u"状态"] = "OK"
             else:
-                img = self.get_argument("img", "")
-                imgurl = self.get_argument("imgurl", "")
-                old = bool(strtobool(self.get_argument("old", "False"))) 
-            if img:
-                img = base64.b64decode(img)
-            elif imgurl:
-                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
-                base64_data = base64.b64encode(res.content).decode()
-                img = base64.b64decode(base64_data)
-            else:
-                raise Exception(400)
-            Rtv[u"Result"] = DdddOCRServer.classification(img,old=old)
-            Rtv[u"状态"] = "OK"
+                raise Exception(404)
         except Exception as e:
             Rtv[u"状态"] = str(e)
 
@@ -488,18 +500,21 @@ class DdddDetHandler(BaseHandler):
     async def get(self):
         Rtv = {}
         try:
-            img = self.get_argument("img", "")
-            imgurl = self.get_argument("imgurl", "")
-            if img:
-                img = base64.b64decode(img)
-            elif imgurl:
-                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
-                base64_data = base64.b64encode(res.content).decode()
-                img = base64.b64decode(base64_data)
+            if DdddOCRServer:
+                img = self.get_argument("img", "")
+                imgurl = self.get_argument("imgurl", "")
+                if img:
+                    img = base64.b64decode(img)
+                elif imgurl:
+                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
+                    base64_data = base64.b64encode(res.content).decode()
+                    img = base64.b64decode(base64_data)
+                else:
+                    raise Exception(400)
+                Rtv[u"Result"] = DdddOCRServer.detection(img)
+                Rtv[u"状态"] = "OK"
             else:
-                raise Exception(400)
-            Rtv[u"Result"] = DdddOCRServer.detection(img)
-            Rtv[u"状态"] = "OK"
+                raise Exception(404)
         except Exception as e:
             Rtv[u"状态"] = str(e)
 
@@ -510,23 +525,26 @@ class DdddDetHandler(BaseHandler):
     async def post(self):
         Rtv = {}
         try:
-            if self.request.headers.get("Content-Type", "").startswith("application/json"):
-                body_dict = json.loads(self.request.body)
-                img = body_dict.get("img", "")
-                imgurl = body_dict.get("imgurl", "")
+            if DdddOCRServer:
+                if self.request.headers.get("Content-Type", "").startswith("application/json"):
+                    body_dict = json.loads(self.request.body)
+                    img = body_dict.get("img", "")
+                    imgurl = body_dict.get("imgurl", "")
+                else:
+                    img = self.get_argument("img", "")
+                    imgurl = self.get_argument("imgurl", "")
+                if img:
+                    img = base64.b64decode(img)
+                elif imgurl:
+                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
+                    base64_data = base64.b64encode(res.content).decode()
+                    img = base64.b64decode(base64_data)
+                else:
+                    raise Exception(400)
+                Rtv[u"Result"] = DdddOCRServer.detection(img)
+                Rtv[u"状态"] = "OK"
             else:
-                img = self.get_argument("img", "")
-                imgurl = self.get_argument("imgurl", "")
-            if img:
-                img = base64.b64decode(img)
-            elif imgurl:
-                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
-                base64_data = base64.b64encode(res.content).decode()
-                img = base64.b64decode(base64_data)
-            else:
-                raise Exception(400)
-            Rtv[u"Result"] = DdddOCRServer.detection(img)
-            Rtv[u"状态"] = "OK"
+                raise Exception(404)
         except Exception as e:
             Rtv[u"状态"] = str(e)
 

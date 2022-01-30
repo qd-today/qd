@@ -1,5 +1,5 @@
 [[source]]
-url = "https://pypi.org/simple"
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
 verify_ssl = true
 name = "pypi"
 
@@ -18,12 +18,11 @@ incremental = "*"
 u-msgpack-python = "*"
 pysocks = "*"
 faker = "*"
-opencv-python-headless = "*"
-ddddocr = "*"
 
 [dev-packages]
+opencv-python-headless = "*"
+#ddddocr = "*"
 pycurl = {version = "*", markers="sys_platform != 'win32'"}
-pycurl_win = {version = "*", file = "https://download.lfd.uci.edu/pythonlibs/x6hvwk7i/pycurl-7.44.1-cp39-cp39-win_amd64.whl", install-option = "--with-openssl", markers="sys_platform == 'win32'"}
 
 [requires]
-python_version = "3.9"
+python_version = "3.10"
