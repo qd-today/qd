@@ -24,7 +24,7 @@ AUTO_RELOAD=$AUTO_RELOAD
 # Treat unset variables as an error
 set -o nounset
 
-__ScriptVersion="2021.10.28"
+__ScriptVersion="2022.01.31"
 __ScriptName="update.sh"
 
 
@@ -72,7 +72,20 @@ update() {
         git reset --hard origin/master
         git checkout master
         git pull
-        pip install -r requirements.txt
+        [[ -z $(file /bin/busybox | grep -i "musl") ]] && \
+        pip install -r requirements.txt || (\
+        sed -i '/ddddocr/d' requirements.txt && \
+        sed -i '/opencv-python-headless/d' requirements.txt && \
+        sed -i '/packaging/d' requirements.txt && \
+        apk add --update --no-cache openrc redis bash git tzdata nano openssh-client ca-certificates\
+            libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
+            py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
+        apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
+            linux-headers libtool util-linux libexecinfo-dev openblas-dev python3-dev && \
+        pip install --no-cache-dir -r requirements.txt && \
+        pip install --no-cache-dir --no-dependencies ddddocr && \
+        apk del .build_deps
+        )
     else
         echo "Info: 当前版本: $localversion , 无需更新!"
     fi
@@ -87,7 +100,20 @@ force_update() {
     git reset --hard origin/master
     git checkout master
     git pull
-    pip install -r requirements.txt
+    [[ -z $(file /bin/busybox | grep -i "musl") ]] && \
+    pip install -r requirements.txt || (\
+    sed -i '/ddddocr/d' requirements.txt && \
+    sed -i '/opencv-python-headless/d' requirements.txt && \
+    sed -i '/packaging/d' requirements.txt && \
+    apk add --update --no-cache openrc redis bash git tzdata nano openssh-client ca-certificates\
+        libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
+        py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
+    apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
+        linux-headers libtool util-linux libexecinfo-dev openblas-dev python3-dev && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir --no-dependencies ddddocr && \
+    apk del .build_deps
+    )
     if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器，或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi
@@ -97,7 +123,20 @@ update_version() {
     echo -e "Info: 正在强制切换至指定Tag版本: $1，请稍候..."
     git fetch --all
     git checkout -f $1
-    pip install -r requirements.txt
+    [[ -z $(file /bin/busybox | grep -i "musl") ]] && \
+    pip install -r requirements.txt || (\
+    sed -i '/ddddocr/d' requirements.txt && \
+    sed -i '/opencv-python-headless/d' requirements.txt && \
+    sed -i '/packaging/d' requirements.txt && \
+    apk add --update --no-cache openrc redis bash git tzdata nano openssh-client ca-certificates\
+        libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
+        py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
+    apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
+        linux-headers libtool util-linux libexecinfo-dev openblas-dev python3-dev && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir --no-dependencies ddddocr && \
+    apk del .build_deps
+    )
     if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器，或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi

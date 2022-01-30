@@ -38,11 +38,20 @@ RUN mkdir -p /root/.ssh \
     && ln -s /usr/src/app/update.sh /bin/update
     
 # Pip install modules
-RUN pip install --upgrade setuptools \
-    && pip install --no-cache-dir -r requirements.txt \
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /usr/share/man/* 
-   
+RUN apk add --update --no-cache openrc redis bash git tzdata nano openssh-client ca-certificates\
+        file libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
+        py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
+    apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
+        linux-headers libtool util-linux libexecinfo-dev openblas-dev python3-dev && \
+    sed -i '/ddddocr/d' requirements.txt && \
+    sed -i '/opencv-python-headless/d' requirements.txt && \
+    sed -i '/packaging/d' requirements.txt && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir --no-dependencies ddddocr && \
+    apk del .build_deps && \
+    rm -rf /var/cache/apk/* && \
+    rm -rf /usr/share/man/* 
+
 ENV PORT 80
 EXPOSE $PORT/tcp
 
