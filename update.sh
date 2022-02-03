@@ -24,7 +24,7 @@ AUTO_RELOAD=$AUTO_RELOAD
 # Treat unset variables as an error
 set -o nounset
 
-__ScriptVersion="2022.01.31"
+__ScriptVersion="2022.02.04"
 __ScriptName="update.sh"
 
 
@@ -73,19 +73,36 @@ update() {
         git checkout master
         git pull
         [[ -z $(file /bin/busybox | grep -i "musl") ]] && \
-        pip install -r requirements.txt || (\
-        sed -i '/ddddocr/d' requirements.txt && \
-        sed -i '/opencv-python-headless/d' requirements.txt && \
-        sed -i '/packaging/d' requirements.txt && \
+        pip install -r requirements.txt || {\
+        if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') -eq 1 ];then 
+            echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
+            echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
+            apk del .python-rundeps  
+            echo "如需使用DDDDOCR API，请重新拉取最新容器（ARM32暂不支持此API）"
+        fi
         apk add --update --no-cache openrc redis bash git tzdata nano openssh-client ca-certificates\
-            libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
-            py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
+            file libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
+            python3 py3-numpy-dev py3-pip py3-setuptools py3-wheel py3-opencv python3-dev  \
+            py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging 
         apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
-            linux-headers libtool util-linux libexecinfo-dev openblas-dev python3-dev && \
-        pip install --no-cache-dir -r requirements.txt && \
-        pip install --no-cache-dir --no-dependencies ddddocr && \
-        apk del .build_deps
-        )
+            linux-headers libtool util-linux 
+        ln -sf /usr/bin/python3 /usr/bin/python 
+        ln -sf /usr/bin/python3 /usr/local/bin/python
+        sed -i '/ddddocr/d' requirements.txt 
+        sed -i '/packaging/d' requirements.txt 
+        sed -i '/wrapt/d' requirements.txt 
+        sed -i '/pycryptodome/d' requirements.txt 
+        sed -i '/tornado/d' requirements.txt 
+        sed -i '/MarkupSafe/d' requirements.txt 
+        sed -i '/pillow/d' requirements.txt 
+        sed -i '/opencv/d' requirements.txt 
+        sed -i '/numpy/d' requirements.txt 
+        pip install --no-cache-dir -r requirements.txt 
+        pip install --no-cache-dir --compile pycurl 
+        apk del .build_deps 
+        rm -rf /var/cache/apk/* 
+        rm -rf /usr/share/man/*
+        }
     else
         echo "Info: 当前版本: $localversion , 无需更新!"
     fi
@@ -101,19 +118,36 @@ force_update() {
     git checkout master
     git pull
     [[ -z $(file /bin/busybox | grep -i "musl") ]] && \
-    pip install -r requirements.txt || (\
-    sed -i '/ddddocr/d' requirements.txt && \
-    sed -i '/opencv-python-headless/d' requirements.txt && \
-    sed -i '/packaging/d' requirements.txt && \
+    pip install -r requirements.txt || {\
+    if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') -eq 1 ];then 
+        echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
+        echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
+        apk del .python-rundeps  
+        echo "如需使用DDDDOCR API，请重新拉取最新容器（ARM32暂不支持此API）"
+    fi
     apk add --update --no-cache openrc redis bash git tzdata nano openssh-client ca-certificates\
-        libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
-        py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
+        file libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
+        python3 py3-numpy-dev py3-pip py3-setuptools py3-wheel py3-opencv python3-dev  \
+        py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging 
     apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
-        linux-headers libtool util-linux libexecinfo-dev openblas-dev python3-dev && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir --no-dependencies ddddocr && \
-    apk del .build_deps
-    )
+        linux-headers libtool util-linux 
+    ln -sf /usr/bin/python3 /usr/bin/python 
+    ln -sf /usr/bin/python3 /usr/local/bin/python
+    sed -i '/ddddocr/d' requirements.txt 
+    sed -i '/packaging/d' requirements.txt 
+    sed -i '/wrapt/d' requirements.txt 
+    sed -i '/pycryptodome/d' requirements.txt 
+    sed -i '/tornado/d' requirements.txt 
+    sed -i '/MarkupSafe/d' requirements.txt 
+    sed -i '/pillow/d' requirements.txt 
+    sed -i '/opencv/d' requirements.txt 
+    sed -i '/numpy/d' requirements.txt 
+    pip install --no-cache-dir -r requirements.txt 
+    pip install --no-cache-dir --compile pycurl 
+    apk del .build_deps 
+    rm -rf /var/cache/apk/* 
+    rm -rf /usr/share/man/*
+    }
     if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器，或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi
@@ -124,19 +158,36 @@ update_version() {
     git fetch --all
     git checkout -f $1
     [[ -z $(file /bin/busybox | grep -i "musl") ]] && \
-    pip install -r requirements.txt || (\
-    sed -i '/ddddocr/d' requirements.txt && \
-    sed -i '/opencv-python-headless/d' requirements.txt && \
-    sed -i '/packaging/d' requirements.txt && \
+    pip install -r requirements.txt || {\
+    if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') -eq 1 ];then 
+        echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
+        echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
+        apk del .python-rundeps  
+        echo "如需使用DDDDOCR API，请重新拉取最新容器（ARM32暂不支持此API）"
+    fi
     apk add --update --no-cache openrc redis bash git tzdata nano openssh-client ca-certificates\
-        libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
-        py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
+        file libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
+        python3 py3-numpy-dev py3-pip py3-setuptools py3-wheel py3-opencv python3-dev  \
+        py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging 
     apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
-        linux-headers libtool util-linux libexecinfo-dev openblas-dev python3-dev && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir --no-dependencies ddddocr && \
-    apk del .build_deps
-    )
+        linux-headers libtool util-linux 
+    ln -sf /usr/bin/python3 /usr/bin/python 
+    ln -sf /usr/bin/python3 /usr/local/bin/python
+    sed -i '/ddddocr/d' requirements.txt 
+    sed -i '/packaging/d' requirements.txt 
+    sed -i '/wrapt/d' requirements.txt 
+    sed -i '/pycryptodome/d' requirements.txt 
+    sed -i '/tornado/d' requirements.txt 
+    sed -i '/MarkupSafe/d' requirements.txt 
+    sed -i '/pillow/d' requirements.txt 
+    sed -i '/opencv/d' requirements.txt 
+    sed -i '/numpy/d' requirements.txt 
+    pip install --no-cache-dir -r requirements.txt 
+    pip install --no-cache-dir --compile pycurl 
+    apk del .build_deps 
+    rm -rf /var/cache/apk/* 
+    rm -rf /usr/share/man/*
+    }
     if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器，或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi

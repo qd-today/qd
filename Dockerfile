@@ -35,6 +35,7 @@ RUN mkdir -p /root/.ssh \
     && sleep $num \
     && git clone git@gitee.com:a76yyyy/qiandao.git /gitclone_tmp \
     && yes | cp -rf /gitclone_tmp/. /usr/src/app \
+    && rm -rf /gitclone_tmp \
     && chmod +x /usr/src/app/update.sh \
     && ln -s /usr/src/app/update.sh /bin/update
     
@@ -46,10 +47,15 @@ RUN apk add --update --no-cache openrc redis bash git tzdata nano openssh-client
     apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
         linux-headers libtool util-linux && \
     sed -i '/ddddocr/d' requirements.txt && \
-    sed -i '/opencv-python-headless/d' requirements.txt && \
     sed -i '/packaging/d' requirements.txt && \
+    sed -i '/wrapt/d' requirements.txt && \
+    sed -i '/pycryptodome/d' requirements.txt && \
+    sed -i '/tornado/d' requirements.txt && \
+    sed -i '/MarkupSafe/d' requirements.txt && \
+    sed -i '/pillow/d' requirements.txt && \
+    sed -i '/opencv/d' requirements.txt && \
+    sed -i '/numpy/d' requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir --no-dependencies ddddocr && \
     apk del .build_deps && \
     rm -rf /var/cache/apk/* && \
     rm -rf /usr/share/man/* 
