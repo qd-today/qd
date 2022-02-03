@@ -5,7 +5,7 @@ FROM a76yyyy/pycurl:latest
 LABEL maintainer "a76yyyy <q981331502@163.com>"
 LABEL org.opencontainers.image.source=https://github.com/qiandao-today/qiandao
 
-# 签到版本 20190220
+# 签到版本 20220203
 # 集成皮蛋0.1.1  https://github.com/cdpidan/qiandaor
 # 加入蓝调主题 20190118 https://www.quchao.net/QianDao-Theme.html
 # --------------
@@ -13,6 +13,7 @@ LABEL org.opencontainers.image.source=https://github.com/qiandao-today/qiandao
 # 20210112 添加git模块，实现重启后自动更新镜像
 # 20210628 使用gitee作为代码源，添加密钥用于更新
 # 20210728 更换python版本为python3.8,默认包含redis
+# 20220203 更换alpine分支为edge,更换python版本为python3.10
 
 ADD . /usr/src/app
 WORKDIR /usr/src/app
@@ -40,9 +41,10 @@ RUN mkdir -p /root/.ssh \
 # Pip install modules
 RUN apk add --update --no-cache openrc redis bash git tzdata nano openssh-client ca-certificates\
         file libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
+        python3 py3-numpy-dev py3-pip py3-setuptools py3-wheel py3-opencv python3-dev  \
         py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
     apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
-        linux-headers libtool util-linux libexecinfo-dev openblas-dev python3-dev && \
+        linux-headers libtool util-linux && \
     sed -i '/ddddocr/d' requirements.txt && \
     sed -i '/opencv-python-headless/d' requirements.txt && \
     sed -i '/packaging/d' requirements.txt && \
