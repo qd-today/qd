@@ -198,6 +198,7 @@ PROXY_DIRECT_MODE|否|""|全局代理黑名单模式,默认不启用 <br>"url"�
 PROXY_DIRECT|否|""|全局代理黑名单匹配规则
 USE_PYCURL|否|True|是否启用Pycurl模组
 ALLOW_RETRY|否|True|在Pycurl环境下部分请求可能导致Request错误时, <br>自动修改冲突设置并重发请求
+DNS_SERVER|否|""|通过Curl使用指定DNS进行解析(仅支持Pycurl环境), <br>如 8.8.8.8
 CURL_ENCODING|否|True|是否允许使用Curl进行Encoding操作
 CURL_CONTENT_LENGTH|否|True|是否允许Curl使用Headers中自定义Content-Length请求
 NOT_RETRY_CODE|否|[详见配置](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)...|[详见配置](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)...

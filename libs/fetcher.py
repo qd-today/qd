@@ -125,6 +125,8 @@ class Fetcher(object):
                             )
                     except:
                         pass
+                if config.dns_server:
+                    curl.setopt(pycurl.DNS_SERVERS,config.dns_server)
                 curl.setopt(pycurl.NOPROGRESS, 0)
                 curl.setopt(pycurl.PROGRESSFUNCTION, size_limit)
                 curl.setopt(pycurl.CONNECTTIMEOUT, int(connect_timeout))

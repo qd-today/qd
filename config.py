@@ -24,6 +24,7 @@ domain = os.getenv('DOMAIN', 'qiandao.today')                               # �
 # PyCurl 相关设置
 use_pycurl = bool(strtobool(os.getenv('USE_PYCURL','True')))                # 是否启用Pycurl模组, 当环境无PyCurl模组时无效
 allow_retry = bool(strtobool(os.getenv('ALLOW_RETRY', 'True')))             # 在Pycurl环境下部分请求可能导致Request错误时, 自动修改冲突设置并重发请求
+dns_server = str(os.getenv('DNS_SERVER', ''))                               # 通过Curl使用指定DNS进行解析(仅支持Pycurl环境)
 curl_encoding = bool(strtobool(os.getenv('CURL_ENCODING', 'True')))         # 是否允许使用Curl进行Encoding操作, 当PyCurl返回"Error 61 Unrecognized transfer encoding."错误且'ALLOW_RETRY=True'时, 本次请求禁用Headers中的Content-Encoding并重试
 curl_length = bool(strtobool(os.getenv('CURL_CONTENT_LENGTH', 'True')))     # 是否允许Curl使用Headers中自定义Content-Length请求, 当PyCurl返回"HTTP 400 Bad Request"错误且'ALLOW_RETRY=True'时, 本次请求禁用Headers中的Content-Length并重试
 not_retry_code = list(map(int,os.getenv('NOT_RETRY_CODE', '301|302|303|304|305|307|400|401|403|404|405|407|408|409|410|412|415|413|414|500|501|502|503|504|599').split('|')))
