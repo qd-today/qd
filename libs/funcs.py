@@ -271,7 +271,7 @@ class pusher(object):
                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
         _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
         url='https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token={access_token}&type=image'.format(access_token = access_token)
-        r = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, url, files={'image':res.body}, json=True))
+        r = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, url, files={'image':res.body}, json=True, verify=False))
         return json.loads(r.text)['media_id']
 
     async def qywx_pusher_send(self, qywx_token, t, log):

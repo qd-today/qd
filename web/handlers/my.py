@@ -11,6 +11,8 @@ from .base import *
 import urllib
 
 import requests
+import asyncio
+import functools
 import re
 import os
 import json
@@ -93,7 +95,7 @@ class CheckUpdateHandler(BaseHandler):
                 _groups.append(temp)
                 
         common_tpls = []
-        res = requests.get("https://github.com/qiandao-today/templates", verify=False)
+        res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get,"https://github.com/qiandao-today/templates", verify=False)))
         if (res.status_code == 200):
             content = res.content.decode(res.encoding, 'replace')
             README_content = re.findall(r"<article([\w\W]+?)</article", content)[0]
