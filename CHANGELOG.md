@@ -8,6 +8,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20220208] - 2022.02.08 更新
+
+1. 63c0074: 修复contenteditable=plaintext-only导致Firefox无法编辑的bug …
+2. mysql可设置auth_plugin fix qiandao-today/qiandao #173
+3. 采用本地方式调用部分js脚本
+4. 使用grunt管理前端脚本和bower
+5. 更新python版本及模块包版本
+6. 为Github Packages建立基于源码更新的Latest Package
+7. 添加OCR识别和目标检测API
+8. 容器更新至Python 3.10
+9. 添加自定义dns解析配置
+
+> 请勿使用update.sh更新至此版本, 如**更新后发生错误请重新拉取容器!**
+
 ## [20211228] - 2021.12.28 更新
 
 1. 修复jinja2模板变量导致推送日志失败的bug
