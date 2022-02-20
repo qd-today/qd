@@ -59,17 +59,17 @@ class redis(object):
     port = redis_url.port or 6379                                           # Redis的端口Port
     passwd = redis_url.password or None                                     # 访问Redis权限密码
     db = int(os.getenv('REDIS_DB_INDEX', 1))                                # 索引
-evil = 100                                                                  # 1小时内登录用户或IP上限
+evil = int(os.getenv('QIANDAO_EVIL', 500))                                  # 1小时内登录用户或IP上限
 
-pbkdf2_iterations = 400                                                     # pbkdf2 迭代次数
+pbkdf2_iterations = int(os.getenv('PBKDF2_ITERATIONS', 400))                # pbkdf2 迭代次数
 aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux').encode('utf-8')).digest()                # AES加密密钥, 强烈建议修改
 cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux').encode('utf-8')).digest()    # Cookie加密密钥, 强烈建议修改
-check_task_loop = 500                                                       # Worker检查任务工作循环时间, 单位毫秒
+check_task_loop = int(os.getenv('CHECK_TASK_LOOP', 500))                    # Worker检查任务工作循环时间, 单位毫秒
 # Tornado httpclient.HTTPRequest参数配置
-download_size_limit = 5*1024*1024                                           # 允许用户单次请求下载最大值
-request_timeout = 30.0                                                      # HTTPRequest 请求超时时间
-connect_timeout = 30.0                                                      # HTTPRequest 连接超时时间
-delay_max_timeout = 29.9                                                    # delay 延时API最大时间限制, 请小于上述timeout配置, 否则会报599错误
+download_size_limit = int(os.getenv('DOWNLOAD_SIZE_LIMIT', 5*1024*1024))    # 允许用户单次请求下载最大值
+request_timeout = float(os.getenv('REQUEST_TIMEOUT', 30.0))                 # HTTPRequest 请求超时时间
+connect_timeout = float(os.getenv('CONNECT_TIMEOUT', 30.0))                 # HTTPRequest 连接超时时间
+delay_max_timeout = float(os.getenv('DELAY_MAX_TIMEOUT', 29.9))             # delay 延时API最大时间限制, 请小于上述timeout配置, 否则会报599错误
 
 # 以下为全局代理域名列表相关设置
 # proxies为全局代理域名列表, 默认为空[], 表示不启用全局代理; 
@@ -87,17 +87,17 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
                 (:[0-9]+)? """                                              # :Port
                 ) 
 
-new_task_delay = 1                                                          # 新建任务后准备时间
+new_task_delay = int(os.getenv('NEW_TASK_DELAY', 1))                        # 新建任务后准备时间
 
 # 邮件发送相关配置
 mail_smtp = os.getenv('MAIL_SMTP',"")                                       # 邮箱SMTP服务器
 mail_port = int(os.getenv('MAIL_PORT', 465))                                # 邮箱SMTP服务器端口
-mail_ssl = True                                                             # 是否使用SSL加密方式收发邮件
+mail_ssl = bool(strtobool(os.getenv('MAIL_SSL','True')))                    # 是否使用SSL加密方式收发邮件
 mail_user = os.getenv('MAIL_USER', '')                                      # 邮箱用户名
 mail_password = os.getenv('MAIL_PASSWORD', '')                              # 邮箱密码
 mail_domain = os.getenv('MAIL_DOMAIN', "mail.qiandao.today")                # 发送邮件内容显示邮箱域名
 # Mailgun Api_Key
-mailgun_key = ""                                                            # 优先用`mailgun`方式发送邮件
+mailgun_key = os.getenv('MAILGUN_KEY',"")                                   # 优先用`mailgun`方式发送邮件
 
 # google analytics
 ga_key = ""                                                                 # google analytics密钥
