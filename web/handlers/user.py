@@ -517,7 +517,10 @@ class toolbox_notpad_Handler(BaseHandler):
                         new_data =  envs['content']
                     else:
                         data = self.db.user.get(userid, fields=('notepad'))['notepad']
-                        new_data = data + "\r\n" +envs['content']
+                        if data is not None:
+                            new_data = data + "\r\n" + envs['content']
+                        else:
+                            new_data = envs['content']
 
                     self.db.user.mod(userid, notepad=new_data)
 

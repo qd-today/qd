@@ -406,7 +406,10 @@ class toolboxHandler(BaseHandler):
                         text_data = new_data
                         self.db.user.mod(userid, notepad=text_data)
                     elif (f.find('append') > -1):
-                        text_data = text_data + '\r\n' + new_data
+                        if text_data is not None:
+                            text_data = text_data + '\r\n' + new_data
+                        else:
+                            text_data = new_data
                         self.db.user.mod(userid, notepad=text_data)
                     self.write(text_data)
                     return
