@@ -23,3 +23,4 @@ bower_components/
 .virtual_documents/
 .gitkeep
 .lh/*
+web/static/components/*/package-lock.json
