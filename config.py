@@ -95,6 +95,7 @@ mail_port = int(os.getenv('MAIL_PORT', 465))                                # �
 mail_ssl = bool(strtobool(os.getenv('MAIL_SSL','True')))                    # 是否使用SSL加密方式收发邮件
 mail_user = os.getenv('MAIL_USER', '')                                      # 邮箱用户名
 mail_password = os.getenv('MAIL_PASSWORD', '')                              # 邮箱密码
+mail_from = os.getenv('MAIL_FROM', mail_user)                               # 发送时使用的邮箱，默认与MAIL_USER相同
 mail_domain = os.getenv('MAIL_DOMAIN', "mail.qiandao.today")                # 发送邮件内容显示邮箱域名
 # Mailgun Api_Key
 mailgun_key = os.getenv('MAILGUN_KEY',"")                                   # 优先用`mailgun`方式发送邮件

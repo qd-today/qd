@@ -247,14 +247,14 @@ def _send_mail(to, subject, text=None, subtype='html'):
         return
     msg = MIMEText(text, _subtype=subtype, _charset='utf-8')
     msg['Subject'] = subject
-    msg['From'] = config.mail_user
+    msg['From'] = config.mail_from
     msg['To'] = to
     try:
         logger.info('send mail to {}'.format(to))
         s = config.mail_ssl and smtplib.SMTP_SSL(config.mail_smtp) or smtplib.SMTP(config.mail_smtp)
         s.connect(config.mail_smtp)
         s.login(config.mail_user, config.mail_password)
-        s.sendmail(config.mail_user, to, msg.as_string())
+        s.sendmail(config.mail_from, to, msg.as_string())
         s.close()
     except Exception as e:
         logger.error('send mail error {}'.format(str(e)))

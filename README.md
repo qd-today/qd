@@ -192,6 +192,7 @@ MAIL_SMTP|否|""|邮箱SMTP服务器
 MAIL_PORT|否|""|邮箱SMTP服务器端口
 MAIL_USER|否|""|邮箱用户名
 MAIL_PASSWORD|否|""|邮箱密码
+MAIL_FROM|否|MAIL_USER|发送时使用的邮箱，默认与MAIL_USER相同
 MAIL_DOMAIN|否|mail.qiandao.today|邮箱域名,没啥用, 使用的DOMAIN
 PROXIES|否|""|全局代理域名列表,用"|"分隔
 PROXY_DIRECT_MODE|否|""|全局代理黑名单模式,默认不启用 <br>"url"为网址匹配模式;"regexp"为正则表达式匹配模式
