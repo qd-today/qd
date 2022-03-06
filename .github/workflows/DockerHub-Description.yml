@@ -2,7 +2,7 @@ name: Update Docker Hub Description
 on:
   push:
     branches:
-      - main
+      - master
     paths:
       - README.md
       - .github/workflows/DockerHub-Description.yml
