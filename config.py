@@ -17,6 +17,7 @@ gzip = bool(strtobool(os.getenv('GZIP','True')))                            # �
 bind = str(os.getenv('BIND', '0.0.0.0'))                                    # 框架运行监听地址(0.0.0.0表示监听所有IP地址)
 port = int(os.getenv('PORT', 8923))                                         # 监听端口Port
 https = bool(strtobool(os.getenv('ENABLE_HTTPS', 'False')))                 # 发送的邮件链接启用HTTPS, 非框架自身HTTPS开关, 需要HTTPS请使用外部反向代理
+accesslog = bool(strtobool(os.getenv('ACCESS_LOG', 'True')))                # 是否输出Access Log
 
 # 发送邮件及微信推送内链接域名, 如果是通过IP+端口Port方式请正确输入`IP:Port`
 domain = os.getenv('DOMAIN', 'qiandao.today')                               # 指定域名, 建议修改, 不然邮件重置密码之类的功能无效
@@ -95,6 +96,7 @@ mail_port = int(os.getenv('MAIL_PORT', 465))                                # �
 mail_ssl = bool(strtobool(os.getenv('MAIL_SSL','True')))                    # 是否使用SSL加密方式收发邮件
 mail_user = os.getenv('MAIL_USER', '')                                      # 邮箱用户名
 mail_password = os.getenv('MAIL_PASSWORD', '')                              # 邮箱密码
+mail_from = os.getenv('MAIL_FROM', mail_user)                               # 发送时使用的邮箱，默认与MAIL_USER相同
 mail_domain = os.getenv('MAIL_DOMAIN', "mail.qiandao.today")                # 发送邮件内容显示邮箱域名
 # Mailgun Api_Key
 mailgun_key = os.getenv('MAILGUN_KEY',"")                                   # 优先用`mailgun`方式发送邮件

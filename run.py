@@ -37,6 +37,9 @@ if __name__ == "__main__":
         channel.setLevel(logging.WARNING)
         logger.addHandler(channel)
 
+    if not config.accesslog:
+        logging.getLogger('tornado.access').disabled = True
+
     if len(sys.argv) > 2 and sys.argv[1] == '-p' and sys.argv[2].isdigit():
         port = int(sys.argv[2])
     else:
