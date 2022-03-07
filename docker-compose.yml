@@ -3,6 +3,7 @@ version: "3"
 services:
   qiandao:
     image: a76yyyy/qiandao:latest
+    # image: a76yyyy/qiandao:lite-latest
     container_name: qiandao
     depends_on:
       - redis

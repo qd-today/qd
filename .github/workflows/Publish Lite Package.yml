@@ -1,0 +1,31 @@
+name: Publish Lite Package
+on: 
+  push:
+    paths-ignore: 
+      - 'docs/**'
+      - '.github/**'
+      - '**.md'
+      - '**.png'
+      - '**.json'
+    branches: [master]
+    tags: ["*"]
+
+jobs:
+  build:
+      runs-on: ubuntu-latest
+      name: Publish Lite Package job
+      steps:
+          - name: Checkout master
+            uses: actions/checkout@master
+          - name: Publish Lite Package
+            uses: ilteoood/docker_buildx@master
+            if: startsWith(github.repository, 'qiandao-today/qiandao')
+            with:
+              publish: true
+              imageName: ghcr.io/qiandao-today/qiandao-lite # dockerid/imageName
+              platform: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
+              tag: latest
+              dockerServer: ghcr.io
+              dockerUser: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
+              dockerPassword: ${{ secrets.GITHUB_TOKEN }} # dockerServer Token
+              dockerFile: Dockerfile.lite
