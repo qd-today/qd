@@ -24,7 +24,7 @@ AUTO_RELOAD=$AUTO_RELOAD
 # Treat unset variables as an error
 set -o nounset
 
-__ScriptVersion="2022.02.04"
+__ScriptVersion="2022.03.06"
 __ScriptName="update.sh"
 
 
@@ -67,23 +67,78 @@ update() {
     localversion=$(python -c 'import sys, json; print(json.load(open("version.json"))["version"])')
     remoteversion=$(git ls-remote --tags origin | grep -o 'refs/tags/[0-9]*' | sort -r | head -n 1 | grep -o '[^\/]*$')
     if [ $(echo $localversion $remoteversion | awk '$1>=$2 {print 0} $1<$2 {print 1}') -eq 1 ];then
-        echo -e "Info: 当前版本: $localversion \nInfo: 新版本: $remoteversion \nInfo: 正在更新中，请稍候..."
+        echo -e "Info: 当前版本: $localversion \nInfo: 新版本: $remoteversion \nInfo: 正在更新中, 请稍候..."
         git fetch --all
         git reset --hard origin/master
         git checkout master
         git pull
-        [[ -z $(file /bin/busybox | grep -i "musl") ]] && \
-        pip install -r requirements.txt || {\
+        [[ -z $(file /bin/busybox | grep -i "musl") ]] && {\
+            pip install -r requirements.txt && \
+            echo "如需使用DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+            echo "pip3 install ddddocr" && \
+            echo "如需使用PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+            echo "pip3 install pycurl" ;\
+        } || { \
+            if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') -eq 1 ];then 
+                echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
+                echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
+                apk del .python-rundeps  
+                echo "如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API)"
+            fi
+            apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
+            [[ $(getconf LONG_BIT) = "32" ]] && \
+                echo "Tips: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python" || \
+                apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow && \
+            apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
+                linux-headers libtool util-linux 
+            ln -sf /usr/bin/python3 /usr/bin/python 
+            ln -sf /usr/bin/python3 /usr/local/bin/python
+            sed -i '/ddddocr/d' requirements.txt 
+            sed -i '/packaging/d' requirements.txt 
+            sed -i '/wrapt/d' requirements.txt 
+            sed -i '/pycryptodome/d' requirements.txt 
+            sed -i '/tornado/d' requirements.txt 
+            sed -i '/MarkupSafe/d' requirements.txt 
+            sed -i '/pillow/d' requirements.txt 
+            sed -i '/opencv/d' requirements.txt 
+            sed -i '/numpy/d' requirements.txt 
+            pip install --no-cache-dir -r requirements.txt 
+            pip install --no-cache-dir --compile pycurl 
+            apk del .build_deps 
+            rm -rf /var/cache/apk/* 
+            rm -rf /usr/share/man/*
+        }
+    else
+        echo "Info: 当前版本: $localversion , 无需更新!"
+    fi
+    if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
+        echo "Info: 请手动重启容器, 或设置环境变量AUTO_RELOAD以开启热更新功能"
+    fi
+}
+
+force_update() {
+    echo -e "Info: 正在强制更新中, 请稍候..."
+    git fetch --all
+    git reset --hard origin/master
+    git checkout master
+    git pull
+    [[ -z $(file /bin/busybox | grep -i "musl") ]] && {\
+        pip install -r requirements.txt && \
+        echo "如需使用DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "pip3 install ddddocr" && \
+        echo "如需使用PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "pip3 install pycurl" ;\
+    } || { \
         if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') -eq 1 ];then 
             echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
             echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
             apk del .python-rundeps  
-            echo "如需使用DDDDOCR API，请重新拉取最新容器（ARM32暂不支持此API）"
+            echo "如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API)"
         fi
-        apk add --update --no-cache openrc redis bash git tzdata nano openssh-client ca-certificates\
-            file libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
-            python3 py3-numpy-dev py3-pip py3-setuptools py3-wheel py3-opencv python3-dev  \
-            py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging 
+        apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
+        [[ $(getconf LONG_BIT) = "32" ]] && \
+            echo "Tips: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python" || \
+            apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow && \
         apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
             linux-headers libtool util-linux 
         ln -sf /usr/bin/python3 /usr/bin/python 
@@ -102,94 +157,54 @@ update() {
         apk del .build_deps 
         rm -rf /var/cache/apk/* 
         rm -rf /usr/share/man/*
-        }
-    else
-        echo "Info: 当前版本: $localversion , 无需更新!"
-    fi
-    if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
-        echo "Info: 请手动重启容器，或设置环境变量AUTO_RELOAD以开启热更新功能"
-    fi
-}
-
-force_update() {
-    echo -e "Info: 正在强制更新中，请稍候..."
-    git fetch --all
-    git reset --hard origin/master
-    git checkout master
-    git pull
-    [[ -z $(file /bin/busybox | grep -i "musl") ]] && \
-    pip install -r requirements.txt || {\
-    if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') -eq 1 ];then 
-        echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
-        echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
-        apk del .python-rundeps  
-        echo "如需使用DDDDOCR API，请重新拉取最新容器（ARM32暂不支持此API）"
-    fi
-    apk add --update --no-cache openrc redis bash git tzdata nano openssh-client ca-certificates\
-        file libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
-        python3 py3-numpy-dev py3-pip py3-setuptools py3-wheel py3-opencv python3-dev  \
-        py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging 
-    apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
-        linux-headers libtool util-linux 
-    ln -sf /usr/bin/python3 /usr/bin/python 
-    ln -sf /usr/bin/python3 /usr/local/bin/python
-    sed -i '/ddddocr/d' requirements.txt 
-    sed -i '/packaging/d' requirements.txt 
-    sed -i '/wrapt/d' requirements.txt 
-    sed -i '/pycryptodome/d' requirements.txt 
-    sed -i '/tornado/d' requirements.txt 
-    sed -i '/MarkupSafe/d' requirements.txt 
-    sed -i '/pillow/d' requirements.txt 
-    sed -i '/opencv/d' requirements.txt 
-    sed -i '/numpy/d' requirements.txt 
-    pip install --no-cache-dir -r requirements.txt 
-    pip install --no-cache-dir --compile pycurl 
-    apk del .build_deps 
-    rm -rf /var/cache/apk/* 
-    rm -rf /usr/share/man/*
     }
     if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
-        echo "Info: 请手动重启容器，或设置环境变量AUTO_RELOAD以开启热更新功能"
+        echo "Info: 请手动重启容器, 或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi
 }
 
 update_version() {
-    echo -e "Info: 正在强制切换至指定Tag版本: $1，请稍候..."
+    echo -e "Info: 正在强制切换至指定Tag版本: $1, 请稍候..."
     git fetch --all
     git checkout -f $1
-    [[ -z $(file /bin/busybox | grep -i "musl") ]] && \
-    pip install -r requirements.txt || {\
-    if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') -eq 1 ];then 
-        echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
-        echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
-        apk del .python-rundeps  
-        echo "如需使用DDDDOCR API，请重新拉取最新容器（ARM32暂不支持此API）"
-    fi
-    apk add --update --no-cache openrc redis bash git tzdata nano openssh-client ca-certificates\
-        file libidn2-dev libgsasl-dev krb5-dev zstd-dev nghttp2-dev zlib-dev brotli-dev \
-        python3 py3-numpy-dev py3-pip py3-setuptools py3-wheel py3-opencv python3-dev  \
-        py3-pillow py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging 
-    apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
-        linux-headers libtool util-linux 
-    ln -sf /usr/bin/python3 /usr/bin/python 
-    ln -sf /usr/bin/python3 /usr/local/bin/python
-    sed -i '/ddddocr/d' requirements.txt 
-    sed -i '/packaging/d' requirements.txt 
-    sed -i '/wrapt/d' requirements.txt 
-    sed -i '/pycryptodome/d' requirements.txt 
-    sed -i '/tornado/d' requirements.txt 
-    sed -i '/MarkupSafe/d' requirements.txt 
-    sed -i '/pillow/d' requirements.txt 
-    sed -i '/opencv/d' requirements.txt 
-    sed -i '/numpy/d' requirements.txt 
-    pip install --no-cache-dir -r requirements.txt 
-    pip install --no-cache-dir --compile pycurl 
-    apk del .build_deps 
-    rm -rf /var/cache/apk/* 
-    rm -rf /usr/share/man/*
+    [[ -z $(file /bin/busybox | grep -i "musl") ]] && {\
+        pip install -r requirements.txt && \
+        echo "如需使用DdddOCR API, 请确认当前是否为最新版本, 且已安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "pip3 install ddddocr" && \
+        echo "如需使用PyCurl 功能, 请确认当前是否为最新版本, 且已安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "pip3 install pycurl" ;\
+    } || { \
+        if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') -eq 1 ];then 
+            echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
+            echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
+            apk del .python-rundeps  
+            echo "如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API)"
+        fi
+        apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
+        [[ $(getconf LONG_BIT) = "32" ]] && \
+            echo "Tips: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python" || \
+            apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow && \
+        apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
+            linux-headers libtool util-linux 
+        ln -sf /usr/bin/python3 /usr/bin/python 
+        ln -sf /usr/bin/python3 /usr/local/bin/python
+        sed -i '/ddddocr/d' requirements.txt 
+        sed -i '/packaging/d' requirements.txt 
+        sed -i '/wrapt/d' requirements.txt 
+        sed -i '/pycryptodome/d' requirements.txt 
+        sed -i '/tornado/d' requirements.txt 
+        sed -i '/MarkupSafe/d' requirements.txt 
+        sed -i '/pillow/d' requirements.txt 
+        sed -i '/opencv/d' requirements.txt 
+        sed -i '/numpy/d' requirements.txt 
+        pip install --no-cache-dir -r requirements.txt 
+        pip install --no-cache-dir --compile pycurl 
+        apk del .build_deps 
+        rm -rf /var/cache/apk/* 
+        rm -rf /usr/share/man/*
     }
     if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
-        echo "Info: 请手动重启容器，或设置环境变量AUTO_RELOAD以开启热更新功能"
+        echo "Info: 请手动重启容器, 或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi
 }
 

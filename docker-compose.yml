@@ -59,6 +59,7 @@ services:
 
   redis:
     image: redis:alpine
+    container_name: redis
     command: ["--loglevel warning"]
     # command: redis-server /usr/local/etc/redis/redis.conf
     volumes:

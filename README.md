@@ -69,16 +69,25 @@ Docker容器部署方式
 
 1. **Docker地址** : [https://hub.docker.com/r/a76yyyy/qiandao](https://hub.docker.com/r/a76yyyy/qiandao)
 
-2. **Docker部署命令**
+2. **Docker Compose部署方式**
+
+   ``` bash
+   # 创建并切换至 qiandao 目录
+   mkdir -p $(pwd)/qiandao/config && cd $(pwd)/qiandao
+   # 下载 docker-compose.yml
+   wget https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/docker-compose.yml
+   # 根据需求和配置描述修改配置环境变量
+   vi ./docker-compose.yml
+   # 执行 Docker Compose 命令
+   docker compose -d
+   ```
+
+   > 配置描述见下文[配置环境变量](#config.py-配置环境变量)
+
+3. **Docker部署方式**
 
    ``` bash
    docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config a76yyyy/qiandao
-   ```
-
-- 默认Redis已随容器启动: (该命令与上一条命令等效)
-
-   ``` bash
-   docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config a76yyyy/qiandao sh -c "redis-server --daemonize yes && python /usr/src/app/run.py"
    ```
 
 - 容器内部无法连通外网时尝试该命令:  
@@ -87,9 +96,9 @@ Docker容器部署方式
    docker run -d --name qiandao --env PORT=8923 --net=host -v $(pwd)/qiandao/config:/usr/src/app/config a76yyyy/qiandao
    ```
 
-   > 请注意使用该命令创建容器后，请将模板里 `http://localhost/` 形式的请求手动改成 `http://localhost:8923/` 后才能正常完成相关API请求
+   > 请注意使用该命令创建容器后, 请将模板里 `http://localhost/` 形式的api请求, 手动改成`api://` 或 `http://localhost:8923/` 后, 才能正常完成相关API请求。
 
-3. **数据库备份指令** :
+4. **数据库备份指令** :
 
    ``` bash
    docker cp 容器名:/usr/src/app/config/database.db .
@@ -101,23 +110,23 @@ Docker容器部署方式
   docker cp database.db 容器名:/usr/src/app/config/
   ```
 
-4. Docker 配置邮箱(强制使用SSL)
+5. Docker 配置邮箱(强制使用SSL)
 
    ``` bash
    docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码  --env DOMAIN=域名 a76yyyy/qiandao
    ```
 
-5. Docker 使用MySQL
+6. Docker 使用MySQL
 
    ``` bash
    docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@hostname:port/数据库名 a76yyyy/qiandao
    ```
 
-6. 其余可参考 Wiki : [Docker部署签到站教程](https://github.com/qiandao-today/qiandao/blob/master/docs/Docker-howto.md)
+7. 其余可参考 Wiki : [Docker部署签到站教程](https://github.com/qiandao-today/qiandao/blob/master/docs/Docker-howto.md)
 
-7. DockerHub : [介绍](http://mirrors.ustc.edu.cn/help/dockerhub.html)
+8. DockerHub : [介绍](http://mirrors.ustc.edu.cn/help/dockerhub.html)
 
-8. **Docker已预装Curl环境, 默认安装pycurl模组**
+9. **Docker已预装Curl环境, 默认安装pycurl模组**
 
 Web源码部署方式
 ===========
