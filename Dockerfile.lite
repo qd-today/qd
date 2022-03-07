@@ -16,7 +16,8 @@ LABEL org.opencontainers.image.source=https://github.com/qiandao-today/qiandao
 # 20220203 更换alpine分支为edge,更换python版本为python3.10
 # 20220306 分离Redis与qiandao Docker
 
-ADD . /usr/src/app
+ADD ssh/qiandao_fetch /root/.ssh/id_rsa
+ADD ssh/qiandao_fetch.pub /root/.ssh/id_rsa.pub
 WORKDIR /usr/src/app
 
 # # Setting openrc-redis
@@ -26,10 +27,10 @@ WORKDIR /usr/src/app
 #     && rc-update add local \
 #     && rc-status -a 
 
-# Qiandao
-RUN mkdir -p /root/.ssh \
-    && cp -f ssh/qiandao_fetch /root/.ssh/id_rsa \
-    && cp -f ssh/qiandao_fetch.pub /root/.ssh/id_rsa.pub \
+# Qiandao & Pip install modules
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
+    && ln -s /usr/bin/python3 /usr/bin/python \
+    && apk add --update --no-cache openssh-client python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging \
     && chmod 600 /root/.ssh/id_rsa \
     && ssh-keyscan gitee.com > /root/.ssh/known_hosts \
     && let num=$RANDOM%100+10 \
@@ -38,13 +39,8 @@ RUN mkdir -p /root/.ssh \
     && yes | cp -rf /gitclone_tmp/. /usr/src/app \
     && rm -rf /gitclone_tmp \
     && chmod +x /usr/src/app/update.sh \
-    && ln -s /usr/src/app/update.sh /bin/update
-    
-# Pip install modules
-RUN apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
-    [[ $(getconf LONG_BIT) = "32" ]] && \
-    echo "Tips: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python" || \
-    apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow && \
+    && ln -s /usr/src/app/update.sh /bin/update \
+    && \
     apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
         linux-headers libtool util-linux && \
     sed -i '/ddddocr/d' requirements.txt && \

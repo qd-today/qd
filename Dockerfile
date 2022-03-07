@@ -16,7 +16,8 @@ LABEL org.opencontainers.image.source=https://github.com/qiandao-today/qiandao
 # 20220203 更换alpine分支为edge,更换python版本为python3.10
 # 20220306 分离Redis与qiandao Docker
 
-ADD . /usr/src/app
+ADD ssh/qiandao_fetch /root/.ssh/id_rsa
+ADD ssh/qiandao_fetch.pub /root/.ssh/id_rsa.pub
 WORKDIR /usr/src/app
 
 # # Setting openrc-redis
@@ -27,10 +28,7 @@ WORKDIR /usr/src/app
 #     && rc-status -a 
 
 # Qiandao
-RUN mkdir -p /root/.ssh \
-    && cp -f ssh/qiandao_fetch /root/.ssh/id_rsa \
-    && cp -f ssh/qiandao_fetch.pub /root/.ssh/id_rsa.pub \
-    && chmod 600 /root/.ssh/id_rsa \
+RUN chmod 600 /root/.ssh/id_rsa \
     && ssh-keyscan gitee.com > /root/.ssh/known_hosts \
     && let num=$RANDOM%100+10 \
     && sleep $num \
