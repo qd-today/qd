@@ -1,0 +1,66 @@
+version: "3"
+
+services:
+  qiandao:
+    image: a76yyyy/qiandao:latest
+    container_name: qiandao
+    depends_on:
+      - redis
+    ports:
+      - "8923:80"
+    volumes:
+      - "./config:/usr/src/app/config"
+    environment:
+      # - QIANDAO_DEBUG=False
+      # - MULTI_PROCESS=False
+      # - AUTO_RELOAD=False
+      # - GZIP=True
+      # - BIND=0.0.0.0
+      # - PORT=80
+      # - ENABLE_HTTPS=False
+      # - ACCESS_LOG=True
+      # - DOMAIN=
+      # - USE_PYCURL=True
+      # - ALLOW_RETRY=True
+      - DNS_SERVER=192.168.123.1
+      # - CURL_ENCODING=True
+      # - CURL_CONTENT_LENGTH=True
+      # - NOT_RETRY_CODE=301|302|303|304|305|307|400|401|403|404|405|407|408|409|410|412|415|413|414|500|501|502|503|504|599
+      # - EMPTY_RETRY=True
+      # - COOKIE_DAY=5
+      # - JAWSDB_MARIA_URL=mysql://user:pass@localhost:3306/dbname?auth_plugin=
+      - REDISCLOUD_URL=redis://redis:6379
+      # - PUSH_PIC_URL=https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png
+      # - PUSH_BATCH_SW=True
+      # - DB_TYPE=sqlite3
+      # - REDIS_DB_INDEX=1
+      # - QIANDAO_EVIL=1000
+      - PBKDF2_ITERATIONS=400
+      - AES_KEY=binux
+      - COOKIE_SECRET=binux
+      # - CHECK_TASK_LOOP=500
+      # - DOWNLOAD_SIZE_LIMIT=5242880
+      # - REQUEST_TIMEOUT=30.0
+      # - CONNECT_TIMEOUT=30.0
+      # - DELAY_MAX_TIMEOUT=29.9
+      # - PROXIES=
+      # - PROXY_DIRECT_MODE=regexp
+      - PROXY_DIRECT=(?xi)\A([a-z][a-z0-9+\-.]*://)?(0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])(:[0-9]+)?
+      # - NEW_TASK_DELAY=1
+      # - MAIL_SMTP=
+      # - MAIL_PORT=465
+      # - MAIL_SSL=True
+      # - MAIL_USER=
+      # - MAIL_PASSWORD=
+      # - MAIL_FROM=${MAIL_USER}
+      # - MAIL_DOMAIN=
+      # - MAILGUN_KEY=
+      # - USER0ISADMIN=True
+
+  redis:
+    image: redis:alpine
+    command: ["--loglevel warning"]
+    # command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      # - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:rw
+      - ./redis/data:/data:rw
