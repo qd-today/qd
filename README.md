@@ -79,7 +79,7 @@ Docker容器部署方式
    # 根据需求和配置描述修改配置环境变量
    vi ./docker-compose.yml
    # 执行 Docker Compose 命令
-   docker compose -d
+   docker-compose up -d
    ```
 
    > 配置描述见下文[配置环境变量](#config.py-配置环境变量)
