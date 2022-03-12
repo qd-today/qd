@@ -57,8 +57,9 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     rm -rf /var/cache/apk/* && \
     rm -rf /usr/share/man/* 
 
-ENV PORT 80
+ENV PORT=80
 EXPOSE $PORT/tcp
+ENV QIANDAO_LITE=True
 
 # timezone
 ENV TZ=CST-8

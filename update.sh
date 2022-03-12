@@ -83,25 +83,32 @@ update() {
                 echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
                 echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
                 apk del .python-rundeps  
-                echo "如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API)"
+                echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API)."
             fi
             apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
-            [[ $(getconf LONG_BIT) = "32" ]] && \
-                echo "Tips: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python" || \
-                apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow && \
+            if [ $QIANDAO_LITE = "True" ];then
+                echo "Info: Qiandao-Lite will not install ddddocr related components. "
+            else
+                [[ $(getconf LONG_BIT) = "32" ]] && \
+                    echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. " || \
+                    apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow 
+            fi && \
             apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
                 linux-headers libtool util-linux 
-            ln -sf /usr/bin/python3 /usr/bin/python 
-            ln -sf /usr/bin/python3 /usr/local/bin/python
-            sed -i '/ddddocr/d' requirements.txt 
-            sed -i '/packaging/d' requirements.txt 
-            sed -i '/wrapt/d' requirements.txt 
-            sed -i '/pycryptodome/d' requirements.txt 
-            sed -i '/tornado/d' requirements.txt 
-            sed -i '/MarkupSafe/d' requirements.txt 
-            sed -i '/pillow/d' requirements.txt 
-            sed -i '/opencv/d' requirements.txt 
-            sed -i '/numpy/d' requirements.txt 
+            if [ -n $(ls /usr/bin | grep -w "python3$") ];then 
+                ls /usr/bin | grep -w "python3$"
+                ln -sf /usr/bin/python3 /usr/bin/python 
+                ln -sf /usr/bin/python3 /usr/local/bin/python
+                sed -i '/ddddocr/d' requirements.txt 
+                sed -i '/packaging/d' requirements.txt 
+                sed -i '/wrapt/d' requirements.txt 
+                sed -i '/pycryptodome/d' requirements.txt 
+                sed -i '/tornado/d' requirements.txt 
+                sed -i '/MarkupSafe/d' requirements.txt 
+                sed -i '/pillow/d' requirements.txt 
+                sed -i '/opencv/d' requirements.txt 
+                sed -i '/numpy/d' requirements.txt 
+            fi
             pip install --no-cache-dir -r requirements.txt 
             pip install --no-cache-dir --compile pycurl 
             apk del .build_deps 
@@ -133,25 +140,32 @@ force_update() {
             echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
             echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
             apk del .python-rundeps  
-            echo "如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API)"
+            echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
         apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
-        [[ $(getconf LONG_BIT) = "32" ]] && \
-            echo "Tips: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python" || \
-            apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow && \
+        if [ $QIANDAO_LITE = "True" ];then
+            echo "Info: Qiandao-Lite will not install ddddocr related components. "
+        else
+            [[ $(getconf LONG_BIT) = "32" ]] && \
+                echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. " || \
+                apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow 
+        fi && \
         apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
             linux-headers libtool util-linux 
-        ln -sf /usr/bin/python3 /usr/bin/python 
-        ln -sf /usr/bin/python3 /usr/local/bin/python
-        sed -i '/ddddocr/d' requirements.txt 
-        sed -i '/packaging/d' requirements.txt 
-        sed -i '/wrapt/d' requirements.txt 
-        sed -i '/pycryptodome/d' requirements.txt 
-        sed -i '/tornado/d' requirements.txt 
-        sed -i '/MarkupSafe/d' requirements.txt 
-        sed -i '/pillow/d' requirements.txt 
-        sed -i '/opencv/d' requirements.txt 
-        sed -i '/numpy/d' requirements.txt 
+        if [ -n $(ls /usr/bin | grep -w "python3$") ];then 
+            ls /usr/bin | grep -w "python3$"
+            ln -sf /usr/bin/python3 /usr/bin/python 
+            ln -sf /usr/bin/python3 /usr/local/bin/python
+            sed -i '/ddddocr/d' requirements.txt 
+            sed -i '/packaging/d' requirements.txt 
+            sed -i '/wrapt/d' requirements.txt 
+            sed -i '/pycryptodome/d' requirements.txt 
+            sed -i '/tornado/d' requirements.txt 
+            sed -i '/MarkupSafe/d' requirements.txt 
+            sed -i '/pillow/d' requirements.txt 
+            sed -i '/opencv/d' requirements.txt 
+            sed -i '/numpy/d' requirements.txt 
+        fi
         pip install --no-cache-dir -r requirements.txt 
         pip install --no-cache-dir --compile pycurl 
         apk del .build_deps 
@@ -178,25 +192,32 @@ update_version() {
             echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
             echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
             apk del .python-rundeps  
-            echo "如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API)"
+            echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
         apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
-        [[ $(getconf LONG_BIT) = "32" ]] && \
-            echo "Tips: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python" || \
-            apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow && \
+        if [ $QIANDAO_LITE = "True" ];then
+            echo "Info: Qiandao-Lite will not install ddddocr related components. "
+        else
+            [[ $(getconf LONG_BIT) = "32" ]] && \
+                echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. " || \
+                apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow 
+        fi && \
         apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
             linux-headers libtool util-linux 
-        ln -sf /usr/bin/python3 /usr/bin/python 
-        ln -sf /usr/bin/python3 /usr/local/bin/python
-        sed -i '/ddddocr/d' requirements.txt 
-        sed -i '/packaging/d' requirements.txt 
-        sed -i '/wrapt/d' requirements.txt 
-        sed -i '/pycryptodome/d' requirements.txt 
-        sed -i '/tornado/d' requirements.txt 
-        sed -i '/MarkupSafe/d' requirements.txt 
-        sed -i '/pillow/d' requirements.txt 
-        sed -i '/opencv/d' requirements.txt 
-        sed -i '/numpy/d' requirements.txt 
+        if [ -n $(ls /usr/bin | grep -w "python3$") ];then 
+            ls /usr/bin | grep -w "python3$"
+            ln -sf /usr/bin/python3 /usr/bin/python 
+            ln -sf /usr/bin/python3 /usr/local/bin/python
+            sed -i '/ddddocr/d' requirements.txt 
+            sed -i '/packaging/d' requirements.txt 
+            sed -i '/wrapt/d' requirements.txt 
+            sed -i '/pycryptodome/d' requirements.txt 
+            sed -i '/tornado/d' requirements.txt 
+            sed -i '/MarkupSafe/d' requirements.txt 
+            sed -i '/pillow/d' requirements.txt 
+            sed -i '/opencv/d' requirements.txt 
+            sed -i '/numpy/d' requirements.txt 
+        fi
         pip install --no-cache-dir -r requirements.txt 
         pip install --no-cache-dir --compile pycurl 
         apk del .build_deps 

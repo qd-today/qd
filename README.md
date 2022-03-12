@@ -83,6 +83,8 @@ Docker容器部署方式
    ```
 
    > 配置描述见下文[配置环境变量](#configpy-配置环境变量)
+   > 
+   > 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`a76yyyy/qiandao:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 其他与主线版本保持一致**。
 
 3. **Docker部署方式**
 
@@ -232,19 +234,25 @@ USER0ISADMIN|否|True|第一个注册用户为管理员，False关闭
 1. **源码部署更新**
 
    ``` bash
-   sh ./update.sh && pip install -r requirements.txt # 先cd到源码所在目录, 执行命令后重启进程 
+   # 先cd到源码所在目录, 执行命令后重启进程 
+   wget https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
+   sh ./update.sh 
    ```
 
 2. **Docker容器部署更新**
 
    ``` bash
-   sh /usr/src/app/update.sh && pip install -r requirements.txt # 先进入容器后台, 执行命令后重启进程 
+   # 先进入容器后台, 执行命令后重启容器 
+   wget https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O /usr/src/app/update.sh && \
+   sh /usr/src/app/update.sh
    ```
 
 3. **强制同步最新源码**
 
    ``` bash
-   sh ./update.sh -f && pip install -r requirements.txt
+   # 先cd到仓库代码根目录, 执行命令后重启进程 
+   wget https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
+   sh ./update.sh -f
    ```
 
 更新日志
