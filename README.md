@@ -82,7 +82,7 @@ Docker容器部署方式
    docker-compose up -d
    ```
 
-   > 配置描述见下文[配置环境变量](#config.py-配置环境变量)
+   > 配置描述见下文[配置环境变量](#configpy-配置环境变量)
 
 3. **Docker部署方式**
 
