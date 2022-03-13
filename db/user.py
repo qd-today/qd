@@ -29,12 +29,6 @@ class UserDB(BaseDB):
     class DeplicateUser(UserDBException): pass
     class UserNameError(UserDBException): pass
 
-    def __init__(self, host=config.mysql.host, port=config.mysql.port,
-            database=config.mysql.database, user=config.mysql.user, passwd=config.mysql.passwd, auth_plugin=config.mysql.auth_plugin):
-        import mysql.connector
-        self.conn = mysql.connector.connect(user=user, password=passwd, host=host, port=port,
-                database=database, auth_plugin=auth_plugin, autocommit=True)
-
     @staticmethod
     def check_nickname(nickname):
         if isinstance(nickname, str):

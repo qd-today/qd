@@ -17,20 +17,9 @@ class DBconverter(_TaskDB, BaseDB):
     def __init__(self, path=config.sqlite3.path):
         self.path = path
             
-    def ConvertNewType(self, path=config.sqlite3.path):
-        if config.db_type == 'sqlite3':
-            import sqlite3_db as db
-        else:
-            import db
-            
-        class DB(object):
-            user = db.UserDB()
-            tpl = db.TPLDB()
-            task = db.TaskDB()
-            tasklog = db.TaskLogDB()
-            site = db.SiteDB()
-            pubtpl = db.PubTplDB()
-        self.db = DB
+    def ConvertNewType(self, db=None, path=config.sqlite3.path):
+        
+        self.db = db
             
         if config.db_type == 'sqlite3':
             self._execute('''CREATE TABLE IF NOT EXISTS `%s` (

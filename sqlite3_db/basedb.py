@@ -42,6 +42,9 @@ class BaseDB(_BaseDB):
         pid = (os.getpid(), threading.current_thread().ident)
         if not (self.conn and pid == self.last_pid):
             self.last_pid = pid
-            self.conn = sqlite3.connect(self.path, isolation_level=None)
+            self.conn = sqlite3.connect(self.path, isolation_level=None, check_same_thread=False)
             self.conn.text_factory = to_unicode
         return self.conn.cursor()
+
+    def close(self):
+        self.conn.close()

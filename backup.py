@@ -148,6 +148,9 @@ class DBnew(BaseDB):
                     for tasklog in maindb.db.tasklog.list(taskid = task['id'], fields=('id', "taskid", "success", "ctime", "msg")):
                         tasklogs.append(tasklog)
 
+            c.close()
+            conn.close()
+
              
         except Exception as e:
             raise Exception("backup database error")

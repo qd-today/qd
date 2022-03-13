@@ -20,20 +20,8 @@ from tornado import gen
 from libs.fetcher import Fetcher
 
 class pusher(object):
-    def __init__(self):
-        if config.db_type == 'sqlite3':
-            import sqlite3_db as db
-        else:
-            import db
-            
-        class DB(object):
-            user = db.UserDB()
-            tpl = db.TPLDB()
-            task = db.TaskDB()
-            tasklog = db.TaskLogDB()
-            site = db.SiteDB()
-            pubtpl = db.PubTplDB()
-        self.db = DB
+    def __init__(self,db=None):
+        self.db = db
         self.fetcher = Fetcher()
     
     async def pusher(self, userid, pushsw, flg, title, content):

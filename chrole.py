@@ -30,4 +30,5 @@ else:
         print("Cannot find user: ", email)
         sys.exit(1)
     userdb.mod(user['id'], role=role)
+    userdb.close()
     print("role of {} changed to {}".format(email, role or '[empty]'))

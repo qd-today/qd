@@ -27,22 +27,9 @@ import traceback
 logger = logging.getLogger('qiandao.worker')
 
 class MainWorker(object):
-    def __init__(self):
+    def __init__(self, db=None):
         self.running = False
-
-        if config.db_type == 'sqlite3':
-            import sqlite3_db as db
-        else:
-            import db
-
-        class DB(object):
-            user = db.UserDB()
-            tpl = db.TPLDB()
-            task = db.TaskDB()
-            tasklog = db.TaskLogDB()
-            site = db.SiteDB()
-            pubtpl = db.PubTplDB()
-        self.db = DB
+        self.db = db
         self.fetcher = Fetcher()
 
     def __call__(self):
@@ -71,7 +58,7 @@ class MainWorker(object):
     async def push_batch(self):
         try:
             userlist = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(self.db.user.list,fields=('id', 'email', 'status', 'push_batch'))),timeout=3.0)
-            pushtool = pusher()
+            pushtool = pusher(self.db)
             logging.debug('scaned push_batch task, waiting...')
             if userlist:
                 for user in userlist:
@@ -209,7 +196,7 @@ class MainWorker(object):
         tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl', 'interval', 'last_success'))
         ontime = self.db.task.get(task['id'], fields=('ontime', 'ontimeflg', 'pushsw', 'newontime', 'next'))
         newontime = json.loads(ontime["newontime"])
-        pushtool = pusher()
+        pushtool = pusher(self.db)
         caltool = cal()
         logtime = json.loads(user['logtime'])
         pushsw = json.loads(ontime['pushsw'])

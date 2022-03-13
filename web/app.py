@@ -17,7 +17,7 @@ from libs.fetcher import Fetcher
 from web.handlers import handlers, ui_modules, ui_methods
 
 class Application(tornado.web.Application):
-    def __init__(self):
+    def __init__(self,db=None):
         settings = dict(
                 template_path = os.path.join(os.path.dirname(__file__), "tpl"),
                 static_path = os.path.join(os.path.dirname(__file__), "static"),
@@ -37,21 +37,7 @@ class Application(tornado.web.Application):
                 autoescape=True,
                 auto_reload=config.autoreload)
 
-        if config.db_type == 'sqlite3':
-            import sqlite3_db as db
-        else:
-            import db
-
-        class DB(object):
-            user = db.UserDB()
-            tpl = db.TPLDB()
-            task = db.TaskDB()
-            tasklog = db.TaskLogDB()
-            push_request = db.PRDB()
-            redis = db.RedisDB()
-            site = db.SiteDB()
-            pubtpl = db.PubTplDB()
-        self.db = DB
+        self.db = db
 
         self.fetcher = Fetcher()
         

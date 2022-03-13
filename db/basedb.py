@@ -7,6 +7,7 @@
 
 import logging
 import sqlite3
+import config
 logger = logging.getLogger('qiandao.basedb')
 
 def tostr(s):
@@ -29,7 +30,14 @@ class BaseDB(object):
 
     dbcur should be overwirte
     '''
-    placeholder = "%s"
+    placeholder = "%s" # mysql
+    # placeholder = '?' # sqlite3
+
+    def __init__(self, host=config.mysql.host, port=config.mysql.port,
+            database=config.mysql.database, user=config.mysql.user, passwd=config.mysql.passwd, auth_plugin=config.mysql.auth_plugin):
+        import mysql.connector
+        self.conn = mysql.connector.connect(user=user, password=passwd, host=host, port=port,
+                database=database, auth_plugin=auth_plugin, autocommit=True)
 
     @staticmethod
     def escape(string):
@@ -60,8 +68,10 @@ class BaseDB(object):
         if limit: sql_query += " LIMIT %d, %d" % (offset, limit)
         logger.debug("<sql: %s>", sql_query)
 
-        for row in self._execute(sql_query, where_values):
+        dbcur = self._execute(sql_query, where_values)
+        for row in dbcur:
             yield [tostr(x) for x in row]
+        dbcur.close()
 
     def _select2dic(self, tablename=None, what="*", where="", where_values=[], offset=0, limit=None):
         tablename = self.escape(tablename or self.__tablename__)
@@ -80,6 +90,8 @@ class BaseDB(object):
         for row in dbcur:
             rtv.append(dict(zip(fields, [tostr(x) for x in row])))
             #yield dict(zip(fields, [tostr(x) for x in row]))
+
+        dbcur.close()
         return rtv
  
     def _replace(self, tablename=None, **values):
@@ -96,7 +108,9 @@ class BaseDB(object):
             dbcur = self._execute(sql_query, list(values.values()))
         else:
             dbcur = self._execute(sql_query)
-        return dbcur.lastrowid
+        lastrowid = dbcur.lastrowid
+        dbcur.close()
+        return lastrowid
  
     def _insert(self, tablename=None, **values):
         tablename = self.escape(tablename or self.__tablename__)
@@ -112,7 +126,9 @@ class BaseDB(object):
             dbcur = self._execute(sql_query, list(values.values()))
         else:
             dbcur = self._execute(sql_query)
-        return dbcur.lastrowid
+        lastrowid = dbcur.lastrowid
+        dbcur.close()
+        return lastrowid
 
     def _update(self, tablename=None, where="1=0", where_values=[], **values):
         tablename = self.escape(tablename or self.__tablename__)
@@ -120,7 +136,9 @@ class BaseDB(object):
         sql_query = "UPDATE %s SET %s WHERE %s" % (tablename, _key_values, where)
         logger.debug("<sql: %s>", sql_query)
         
-        return self._execute(sql_query, list(values.values())+list(where_values))
+        dbcur = self._execute(sql_query, list(values.values())+list(where_values))
+        dbcur.close()
+        return 
     
     def _delete(self, tablename=None, where="1=0", where_values=[]):
         tablename = self.escape(tablename or self.__tablename__)
@@ -128,12 +146,18 @@ class BaseDB(object):
         if where: sql_query += " WHERE %s" % where
         logger.debug("<sql: %s>", sql_query)
 
-        return self._execute(sql_query, where_values)
+        dbcur = self._execute(sql_query, where_values)
+        dbcur.close()
+        return 
+    
+    def close(self):
+        self.conn.close()
 
 if __name__ == "__main__":
     class DB(BaseDB):
         __tablename__ = "test"
         def __init__(self):
+            self.placeholder='?'
             self.conn = sqlite3.connect(":memory:")
             cursor = self.conn.cursor()
             cursor.execute('''CREATE TABLE `%s` (id INTEGER PRIMARY KEY AUTOINCREMENT, name, age)'''
@@ -145,12 +169,12 @@ if __name__ == "__main__":
 
     db = DB()
     assert db._insert(db.__tablename__, name="binux", age=23) == 1
-    assert db._select(db.__tablename__, "name, age").fetchone() == ("binux", 23)
+    assert next(db._select(db.__tablename__, "name, age")) == ["binux", 23]
     assert db._select2dic(db.__tablename__, "name, age")[0]["name"] == "binux"
     assert db._select2dic(db.__tablename__, "name, age")[0]["age"] == 23
     db._replace(db.__tablename__, id=1, age=24)
-    assert db._select(db.__tablename__, "name, age").fetchone() == (None, 24)
+    assert next(db._select(db.__tablename__, "name, age")) == [None, 24]
     db._update(db.__tablename__, "id = 1", age=16)
-    assert db._select(db.__tablename__, "name, age").fetchone() == (None, 16)
+    assert next(db._select(db.__tablename__, "name, age")) == [None, 16]
     db._delete(db.__tablename__, "id = 1")
-    assert db._select(db.__tablename__).fetchall() == []
+    assert list(db._select(db.__tablename__)) == []

@@ -164,7 +164,7 @@ class TaskRunHandler(BaseHandler):
         
         pushsw = json.loads(task['pushsw'])
         newontime = json.loads(task['newontime'])
-        pushertool = pusher()
+        pushertool = pusher(self.db)
         caltool = cal()
 
         try:

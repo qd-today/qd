@@ -44,23 +44,58 @@ if __name__ == "__main__":
         port = int(sys.argv[2])
     else:
         port = config.port
-    converter = sqlite3_db_task_converter.DBconverter()
-    converter.ConvertNewType() 
+
     if platform.system() == 'Windows':
         config.multiprocess = False
     if config.multiprocess and config.autoreload:
         config.autoreload = False
 
-    http_server = HTTPServer(Application(), xheaders=True)
-    http_server.bind(port, config.bind)
-    if config.multiprocess:
-        http_server.start(num_processes=0)
+    if config.db_type == 'sqlite3':
+        import sqlite3_db as db
     else:
-        http_server.start()
+        import db
 
-    worker = MainWorker()
-    PeriodicCallback(worker, config.check_task_loop).start()
-    worker()
+    class DB(object):
+        def __init__(self) -> None:
+            self.user = db.UserDB()
+            self.tpl = db.TPLDB()
+            self.task = db.TaskDB()
+            self.tasklog = db.TaskLogDB()
+            self.push_request = db.PRDB()
+            self.redis = db.RedisDB()
+            self.site = db.SiteDB()
+            self.pubtpl = db.PubTplDB()
+        def close(self):
+            self.user.close()
+            self.tpl.close()
+            self.task.close()
+            self.tasklog.close()
+            self.push_request.close()
+            self.redis.close()
+            self.site.close()
+            self.pubtpl.close()
+        
+    database = DB()
 
-    logging.info("http server started on %s:%s", config.bind, port)
-    IOLoop.instance().start()
+    try:
+        converter = sqlite3_db_task_converter.DBconverter()
+        converter.ConvertNewType(database) 
+
+        http_server = HTTPServer(Application(database), xheaders=True)
+        http_server.bind(port, config.bind)
+        if config.multiprocess:
+            http_server.start(num_processes=0)
+        else:
+            http_server.start()
+
+        worker = MainWorker(database)
+        PeriodicCallback(worker, config.check_task_loop).start()
+        worker()
+
+        logging.info("Http Server started on %s:%s", config.bind, port)
+        IOLoop.instance().start()
+    except KeyboardInterrupt :
+        logging.info("Http Server is being manually interrupted... ")
+        database.close()
+        logging.info("Http Server is ended. ")
+

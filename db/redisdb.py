@@ -54,3 +54,7 @@ class RedisDB(object):
         ret = _lambda()
         self.client.set('cache_%s', umsgpack.packb(ret))
         return ret
+
+    def close(self):
+        if self.client:
+            self.client.close()
