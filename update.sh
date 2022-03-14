@@ -86,7 +86,7 @@ update() {
                 echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API)."
             fi
             apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
-            if [ -n $QIANDAO_LITE && $QIANDAO_LITE = "True" ];then
+            if [ -n $QIANDAO_LITE ] && [ $QIANDAO_LITE = "True" ];then
                 echo "Info: Qiandao-Lite will not install ddddocr related components. "
             else
                 [[ $(getconf LONG_BIT) = "32" ]] && \
@@ -143,7 +143,7 @@ force_update() {
             echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
         apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
-        if [ -n $QIANDAO_LITE && $QIANDAO_LITE = "True" ];then
+        if [ -n $QIANDAO_LITE ] && [ $QIANDAO_LITE = "True" ];then
             echo "Info: Qiandao-Lite will not install ddddocr related components. "
         else
             [[ $(getconf LONG_BIT) = "32" ]] && \
@@ -195,7 +195,7 @@ update_version() {
             echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
         apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
-        if [ -n $QIANDAO_LITE && $QIANDAO_LITE = "True" ];then
+        if [ -n $QIANDAO_LITE ] && [ $QIANDAO_LITE = "True" ];then
             echo "Info: Qiandao-Lite will not install ddddocr related components. "
         else
             [[ $(getconf LONG_BIT) = "32" ]] && \
