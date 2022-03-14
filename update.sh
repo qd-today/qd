@@ -66,7 +66,7 @@ EOT
 update() {
     localversion=$(python -c 'import sys, json; print(json.load(open("version.json"))["version"])')
     remoteversion=$(git ls-remote --tags origin | grep -o 'refs/tags/[0-9]*' | sort -r | head -n 1 | grep -o '[^\/]*$')
-    if [ $(echo $localversion $remoteversion | awk '$1>=$2 {print 0} $1<$2 {print 1}') -eq 1 ];then
+    if [ $(echo $localversion $remoteversion | awk '$1>=$2 {print 0} $1<$2 {print 1}') == 1 ];then
         echo -e "Info: 当前版本: $localversion \nInfo: 新版本: $remoteversion \nInfo: 正在更新中, 请稍候..."
         git fetch --all
         git reset --hard origin/master
@@ -79,14 +79,14 @@ update() {
             echo "如需使用PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
             echo "pip3 install pycurl" ;\
         } || { \
-            if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') -eq 1 ];then 
+            if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') == 1 ];then
                 echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
                 echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
                 apk del .python-rundeps  
-                echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API)."
+                echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
             fi
             apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
-            if [ -n $QIANDAO_LITE ] && [ $QIANDAO_LITE = "True" ];then
+            if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
                 echo "Info: Qiandao-Lite will not install ddddocr related components. "
             else
                 [[ $(getconf LONG_BIT) = "32" ]] && \
@@ -95,7 +95,7 @@ update() {
             fi && \
             apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
                 linux-headers libtool util-linux 
-            if [ -n $(ls /usr/bin | grep -w "python3$") ];then 
+            if [ -n $(ls /usr/bin | grep -w "python3$") ];then
                 ls /usr/bin | grep -w "python3$"
                 ln -sf /usr/bin/python3 /usr/bin/python 
                 ln -sf /usr/bin/python3 /usr/local/bin/python
@@ -110,7 +110,7 @@ update() {
                 sed -i '/numpy/d' requirements.txt 
             fi
             pip install --no-cache-dir -r requirements.txt 
-            pip install --no-cache-dir --compile pycurl 
+            pip install --no-cache-dir --compile --upgrade pycurl 
             apk del .build_deps 
             rm -rf /var/cache/apk/* 
             rm -rf /usr/share/man/*
@@ -118,12 +118,14 @@ update() {
     else
         echo "Info: 当前版本: $localversion , 无需更新!"
     fi
-    if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
+    if [ $(printenv AUTO_RELOAD) ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器, 或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi
 }
 
 force_update() {
+    localversion=$(python -c 'import sys, json; print(json.load(open("version.json"))["version"])')
+    remoteversion=$(git ls-remote --tags origin | grep -o 'refs/tags/[0-9]*' | sort -r | head -n 1 | grep -o '[^\/]*$')
     echo -e "Info: 正在强制更新中, 请稍候..."
     git fetch --all
     git reset --hard origin/master
@@ -136,14 +138,14 @@ force_update() {
         echo "如需使用PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
         echo "pip3 install pycurl" ;\
     } || { \
-        if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') -eq 1 ];then 
+        if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') == 1 ];then
             echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
             echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
             apk del .python-rundeps  
             echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
         apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
-        if [ -n $QIANDAO_LITE ] && [ $QIANDAO_LITE = "True" ];then
+        if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
             echo "Info: Qiandao-Lite will not install ddddocr related components. "
         else
             [[ $(getconf LONG_BIT) = "32" ]] && \
@@ -152,7 +154,7 @@ force_update() {
         fi && \
         apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
             linux-headers libtool util-linux 
-        if [ -n $(ls /usr/bin | grep -w "python3$") ];then 
+        if [ -n $(ls /usr/bin | grep -w "python3$") ];then
             ls /usr/bin | grep -w "python3$"
             ln -sf /usr/bin/python3 /usr/bin/python 
             ln -sf /usr/bin/python3 /usr/local/bin/python
@@ -167,12 +169,12 @@ force_update() {
             sed -i '/numpy/d' requirements.txt 
         fi
         pip install --no-cache-dir -r requirements.txt 
-        pip install --no-cache-dir --compile pycurl 
+        pip install --no-cache-dir --compile --upgrade pycurl 
         apk del .build_deps 
         rm -rf /var/cache/apk/* 
         rm -rf /usr/share/man/*
     }
-    if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
+    if [ $(printenv AUTO_RELOAD) ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器, 或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi
 }
@@ -183,19 +185,19 @@ update_version() {
     git checkout -f $1
     [[ -z $(file /bin/busybox | grep -i "musl") ]] && {\
         pip install -r requirements.txt && \
-        echo "如需使用DdddOCR API, 请确认当前是否为最新版本, 且已安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "如需使用DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
         echo "pip3 install ddddocr" && \
-        echo "如需使用PyCurl 功能, 请确认当前是否为最新版本, 且已安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "如需使用PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
         echo "pip3 install pycurl" ;\
     } || { \
-        if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') -eq 1 ];then 
+        if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') == 1 ];then
             echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
             echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
             apk del .python-rundeps  
             echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
         apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
-        if [ -n $QIANDAO_LITE ] && [ $QIANDAO_LITE = "True" ];then
+        if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
             echo "Info: Qiandao-Lite will not install ddddocr related components. "
         else
             [[ $(getconf LONG_BIT) = "32" ]] && \
@@ -204,7 +206,7 @@ update_version() {
         fi && \
         apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
             linux-headers libtool util-linux 
-        if [ -n $(ls /usr/bin | grep -w "python3$") ];then 
+        if [ -n $(ls /usr/bin | grep -w "python3$") ];then
             ls /usr/bin | grep -w "python3$"
             ln -sf /usr/bin/python3 /usr/bin/python 
             ln -sf /usr/bin/python3 /usr/local/bin/python
@@ -219,18 +221,18 @@ update_version() {
             sed -i '/numpy/d' requirements.txt 
         fi
         pip install --no-cache-dir -r requirements.txt 
-        pip install --no-cache-dir --compile pycurl 
+        pip install --no-cache-dir --compile --upgrade pycurl 
         apk del .build_deps 
         rm -rf /var/cache/apk/* 
         rm -rf /usr/share/man/*
     }
-    if [ $AUTO_RELOAD ] && [ "$AUTO_RELOAD" == "False" ];then
+    if [ $(printenv AUTO_RELOAD) ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器, 或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi
 }
 
 
-if [ $# -eq 0 ]; then update; exit 0; fi
+if [ $# == 0 ]; then update; exit 0; fi
 
 # parse options:
 RET=`getopt -o hsuv:flr \
