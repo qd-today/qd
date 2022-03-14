@@ -442,16 +442,3 @@ jinja_inner_globals = {
     'dict': dict,
     'lipsum': jinja2.utils.generate_lorem_ipsum
 }
-
-import re
-def parse_url(url):
-    if not url:
-        return None
-    result = re.match('((?P<scheme>(https?|socks5h?)+)://)?((?P<username>[^:@/]+)(:(?P<password>[^@/]+))?@)?(?P<host>[^:@/]+):(?P<port>\d+)', url)
-    return None if not result else {
-        'scheme': result.group('scheme'),
-        'host': result.group('host'),
-        'port': int(result.group('port')),
-        'username': result.group('username'),
-        'password': result.group('password'),
-    }

@@ -113,7 +113,7 @@ except ImportError:
     pass
 
 try:
-    from libs.utils import parse_url
+    from libs.parse_url import parse_url
     for index,proxy in enumerate(proxies):
         if isinstance(proxy,str):
             proxies[index] = parse_url(proxy)

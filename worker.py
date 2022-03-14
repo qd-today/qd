@@ -19,6 +19,7 @@ import pytz
 import config
 from libs import utils
 from libs.fetcher import Fetcher
+from libs.parse_url import parse_url
 
 from libs.funcs import pusher
 from libs.funcs import cal
@@ -231,7 +232,7 @@ class MainWorker(object):
                     session = [],
                     )
 
-            url = utils.parse_url(env['variables'].get('_proxy'))
+            url = parse_url(env['variables'].get('_proxy'))
             if not url:
                 new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env))
             else:

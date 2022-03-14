@@ -15,6 +15,7 @@ import traceback
 
 from .base import *
 from libs import utils
+from libs.parse_url import parse_url
 from libs.funcs import pusher
 from libs.funcs import cal
 from codecs import escape_decode
@@ -168,7 +169,7 @@ class TaskRunHandler(BaseHandler):
         caltool = cal()
 
         try:
-            url = utils.parse_url(env['variables'].get('_proxy'))
+            url = parse_url(env['variables'].get('_proxy'))
             if not url:
                 new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env))
             else:

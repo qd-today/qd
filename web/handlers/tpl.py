@@ -9,6 +9,7 @@ import json
 from tornado import gen
 from .base import *
 from libs import utils
+from libs.parse_url import parse_url
 import traceback
 from codecs import escape_decode
 
@@ -116,7 +117,7 @@ class TPLRunHandler(BaseHandler):
                 raise HTTPError(400)
 
         try:
-            url = utils.parse_url(env['variables'].get('_binux_proxy'))
+            url = parse_url(env['variables'].get('_binux_proxy'))
             if url:
                 proxy = {
                     'scheme': url['scheme'],
