@@ -109,8 +109,10 @@ class UserRegPush(BaseHandler):
                     log = log+u"DingDing Bot 未填写完整\r\n"
 
             except Exception as e:
-                traceback.print_exc()
+                if config.traceback_print:
+                    traceback.print_exc()
                 await self.render('tpl_run_failed.html', log=str(e))
+                logger_Web_Handler.error('UserID: %s register Pusher_info failed! Reason: %s', userid or '-1', str(e))
                 return
             
             await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
@@ -158,8 +160,10 @@ class UserRegPush(BaseHandler):
                     log = log+u"DingDing Bot 未填写完整\r\n"
 
             except Exception as e:
-                traceback.print_exc()
+                if config.traceback_print:
+                    traceback.print_exc()
                 await self.render('tpl_run_failed.html', log=str(e))
+                logger_Web_Handler.error('UserID: %s test Pusher_info failed! Reason: %s', userid or '-1', str(e))
                 return
 
             await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
@@ -274,8 +278,10 @@ class UserRegPushSw(BaseHandler):
                 self.db.task.mod(task["id"], pushsw=json.dumps(task['pushsw']))
                 
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('tpl_run_failed.html', log=str(e))
+            logger_Web_Handler.error('UserID: %s modify Push_settings failed! Reason: %s', userid or '-1', str(e))
             return
         await self.render('utils_run_result.html', log=u"设置完成", title=u'设置成功', flg='success')
         return
@@ -352,6 +358,7 @@ class UserManagerHandler(BaseHandler):
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
             await self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s manage User failed! Reason: %s', userid or '-1', str(e))
             return
         await self.render('utils_run_result.html', title='操作成功', flg='success')
         return
@@ -487,10 +494,12 @@ class UserDBHandler(BaseHandler):
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s backup or restore Database failed! Reason: %s', userid or '-1', str(e))
             return
         return 
      
@@ -529,10 +538,12 @@ class toolbox_notpad_Handler(BaseHandler):
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
             await self.render('tpl_run_failed.html', log=str(e))
+            logger_Web_Handler.error('UserID: %s modify Notepad_Toolbox failed! Reason: %s', userid or '-1', str(e))
             return
         return
 
@@ -560,11 +571,12 @@ class UserPushShowPvar(BaseHandler):
             else:
                 raise Exception(u"账号/密码错误")   
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
             await self.render('tpl_run_failed.html', log=str(e))
-            logger_Web_Handler.error(e)
+            logger_Web_Handler.error('UserID: %s show Push_settings failed! Reason: %s', userid or '-1', str(e))
             return
 
 class custom_pusher_Handler(BaseHandler):
@@ -595,8 +607,10 @@ class custom_pusher_Handler(BaseHandler):
         except Exception as e:
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s register or tes Cus_Pusher failed! Reason: %s', userid or '-1', str(e))
             return
 
         await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
@@ -635,8 +649,10 @@ class UserSetNewPWDHandler(BaseHandler):
             else:
                 raise Exception(u'管理员用户名/密码错误')
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s set New_Password failed! Reason: %s', userid or '-1', str(e))
             return
 
         await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')

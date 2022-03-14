@@ -182,6 +182,7 @@ class TaskRunHandler(BaseHandler):
                 }
                 new_env = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, [proxy]))
         except Exception as e:
+            logger_Web_Handler.error('taskid:%d tplid:%d failed! %.4fs \r\n%s', task['id'], task['tplid'], time.time()-start_ts, str(e).replace('\\r\\n','\r\n'))
             t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
             logtmp = u"{0} \\r\\n日志：{1}".format(t, e)
@@ -336,15 +337,17 @@ class TaskSetTimeHandler(TaskNewHandler):
 
                     log = u'设置成功，下次执行时间：{0}'.format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(tmp['ts'])))
                 else:
-                    raise Exception(tmp)
+                    raise Exception(tmp['r'])
             else:
                 tmp = json.loads(self.db.task.get(taskid, fields=('newontime'))['newontime'])
                 tmp['sw'] = False
                 self.db.task.mod(taskid, newontime = json.dumps(tmp))
 
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            logger_Web_Handler.error('TaskID: %s set Time failed! Reason: %s', taskid, str(e).replace('\\r\\n','\r\n'))
             return
 
         await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
@@ -411,8 +414,10 @@ class TasksDelHandler(BaseHandler):
                     
             await self.finish('<h1 class="alert alert-success text-center">操作成功</h1>')
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('tpl_run_failed.html', log=str(e))
+            logger_Web_Handler.error('TaskID: %s delete failed! Reason: %s', taskid, str(e).replace('\\r\\n','\r\n'))
             return
 
 class GetGroupHandler(TaskNewHandler):

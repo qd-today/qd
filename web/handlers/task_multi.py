@@ -37,8 +37,10 @@ class TaskMultiOperateHandler(BaseHandler):
                         _groups.append(temp)
 
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'打开失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s browse Task_Multi failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
 
         await self.render('taskmulti.html', user=user, tasktype=tasktype, _groups=_groups)
@@ -117,8 +119,10 @@ class TaskMultiOperateHandler(BaseHandler):
                         else:
                             raise Exception('用户id与任务的用户id不一致')
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s set Task_Multi failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
 
         await self.render('utils_run_result.html', log=u'设置成功，请关闭操作对话框或刷新页面查看', title=u'设置成功', flg='success')
@@ -143,8 +147,10 @@ class GetTasksInfoHandler(BaseHandler):
                         task['sitename'] = sitename
                         tasks.append(task)
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'获取信息失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s get Tasks_Info failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
 
         await self.render('taskmulti_tasksinfo.html',  tasks=tasks)

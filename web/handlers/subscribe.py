@@ -45,10 +45,12 @@ class SubscribeHandler(BaseHandler):
             await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
 
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             user = self.current_user
             tpls = self.db.pubtpl.list()
             await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
+            logger_Web_Handler.error('UserID: %s browse Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
 
 class SubscribeUpdatingHandler(BaseHandler):
@@ -122,10 +124,12 @@ class SubscribeUpdatingHandler(BaseHandler):
             return
 
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             user = self.current_user
             tpls = self.db.pubtpl.list()
             await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
+            logger_Web_Handler.error('UserID: %s update Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
 
 class SubscribeRefreshHandler(BaseHandler):
@@ -147,8 +151,10 @@ class SubscribeRefreshHandler(BaseHandler):
             else:
                 raise Exception('没有权限操作')
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s refresh Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
 
         self.redirect('/subscribe/{0}/'.format(userid) ) 
@@ -162,6 +168,7 @@ class Subscrib_signup_repos_Handler(BaseHandler):
             await self.render('pubtpl_register.html', userid=userid)
         else:
             await self.render('utils_run_result.html', log='非管理员用户，不可设置', title=u'设置失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s browse Subscrib_signup_repos failed! Reason: 非管理员用户，不可设置', userid)
         return
 
     @tornado.web.authenticated
@@ -203,8 +210,10 @@ class Subscrib_signup_repos_Handler(BaseHandler):
                 raise Exception('非管理员用户，不可设置')
 
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s modify Subscribe_signup_repos failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
 
         await self.render('utils_run_result.html', log=u'设置成功，请关闭操作对话框或刷新页面查看', title=u'设置成功', flg='success')
@@ -229,8 +238,10 @@ class GetReposInfoHandler(BaseHandler):
             else:
                 raise Exception('非管理员用户，不可查看')
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'获取信息失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s get Subscribe_Repos_Info failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
 
         await self.render('pubtpl_reposinfo.html',  repos=repos)
@@ -247,8 +258,10 @@ class unsubscribe_repos_Handler(BaseHandler):
                 raise Exception('非管理员用户，不可设置')
             return
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'打开失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s browse UnSubscribe_Repos failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
     
     @tornado.web.authenticated
@@ -282,8 +295,10 @@ class unsubscribe_repos_Handler(BaseHandler):
                 raise Exception('非管理员用户，不可设置')
 
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
+            logger_Web_Handler.error('UserID: %s unsubscribe Subscribe_Repos failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
 
         await self.render('utils_run_result.html', log=u'设置成功，请关闭操作对话框或刷新页面查看', title=u'设置成功', flg='success')

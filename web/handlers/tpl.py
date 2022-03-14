@@ -132,8 +132,10 @@ class TPLRunHandler(BaseHandler):
             else:
                 result = await gen.convert_yielded(self.fetcher.do_fetch(fetch_tpl, env, proxies=[]))
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await self.render('tpl_run_failed.html', log=str(e))
+            logger_Web_Handler.error('UserID:%d tplID:%d failed! \r\n%s',user.get('id',-1) or -1, tplid or -1, str(e).replace('\\r\\n','\r\n'))
             return
 
         if tpl:

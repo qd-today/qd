@@ -20,7 +20,7 @@ if __name__ == "__main__":
         import importlib
         importlib.reload(sys)
     # init logging
-    
+    logger = Log().getlogger()
     logger_Qiandao = Log('qiandao.run').getlogger()
 
     if config.debug:
@@ -32,6 +32,9 @@ if __name__ == "__main__":
 
     if not config.accesslog:
         tornado.log.access_log.disabled = True
+    else:
+        tornado.log.access_log = Log('tornado.access').getlogger()
+        # tornado.log.app_log = Log('tornado.application').getlogger()
 
     if len(sys.argv) > 2 and sys.argv[1] == '-p' and sys.argv[2].isdigit():
         port = int(sys.argv[2])

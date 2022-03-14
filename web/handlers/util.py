@@ -14,7 +14,7 @@ logger_Web_Util = Log('qiandao.Web.Util').getlogger()
 try:
     import ddddocr
 except ImportError as e:
-    logger_Web_Util.warning(e)
+    logger_Web_Util.warning('Import DdddOCR module falied: %s',e)
     ddddocr = None
 import requests
 import asyncio
@@ -40,7 +40,8 @@ class UtilDelayParaHandler(BaseHandler):
         try:
             seconds = float(self.get_argument("seconds", 0))
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             await gen.sleep(0.0)
             self.write(u'Error, delay 0.0 second.')
             return
@@ -60,7 +61,8 @@ class UtilDelayIntHandler(BaseHandler):
         try:
             seconds = float(seconds)
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             self.write(u'delay %s second.' % seconds)
             return
         if seconds < 0:
@@ -79,7 +81,8 @@ class UtilDelayHandler(BaseHandler):
         try:
             seconds = float(seconds)
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             self.write(u'delay %s second.' % seconds)
             return
         if seconds < 0:

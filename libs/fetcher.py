@@ -30,7 +30,7 @@ if config.use_pycurl:
     try:
         import pycurl
     except ImportError as e:
-        logger_Fetcher.warning(e)
+        logger_Fetcher.warning('Import PyCurl module falied: %s',e)
         pycurl = None
 else:
     pycurl = None
@@ -302,11 +302,15 @@ class Fetcher(object):
                 try:
                     return str(response.headers._dict).replace('\'', '')
                 except Exception as e:
-                    traceback.print_exc()
+                    if config.traceback_print:
+                        traceback.print_exc()
+                    logger_Fetcher.error('Run rule failed: %s', str(e))
                 try:
                     return json.dumps(response.headers._dict)
                 except Exception as e:
-                    traceback.print_exc()
+                    if config.traceback_print:
+                        traceback.print_exc()
+                    logger_Fetcher.error('Run rule failed: %s', str(e))
             else:
                 return ''
 
@@ -327,7 +331,7 @@ class Fetcher(object):
                 msg = 'Fail assert: %s from failed_asserts' % json.dumps(r, ensure_ascii=False)
                 break
 
-        if not success and msg and (response.error or response.reason):
+        if not success and msg and (response.error or (response.reason and str(response.reason) != 'OK')):
             msg += ', \\r\\nResponse Error : %s' % str(response.error or response.reason)
 
         for r in rule.get('extract_variables') or '':
@@ -468,11 +472,12 @@ class Fetcher(object):
             finally:
                 if 'req' not in locals().keys():
                     tmp = {'env':obj['env'],'rule':obj['rule']}
-                    tmp['request'] = {'method': 'GET', 'url': 'http://127.0.0.1:8923/util/unicode?content=', 'headers': [], 'cookies': []}
+                    tmp['request'] = {'method': 'GET', 'url': 'api://util/unicode?content=', 'headers': [], 'cookies': []}
                     req, rule, env = self.build_request(tmp)
                     e.response = httpclient.HTTPResponse(request=req,code=e.code,reason=e.message,buffer=BytesIO(str(e).encode()))
                 if not e.response:
-                    traceback.print_exc()
+                    if config.traceback_print:
+                        traceback.print_exc()
                     e.response = httpclient.HTTPResponse(request=req,code=e.code,reason=e.message,buffer=BytesIO(str(e).encode()))
                 return rule, env, e.response
         return rule, env, response

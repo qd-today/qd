@@ -183,6 +183,7 @@ class RegisterHandler(BaseHandler):
 
 class VerifyHandler(BaseHandler):
     async def get(self, code):
+        userid=None
         try:
             verified_code = base64.b64decode(code)
             userid, verified_code = self.db.user.decrypt(0, verified_code)
@@ -200,7 +201,7 @@ class VerifyHandler(BaseHandler):
             await self.finish('验证成功')
         except Exception as e:
             self.evil(+5)
-            logger.error('%r',e)
+            logger_Web_Handler.error('UserID: %s verify email failed! Reason: %s', userid or '-1', e)
             self.set_status(400)
             await self.finish('验证失败')
 
@@ -220,7 +221,7 @@ class PasswordResetHandler(BaseHandler):
             assert time.time() - time_time < 60 * 60
         except Exception as e:
             self.evil(+10)
-            logger.error('%r',e)
+            logger_Web_Handler.error('%r',e)
             self.set_status(400)
             await self.finish('Bad Request')
             return
@@ -241,7 +242,7 @@ class PasswordResetHandler(BaseHandler):
 
             user = self.db.user.get(email=email, fields=('id', 'email', 'mtime', 'nickname', 'role'))
             if user:
-                logger.info('password reset: userid=%(id)s email=%(email)s', user)
+                logger_Web_Handler.info('password reset: userid=%(id)s email=%(email)s', user)
                 await gen.convert_yielded(self.send_mail(user))
 
 
@@ -261,7 +262,7 @@ class PasswordResetHandler(BaseHandler):
                 assert time.time() - time_time < 60 * 60
             except Exception as e:
                 self.evil(+10)
-                logger.error('%r',e)
+                logger_Web_Handler.error('%r',e)
                 self.set_status(400)
                 await self.finish('Bad Request')
                 return

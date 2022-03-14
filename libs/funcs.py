@@ -79,7 +79,7 @@ class pusher(object):
             r = 'True'
         except Exception as e:
             r = traceback.format_exc()
-            logger_Funcs.error(r)
+            logger_Funcs.error('Sent to Bark error: %s', e)
         
         return r
         
@@ -97,7 +97,7 @@ class pusher(object):
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
-                logger_Funcs.error(r)
+                logger_Funcs.error('Sent to ServerChan error: %s', e)
         return r   
     
     async def send2tg(self, tg_token, title, content):
@@ -146,7 +146,7 @@ class pusher(object):
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
-                logger_Funcs.error(r)
+                logger_Funcs.error('Sent to Telegram error: %s', e)
         return r
 
     async def send2dingding(self, dingding_token, title, content):
@@ -168,7 +168,7 @@ class pusher(object):
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
-                logger_Funcs.error(r)
+                logger_Funcs.error('Sent to DingDing error: %s', e)
         return r   
 
     async def send2wxpusher(self, wxpusher, content):
@@ -195,7 +195,7 @@ class pusher(object):
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
-                logger_Funcs.error(r)
+                logger_Funcs.error('Sent to WxPusher error: %s', e)
 
         return  r  
 
@@ -243,6 +243,7 @@ class pusher(object):
 
         except Exception as e:
             r = traceback.format_exc()
+            logger_Funcs.exception('Sent to Cus_Pusher error: %s', e)
         return r
 
     # 获取Access_Token
@@ -315,7 +316,7 @@ class pusher(object):
 
         except Exception as e:
             r = traceback.format_exc()
-            logger_Funcs.exception(e)
+            logger_Funcs.exception('Sent to QYWX error: %s', e)
         return r
 
     async def sendmail(self, email, title, content):
@@ -358,7 +359,7 @@ class cal(object):
                 ts = ts + r_ts
                 
             r['ts'] = ts
-        except Exception :
-            r['r'] = traceback.format_exc()
-            logger_Funcs.error(r['r'] )
+        except Exception as e:
+            r['r'] = e
+            logger_Funcs.error('Calculate Next Timestamp error: %s',r['r'])
         return r

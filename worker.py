@@ -101,7 +101,8 @@ class MainWorker(object):
                             await pushtool.pusher(userid, {"pushen": bool(push_batch.get("sw",False))}, 4080, title, logtemp)
                             logger_Worker.info("Success push batch log for {}".format(user_email))
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             logger_Worker.error('Push batch task failed: {}'.format(str(e)))
       
     @gen.coroutine
@@ -285,7 +286,8 @@ class MainWorker(object):
             logger_Worker.info('taskid:%d tplid:%d clear log.', task['id'], task['tplid'])
         except Exception as e:
             # failed feedback
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             next_time_delta = self.failed_count_to_time(task['last_failed_count'], task['retry_count'], task['retry_interval'], tpl['interval'])
                         
             t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -313,7 +315,7 @@ class MainWorker(object):
                     next=next)
             self.db.tpl.incr_failed(tpl['id'])
 
-            logger_Worker.error('taskid:%d tplid:%d failed! %r %.4fs', task['id'], task['tplid'], str(e), time.time()-start)
+            logger_Worker.error('taskid:%d tplid:%d failed! %.4fs \r\n%s', task['id'], task['tplid'], time.time()-start, str(e).replace('\\r\\n','\r\n'))
             return False
         return True
 

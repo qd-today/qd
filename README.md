@@ -197,6 +197,7 @@ DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
 JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 <mysql://用户名:密码@hostname:port/数据库名?auth_plugin=>
 REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时, <br>设置为 <http://rediscloud:密码@hostname:port>
 REDIS_DB_INDEX|否|1|默认为1
+TRACEBACK_PRINT|否|False|是否启用在控制台日志中打印Exception的TraceBack信息
 PUSH_PIC_URL|否|[push_pic.png](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)|默认为[push_pic.png](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)
 PUSH_BATCH_SW|否|True|是否允许开启定期推送签到任务日志, 默认为True
 MAIL_SMTP|否|""|邮箱SMTP服务器

@@ -73,10 +73,12 @@ class SiteManagerHandler(BaseHandler):
             else:
                 raise Exception(u"非管理员，不可操作")
         except Exception as e:
-            traceback.print_exc()
+            if config.traceback_print:
+                traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
             await self.render('tpl_run_failed.html', log=str(e))
+            logger_Web_Handler.error('UserID: %s modify Manage_Board failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
             
         self.redirect('/my/')
