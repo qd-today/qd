@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20220314] - 2022.03.14 更新
+
+1. 更新求模板链接
+2. 允许更多环境变量配置
+3. 修复记事本为空时追加报错的bug
+4. 控制access log的输出 (by [hiCasper](https://github.com/qiandao-today/qiandao/commits?author=hiCasper))
+5. 未验证的管理员开启验证邮箱时尝试发送验证邮件
+6. 优化Dockerfile,分离Redis
+7. 添加qiandao-lite相关说明和配置
+9. 统一DB连接操作,Cursor操作结束后自动关闭
+9. 优化日志输出, 避免重复日志
+
+> 源码部署更新方式如下, 如**更新后发生错误请重新拉取容器!**
+
+ ``` bash
+   # 先cd到源码所在目录, 执行命令后重启进程 
+   wget https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
+   sh ./update.sh 
+   ```
+
 ## [20220208] - 2022.02.08 更新
 
 1. 63c0074: 修复contenteditable=plaintext-only导致Firefox无法编辑的bug …
