@@ -5,7 +5,6 @@
 #         http://binux.me
 # Created on 2012-12-15 16:16:38
 import jinja2
-import logging
 import umsgpack
 import tornado.web
 import tornado.websocket
@@ -13,10 +12,11 @@ from tornado.web import HTTPError
 
 import config
 from libs import utils
+from libs.log import Log
 
-logger = logging.getLogger('qiandao.handler')
+logger_Web_Handler = Log('qiandao.Web.Handler').getlogger()
 
-__ALL__ = ['HTTPError', 'BaseHandler', 'BaseWebSocket', 'BaseUIModule', 'logger', ]
+__ALL__ = ['HTTPError', 'BaseHandler', 'BaseWebSocket', 'BaseUIModule', 'logger_Web_Handler', ]
 
 class BaseHandler(tornado.web.RequestHandler):
     application_export = set(('db', 'fetcher'))

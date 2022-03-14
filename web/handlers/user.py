@@ -564,7 +564,7 @@ class UserPushShowPvar(BaseHandler):
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
             await self.render('tpl_run_failed.html', log=str(e))
-            print(e)
+            logger_Web_Handler.error(e)
             return
 
 class custom_pusher_Handler(BaseHandler):

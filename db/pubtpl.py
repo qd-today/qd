@@ -6,13 +6,11 @@
 # Created on 2014-08-08 19:53:09
 
 import time
-import logging
 import umsgpack
 
 import config
 from libs import utils
-from .basedb import BaseDB
-
+from .basedb import BaseDB, logger_DB
 class PubTplDB(BaseDB):
     '''
     Site db

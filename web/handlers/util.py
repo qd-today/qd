@@ -8,10 +8,13 @@ import time
 import urllib
 import pytz
 import traceback
+from libs.log import Log
+
+logger_Web_Util = Log('qiandao.Web.Util').getlogger()
 try:
     import ddddocr
 except ImportError as e:
-    print(e)
+    logger_Web_Util.warning(e)
     ddddocr = None
 import requests
 import asyncio

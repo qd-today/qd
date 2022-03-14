@@ -24,4 +24,4 @@ bower_components/
 .gitkeep
 .lh/*
 web/static/components/*/package-lock.json
-redis/*
+redis

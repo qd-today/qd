@@ -18,6 +18,7 @@ incremental = "*"
 u-msgpack-python = "*"
 pysocks = "*"
 faker = "*"
+colorama = {version = "*", markers="sys_platform == 'win32'"}
 
 [dev-packages]
 opencv-python-headless = "*"

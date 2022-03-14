@@ -10,7 +10,6 @@ import json
 import random
 import urllib
 import base64
-import logging
 import traceback
 import urllib.parse as urlparse
 from datetime import datetime
@@ -24,18 +23,19 @@ from tornado import gen, httpclient, simple_httpclient
 
 import config
 from libs import cookie_utils, utils
+from .log import Log
 
+logger_Fetcher = Log('qiandao.Http.Fetcher').getlogger()
 if config.use_pycurl:
     try:
         import pycurl
     except ImportError as e:
-        print(e)
+        logger_Fetcher.warning(e)
         pycurl = None
 else:
     pycurl = None
 local_host="http://localhost:" + str(config.port)
 NOT_RETYR_CODE = config.not_retry_code
-logger = logging.getLogger('qiandao.fetcher')
 
 class Fetcher(object):
     def __init__(self, download_size_limit=config.download_size_limit):
@@ -231,7 +231,7 @@ class Fetcher(object):
                     try:
                         _ = json.dumps(ret['postData']['params'])
                     except UnicodeDecodeError:
-                        logger.error('params encoding error')
+                        logger_Fetcher.error('params encoding error')
                         del ret['postData']['params']
 
             return ret
@@ -403,7 +403,7 @@ class Fetcher(object):
                     try:
                         _ = json.dumps(request['postData']['params'])
                     except UnicodeDecodeError:
-                        logger.error('params encoding error')
+                        logger_Fetcher.error('params encoding error')
                         del request['postData']['params']
             return request
 
@@ -444,27 +444,27 @@ class Fetcher(object):
             try:
                 if config.allow_retry and pycurl:
                     if e.__dict__.get('errno','') == 61:
-                        logger.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
+                        logger_Fetcher.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
                         req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=False,CURL_CONTENT_LENGTH=CURL_CONTENT_LENGTH)
                         e.response =  await gen.convert_yielded(self.client.fetch(req))
                     elif e.code == 400 and e.message == 'Bad Request' and req and req.headers.get('content-length'):
-                        logger.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
+                        logger_Fetcher.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
                         req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=CURL_ENCODING,CURL_CONTENT_LENGTH=False)
                         e.response =  await gen.convert_yielded(self.client.fetch(req))
                     elif e.code not in NOT_RETYR_CODE or (EMPTY_RETRY and not e.response):
                         try:
-                            logger.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
+                            logger_Fetcher.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
                             client = simple_httpclient.SimpleAsyncHTTPClient()
                             e.response =  await gen.convert_yielded(client.fetch(req))
                         except Exception:
-                            logger.error(e.message.replace('\\r\\n','\r\n') or e.response.replace('\\r\\n','\r\n') or Exception)
+                            logger_Fetcher.error(e.message.replace('\\r\\n','\r\n') or e.response.replace('\\r\\n','\r\n') or Exception)
                     else:
                         try:
-                            logger.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
+                            logger_Fetcher.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
                         except Exception:
-                            logger.error(e.message.replace('\\r\\n','\r\n') or e.response.replace('\\r\\n','\r\n') or Exception)
+                            logger_Fetcher.error(e.message.replace('\\r\\n','\r\n') or e.response.replace('\\r\\n','\r\n') or Exception)
                 else:
-                    logger.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
+                    logger_Fetcher.warning('{} {} [Warning] {}'.format(req.method,req.url,e))
             finally:
                 if 'req' not in locals().keys():
                     tmp = {'env':obj['env'],'rule':obj['rule']}
@@ -580,7 +580,7 @@ class Fetcher(object):
                     env = result['env']
                 except Exception as e:
                     if config.debug:
-                        logging.exception(e)
+                        logger_Fetcher.exception(e)
                     raise Exception('Failed at %d/%d request, \\r\\nError: %r, \\r\\nRequest URL: %s' % (
                         i+1, len(tpl), e, entry['request']['url']))
                 if not result['success']:

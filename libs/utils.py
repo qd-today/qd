@@ -11,6 +11,13 @@ import ipaddress
 import jinja2
 from tornado import gen
 from faker import Faker
+import re
+import urllib
+import config
+from tornado import httpclient
+from .log import Log
+
+logger_Util = Log('qiandao.Http.Util').getlogger()
 
 def ip2int(addr):
     try:
@@ -193,11 +200,6 @@ def conver2unicode(string):
     tmp = bytes(tmp,'utf-8').decode('unicode_escape')
     return tmp.encode('utf-8').replace(b'\xc2\xa0',b'\xa0').decode('unicode_escape')
 
-import urllib
-import config
-from tornado import httpclient
-
-
 async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提醒 <noreply@{}>".format(config.mail_domain)):
     if not config.mailgun_key:
         subtype = 'html' if html else 'plain'
@@ -236,28 +238,24 @@ async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签�
 
 import smtplib
 from email.mime.text import MIMEText
-import logging
-
-logger = logging.getLogger('qiandao.util')
-
 
 def _send_mail(to, subject, text=None, subtype='html'):
     if not config.mail_smtp:
-        logger.info('no smtp')
+        logger_Util.info('no smtp')
         return
     msg = MIMEText(text, _subtype=subtype, _charset='utf-8')
     msg['Subject'] = subject
     msg['From'] = config.mail_from
     msg['To'] = to
     try:
-        logger.info('send mail to {}'.format(to))
+        logger_Util.info('send mail to {}'.format(to))
         s = config.mail_ssl and smtplib.SMTP_SSL(config.mail_smtp) or smtplib.SMTP(config.mail_smtp)
         s.connect(config.mail_smtp)
         s.login(config.mail_user, config.mail_password)
         s.sendmail(config.mail_from, to, msg.as_string())
         s.close()
     except Exception as e:
-        logger.error('send mail error {}'.format(str(e)))
+        logger_Util.error('send mail error {}'.format(str(e)))
     return
 
 
@@ -305,7 +303,7 @@ def decode(content, headers=None):
     try:
         return content.decode(encoding, 'replace')
     except Exception as e:
-        print('utils.decode:',e)
+        logger_Util.error('utils.decode:',e)
         return None
 
 

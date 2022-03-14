@@ -4,7 +4,6 @@
 
 import sys
 import json
-import logging
 import croniter
 import traceback
 import random
@@ -18,7 +17,9 @@ import config
 from libs import utils
 from tornado import gen
 from libs.fetcher import Fetcher
+from .log import Log
 
+logger_Funcs = Log('qiandao.Http.Funcs').getlogger()
 class pusher(object):
     def __init__(self,db=None):
         self.db = db
@@ -78,7 +79,7 @@ class pusher(object):
             r = 'True'
         except Exception as e:
             r = traceback.format_exc()
-            print(r)
+            logger_Funcs.error(r)
         
         return r
         
@@ -96,7 +97,7 @@ class pusher(object):
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
-                print(r)
+                logger_Funcs.error(r)
         return r   
     
     async def send2tg(self, tg_token, title, content):
@@ -145,7 +146,7 @@ class pusher(object):
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
-                print(r)
+                logger_Funcs.error(r)
         return r
 
     async def send2dingding(self, dingding_token, title, content):
@@ -167,7 +168,7 @@ class pusher(object):
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
-                print(r)
+                logger_Funcs.error(r)
         return r   
 
     async def send2wxpusher(self, wxpusher, content):
@@ -194,7 +195,7 @@ class pusher(object):
                 r = 'True'
             except Exception as e:
                 r = traceback.format_exc()
-                print(r)
+                logger_Funcs.error(r)
 
         return  r  
 
@@ -314,7 +315,7 @@ class pusher(object):
 
         except Exception as e:
             r = traceback.format_exc()
-            print(r)
+            logger_Funcs.exception(e)
         return r
 
     async def sendmail(self, email, title, content):
@@ -327,7 +328,7 @@ class pusher(object):
                                 text = content,
                                 shark=True))
             except Exception as e:
-                logging.error('tasend mail error: %r', e)
+                logger_Funcs.error('Send mail error: %r', e)
 
 class cal(object):
     def __init__(self):
@@ -359,5 +360,5 @@ class cal(object):
             r['ts'] = ts
         except Exception :
             r['r'] = traceback.format_exc()
-            print(r['r'] )
+            logger_Funcs.error(r['r'] )
         return r

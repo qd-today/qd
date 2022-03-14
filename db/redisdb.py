@@ -6,9 +6,10 @@
 # Created on 2014-08-08 20:40:53
 
 import config
-import logging
 import umsgpack
+from libs.log import Log
 
+logger_RedisDB = Log('qiandao.RedisDB').getlogger()
 class RedisDB(object):
     def __init__(self, host=config.redis.host, port=config.redis.port, password=config.redis.passwd, db=config.redis.db, evil=config.evil):
         try:
@@ -22,7 +23,7 @@ class RedisDB(object):
             self.client = redis.StrictRedis(host=host, port=port, password=password, db=db, socket_timeout=3, socket_connect_timeout=3)
             self.client.ping()
         except redis.exceptions.ConnectionError as e:
-            logging.warning(e)
+            logger_RedisDB.warning(e)
             self.client = None
 
     def evil(self, ip, userid, cnt=None):

@@ -7,10 +7,12 @@
 
 import sys
 import json
-import logging
+from libs.log import Log
 import functools
 from tornado.ioloop import IOLoop
 from libs.fetcher import Fetcher
+
+logger_QD = Log('qiandao').getlogger()
 
 def usage():
     print("{} tpl.har [--key=value] [env.json]".format(sys.argv[0]))
@@ -25,7 +27,7 @@ if __name__ == '__main__':
     try:
         tpl = json.load(open(tpl_file,encoding='utf-8'))
     except Exception as e:
-        logging.error(e)
+        logger_QD.error(e)
         usage()
 
     # load env
@@ -43,7 +45,7 @@ if __name__ == '__main__':
         try:
             env = json.load(open(env_file,encoding='utf-8'))
         except Exception as e:
-            logging.error(e)
+            logger_QD.error(e)
             usage()
     if 'variables' not in env or not isinstance(env['variables'], dict)\
             or 'session' not in env:

@@ -5,14 +5,11 @@
 #         http://binux.me
 # Created on 2012-08-30 17:43:49
 
-import logging
-logger = logging.getLogger('qiandao.basedb')
-
 import os
 import sqlite3
 import threading
 from db.basedb import BaseDB as _BaseDB
-
+from db.basedb import logger_DB
 
 def to_unicode(string):
     if isinstance(string, str):

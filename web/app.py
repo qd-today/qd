@@ -6,7 +6,6 @@
 # Created on 2014-07-30 12:22:52
 
 import os
-import logging
 import jinja2
 import tornado.web
 
@@ -15,7 +14,9 @@ import json
 from libs import utils
 from libs.fetcher import Fetcher
 from web.handlers import handlers, ui_modules, ui_methods
+from libs.log import Log
 
+logger_Web = Log('qiandao.Web').getlogger()
 class Application(tornado.web.Application):
     def __init__(self,db=None):
         settings = dict(

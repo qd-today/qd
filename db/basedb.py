@@ -5,10 +5,11 @@
 #         http://binux.me
 # Created on 2012-08-30 17:43:49
 
-import logging
 import sqlite3
 import config
-logger = logging.getLogger('qiandao.basedb')
+from libs.log import Log
+
+logger_DB = Log('qiandao.Database').getlogger()
 
 def tostr(s):
     if isinstance(s, bytes):
@@ -66,7 +67,7 @@ class BaseDB(object):
         sql_query = "SELECT %s FROM %s" % (what, tablename)
         if where: sql_query += " WHERE %s" % where
         if limit: sql_query += " LIMIT %d, %d" % (offset, limit)
-        logger.debug("<sql: %s>", sql_query)
+        logger_DB.debug("<sql: %s>", sql_query)
 
         dbcur = self._execute(sql_query, where_values)
         for row in dbcur:
@@ -81,7 +82,7 @@ class BaseDB(object):
         sql_query = "SELECT %s FROM %s" % (what, tablename)
         if where: sql_query += " WHERE %s" % where
         if limit: sql_query += " LIMIT %d, %d" % (offset, limit)
-        logger.debug("<sql: %s>", sql_query)
+        logger_DB.debug("<sql: %s>", sql_query)
 
         dbcur = self._execute(sql_query, where_values)
         fields = [f[0] for f in dbcur.description]
@@ -102,7 +103,7 @@ class BaseDB(object):
             sql_query = "REPLACE INTO %s (%s) VALUES (%s)" % (tablename, _keys, _values)
         else:
             sql_query = "REPLACE INTO %s DEFAULT VALUES" % tablename
-        logger.debug("<sql: %s>", sql_query)
+        logger_DB.debug("<sql: %s>", sql_query)
         
         if values:
             dbcur = self._execute(sql_query, list(values.values()))
@@ -120,7 +121,7 @@ class BaseDB(object):
             sql_query = "INSERT INTO %s (%s) VALUES (%s)" % (tablename, _keys, _values)
         else:
             sql_query = "INSERT INTO %s DEFAULT VALUES" % tablename
-        logger.debug("<sql: %s>", sql_query)
+        logger_DB.debug("<sql: %s>", sql_query)
         
         if values:
             dbcur = self._execute(sql_query, list(values.values()))
@@ -134,7 +135,7 @@ class BaseDB(object):
         tablename = self.escape(tablename or self.__tablename__)
         _key_values = ", ".join(["%s = %s" % (self.escape(k), self.placeholder) for k in values.keys()]) 
         sql_query = "UPDATE %s SET %s WHERE %s" % (tablename, _key_values, where)
-        logger.debug("<sql: %s>", sql_query)
+        logger_DB.debug("<sql: %s>", sql_query)
         
         dbcur = self._execute(sql_query, list(values.values())+list(where_values))
         dbcur.close()
@@ -144,7 +145,7 @@ class BaseDB(object):
         tablename = self.escape(tablename or self.__tablename__)
         sql_query = "DELETE FROM %s" % tablename
         if where: sql_query += " WHERE %s" % where
-        logger.debug("<sql: %s>", sql_query)
+        logger_DB.debug("<sql: %s>", sql_query)
 
         dbcur = self._execute(sql_query, where_values)
         dbcur.close()

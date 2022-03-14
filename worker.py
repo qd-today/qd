@@ -9,7 +9,6 @@ import time
 import datetime
 import asyncio
 import functools
-import logging
 import tornado.log
 import tornado.ioloop
 from tornado import gen
@@ -24,8 +23,9 @@ from libs.parse_url import parse_url
 from libs.funcs import pusher
 from libs.funcs import cal
 import traceback
+from libs.log import Log
 
-logger = logging.getLogger('qiandao.worker')
+logger_Worker = Log('qiandao.Worker').getlogger()
 
 class MainWorker(object):
     def __init__(self, db=None):
@@ -38,7 +38,7 @@ class MainWorker(object):
         # if self.running:
         #     success, failed = self.running
         #     if success or failed:
-        #         logger.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
+        #         logger_Worker.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
         if self.running:
             return
         self.running = self.run()
@@ -46,7 +46,7 @@ class MainWorker(object):
             self.running = None
             success, failed = future.result()
             if success or failed:
-                logger.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
+                logger_Worker.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
             return
         self.running.add_done_callback(done)
         
@@ -60,7 +60,7 @@ class MainWorker(object):
         try:
             userlist = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(self.db.user.list,fields=('id', 'email', 'status', 'push_batch'))),timeout=3.0)
             pushtool = pusher(self.db)
-            logging.debug('scaned push_batch task, waiting...')
+            logger_Worker.debug('Scaned push_batch task, waiting...')
             if userlist:
                 for user in userlist:
                     userid = user['id']
@@ -97,12 +97,12 @@ class MainWorker(object):
                         self.db.user.mod(userid, push_batch=json.dumps(push_batch))
                         if tmp and numlog:
                             user_email = user.get('email','Unkown')
-                            logger.debug("Start push batch log for {}".format(user_email))
+                            logger_Worker.debug("Start push batch log for {}".format(user_email))
                             await pushtool.pusher(userid, {"pushen": bool(push_batch.get("sw",False))}, 4080, title, logtemp)
-                            logger.info("Success push batch log for {}".format(user_email))
+                            logger_Worker.info("Success push batch log for {}".format(user_email))
         except Exception as e:
             traceback.print_exc()
-            logger.error('push batch task failed: {}'.format(str(e)))
+            logger_Worker.error('Push batch task failed: {}'.format(str(e)))
       
     @gen.coroutine
     def run(self):
@@ -113,7 +113,7 @@ class MainWorker(object):
             for task in self.scan():
                 running.append(self.do(task))
                 if len(running) > 50:
-                    logging.debug('scaned %d task, waiting...', len(running))
+                    logger_Worker.debug('scaned %d task, waiting...', len(running))
                     result = yield running[:10]
                     for each in result:
                         if each:
@@ -121,7 +121,7 @@ class MainWorker(object):
                         else:
                             failed += 1
                     running = running[10:]
-            logging.debug('scaned %d task, waiting...', len(running))
+            logger_Worker.debug('scaned %d task, waiting...', len(running))
             result = yield running
             for each in result:
                 if each:
@@ -131,7 +131,7 @@ class MainWorker(object):
             if config.push_batch_sw:
                 yield self.push_batch()
         except Exception as e:
-            logging.exception(e)
+            logger_Worker.exception(e)
         return (success, failed)
 
     scan_fields = ('id', 'tplid', 'userid', 'init_env', 'env', 'session', 'retry_count', 'retry_interval', 'last_success', 'last_failed', 'success_count', 'failed_count', 'last_failed_count', 'next', 'disabled', )
@@ -279,9 +279,10 @@ class MainWorker(object):
             logtemp = u"{0} \\r\\n日志：{1}".format(t, logtemp)
             await pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
 
-            logger.info('taskid:%d tplid:%d successed! %.5fs', task['id'], task['tplid'], time.time()-start)
+            logger_Worker.info('taskid:%d tplid:%d successed! %.5fs', task['id'], task['tplid'], time.time()-start)
             # delete log
             self.ClearLog(task['id'])
+            logger_Worker.info('taskid:%d tplid:%d clear log.', task['id'], task['tplid'])
         except Exception as e:
             # failed feedback
             traceback.print_exc()
@@ -312,7 +313,7 @@ class MainWorker(object):
                     next=next)
             self.db.tpl.incr_failed(tpl['id'])
 
-            logger.error('taskid:%d tplid:%d failed! %r %.4fs', task['id'], task['tplid'], str(e), time.time()-start)
+            logger_Worker.error('taskid:%d tplid:%d failed! %r %.4fs', task['id'], task['tplid'], str(e), time.time()-start)
             return False
         return True
 

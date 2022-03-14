@@ -10,21 +10,18 @@ try:
     from collections import MutableMapping as DictMixin
 except ImportError:
     from collections.abc import MutableMapping as DictMixin
+import config
 import http.cookiejar as cookielib
 from urllib.parse import urlparse
 from tornado import httpclient, httputil
 from requests.cookies import MockRequest,create_cookie,remove_cookie_by_name
+from .log import Log
 
-debug = False   # set to True to enable debugging via the logging module
-logger = None
+logger_CookieJar = Log('qiandao.Http.CookieJar').getlogger()
 def _debug(*args):
-    if not debug:
+    if not config.debug:
         return
-    global logger
-    if not logger:
-        import logging
-        logger = logging.getLogger("http.cookiejar")
-    return logger.debug(*args)
+    return logger_CookieJar.debug(*args)
 
 def dump_cookie(cookie):
     result = {}

@@ -6,8 +6,6 @@
 # Created on 2014-08-08 20:18:29
 
 import time
-import logging
-
 import config
 from libs import utils
 from .basedb import BaseDB

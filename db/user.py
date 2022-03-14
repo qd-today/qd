@@ -6,7 +6,6 @@
 # Created on 2014-08-07 17:36:17
 
 import time
-import logging
 import umsgpack
 
 from Crypto.Hash import MD5
@@ -15,7 +14,6 @@ import config
 from libs import mcrypto as crypto, utils
 from .basedb import BaseDB
 
-logger = logging.getLogger('qiandao.userdb')
 class UserDB(BaseDB):
     '''
     User DB

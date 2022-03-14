@@ -3,17 +3,12 @@
 # vim:fenc=utf-8
 #
 # Copyright © 2016 Binux <roy@binux.me>
+from libs.log import Log
+import tornado.log
 
 import sys
 import platform
-import logging
-import tornado.log
-from tornado.ioloop import IOLoop, PeriodicCallback
-from tornado.httpserver import HTTPServer
-
 import config
-from web.app import Application
-from worker import MainWorker
 
 from db import sqlite3_db_task_converter
 import requests
@@ -25,20 +20,18 @@ if __name__ == "__main__":
         import importlib
         importlib.reload(sys)
     # init logging
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG if config.debug else logging.INFO)
-    channel = logging.StreamHandler(sys.stdout)
-    channel.setFormatter(tornado.log.LogFormatter())
-    logger.addHandler(channel)
+    
+    logger_Qiandao = Log('qiandao.run').getlogger()
 
-    if not config.debug:
+    if config.debug:
+        import logging
         channel = logging.StreamHandler(sys.stderr)
         channel.setFormatter(tornado.log.LogFormatter())
         channel.setLevel(logging.WARNING)
-        logger.addHandler(channel)
+        logger_Qiandao.addHandler(channel)
 
     if not config.accesslog:
-        logging.getLogger('tornado.access').disabled = True
+        tornado.log.access_log.disabled = True
 
     if len(sys.argv) > 2 and sys.argv[1] == '-p' and sys.argv[2].isdigit():
         port = int(sys.argv[2])
@@ -78,9 +71,11 @@ if __name__ == "__main__":
     database = DB()
 
     try:
+        from web.app import Application
         converter = sqlite3_db_task_converter.DBconverter()
         converter.ConvertNewType(database) 
 
+        from tornado.httpserver import HTTPServer
         http_server = HTTPServer(Application(database), xheaders=True)
         http_server.bind(port, config.bind)
         if config.multiprocess:
@@ -88,14 +83,16 @@ if __name__ == "__main__":
         else:
             http_server.start()
 
+        from worker import MainWorker
+        from tornado.ioloop import IOLoop, PeriodicCallback
         worker = MainWorker(database)
         PeriodicCallback(worker, config.check_task_loop).start()
         worker()
 
-        logging.info("Http Server started on %s:%s", config.bind, port)
+        logger_Qiandao.info("Http Server started on %s:%s", config.bind, port)
         IOLoop.instance().start()
     except KeyboardInterrupt :
-        logging.info("Http Server is being manually interrupted... ")
+        logger_Qiandao.info("Http Server is being manually interrupted... ")
         database.close()
-        logging.info("Http Server is ended. ")
+        logger_Qiandao.info("Http Server is ended. ")
 
