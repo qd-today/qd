@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
-## [20220314] - 2022.03.14 更新
+## [20220315] - 2022.03.15 更新
 
 1. 更新求模板链接
 2. 允许更多环境变量配置
