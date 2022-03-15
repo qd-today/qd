@@ -197,6 +197,8 @@ DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
 JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 <mysql://用户名:密码@hostname:port/数据库名?auth_plugin=>
 REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时, <br>设置为 <http://rediscloud:密码@hostname:port>
 REDIS_DB_INDEX|否|1|默认为1
+QIANDAO_EVIL|否|500|(限Redis连接已开启)登录用户或IP在1小时内 <br>操作失败(如登录, 验证, 测试等操作)次数*相应惩罚分值 <br>达到evil上限后自动封禁直至下一小时周期
+EVIL_PASS_LAN_IP|否|True|是否关闭本机私有IP地址用户及Localhost_API请求的evil限制
 TRACEBACK_PRINT|否|False|是否启用在控制台日志中打印Exception的TraceBack信息
 PUSH_PIC_URL|否|[push_pic.png](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)|默认为[push_pic.png](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)
 PUSH_BATCH_SW|否|True|是否允许开启定期推送签到任务日志, 默认为True

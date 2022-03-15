@@ -8,6 +8,7 @@
 import config
 import umsgpack
 from libs.log import Log
+from libs.utils import is_lan
 
 logger_RedisDB = Log('qiandao.RedisDB').getlogger()
 class RedisDB(object):
@@ -36,6 +37,8 @@ class RedisDB(object):
 
     def is_evil(self, ip, userid=None):
         if not self.client:
+            return False
+        if config.evil_pass_lan_ip and is_lan(ip):
             return False
         if userid:
             if int(self.client.get('user_%s' % userid) or '0') > self.evil_limit:

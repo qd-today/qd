@@ -30,6 +30,12 @@ def ip2varbinary(addr:str, version:int):
         return socket.inet_aton(addr)
     if version == 6:
         return socket.inet_pton(socket.AF_INET6,addr)
+ 
+def is_lan(ip):
+    try:
+        return ipaddress.ip_address(ip.strip()).is_private
+    except Exception as e:
+        return False
 
 def int2ip(addr):
     try:

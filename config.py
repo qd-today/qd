@@ -61,7 +61,8 @@ class redis(object):
     port = redis_url.port or 6379                                           # Redis的端口Port
     passwd = redis_url.password or None                                     # 访问Redis权限密码
     db = int(os.getenv('REDIS_DB_INDEX', 1))                                # 索引
-evil = int(os.getenv('QIANDAO_EVIL', 500))                                  # 1小时内登录用户或IP上限
+evil = int(os.getenv('QIANDAO_EVIL', 500))                                  # Redis连接成功后生效, 用于登录用户或IP在1小时内 操作失败(如登录, 验证, 测试等操作)次数*相应惩罚分值 达到evil值上限后自动封禁直至下一小时周期
+evil_pass_lan_ip = bool(strtobool(os.getenv('EVIL_PASS_LAN_IP','True')))    # 是否针对本机私有IP地址用户及Localhost_API请求关闭evil限制
 
 pbkdf2_iterations = int(os.getenv('PBKDF2_ITERATIONS', 400))                # pbkdf2 迭代次数
 aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux').encode('utf-8')).digest()                # AES加密密钥, 强烈建议修改
