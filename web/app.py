@@ -34,7 +34,7 @@ class Application(tornado.web.Application):
 
         self.jinja_env = jinja2.Environment(
                 loader=jinja2.FileSystemLoader(settings['template_path']),
-                extensions=['jinja2.ext.autoescape', 'jinja2.ext.loopcontrols', ],
+                extensions=['jinja2.ext.loopcontrols', ],
                 autoescape=True,
                 auto_reload=config.autoreload)
 
