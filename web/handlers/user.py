@@ -9,7 +9,11 @@ import json
 import time
 import datetime
 from tornado import gen
-import aiofiles
+try:
+    import aiofiles
+    aio_import = True
+except:
+    aio_import = False
 import re
 import os
 
@@ -393,6 +397,8 @@ class UserDBHandler(BaseHandler):
                         savename = "database_{now}.db".format(now=now)
                         self.set_header ('Content-Type', 'application/octet-stream')
                         self.set_header ('Content-Disposition', 'attachment; filename='+savename)
+                        if not aio_import:
+                            raise Exception(u"更新容器后请先重启容器!") 
                         async with aiofiles.open(filename, 'rb') as f:
                             while True:
                                 data = await f.read(1024)
@@ -424,6 +430,8 @@ class UserDBHandler(BaseHandler):
                     backupdata['tpls'] = tpls
                     backupdata['tasks'] = tasks
                     savename = "{mail}_{now}.json".format(mail = user['email'], now=now)
+                    if not aio_import:
+                        raise Exception(u"更新容器后请先重启容器!") 
                     async with aiofiles.open(savename, 'w', encoding='utf-8') as fp:
                         await fp.write(json.dumps(backupdata, ensure_ascii=False, indent=4 ))
                         fp.close()
