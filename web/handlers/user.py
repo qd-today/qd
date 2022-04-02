@@ -9,6 +9,7 @@ import json
 import time
 import datetime
 from tornado import gen
+import aiofiles
 import re
 import os
 
@@ -19,7 +20,6 @@ from Crypto.Hash import MD5
 
 from backup import DBnew
 
-import codecs
 import traceback
 from libs.funcs import pusher
 from libs import mcrypto as crypto
@@ -393,14 +393,14 @@ class UserDBHandler(BaseHandler):
                         savename = "database_{now}.db".format(now=now)
                         self.set_header ('Content-Type', 'application/octet-stream')
                         self.set_header ('Content-Disposition', 'attachment; filename='+savename)
-                        with open(filename, 'rb') as f:
+                        async with aiofiles.open(filename, 'rb') as f:
                             while True:
-                                data = f.read(1024)
+                                data = await f.read(1024)
                                 if not data:
                                     break
                                 self.write(data)
+                                self.flush()
                         await self.finish()
-                        return
                     else:
                         raise Exception(u"管理员才能备份数据库") 
                 else:
@@ -424,17 +424,18 @@ class UserDBHandler(BaseHandler):
                     backupdata['tpls'] = tpls
                     backupdata['tasks'] = tasks
                     savename = "{mail}_{now}.json".format(mail = user['email'], now=now)
-                    fp = codecs.open(savename, 'w', 'utf-8')
-                    fp.write(json.dumps(backupdata, ensure_ascii=False, indent=4 ))
-                    fp.close()
+                    async with aiofiles.open(savename, 'w', encoding='utf-8') as fp:
+                        await fp.write(json.dumps(backupdata, ensure_ascii=False, indent=4 ))
+                        fp.close()
                     self.set_header ('Content-Type', 'application/octet-stream')
                     self.set_header ('Content-Disposition', 'attachment; filename='+savename)
-                    with open(savename, 'rb') as f:
+                    async with aiofiles.open(savename, 'rb') as f:
                         while True:
-                            data = f.read(1024)
+                            data = await f.read(1024)
                             if not data:
                                 break
                             self.write(data)
+                            self.flush()
                     os.remove(savename)
                     await self.finish()
                     return
