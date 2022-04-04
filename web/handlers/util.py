@@ -434,7 +434,7 @@ class DdddOCRServer(object):
         self.ocr = ddddocr.DdddOcr(show_ad=False)
         self.det = ddddocr.DdddOcr(det=True,show_ad=False)
         self.extra = {}
-        if len(config.extra_onnx_name) == len(config.extra_charsets_name):
+        if len(config.extra_onnx_name) == len(config.extra_charsets_name) and config.extra_onnx_name[0] and config.extra_charsets_name[0]:
             for i in range(len(config.extra_onnx_name)):
                 self.extra[config.extra_onnx_name[i]]=ddddocr.DdddOcr(show_ad=False,
                                                                import_onnx_path=os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),"config",f"{config.extra_onnx_name[i]}.onnx"),
