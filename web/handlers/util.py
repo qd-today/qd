@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import re
 import json
 import datetime
@@ -432,8 +433,16 @@ class DdddOCRServer(object):
         self.oldocr = ddddocr.DdddOcr(old=True,show_ad=False)
         self.ocr = ddddocr.DdddOcr(show_ad=False)
         self.det = ddddocr.DdddOcr(det=True,show_ad=False)
+        self.extra = {}
+        if len(config.extra_onnx_name) == len(config.extra_charsets_name):
+            for i in range(len(config.extra_onnx_name)):
+                self.extra[config.extra_onnx_name[i]]=ddddocr.DdddOcr(show_ad=False,
+                                                               import_onnx_path=os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),"config",f"{config.extra_onnx_name[i]}.onnx"),
+                                                               charsets_path=os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),"config",f"{config.extra_charsets_name[i]}.json"))
 
-    def classification(self, img: bytes, old=False):
+    def classification(self, img: bytes, old=False, extra_onnx_name=""):
+        if extra_onnx_name:
+            return self.extra[extra_onnx_name].classification(img)
         if old:
             return self.oldocr.classification(img)
         else:
@@ -454,6 +463,7 @@ class DdddOcrHandler(BaseHandler):
                 img = self.get_argument("img", "")
                 imgurl = self.get_argument("imgurl", "")
                 old = bool(strtobool(self.get_argument("old", "False"))) 
+                extra_onnx_name = self.get_argument("extra_onnx_name", "")
                 if img:
                     img = base64.b64decode(img)
                 elif imgurl:
@@ -462,7 +472,7 @@ class DdddOcrHandler(BaseHandler):
                     img = base64.b64decode(base64_data)
                 else:
                     raise Exception(400)
-                Rtv[u"Result"] = DdddOCRServer.classification(img,old=old)
+                Rtv[u"Result"] = DdddOCRServer.classification(img,old=old, extra_onnx_name=extra_onnx_name)
                 Rtv[u"状态"] = "OK"
             else:
                 raise Exception(404)
@@ -482,10 +492,13 @@ class DdddOcrHandler(BaseHandler):
                     img = body_dict.get("img", "")
                     imgurl = body_dict.get("imgurl", "")
                     old = bool(strtobool(body_dict.get("old", "False")))
+                    extra_onnx_name = body_dict.get("extra_onnx_name", "")
                 else:
                     img = self.get_argument("img", "")
                     imgurl = self.get_argument("imgurl", "")
                     old = bool(strtobool(self.get_argument("old", "False"))) 
+                    extra_onnx_name = self.get_argument("extra_onnx_name", "")
+
                 if img:
                     img = base64.b64decode(img)
                 elif imgurl:
@@ -494,7 +507,7 @@ class DdddOcrHandler(BaseHandler):
                     img = base64.b64decode(base64_data)
                 else:
                     raise Exception(400)
-                Rtv[u"Result"] = DdddOCRServer.classification(img,old=old)
+                Rtv[u"Result"] = DdddOCRServer.classification(img, old=old, extra_onnx_name=extra_onnx_name)
                 Rtv[u"状态"] = "OK"
             else:
                 raise Exception(404)

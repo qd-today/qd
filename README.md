@@ -219,6 +219,8 @@ CURL_CONTENT_LENGTH|否|True|是否允许Curl使用Headers中自定义Content-Le
 NOT_RETRY_CODE|否|[详见配置](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)...|[详见配置](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)...
 EMPTY_RETRY|否|True|[详见配置](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)...
 USER0ISADMIN|否|True|第一个注册用户为管理员，False关闭
+EXTRA_ONNX_NAME|否|""|config目录下自定义ONNX文件名<br>(不填 ".onnx" 后缀)<br>多个onnx文件名用"\|"分隔
+EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.json文件名<br>(不填 ".json" 后缀)<br>多个json文件名用"|"分隔
 > 详细信息请查阅[config.py](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)
 
 ## 旧版local_config.py迁移
