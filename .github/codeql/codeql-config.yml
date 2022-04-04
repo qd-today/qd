@@ -2,5 +2,5 @@ name: "My CodeQL config"
 
 paths-ignore: 
   - 'web/static/components/*/*'
-  - 'node_modules/**'
+  - 'node_modules/*'
   - '*.test.js'
