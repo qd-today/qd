@@ -550,7 +550,7 @@
             ],
             cookies: [],
             postData: {
-              text: "{\"img\":\"\",\"imgurl\":\"\",\"old\":\"False\"}"
+              text: "{\"img\":\"\",\"imgurl\":\"\",\"old\":\"False\",\"extra_onnx_name\":\"\"}"
             }
           },
           response: {},
