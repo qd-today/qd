@@ -439,6 +439,7 @@ class DdddOCRServer(object):
                 self.extra[config.extra_onnx_name[i]]=ddddocr.DdddOcr(show_ad=False,
                                                                import_onnx_path=os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),"config",f"{config.extra_onnx_name[i]}.onnx"),
                                                                charsets_path=os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),"config",f"{config.extra_charsets_name[i]}.json"))
+                logger_Web_Util.info(f"成功加载自定义Onnx模型: {config.extra_onnx_name[i]}.onnx")
 
     def classification(self, img: bytes, old=False, extra_onnx_name=""):
         if extra_onnx_name:
