@@ -1,6 +1,6 @@
 {
   "name": "qiandao_for_python3",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "authors": [
     "(a76yyyy <admin@a76yyyy.cn>",
     "AragonSnow",
@@ -23,10 +23,7 @@
     "src",
     "source",
     "spec",
-    "bower.json",
     "gruntfile.js",
-    "package.json",
-    "package-lock.json",
     "README.md"
   ],
   "dependencies": {
@@ -47,5 +44,51 @@
   "license": "MIT",
   "keywords": [
     "qiandao"
-  ]
+  ],
+  "exportsOverride": {
+    "blueimp-md5": {
+      "js": "js/md5.js"
+    },
+    "js-base64": {
+      "": "base64.js"
+    },
+    "angular": {
+      "": "*.min.js"
+    },
+    "jquery": {
+      "dist": "dist/jquery.min.js"
+    },
+    "bootstrap": {
+      "dist/css": "dist/css/*.*",
+      "dist/js": "dist/js/*.js",
+      "dist/fonts": "dist/fonts/*.*"
+    },
+    "seajs": {
+      "dist": "dist/sea.js"
+    },
+    "select2": {
+      "dist/js": "dist/js/*.min.js",
+      "dist/css": "dist/css/*.min.css"
+    },
+    "nprogress": {
+      "": [
+        "nprogress.js",
+        "nprogress.css"
+      ]
+    },
+    "jquery.tablesorter": {
+      "dist/js": "dist/js/*.min.js",
+      "css": "css/*.css"
+    },
+    "Font-Awesome": {
+      "css": "css/*.min.css",
+      "fonts": "fonts/*.*"
+    },
+    "clipboard": {
+      "dist": "dist/clipboard.min.js"
+    },
+    "draggable-polyfill": {
+      "lib": "lib/draggable-polyfill.js"
+    }
+  }
 }

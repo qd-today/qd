@@ -67,17 +67,20 @@ module.exports = function(grunt) {
         tasks: ['jshint:lib_test', 'nodeunit']
       }
     },
-    bower: {  
+    bower: {
       install: {
-           options: {
-                   "targetDir": "./static/components/lib",
-                   "layout": "byComponent",
-                   "install": true,
-                   "verbose": false,
-                   "cleanTargetDir": false
-                 }
-             }
-         }
+        options: {
+          targetDir: './static/components',
+          layout: 'byComponent',
+          copy: true,
+          install: true,
+          verbose: false,
+          cleanTargetDir: false,
+          cleanBowerDir: false,
+          bowerOptions: {}
+        }
+      }
+    }
   });
 
   // These plugins provide necessary tasks.
@@ -89,6 +92,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-bower-task');
   grunt.loadNpmTasks('grunt-contrib-clean');
   // Default task.
-  grunt.registerTask('default', ['jshint', 'nodeunit', 'concat', 'uglify']);
+  grunt.registerTask('default', ['jshint', 'nodeunit', 'concat', 'uglify','watch']);
 
 };
