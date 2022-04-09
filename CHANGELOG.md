@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20220410] - 2022.04.10 更新
+
+1. 关闭私有IP用户及API请求的evil限制
+2. 优化网页端备份恢复数据库
+3. 优化前端js占用容器空间
+4. 添加源码方式更新容器重启提示
+5. 支持自定义onnx导入及ocr调用
+
 ## [20220315] - 2022.03.15 更新
 
 1. 更新求模板链接
