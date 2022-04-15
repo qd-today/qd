@@ -255,7 +255,7 @@ define (require, exports, module) ->
         (h.value for h in entry.request.headers when h.checked)
         (c.name for c in entry.request.cookies when c.checked)
         (c.value for c in entry.request.cookies when c.checked)
-        [entry.request.postData?.text,]
+        [entry.request.postData?.text, ]
       ].map((list) ->
         for string in list
           for each in exports.variables(string)

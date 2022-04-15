@@ -129,14 +129,14 @@ define (require, exports, module) ->
         alert_info_elem = angular.element('#save-har .alert-info').hide()
 
         first_entry = (() ->
-          for entry in $scope.har.log.entries when entry.checked
+          for entry in $scope.har.log.entries when (entry.checked and entry.request.url?.indexOf('://') != -1 and utils.url_parse(entry.request.url).protocol?.indexOf('api:') is -1)
             variables = analysis.variables_in_entry(entry)
             if ('cookies' in variables or 'cookie' in variables)
               return entry
         )()
         if not first_entry
           first_entry ?= (() ->
-            for entry in $scope.har.log.entries when entry.checked
+            for entry in $scope.har.log.entries when (entry.checked and entry.request.url?.indexOf('://') != -1 and utils.url_parse(entry.request.url).protocol?.indexOf('api:') is -1)
               return entry)()
 
         try

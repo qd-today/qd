@@ -34,8 +34,8 @@ define (require, exports, module) ->
   cookie_input = null
   $(document).on('click', "[data-toggle=get-cookie]", (ev) ->
     $this = $(this)
-    if $this.attr('disabled')
-      return
+    # if $this.attr('disabled')
+    #   return
     cookie_input = angular.element($this.parent().find('input'))
 
     if $('body').attr('get-cookie') is undefined
