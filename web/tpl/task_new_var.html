@@ -6,7 +6,7 @@
 {%- set var_lower = var.lower() %}
 {%- if var_lower == 'username' %}用户名
 {%- elif var_lower == 'password' %}密码
-{%- elif var_lower == 'cookie' or var_lower == 'cookies' %}<span>Cookies</span>{% if tpl.siteurl %}<a href="javascript:void(0)" class="control-helper" data-toggle="get-cookie" data-site="{{ asurl(tpl.siteurl) }}" data-cookie="" disabled>点击获取</a>{% endif %}
+{%- elif var_lower == 'cookie' or var_lower == 'cookies' %}<span>Cookies</span>{% if tpl.siteurl %}<a href="javascript:void(0)" class="control-helper" data-toggle="get-cookie" data-site="{{ asurl(tpl.siteurl) }}" data-cookie="">点击获取</a>{% endif %}
 {%- else %}{{ var }}
 {%- endif -%}
 {% endmacro %}
