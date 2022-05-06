@@ -14,6 +14,7 @@ import umsgpack
 from tornado import gen
 from jinja2 import Environment, meta
 from libs import utils
+from libs.fetcher import Fetcher
 
 from .base import *
 
@@ -90,7 +91,7 @@ class HARSave(BaseHandler):
     def get_variables(tpl):
         variables = set()
         extracted = set(utils.jinja_globals.keys())
-        env = Environment()
+        env = Fetcher().jinja_env
         for entry in tpl:
             req = entry['request']
             rule = entry['rule']

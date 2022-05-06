@@ -444,5 +444,6 @@ jinja_globals = {
 
 jinja_inner_globals = {
     'dict': dict,
-    'lipsum': jinja2.utils.generate_lorem_ipsum
+    'lipsum': jinja2.utils.generate_lorem_ipsum,
+    'range': range,
 }
