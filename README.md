@@ -1,6 +1,6 @@
 <p align="center">
    <a href="https://github.com/qiandao-today/qiandao">
-   <img style="border-radius:50%" width="150" src="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/icon.png">
+   <img style="border-radius:50%" width="150" src="https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/icon.png">
    </a>
 </p>
 
@@ -51,8 +51,8 @@
 </div>
 
 <p align="center">
-   <img width="45%" style="border:solid 1px #DCEBFB" src="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/login.png" >
-   <img width="45%" style="border:solid 1px #DCEBFB" src="https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/index.png">
+   <img width="45%" style="border:solid 1px #DCEBFB" src="https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/login.png" >
+   <img width="45%" style="border:solid 1px #DCEBFB" src="https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/index.png">
 </p>
 
 操作说明
@@ -75,7 +75,7 @@ Docker容器部署方式
    # 创建并切换至 qiandao 目录
    mkdir -p $(pwd)/qiandao/config && cd $(pwd)/qiandao
    # 下载 docker-compose.yml
-   wget https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/docker-compose.yml
+   wget https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/docker-compose.yml
    # 根据需求和配置描述修改配置环境变量
    vi ./docker-compose.yml
    # 执行 Docker Compose 命令
@@ -200,7 +200,7 @@ REDIS_DB_INDEX|否|1|默认为1
 QIANDAO_EVIL|否|500|(限Redis连接已开启)登录用户或IP在1小时内 <br>操作失败(如登录, 验证, 测试等操作)次数*相应惩罚分值 <br>达到evil上限后自动封禁直至下一小时周期
 EVIL_PASS_LAN_IP|否|True|是否关闭本机私有IP地址用户及Localhost_API请求的evil限制
 TRACEBACK_PRINT|否|False|是否启用在控制台日志中打印Exception的TraceBack信息
-PUSH_PIC_URL|否|[push_pic.png](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)|默认为[push_pic.png](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)
+PUSH_PIC_URL|否|[push_pic.png](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)|默认为[push_pic.png](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)
 PUSH_BATCH_SW|否|True|是否允许开启定期推送签到任务日志, 默认为True
 MAIL_SMTP|否|""|邮箱SMTP服务器
 MAIL_PORT|否|""|邮箱SMTP服务器端口
@@ -216,12 +216,12 @@ ALLOW_RETRY|否|True|在Pycurl环境下部分请求可能导致Request错误时,
 DNS_SERVER|否|""|通过Curl使用指定DNS进行解析(仅支持Pycurl环境), <br>如 8.8.8.8
 CURL_ENCODING|否|True|是否允许使用Curl进行Encoding操作
 CURL_CONTENT_LENGTH|否|True|是否允许Curl使用Headers中自定义Content-Length请求
-NOT_RETRY_CODE|否|[详见配置](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)...|[详见配置](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)...
-EMPTY_RETRY|否|True|[详见配置](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)...
+NOT_RETRY_CODE|否|[详见配置](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)...|[详见配置](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)...
+EMPTY_RETRY|否|True|[详见配置](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)...
 USER0ISADMIN|否|True|第一个注册用户为管理员，False关闭
 EXTRA_ONNX_NAME|否|""|config目录下自定义ONNX文件名<br>(不填 ".onnx" 后缀)<br>多个onnx文件名用"\|"分隔
 EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.json文件名<br>(不填 ".json" 后缀)<br>多个json文件名用"\|"分隔
-> 详细信息请查阅[config.py](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)
+> 详细信息请查阅[config.py](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)
 
 ## 旧版local_config.py迁移
 
@@ -240,7 +240,7 @@ EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.j
 
    ``` bash
    # 先cd到源码所在目录, 执行命令后重启进程 
-   wget https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
+   wget https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
    sh ./update.sh 
    ```
 
@@ -248,7 +248,7 @@ EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.j
 
    ``` bash
    # 先进入容器后台, 执行命令后重启容器 
-   wget https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O /usr/src/app/update.sh && \
+   wget https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O /usr/src/app/update.sh && \
    sh /usr/src/app/update.sh
    ```
 
@@ -256,7 +256,7 @@ EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.j
 
    ``` bash
    # 先cd到仓库代码根目录, 执行命令后重启进程 
-   wget https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
+   wget https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
    sh ./update.sh -f
    ```
 
@@ -290,11 +290,11 @@ EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.j
 
 [a76yyyy](https://github.com/a76yyyy/qiandao)
 
-[……](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/version.json)
+[……](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/version.json)
 
 个人项目精力有限, 仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request。
 
 许可
 ===========
 
-[MIT](https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/LICENSE) 许可协议
+[MIT](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/LICENSE) 许可协议

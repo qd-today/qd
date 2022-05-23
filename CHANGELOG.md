@@ -32,7 +32,7 @@ Nothing right now.
 
  ``` bash
    # 先cd到源码所在目录, 执行命令后重启进程 
-   wget https://cdn.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
+   wget https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
    sh ./update.sh 
    ```
 

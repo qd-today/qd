@@ -388,7 +388,7 @@
 		"万能福利吧": {
             "name": "万能福利吧",
             "author": "github-h",
-            "url": "https://cdn.jsdelivr.net/gh/qiandao-today/templates@master/万能福利吧.har",
+            "url": "https://fastly.jsdelivr.net/gh/qiandao-today/templates@master/万能福利吧.har",
             "update": false,
             "comments": "cookie  https://www.wnflb2020.com/forum.php",
             "filename": "万能福利吧.har",
@@ -400,7 +400,7 @@
 		"高清MP4粉": {
             "name": "高清MP4粉",
             "author": "github-h",
-            "url": "https://cdn.jsdelivr.net/gh/qiandao-today/templates@master/高清MP4粉.har",
+            "url": "https://fastly.jsdelivr.net/gh/qiandao-today/templates@master/高清MP4粉.har",
             "update": false,
             "comments": "cookie  每日签到  https://mp4fan.org/",
             "filename": "高清MP4粉.har",
@@ -472,7 +472,7 @@
 		"evacgE次元": {
             "name": "evacgE次元",
             "author": "AragonSnow",
-            "url": "https://cdn.jsdelivr.net/gh/qiandao-today/templates@master/evacg(E%E6%AC%A1%E5%85%83).har",
+            "url": "https://fastly.jsdelivr.net/gh/qiandao-today/templates@master/evacg(E%E6%AC%A1%E5%85%83).har",
             "update": false,
             "comments": "cookie和homeaction,都在首页链接里",
             "filename": "evacg(E次元).har",
@@ -484,7 +484,7 @@
 		"数码之家": {
             "name": "数码之家",
             "author": "acooler15",
-            "url": "https://cdn.jsdelivr.net/gh/qiandao-today/templates@master/数码之家.har",
+            "url": "https://fastly.jsdelivr.net/gh/qiandao-today/templates@master/数码之家.har",
             "update": false,
             "comments": "首页cookie",
             "filename": "数码之家.har",
@@ -496,7 +496,7 @@
 		"迅维网": {
             "name": "迅维网",
             "author": "acooler15",
-            "url": "https://cdn.jsdelivr.net/gh/qiandao-today/templates@master/迅维网.har",
+            "url": "https://fastly.jsdelivr.net/gh/qiandao-today/templates@master/迅维网.har",
             "update": false,
             "comments": "首页cookie",
             "filename": "迅维网.har",
@@ -508,7 +508,7 @@
 		"远景论坛": {
             "name": "远景论坛",
             "author": "acooler15",
-            "url": "https://cdn.jsdelivr.net/gh/qiandao-today/templates@master/远景论坛.har",
+            "url": "https://fastly.jsdelivr.net/gh/qiandao-today/templates@master/远景论坛.har",
             "update": false,
             "comments": "首页cookie",
             "filename": "远景论坛.har",
@@ -520,7 +520,7 @@
 		"91Wii核心玩家的集中营": {
             "name": "91Wii核心玩家的集中营",
             "author": "FellBan",
-            "url": "https://cdn.jsdelivr.net/gh/qiandao-today/templates@master/91Wii核心玩家的集中营.har",
+            "url": "https://fastly.jsdelivr.net/gh/qiandao-today/templates@master/91Wii核心玩家的集中营.har",
             "update": false,
             "comments": "cookie",
             "filename": "91Wii核心玩家的集中营.har",
@@ -532,7 +532,7 @@
         "致美化": {
             "name": "致美化",
             "author": "FellBan",
-            "url": "https://cdn.jsdelivr.net/gh/qiandao-today/templates@master/%E8%87%B4%E7%BE%8E%E5%8C%96.har",
+            "url": "https://fastly.jsdelivr.net/gh/qiandao-today/templates@master/%E8%87%B4%E7%BE%8E%E5%8C%96.har",
             "update": false,
             "comments": "user(用户名)，password(密码)",
             "filename": "致美化.har",
@@ -544,7 +544,7 @@
         "Hao4K": {
             "name": "Hao4K",
             "author": "QQ群",
-            "url": "https://cdn.jsdelivr.net/gh/qiandao-today/templates@master/Hao 4K-账号版.har",
+            "url": "https://fastly.jsdelivr.net/gh/qiandao-today/templates@master/Hao 4K-账号版.har",
             "update": false,
             "comments": "user(用户名)，password(密码)",
             "filename": "Hao 4K-账号版.har",

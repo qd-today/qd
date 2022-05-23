@@ -32,7 +32,7 @@ services:
       # - JAWSDB_MARIA_URL=mysql://user:pass@localhost:3306/dbname?auth_plugin=
       - REDISCLOUD_URL=redis://redis:6379
       # - TRACEBACK_PRINT=False
-      # - PUSH_PIC_URL=https://cdn.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png
+      # - PUSH_PIC_URL=https://fastly.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png
       # - PUSH_BATCH_SW=True
       # - DB_TYPE=sqlite3
       # - REDIS_DB_INDEX=1
