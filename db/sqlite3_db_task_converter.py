@@ -294,7 +294,7 @@ class DBconverter(_TaskDB, BaseDB):
         try:
             self.db.task.get("1", fields=('_groups'))
         except :
-            exec_shell("ALTER TABLE `task` ADD `_groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
+            exec_shell("ALTER TABLE `task` ADD `_groups` VARCHAR(256) NOT NULL DEFAULT 'None' " )
 
         try:
             groups = self.db.tpl.get("1", fields=('`groups`'))
@@ -337,7 +337,7 @@ class DBconverter(_TaskDB, BaseDB):
         try:
             self.db.tpl.get("1", fields=('_groups'))
         except :
-            exec_shell("ALTER TABLE `tpl` ADD `_groups` VARBINARY(128) NOT NULL DEFAULT 'None' " )
+            exec_shell("ALTER TABLE `tpl` ADD `_groups` VARCHAR(256) NOT NULL DEFAULT 'None' " )
             
         try:
             tmp = self.db.site.get("1", fields=('logDay'))
