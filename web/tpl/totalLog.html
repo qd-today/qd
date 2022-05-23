@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}签到日志{% endblock %}
+
+{% block header %}
+{{ super() }}
+<link href="{{ static_url('css/my.css') }}" rel="stylesheet" type="text/css">
+{% endblock %}
+
+{% block body %}
+{{ utils.header(current_user) }}
+
+<section>
+  <div class="container">
+    <h2>
+      任务执行总日志
+    </h2>
+    <div>
+      <button type="button" class="btn btn-default" href="javascript:void(0);" onClick="displaydaylog()">显示</a>
+      </button>
+      <input type="text" id='day' name="tasklog.logDay" value="{{ days }}" oninput = "value=value.replace(/[^\d]/g,'')">天的日志 
+    </div>
+    <div class="input-group margin-bottom-sm">
+      <span class="input-group-addon"><i class="fa fa-search" aria-hidden="true"></i></span>
+      <input id="search-input" class="search form-control input-lg" placeholder="搜索" autocomplete="off" spellcheck="false" autocorrect="off" tabindex="1" data-column="all">
+      <span class="input-group-addon btn btn-default"><span type="span" class="fa fa-times-circle reset" aria-hidden="true"> 清空</span></span>
+    </div>
+	<table id="total_log" class="table table-hover tablesorter">
+      <thead>
+        <tr>
+          <th style="text-align:center">序号</th>
+          <th style="text-align:center">模板</th>
+          <th style="text-align:center">任务</th>
+          <th style="text-align:center">时间</th>
+          <th style="text-align:center">状态</th>
+          <th>日志</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasklog | sort(reverse=True, attribute="log.ctime") %}
+        <tr>
+          <td style="text-align:center">{{ loop.index }}</td>
+          <td style="white-space:nowrap">
+            {{ utils.tplname(task.tpl) if task.tpl else "[已删除]" }}
+            {% if task.tpl.fork %}<span>[fork]</span>{% endif %}-<kbd>{{ task.tpl.siteurl }}</kbd>
+          </td>
+          <td style="white-space:nowrap">{{ utils.tplname(task.tpl) if task.tpl else "[已删除]" }}
+            {% if task.note %}
+            -
+              <code>
+              {% if task.note | length > 15 %}
+              <span data-toggle="popover" data-content="{{ task.note }}">{{ task.note | truncate(15, killwords=True, leeway=0) }}</span>
+              {% else %} {{ task.note }} {% endif %}
+              </code>
+              {% endif %}</td>
+          <td style="white-space:nowrap">{{ format_date(task.log.ctime) }}</td>
+          <td style="white-space:nowrap;text-align:center">
+            {% if task.log.success %}
+            <span class="text-success">成功</span>
+            {% else %}
+            <span class="text-danger">失败</span>
+            {% endif %}
+          </td>
+          <td class="autowrap showbut" id="log{{loop.index}}">
+            {% if task.log.msg %}
+              {% for _log in task.log.msg.split('\\r\\n') %}
+                {{ _log }}<br>
+              {% endfor %}
+              <button class="btn hljs-button" data-clipboard-target="#log{{ loop.index }}">复制</button>
+            {% else %}
+              {{ task.log.msg }}
+              <button class="btn hljs-button" data-clipboard-target="#log{{ loop.index }}">复制</button>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script>
+  $(function () {
+    // Extend the themes to change any of the default class names
+    $.tablesorter.themes.bootstrap = {
+      // these classes are added to the table. To see other table classes available,
+      // look here: http://getbootstrap.com/css/#tables
+      table        : 'table table-hover',
+      caption      : 'caption',
+      // header class names
+      header       : 'bootstrap-header', // give the header a gradient background (theme.bootstrap_2.css)
+      sortNone     : '',
+      sortAsc      : '',
+      sortDesc     : '',
+      active       : '', // applied when column is sorted
+      hover        : '', // custom css required - a defined bootstrap style may not override other classes
+      // icon class names
+      icons        : '', // add "bootstrap-icon-white" to make them white; this icon class is added to the <i> in the header
+      iconSortNone : 'bootstrap-icon-unsorted', // class name added to icon when column is not sorted
+      iconSortAsc  : 'glyphicon glyphicon-chevron-up', // class name added to icon when column has ascending sort
+      iconSortDesc : 'glyphicon glyphicon-chevron-down', // class name added to icon when column has descending sort
+      filterRow    : '', // filter row class; use widgetOptions.filter_cssFilter for the input/select element
+      footerRow    : '',
+      footerCells  : '',
+      even         : '', // even row zebra striping
+      odd          : ''  // odd row zebra striping
+    };
+    $("#total_log").tablesorter({
+      theme: "bootstrap",
+      // sortList:[[0]],
+      // headers:{0:{sorter:false, parser: false}},
+      headerTemplate : '{content} {icon}', // needed to add icon for jui theme
+      widgets : ['uitheme', 'filter'],
+      widgetOptions : {
+        // using the default zebra striping class name, so it actually isn't included in the theme variable above
+        // this is ONLY needed for bootstrap theming if you are using the filter widget, because rows are hidden
+        // zebra : ["even", "odd"],
+        // class names added to columns when sorted
+        // reset filters button
+        filter_reset : ".reset",
+        filter_external : '.search',
+        filter_columnFilters: false,
+        // extra css class name (string or array) added to the filter element (input or select)
+        filter_cssFilter: "form-control"
+        // set the uitheme widget to use the bootstrap theme class names
+        // this is no longer required, if theme is set
+        // ,uitheme : "bootstrap"
+      }
+    });
+  })
+</script>
+
+<script>
+  function displaydaylog(){
+    var days =  document.getElementById("day").value;
+    if (days != ""){
+      window.location.href='/task/{{ userid }}/log/total/'+days;
+    }
+    return false;
+  }
+  </script>
+
+{% endblock %}

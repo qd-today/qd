@@ -244,6 +244,26 @@ class TaskLogHandler(BaseHandler):
 
         await self.render('tasklog.html', task=task, tasklog=tasklog)
 
+class TotalLogHandler(BaseHandler):
+    @tornado.web.authenticated
+    async def get(self, userid, days):
+        tasks = []
+        days = int(days)
+        user = self.current_user
+        if userid == str(user['id']):
+            for task in self.db.task.list(userid, fields=('id', 'tplid', 'note'), limit=None):
+                tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
+                task['tpl'] = tpl
+                for log in self.db.tasklog.list(taskid = task['id'], fields=('id','success', 'ctime', 'msg')):
+                    if (time.time() - log['ctime']) <= (days * 24 * 60 * 60):
+                        task['log'] = log
+                        tasks.append(task.copy())
+
+            await self.render('totalLog.html', userid=userid, tasklog=tasks, days=days)
+        else:
+            self.evil(+5)
+            raise HTTPError(401)
+
 class TaskLogDelHandler(BaseHandler):
     @tornado.web.authenticated
     def get(self, taskid):
@@ -488,6 +508,7 @@ handlers = [
         ('/task/(\d+)/del', TaskDelHandler), 
         ('/task/(\d+)/disable', TaskDisableHandler),
         ('/task/(\d+)/log', TaskLogHandler),
+        ('/task/(\d+)/log/total/(\d+)', TotalLogHandler),
         ('/task/(\d+)/log/del', TaskLogDelHandler),
         ('/task/(\d+)/log/del/Success', TaskLogSuccessDelHandler),
         ('/task/(\d+)/log/del/Fail', TaskLogFailDelHandler),
