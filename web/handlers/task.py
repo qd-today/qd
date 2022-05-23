@@ -190,6 +190,11 @@ class TaskRunHandler(BaseHandler):
             logtmp = u"{0} \\r\\n日志：{1}".format(t, e)
 
             self.db.tasklog.add(task['id'], success=False, msg=str(e))
+            self.db.task.mod(task['id'],
+                    last_failed=time.time(),
+                    failed_count=task['failed_count']+1,
+                    last_failed_count=task['last_failed_count']+1,
+                    )
             await self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
 
             await pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
