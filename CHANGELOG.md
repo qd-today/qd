@@ -4,9 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+Nothing right now.
+
 ## [Unreleased]
 
-Nothing right now.
+1. 修复获取Cookie的Bug
+2. 更新getcookie按钮机制
+3. 修复保存har时Jinja Filter报错 Fix qiandao-today/qiandao#256
+4. 更新 jsdelivr CDN
+5. 修复分组名称以数字开头导致500报错 Fix qiandao-today/qiandao#261
+6. 支持单独删除失败日志 Fix a76yyyy/qiandao#14
+7. 定时页面显示单个任务是否已经定时
+8. 当config.debug为True时, traceback_print默认为True
+9. 手动执行任务失败后失败计次+1
+10. 工具箱添加总日志显示 feat qiandao-today/qiandao#161
 
 ## [20220410] - 2022.04.10 更新
 
