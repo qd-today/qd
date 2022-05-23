@@ -499,28 +499,6 @@
   })
 </script>
 
-<script>
-  function Del_task_log (id) {
-
-    var data = {taskids: JSON.stringify(Indexs), func: "Del"}
-    $.ajax('/tasks/{{ userid }}', {
-        type: 'POST',
-        data: data,
-      })
-      .done(function(data) {
-        goto_my()
-      })
-      .fail(function(jxhr) {
-        $("del_confirm-result").html('<h1 class="alert alert-danger text-center">失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
-      })
-      .always(function() {
-        $this.button('reset');});
-  
-    return false;
-  }
-  
-</script>
-
 {% include 'LeftFuncBtn.html' %}
 {{ utils.modal_load() }}
 {{ utils.apost() }}
