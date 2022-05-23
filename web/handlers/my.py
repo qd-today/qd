@@ -62,8 +62,10 @@ class MyHandler(BaseHandler):
 
             _groups = []
             for task in tasks:
+                if not isinstance(task['_groups'], str):
+                    task['_groups'] = str(task['_groups'])
                 temp = task['_groups']
-                if (temp not  in _groups):
+                if (temp not in _groups):
                     _groups.append(temp)
 
             tplgroups = []
