@@ -92,7 +92,7 @@
               {% endif %}
               
           </td>
-          <td style="text-align:center;color: #cacaca;"><a style="color:#518cb9;" title="成功计次">{{ task.success_count }}</a> / <a style="color:#c15454;" title="失败计次">{{ task.failed_count }}</a></td>
+          <td style="text-align:center;color: #cacaca;"><a style="color:#518cb9;" data-method="Get" href="/task/{{ task.id }}/log/del/Success" data-confirm="是否要删除任务执行成功日志?" title="成功计次">{{ task.success_count }}</a> / <a style="color:#c15454;" data-method="Get" href="/task/{{ task.id }}/log/del/Fail" data-confirm="是否要删除任务执行失败日志?" title="失败计次">{{ task.failed_count }}</a></td>
           <td><span data-toggle="popover" data-content="{{ format_date(task.last_success,-8*60,True,False,True) if task.last_success else '从未' }}">{{ format_date(task.last_success) if task.last_success else '从未' }}</span></td>
 
           <td style="text-align:center">{{ my_status(task) }}</td>
@@ -497,6 +497,28 @@
       }
     });
   })
+</script>
+
+<script>
+  function Del_task_log (id) {
+
+    var data = {taskids: JSON.stringify(Indexs), func: "Del"}
+    $.ajax('/tasks/{{ userid }}', {
+        type: 'POST',
+        data: data,
+      })
+      .done(function(data) {
+        goto_my()
+      })
+      .fail(function(jxhr) {
+        $("del_confirm-result").html('<h1 class="alert alert-danger text-center">失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+      })
+      .always(function() {
+        $this.button('reset');});
+  
+    return false;
+  }
+  
 </script>
 
 {% include 'LeftFuncBtn.html' %}

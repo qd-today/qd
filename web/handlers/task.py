@@ -246,6 +246,10 @@ class TaskLogDelHandler(BaseHandler):
         for log in tasklog:
             self.db.tasklog.delete(log['id'])
         tasklog = self.db.tasklog.list(taskid = taskid, fields=('id', 'success', 'ctime', 'msg'))
+        self.db.task.mod(taskid,
+                    success_count=0,
+                    failed_count=0
+                    )
 
         self.redirect("/task/{0}/log".format(taskid))
         return
@@ -267,6 +271,43 @@ class TaskLogDelHandler(BaseHandler):
         tasklog = self.db.tasklog.list(taskid = taskid, fields=('id', 'success', 'ctime', 'msg'))
 
         self.redirect("/task/{0}/log".format(taskid))
+        return
+
+class TaskLogSuccessDelHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, taskid):
+        user = self.current_user
+        task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'disabled')))
+        tasklog = self.db.tasklog.list(taskid = taskid, fields=('id', 'success', 'ctime', 'msg'))
+        for log in tasklog:
+            if log['success'] == 1:
+                self.db.tasklog.delete(log['id'])
+        tasklog = self.db.tasklog.list(taskid = taskid, fields=('id', 'success', 'ctime', 'msg'))
+        self.db.task.mod(taskid,
+                    success_count=0
+                    )
+
+        referer = self.request.headers.get('referer', '/my/')
+        self.redirect(referer)
+        return
+
+class TaskLogFailDelHandler(BaseHandler):
+    @tornado.web.authenticated
+    def get(self, taskid):
+        user = self.current_user
+        task = self.check_permission(self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'disabled')))
+        tasklog = self.db.tasklog.list(taskid = taskid, fields=('id', 'success', 'ctime', 'msg'))
+        for log in tasklog:
+            if log['success'] == 0:
+                self.db.tasklog.delete(log['id'])
+        
+        tasklog = self.db.tasklog.list(taskid = taskid, fields=('id', 'success', 'ctime', 'msg'))
+        self.db.task.mod(taskid,
+                    failed_count=0
+                    )
+
+        referer = self.request.headers.get('referer', '/my/')
+        self.redirect(referer)
         return
 
 class TaskDelHandler(BaseHandler):
@@ -439,6 +480,8 @@ handlers = [
         ('/task/(\d+)/disable', TaskDisableHandler),
         ('/task/(\d+)/log', TaskLogHandler),
         ('/task/(\d+)/log/del', TaskLogDelHandler),
+        ('/task/(\d+)/log/del/Success', TaskLogSuccessDelHandler),
+        ('/task/(\d+)/log/del/Fail', TaskLogFailDelHandler),
         ('/task/(\d+)/run', TaskRunHandler),
         ('/task/(\d+)/group', TaskGroupHandler),
         ('/tasks/(\d+)', TasksDelHandler), 
