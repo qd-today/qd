@@ -76,7 +76,8 @@ if __name__ == "__main__":
     try:
         from web.app import Application
         converter = sqlite3_db_task_converter.DBconverter()
-        converter.ConvertNewType(database) 
+        converter.ConvertNewType(DB()) 
+        converter.db.close()
 
         from tornado.httpserver import HTTPServer
         http_server = HTTPServer(Application(database), xheaders=True)
