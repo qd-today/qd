@@ -32,6 +32,8 @@ class TaskMultiOperateHandler(BaseHandler):
                 raise Exception('错误参数')
             if (tasktype == 'setgroup'):
                 for task in self.db.task.list(user['id'], fields=('_groups'), limit=None):
+                    if not isinstance(task['_groups'], str):
+                        task['_groups'] = str(task['_groups'])
                     temp = task['_groups']
                     if (temp not  in _groups):
                         _groups.append(temp)
