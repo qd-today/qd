@@ -4,9 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
 Nothing right now.
 
-## [Unreleased]
+## [20220525] - 2022.05.25 更新
 
 1. 修复获取Cookie的Bug
 2. 更新getcookie按钮机制
