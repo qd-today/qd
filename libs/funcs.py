@@ -25,6 +25,22 @@ class pusher(object):
         self.db = db
         self.fetcher = Fetcher()
     
+    def judge_res(self,res):
+        if (res.status_code == 200):
+            r = "True"
+        else:
+            if res.text:
+                try:
+                    text = json.loads(res.text)
+                except :
+                    text = res.text
+                raise Exception(text)
+            elif res.__dict__.get('reason'):
+                raise Exception('Reason: %s' % res.reason)
+            else:
+                raise Exception('status code: %d' % res.status_code)
+        return r
+    
     async def pusher(self, userid, pushsw, flg, title, content):
         notice = self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token', 'diypusher'))
 
@@ -76,10 +92,12 @@ class pusher(object):
             #        'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
             # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
             res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
-            r = 'True'
+            r = self.judge_res(res)
+
         except Exception as e:
             r = traceback.format_exc()
             logger_Funcs.error('Sent to Bark error: %s', e)
+            return e
         
         return r
         
@@ -94,10 +112,12 @@ class pusher(object):
                 #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
                 # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
                 res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, data=d, verify=False)),timeout=3.0)
-                r = 'True'
+                r = self.judge_res(res)
+
             except Exception as e:
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to ServerChan error: %s', e)
+                return e
         return r   
     
     async def send2tg(self, tg_token, title, content):
@@ -143,10 +163,11 @@ class pusher(object):
                 else:
                     # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
                     res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
-                r = 'True'
+                r = self.judge_res(res)
             except Exception as e:
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to Telegram error: %s', e)
+                return e
         return r
 
     async def send2dingding(self, dingding_token, title, content):
@@ -165,10 +186,11 @@ class pusher(object):
                 #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
                 # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
                 res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
-                r = 'True'
+                r = self.judge_res(res)
             except Exception as e:
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to DingDing error: %s', e)
+                return e
         return r   
 
     async def send2wxpusher(self, wxpusher, content):
@@ -192,10 +214,11 @@ class pusher(object):
                 #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
                 # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
                 res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
-                r = 'True'
+                r = self.judge_res(res)
             except Exception as e:
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to WxPusher error: %s', e)
+                return e
 
         return  r  
 
@@ -239,12 +262,12 @@ class pusher(object):
                 raise Exception(u'模式未选择')
             # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
 
-            if (res.status_code == 200):
-                r = "True"
+            r = self.judge_res(res)
 
         except Exception as e:
             r = traceback.format_exc()
-            logger_Funcs.exception('Sent to Cus_Pusher error: %s', e)
+            logger_Funcs.error('Sent to Cus_Pusher error: %s', e)
+            return e
         return r
 
     # 获取Access_Token
@@ -311,6 +334,7 @@ class pusher(object):
                 # _,_,msg_res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
                 # tmp = json.loads(msg_res.body)
                 msg_res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, msgUrl, json=postData, verify=False)),timeout=3.0)
+                self.judge_res(msg_res)
                 tmp = msg_res.json()
                 if (tmp['errmsg'] == 'ok' and tmp['errcode'] == 0):
                     r = 'True'

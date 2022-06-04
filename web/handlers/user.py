@@ -616,10 +616,10 @@ class custom_pusher_Handler(BaseHandler):
         except Exception as e:
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            if config.traceback_print:
-                traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             logger_Web_Handler.error('UserID: %s register or tes Cus_Pusher failed! Reason: %s', userid or '-1', str(e))
+            if config.traceback_print:
+                traceback.print_exc()
             return
 
         await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
