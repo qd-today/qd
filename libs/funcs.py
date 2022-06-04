@@ -187,6 +187,8 @@ class pusher(object):
                 # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
                 res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
                 r = self.judge_res(res)
+                if res.json().get('errcode', '') != 0:
+                    raise Exception(res.json())
             except Exception as e:
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to DingDing error: %s', e)
@@ -215,10 +217,14 @@ class pusher(object):
                 # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
                 res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
                 r = self.judge_res(res)
+                if not res.json().get('success', True):
+                    raise Exception(res.json())
             except Exception as e:
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to WxPusher error: %s', e)
                 return e
+        else:
+            return Exception("参数不完整! ")
 
         return  r  
 
@@ -299,11 +305,11 @@ class pusher(object):
                 qywx[u'应用密钥'] = tmp[2]
                 qywx[u'图片'] = tmp[3] if len(tmp) >= 4 else ''
             else:
-                raise Exception(u'企业微信token错误')
+                raise Exception(u'企业微信获取AccessToken失败或参数不完整!')
 
             get_access_token_res = await self.get_access_token(qywx)
             pic_url = config.push_pic if qywx[u'图片'] == '' else qywx[u'图片']
-            if (get_access_token_res['access_token'] != '' and get_access_token_res['errmsg'] == 'ok'):
+            if (get_access_token_res.get('access_token','') != '' and get_access_token_res['errmsg'] == 'ok'):
                 access_token = get_access_token_res["access_token"]
                 media_id = await self.get_ShortTimeMedia(pic_url,access_token)
                 msgUrl = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={0}'.format(access_token)
@@ -334,14 +340,17 @@ class pusher(object):
                 # _,_,msg_res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
                 # tmp = json.loads(msg_res.body)
                 msg_res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, msgUrl, json=postData, verify=False)),timeout=3.0)
-                self.judge_res(msg_res)
+                r = self.judge_res(msg_res)
                 tmp = msg_res.json()
                 if (tmp['errmsg'] == 'ok' and tmp['errcode'] == 0):
                     r = 'True'
+            else:
+                raise Exception("企业微信获取AccessToken失败或参数不完整! ")
 
         except Exception as e:
             r = traceback.format_exc()
-            logger_Funcs.exception('Sent to QYWX error: %s', e)
+            logger_Funcs.error('Sent to QYWX error: %s', e)
+            return e
         return r
 
     async def sendmail(self, email, title, content):
