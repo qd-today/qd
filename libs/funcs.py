@@ -203,6 +203,7 @@ class pusher(object):
     async def cus_pusher_send(self, diypusher, t, log):
         r = 'False'
         try:
+            log = log.replace('"','\\"').replace('\\\\"','\\"')
             curltmp = diypusher['curl'].format(log=log, t=t)
             
             if (diypusher['headers']):
