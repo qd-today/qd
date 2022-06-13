@@ -236,7 +236,7 @@
    **/
   function allTaskgroupChecked(checkbox){
     var tmp = checkbox.name
-    var tasknodes = document.getElementsByClassName(tmp);
+    var tasknodes = document.querySelectorAll('input[class="'+tmp+'"]');
     if (tasknodes.length > 0){
         for (i = 0; i < tasknodes.length; i++) { 
           if(checkbox.checked){
