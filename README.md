@@ -7,7 +7,7 @@
 <h1 align="center">QianDao for Python3</h1>
 
 <div align="center">
-签到 —— 一个<b>自动签到框架</b> base on an HAR editor
+签到 —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Editor and Tornado Server
 
 [![HomePage][HomePage-image]][HomePage-url]
 [![Github][Github-image]][Github-url]
