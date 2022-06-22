@@ -7,7 +7,7 @@
 <h1 align="center">QianDao for Python3</h1>
 
 <div align="center">
-签到 —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Editor and Tornado Server
+Qiandao —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Editor and Tornado Server
 
 [![HomePage][HomePage-image]][HomePage-url]
 [![Github][Github-image]][Github-url]
@@ -62,7 +62,7 @@
 
 **操作前请一定要记得备份数据库**
 
-**请勿同时运行新旧版签到框架, 或将不同运行中容器的数据库映射为同一文件, 更新后请重启容器或清空浏览器缓存**
+**请勿同时运行新旧版 Qiandao 框架, 或将不同运行中容器的数据库映射为同一文件, 更新后请重启容器或清空浏览器缓存**
 
 Docker容器部署方式
 ==========
@@ -124,7 +124,7 @@ Docker容器部署方式
    docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@hostname:port/数据库名 a76yyyy/qiandao
    ```
 
-7. 其余可参考 Wiki : [Docker部署签到站教程](https://github.com/qiandao-today/qiandao/blob/master/docs/Docker-howto.md)
+7. 其余可参考 Wiki : [Docker部署 Qiandao 站教程](https://github.com/qiandao-today/qiandao/blob/master/docs/Docker-howto.md)
 
 8. DockerHub : [介绍](http://mirrors.ustc.edu.cn/help/dockerhub.html)
 
@@ -201,7 +201,7 @@ QIANDAO_EVIL|否|500|(限Redis连接已开启)登录用户或IP在1小时内 <br
 EVIL_PASS_LAN_IP|否|True|是否关闭本机私有IP地址用户及Localhost_API请求的evil限制
 TRACEBACK_PRINT|否|False|是否启用在控制台日志中打印Exception的TraceBack信息
 PUSH_PIC_URL|否|[push_pic.png](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)|默认为[push_pic.png](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)
-PUSH_BATCH_SW|否|True|是否允许开启定期推送签到任务日志, 默认为True
+PUSH_BATCH_SW|否|True|是否允许开启定期推送 Qiandao 任务日志, 默认为True
 MAIL_SMTP|否|""|邮箱SMTP服务器
 MAIL_PORT|否|""|邮箱SMTP服务器端口
 MAIL_USER|否|""|邮箱用户名
