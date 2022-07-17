@@ -5,7 +5,7 @@
 #         http://binux.me
 # Created on 2012-08-30 17:43:49
 
-import sqlite3
+from sqlalchemy import create_engine
 import config
 from libs.log import Log
 
@@ -36,9 +36,7 @@ class BaseDB(object):
 
     def __init__(self, host=config.mysql.host, port=config.mysql.port,
             database=config.mysql.database, user=config.mysql.user, passwd=config.mysql.passwd, auth_plugin=config.mysql.auth_plugin):
-        import mysql.connector
-        self.conn = mysql.connector.connect(user=user, password=passwd, host=host, port=port,
-                database=database, auth_plugin=auth_plugin, autocommit=True)
+        engine = create_engine(f"mysql://{user}:{passwd}@{host}:{port}/{database}?auth_plugin={auth_plugin}", echo=True, future=True)
 
     @staticmethod
     def escape(string):
