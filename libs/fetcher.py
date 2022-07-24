@@ -13,17 +13,18 @@ import base64
 import traceback
 import urllib.parse as urlparse
 from datetime import datetime
+from io import BytesIO
+from func_timeout import FunctionTimedOut
 
 from tornado.httputil import HTTPHeaders
 from tornado.escape import native_str
-from io import BytesIO
-
-from jinja2.sandbox import SandboxedEnvironment as Environment
 from tornado import gen, httpclient, simple_httpclient
+from jinja2.sandbox import SandboxedEnvironment as Environment
 
 import config
 from libs import cookie_utils, utils
 from .log import Log
+from .safe_eval import safe_eval
 
 logger_Fetcher = Log('qiandao.Http.Fetcher').getlogger()
 if config.use_pycurl:
@@ -520,10 +521,18 @@ class Fetcher(object):
             }
 
     FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}')
-    FOR_END = re.compile('{%\s*endfor\s*%}')
+    IF_START = re.compile('{%\s*if\s+(.+)\s*%}')
+    ELSE_START = re.compile('{%\s*else\s*%}')
+    PARSE_END = re.compile('{%\s*end(for|if)\s*%}')
 
     def parse(self, tpl):
         stmt_stack = []
+
+        def __append(entry):
+            if stmt_stack[-1]['type'] == 'if':
+                stmt_stack[-1][stmt_stack[-1]['parse']].append(entry)
+            elif stmt_stack[-1]['type'] == 'for':
+                stmt_stack[-1]['body'].append(entry)
 
         for i, entry in enumerate(tpl):
             if 'type' in entry:
@@ -536,15 +545,27 @@ class Fetcher(object):
                     'from': m.group(2),
                     'body': []
                 })
-            elif self.FOR_END.match(entry['request']['url']):
-                if stmt_stack and stmt_stack[-1]['type'] == 'for':
+            elif self.IF_START.match(entry['request']['url']):
+                m = self.IF_START.match(entry['request']['url'])
+                stmt_stack.append({
+                    'type': 'if',
+                    'condition': m.group(1),
+                    'parse': 'true',
+                    'true': [],
+                    'false': []
+                })
+            elif self.ELSE_START.match(entry['request']['url']):
+                stmt_stack[-1]['parse'] = 'false'
+            elif self.PARSE_END.match(entry['request']['url']):
+                entry_type = stmt_stack and stmt_stack[-1]['type']
+                if entry_type == 'for' or entry_type == 'if':
                     entry = stmt_stack.pop()
                     if stmt_stack:
-                        stmt_stack[-1]['body'].append(entry)
+                        __append(entry)
                     else:
                         yield entry
             elif stmt_stack:
-                stmt_stack[-1]['body'].append({
+                __append({
                     'type': 'request',
                     'entry': entry,
                 })
@@ -573,6 +594,15 @@ class Fetcher(object):
                 for each in env['variables'].get(block['from'], []):
                     env['variables'][block['target']] = each
                     env = await gen.convert_yielded(self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit))
+            elif block['type'] == 'if':
+                try:
+                    condition = safe_eval(block['condition'],env['variables'])
+                except NameError:
+                    condition = False
+                if condition:
+                    await gen.convert_yielded(self.do_fetch(block['true'], env, proxies=[proxy], request_limit=request_limit))
+                else:
+                    await gen.convert_yielded(self.do_fetch(block['false'], env, proxies=[proxy], request_limit=request_limit))
             elif block['type'] == 'request':
                 entry = block['entry']
                 try:
