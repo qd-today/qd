@@ -345,7 +345,7 @@
       </tr>
       
       <tr>
-        <td>{% for i in urls %}</td>
+        <td>{% for variable in variables %}</td>
         <td>开始一个 for 循环</td>
         <td>\</td>
         <td class="autowrap">\</td>
@@ -359,8 +359,22 @@
       </tr>
       
       <tr>
-        <td>{{loop.index}}</td>
-        <td>当前迭代的索引，从1开始算</td>
+        <td>{% if Conditional_Expression %}</td>
+        <td>开始一个 if 判断</td>
+        <td>\</td>
+        <td class="autowrap">\</td>
+      </tr>
+
+      <tr>
+        <td>{% else %}</td>
+        <td>if 判断条件不成立</td>
+        <td>\</td>
+        <td class="autowrap">\</td>
+      </tr>
+      
+      <tr>
+        <td>{% endif %}</td>
+        <td>结束一个 if 判断</td>
         <td>\</td>
         <td class="autowrap">\</td>
       </tr>
