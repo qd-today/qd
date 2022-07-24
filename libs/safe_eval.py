@@ -269,7 +269,7 @@ def timeout(sec, raise_sec=1):
         return wrapped_func
     return decorator
 
-@timeout(0.5)
+@timeout(3)
 def unsafe_eval(*args, **kwargs) :
     return eval(*args, **kwargs)
 
