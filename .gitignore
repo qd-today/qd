@@ -25,3 +25,4 @@ bower_components/
 .lh/*
 web/static/components/*/package-lock.json
 redis
+tmp/

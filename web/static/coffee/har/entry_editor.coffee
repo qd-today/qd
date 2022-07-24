@@ -164,6 +164,92 @@ define (require, exports, module) ->
         response: {}
       })
 
+    $scope.add_for_start = () ->
+      $scope.insert_request(1, {
+        checked: true
+        pageref: $scope.entry.pageref
+        recommend: true,
+        comment: '循环开始'
+        request:
+          method: 'GET'
+          url: '{% for variable in variables %}'
+          postData:
+            test: ''
+          headers: []
+          cookies: []
+        response: {}
+        success_asserts: []
+      })
+
+
+    $scope.add_for_end = () ->
+      $scope.insert_request(1, {
+        checked: true
+        pageref: $scope.entry.pageref
+        recommend: true,
+        comment: '循环块结束'
+        request:
+          method: 'GET'
+          url: '{% endfor %}'
+          postData:
+            test: ''
+          headers: []
+          cookies: []
+        response: {}
+        success_asserts: []
+      })
+
+    $scope.add_if_start = () ->
+      $scope.insert_request(1, {
+        checked: true
+        pageref: $scope.entry.pageref
+        recommend: true,
+        comment: '判断条件成立'
+        request:
+          method: 'GET'
+          url: '{% if Conditional_Expression %}'
+          postData:
+            test: ''
+          headers: []
+          cookies: []
+        response: {}
+        success_asserts: []
+      })
+    
+    $scope.add_if_else = () ->
+      $scope.insert_request(1, {
+        checked: true
+        pageref: $scope.entry.pageref
+        recommend: true,
+        comment: '判断条件不成立'
+        request:
+          method: 'GET'
+          url: '{% else %}'
+          postData:
+            test: ''
+          headers: []
+          cookies: []
+        response: {}
+        success_asserts: []
+      })
+
+    $scope.add_if_end = () ->
+      $scope.insert_request(1, {
+        checked: true
+        pageref: $scope.entry.pageref
+        recommend: true,
+        comment: '判断块结束'
+        request:
+          method: 'GET'
+          url: '{% endif %}'
+          postData:
+            test: ''
+          headers: []
+          cookies: []
+        response: {}
+        success_asserts: []
+      })
+
     $scope.add_timestamp_request = () ->
       $scope.insert_request(1, {
         checked: true
