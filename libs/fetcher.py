@@ -14,7 +14,6 @@ import traceback
 import urllib.parse as urlparse
 from datetime import datetime
 from io import BytesIO
-from func_timeout import FunctionTimedOut
 
 from tornado.httputil import HTTPHeaders
 from tornado.escape import native_str
