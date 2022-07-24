@@ -13,17 +13,18 @@ import base64
 import traceback
 import urllib.parse as urlparse
 from datetime import datetime
+from io import BytesIO
+from func_timeout import FunctionTimedOut
 
 from tornado.httputil import HTTPHeaders
 from tornado.escape import native_str
-from io import BytesIO
-
-from jinja2.sandbox import SandboxedEnvironment as Environment
 from tornado import gen, httpclient, simple_httpclient
+from jinja2.sandbox import SandboxedEnvironment as Environment
 
 import config
 from libs import cookie_utils, utils
 from .log import Log
+from .safe_eval import safe_eval
 
 logger_Fetcher = Log('qiandao.Http.Fetcher').getlogger()
 if config.use_pycurl:
@@ -595,7 +596,7 @@ class Fetcher(object):
                     env = await gen.convert_yielded(self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit))
             elif block['type'] == 'if':
                 try:
-                    condition = eval(block['condition'],env['variables'])
+                    condition = safe_eval(block['condition'],env['variables'])
                 except NameError:
                     condition = False
                 if condition:
