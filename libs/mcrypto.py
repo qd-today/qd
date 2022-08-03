@@ -14,10 +14,10 @@ from Crypto import Random
 from Crypto.Hash import SHA256
 from Crypto.Cipher import AES
 
-random = Random.new()
+Crypto_random = Random.new()
 def password_hash(word, salt=None, iterations=config.pbkdf2_iterations):
     if salt is None:
-        salt = random.read(16)
+        salt = Crypto_random.read(16)
     elif len(salt) > 16:
         _, salt, iterations = umsgpack.unpackb(salt)
 
@@ -29,7 +29,7 @@ def password_hash(word, salt=None, iterations=config.pbkdf2_iterations):
 
 def aes_encrypt(word, key=config.aes_key, iv=None):
     if iv is None:
-        iv = random.read(16)
+        iv = Crypto_random.read(16)
 
     word = umsgpack.packb(word)
     mod = len(word) % 16
