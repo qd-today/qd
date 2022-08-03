@@ -20,6 +20,7 @@ pysocks = "*"
 faker = "*"
 colorama = {version = "*", markers="sys_platform == 'win32'"}
 aiofiles = "*"
+passlib = "*"
 
 [dev-packages]
 opencv-python-headless = "*"
