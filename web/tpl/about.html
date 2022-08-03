@@ -261,31 +261,31 @@
     <tbody style="text-align:center;font-size:xx-small">
       
       <tr>
-        <td>{{md5(a)}}</td>
-        <td>计算 a 的 md5 值</td>
-        <td>{{md5("123")}}</td>
-        <td class="autowrap">202cb962ac59075b964b07152d234b70</td>
-      </tr>
-      
-      <tr>
         <td>{{unicode(a)}}</td>
         <td>将 a 由 Unicode 转为中文（和上面 API 相同）</td>
         <td>{{unicode("\u4f60\u597d")}}</td>
         <td class="autowrap">你好</td>
       </tr>
-      
+
+      <tr>
+        <td>{{quote_chinese(a)}}</td>
+        <td>将 a 中所有 ord() &gt;=128 的用 urlencode 表示（注意和 urlencode 有区别）</td>
+        <td>{{quote_chinese("123中文QAQ&amp;amp;/:")}}</td>
+        <td class="autowrap">123%E4%B8%AD%E6%96%87QAQ&amp;amp;/:</td>
+      </tr>
+
+      <tr>
+        <td>{{bool(a)}}</td>
+        <td>将 a 转为布尔值, <br>a为("yes", "on", "1", "true", 1)时为True, 不区分大小写</td>
+        <td>{{bool("Yes")}}</td>
+        <td class="autowrap">True</td>
+      </tr>
+
       <tr>
         <td>{{random(min,max,unit)}}</td>
         <td>随机生成从 min 到 max 的 unit 位小数</td>
         <td>{{random(0,10,4)}}</td>
         <td class="autowrap">0.8696</td>
-      </tr>
-      
-      <tr>
-        <td>{{Faker(locale="zh_CN").function()}}</td>
-        <td>调用python包faker里的Faker类来创建伪数据, <br>locale为生成数据的文化选项, <br>需同时调用其提供的方法, 如name(), <br>Docs: <a href="https://faker.readthedocs.io/" target="_blank" rel="nofollow">https://faker.readthedocs.io/</a></td>
-        <td>{{Faker(locale='zh_CN').name()}}</td>
-        <td class="autowrap">苗桂芝</td>
       </tr>
 
       <tr>
@@ -293,6 +293,13 @@
         <td>调用 python 里的 time.time() 函数, type: 'int'表示输出整数, 'float'表示输出小数,默认为'int'</td>
         <td>{{timestamp('float')}}</td>
         <td class="autowrap">1599990277.4615508</td>
+      </tr>
+
+      <tr>
+        <td>{{date_time(date,time,diff)}}</td>
+        <td>date: 0/1表示是否显示日期（默认为 1）；time: 0/1表示是否显示时分秒（默认为 1）；diff: 时间差（默认为 0）</td>
+        <td>{{date_time(0,1,10)}}（在 18:06 测试）</td>
+        <td class="autowrap">04:06:21</td>
       </tr>
       
       <tr>
@@ -331,19 +338,96 @@
       </tr>
 
       <tr>
-        <td>{{date_time(date,time,diff)}}</td>
-        <td>date: 01表示是否显示日期（默认为 1）；time: 01表示是否显示时分秒（默认为 1）；diff: 时间差（默认为 0）</td>
-        <td>{{date_time(0,1,10)}}（在 18:06 测试）</td>
-        <td class="autowrap">04:06:21</td>
+        <td>{{Faker(locale="zh_CN").function()}}</td>
+        <td>调用python包faker里的Faker类来创建伪数据, <br>locale为生成数据的文化选项, <br>需同时调用其提供的方法, 如name(), <br>Docs: <a href="https://faker.readthedocs.io/" target="_blank" rel="nofollow">https://faker.readthedocs.io/</a></td>
+        <td>{{Faker(locale='zh_CN').name()}}</td>
+        <td class="autowrap">苗桂芝</td>
       </tr>
       
       <tr>
-        <td>{{quote_chinese(a)}}</td>
-        <td>将 a 中所有 ord() &gt;=128 的用 urlencode 表示（注意和 urlencode 有区别）</td>
-        <td>{{quote_chinese("123中文QAQ&amp;amp;/:")}}</td>
-        <td class="autowrap">123%E4%B8%AD%E6%96%87QAQ&amp;amp;/:</td>
+        <td>{{b64encode(a)}}</td>
+        <td>计算 a 的 base64 编码值</td>
+        <td>{{b64encode("hello")}}</td>
+        <td class="autowrap">aGVsbG8=</td>
       </tr>
-      
+
+      <tr>
+        <td>{{b64decode(a)}}</td>
+        <td>计算 a 的 base64 解码值</td>
+        <td>{{b64decode("aGVsbG8=")}}</td>
+        <td class="autowrap">hello</td>
+      </tr>
+
+      <tr>
+        <td>{{to_uuid(a, namespace)}}</td>
+        <td>计算 a 的 uuid5 生成值; <br>namespace: uuid所使用的命名空间, <br>默认为: 6ba7b811-9dad-11d1-80b4-00c04fd430c8</td>
+        <td>{{to_uuid("hello")}}</td>
+        <td class="autowrap">074171de-bc84-5ea4-b636-1135477620e1</td>
+      </tr>
+
+      <tr>
+        <td>{{md5(a)}}</td>
+        <td>计算 a 的 md5 值</td>
+        <td>{{md5("123")}}</td>
+        <td class="autowrap">202cb962ac59075b964b07152d234b70</td>
+      </tr>
+
+      <tr>
+        <td>{{sha1(a)}}</td>
+        <td>计算 a 的 sha1 值</td>
+        <td>{{sha1("123")}}</td>
+        <td class="autowrap">40bd001563085fc35165329ea1ff5c5ecbdbbeef</td>
+      </tr>
+
+      <tr>
+        <td>{{hash(a,hashtype)}}</td>
+        <td>计算 a 的 hash 值; <br>hashtype: Hash 类型, 默认为 sha1</td>
+        <td>{{hash("123","sha256")}}</td>
+        <td class="autowrap">a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3</td>
+      </tr>
+
+      <tr>
+        <td>{{password_hash(password, hashtype, salt=salt, salt_size=salt_size, rounds=rounds, ident=ident)}}</td>
+        <td>计算 password 的 加密hash 值; <br>hashtype: Hash 类型 ("md5", "sha256", "sha512", "blowfish"), 默认为 sha512 <br>salt: password 盐值 <br>salt_size: password 盐值尺寸 <br>rounds: password hash迭代次数 <br>ident: blowfish 算法版本, 默认为 2b</td>
+        <td>{{password_hash("hello")}}</td>
+        <td class="autowrap">$6$rounds=656000$KSQu5IKoWLdHDYqJ$W.MQWC3LsuzRsQ35.07h48Mr3TMJ9Cjj0du.5mGEW2yOFkQlxi/ySwwG5Z4SKVewpWn8PFPZLUuTrAwcV0ke0.</td>
+      </tr>
+
+      <tr>
+        <td>{{regex_replace(value, pattern, replacement, count, ignorecase, multiline)}}</td>
+        <td>匹配替换为指定文本, re.sub 方法实现; <br>value: 要被查找替换的原始字符串, <br>pattern: 正则中的模式字符串 <br>replacement: 匹配后替换字符串 <br>count: 替换次数, 默认为 0 (全部替换) <br>ignorecase: 忽略大小写, 默认为 False <br>multiline: 多行匹配, 默认为 False</td>
+        <td>{{regex_replace("账号: 123456789A!", "[a-z|0-5]", "*", 0, True, False)}}</td>
+        <td class="autowrap">账号: *****6789*!</td>
+      </tr>
+
+      <tr>
+        <td>{{regex_findall(value, pattern, ignorecase, multiline)}}</td>
+        <td>匹配文本并返回列表形式的字符串, re.findall 方法实现; <br>value: 要被查找的原始字符串, <br>pattern: 正则中的模式字符串 <br>ignorecase: 忽略大小写, 默认为 False <br>multiline: 多行匹配, 默认为 False</td>
+        <td>{{regex_findall("账号: 123456789A!", "[a-z|0-5]", True, False)}}</td>
+        <td class="autowrap">['1', '2', '3', '4', '5', 'A']</td>
+      </tr>
+
+      <tr>
+        <td>{{regex_search(value, pattern, *args, **kwargs)}}</td>
+        <td>匹配文本并返回列表形式的字符串, re.search 方法实现; <br>value: 要被查找的原始字符串, <br>pattern: 正则中的模式字符串 <br>*args: 形如 "\\1", "\\g" <br>**kwargs: 形如 ignorecase=True, multiline=False</td>
+        <td>{{regex_search("账号: 123456789A!", "账号: ([0-5])([0-5]+).*([a-z]+)",  "\\2", "\\3", ignorecase=True)}}</td>
+        <td class="autowrap">['2345', 'A']</td>
+      </tr>
+
+      <tr>
+        <td>{{regex_escape(value, re_type)}}</td>
+        <td>转义 value正则表达式 中的特殊字符, re.escape 方法实现; <br>value: 要被转义的原始正则表达式, <br>re_type: 转义类型("python", "posix_basic") 默认为 python</td>
+        <td>{{regex_escape("^f.*o(.*)$")}}</td>
+        <td class="autowrap">\\^f\\.\\*o\\(\\.\\*\\)\\$</td>
+      </tr>
+
+      <tr>
+        <td>{{ternary(value, true_val, false_val, none_val=None)}}</td>
+        <td>为 True/False/None 定义不同的值; <br>value: 原始表达式/原始布尔值 或 原始变量, <br>true_val: 当 value为True 时返回该值 <br>false_val: 当 value为False 时返回该值 <br>none_val: 当 value为None或未定义 时返回该值</td>
+        <td>{{ternary(variable == "needs_restart","restart", "continue") }}</td>
+        <td class="autowrap">['1', '2', '3', '4', '5', 'A']</td>
+      </tr>
+
       <tr>
         <td>{% for variable in variables %}</td>
         <td>开始一个 for 循环</td>
