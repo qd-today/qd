@@ -196,7 +196,7 @@ class Fetcher(object):
 
         def build_headers(headers):
             result = []
-            if headers:
+            if headers and isinstance(headers, HTTPHeaders):
                 for k, v in headers.get_all():
                     result.append(dict(name=k, value=v))
             return result
