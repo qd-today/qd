@@ -608,7 +608,7 @@
             headers: [],
             cookies: [],
             postData: {
-              text: "email={{qd_email|urlencode}}&pwd={{md5(qd_pwd)|urlencode}}&f=append&data="
+              text: "email={{qd_email|urlencode}}&pwd={{md5(qd_pwd)|urlencode}}&f=append&data={{notebook_content|urlencode}}"
             }
           },
           response: {},
