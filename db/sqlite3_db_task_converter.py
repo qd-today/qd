@@ -21,13 +21,7 @@ class DBconverter(_TaskDB, BaseDB):
         
         self.db = db
             
-        if config.db_type == 'sqlite3':
-            self._execute('''CREATE TABLE IF NOT EXISTS `%s` (
-                    `id` INTEGER NOT NULL PRIMARY KEY,
-                    `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
-                    `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0
-                    )''' %'site')
-        else:
+        if config.db_type != 'sqlite3':
             self.db.site._execute('''CREATE TABLE IF NOT EXISTS `user` (
             `id` INTEGER NOT NULL PRIMARY KEY  AUTO_INCREMENT,
             `email` VARCHAR(256) NOT NULL,
@@ -49,7 +43,6 @@ class DBconverter(_TaskDB, BaseDB):
             `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1,
             `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{"en":false,"time":"20:00:00","ts":0,"schanEn":false,"WXPEn":false}',
             `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
-            `notepad` TEXT NULL,
             `diypusher` VARBINARY(1024) NOT NULL DEFAULT '',
             `qywx_token` VARBINARY(1024) NOT NULL DEFAULT '',
             `tg_token` VARBINARY(1024) NOT NULL DEFAULT '',
@@ -150,6 +143,13 @@ class DBconverter(_TaskDB, BaseDB):
                 `repobranch`  TEXT,
                 `commenturl`  TEXT
             )''' ) 
+            
+            self.db.site._execute('''CREATE TABLE IF NOT EXISTS `notepad` (
+                `id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+                `userid` INTEGER NOT NULL ,
+                `notepadid` INTEGER NOT NULL ,
+                `content` TEXT NULL
+            )''' ) 
 
         if config.db_type == 'sqlite3': 
             exec_shell = self._execute
@@ -228,7 +228,7 @@ class DBconverter(_TaskDB, BaseDB):
         try:
             self.db.task.get("1", fields=('newontime'))
         except :
-            exec_shell("ALTER TABLE  `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0 }' " )   
+            exec_shell("ALTER TABLE `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0 }' " )   
 
         try:
             self.db.user.get("1", fields=('logtime'))
@@ -462,4 +462,45 @@ class DBconverter(_TaskDB, BaseDB):
                 exec_shell('''ALTER TABLE `pubtpl` ADD  `commenturl` TEXT ''')
                 exec_shell('''UPDATE `pubtpl` SET `commenturl` = '' WHERE 1=1 ''')
 
+        try:
+            self.db.user.get("1", fields=('notepad'))
+            for user in self.db.user.list(fields=('id', 'notepad')):
+                self.db.notepad.add(dict(userid=user['id'], notepadid=1, content=user['notepad']))
+            exec_shell("ALTER TABLE `user` RENAME TO `userold`")
+            if config.db_type == 'sqlite3':
+                autokey = 'AUTOINCREMENT'
+            else:
+                autokey = 'AUTO_INCREMENT'
+            exec_shell('''CREATE TABLE IF NOT EXISTS `user` (
+                `id` INTEGER NOT NULL PRIMARY KEY %s,
+                `email` VARCHAR(256) NOT NULL,
+                `email_verified` TINYINT(1) NOT NULL DEFAULT 0,
+                `password` VARBINARY(128) NOT NULL,
+                `password_md5` VARBINARY(128) NOT NULL DEFAULT '',
+                `userkey` VARBINARY(128) NOT NULL,
+                `nickname` VARCHAR(64) NULL,
+                `role` VARCHAR(128) NULL,
+                `ctime` INT UNSIGNED NOT NULL,
+                `mtime` INT UNSIGNED NOT NULL,
+                `atime` INT UNSIGNED NOT NULL,
+                `cip` VARBINARY(16) NOT NULL,
+                `mip` VARBINARY(16) NOT NULL,
+                `aip` VARBINARY(16) NOT NULL,
+                `skey` VARBINARY(128) NOT NULL DEFAULT '',
+                `barkurl` VARBINARY(128) NOT NULL DEFAULT '',
+                `wxpusher` VARBINARY(128) NOT NULL DEFAULT '',
+                `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1,
+                `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{"en":false,"time":"20:00:00","ts":0,"schanEn":false,"WXPEn":false}',
+                `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
+                `diypusher` VARBINARY(1024) NOT NULL DEFAULT '',
+                `qywx_token` VARBINARY(1024) NOT NULL DEFAULT '',
+                `tg_token` VARBINARY(1024) NOT NULL DEFAULT '',
+                `dingding_token` VARBINARY(1024) NOT NULL DEFAULT '',
+                `push_batch`  VARBINARY(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
+                );'''% autokey)
+            exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token`,`push_batch` FROM `userold`")
+            exec_shell("DROP TABLE `userold`")
+        except :
+            pass
+            
         return 

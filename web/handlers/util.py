@@ -406,18 +406,19 @@ class toolboxHandler(BaseHandler):
             f = self.get_argument("f", "")
             if (email) and (pwd) and (f):
                 if self.db.user.challenge_MD5(email, pwd) or self.db.user.challenge(email, pwd):
+                    notepadid=self.get_argument("id_notepad", 1)
                     userid = self.db.user.get(email=email, fields=('id'))['id']
-                    text_data = self.db.user.get(email=email, fields=('notepad'))['notepad']
+                    text_data = self.db.notepad.get(userid, notepadid, fields=('content'))['content']
                     new_data = self.get_argument("data", "")
                     if (f.find('write') > -1 ): 
                         text_data = new_data
-                        self.db.user.mod(userid, notepad=text_data)
+                        self.db.notepad.mod(userid, notepadid, content=text_data)
                     elif (f.find('append') > -1):
                         if text_data is not None:
                             text_data = text_data + '\r\n' + new_data
                         else:
                             text_data = new_data
-                        self.db.user.mod(userid, notepad=text_data)
+                        self.db.notepad.mod(userid, notepadid, content=text_data)
                     self.write(text_data)
                     return
                 else:
@@ -427,6 +428,57 @@ class toolboxHandler(BaseHandler):
         except Exception as e:
             self.write(str(e))
             return
+
+class toolbox_notepad_Handler(BaseHandler):
+    @tornado.web.authenticated
+    async def get(self,userid=None,notepadid=1):
+        if userid is None:
+            raise HTTPError(405)
+        self.current_user["isadmin"] or self.check_permission({"userid":int(userid)}, 'r')
+        content = self.db.notepad.get(userid, notepadid, fields=('id', 'content'))
+        if content is None:
+            raise HTTPError(404, log_message=u"未找到该记事本",reason=u"未找到该记事本")
+        text_data = content['content']
+        await self.render('toolbox-notepad.html', text_data = text_data, userid=userid)
+        return
+
+    # @tornado.web.authenticated
+    async def post(self,userid=None):
+        try:
+            email = self.get_argument("email", "")
+            pwd = self.get_argument("pwd", "")
+            f = self.get_argument("f", "")
+            if (email) and (pwd) and (f):
+                if self.db.user.challenge_MD5(email, pwd) or self.db.user.challenge(email, pwd):
+                    notepadid=self.get_argument("id_notepad", 1)
+                    userid = self.db.user.get(email=email, fields=('id'))['id']
+                    text_data = self.db.notepad.get(userid, notepadid, fields=('content'))['content']
+                    new_data = self.get_argument("data", "")
+                    if (f.find('write') > -1 ): 
+                        text_data = new_data
+                        self.db.notepad.mod(userid, notepadid, content=text_data)
+                    elif (f.find('append') > -1):
+                        if text_data is not None:
+                            text_data = text_data + '\r\n' + new_data
+                        else:
+                            text_data = new_data
+                        self.db.notepad.mod(userid, notepadid, content=text_data)
+                    self.write(text_data)
+                    return
+                else:
+                    raise Exception(u"账号密码错误")
+            else:
+                raise Exception(u"参数不完整，请确认")
+        except Exception as e:
+            if config.traceback_print:
+                traceback.print_exc()
+            if (str(e).find('get user need id or email') > -1):
+                e = u'请输入用户名/密码'
+            self.write(str(e))
+            self.set_status(400)
+            logger_Web_Handler.error('UserID: %s modify Notepad_Toolbox failed! Reason: %s', userid or '-1', str(e))
+            return
+        return
 
 class DdddOCRServer(object):
     def __init__(self):
@@ -587,6 +639,9 @@ handlers = [
     ('/util/string/replace', UtilStrReplaceHandler),
     ('/util/rsa', UtilRSAHandler),
     ('/util/toolbox/(\d+)', toolboxHandler),
+    ('/util/toolbox/notepad', toolbox_notepad_Handler),
+    ('/util/toolbox/(\d+)/notepad', toolbox_notepad_Handler),
+    ('/util/toolbox/(\d+)/notepad/(\d+)', toolbox_notepad_Handler),
     ('/util/dddd/ocr', DdddOcrHandler),
     ('/util/dddd/det', DdddDetHandler),
 ]

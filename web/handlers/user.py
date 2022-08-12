@@ -530,49 +530,6 @@ class UserDBHandler(BaseHandler):
             return
         return 
      
-class toolbox_notpad_Handler(BaseHandler):
-    @tornado.web.authenticated
-    async def get(self,userid):
-        self.current_user["isadmin"] or self.check_permission({"userid":int(userid)}, 'r')
-        text_data = self.db.user.get(userid, fields=('notepad'))['notepad']
-        await self.render('toolbox-notepad.html', text_data = text_data, userid=userid)
-        return
-
-    @tornado.web.authenticated
-    async def post(self,userid):
-        try:
-            user = self.db.user.get(userid, fields=('role', 'email'))
-            envs = {}
-            for k, _  in self.request.body_arguments.items():
-                envs[k] = self.get_body_argument(k)
-            mail = envs['adminmail']
-            pwd = envs['adminpwd']
-            if self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
-                if ('mode' in envs) and ('content' in envs):
-                    if (envs['mode'] == 'write'):
-                        new_data =  envs['content']
-                    else:
-                        data = self.db.user.get(userid, fields=('notepad'))['notepad']
-                        if data is not None:
-                            new_data = data + "\r\n" + envs['content']
-                        else:
-                            new_data = envs['content']
-
-                    self.db.user.mod(userid, notepad=new_data)
-
-                else:
-                    raise Exception(u"参数错误")   
-            else:
-                raise Exception(u"账号/密码错误")   
-        except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
-            if (str(e).find('get user need id or email') > -1):
-                e = u'请输入用户名/密码'
-            await self.render('tpl_run_failed.html', log=str(e))
-            logger_Web_Handler.error('UserID: %s modify Notepad_Toolbox failed! Reason: %s', userid or '-1', str(e))
-            return
-        return
 
 class UserPushShowPvar(BaseHandler):
     @tornado.web.authenticated
@@ -691,7 +648,6 @@ handlers = [
         ('/user/(\d+)/UserPushShowPvar', UserPushShowPvar),
         ('/user/(\d+)/manage', UserManagerHandler),
         ('/user/(\d+)/database', UserDBHandler),
-        ('/util/toolbox/(\d+)/notepad', toolbox_notpad_Handler),
         ('/util/custom/(\d+)/pusher', custom_pusher_Handler),
         ('/user/(\d+)/setnewpwd', UserSetNewPWDHandler),
         ]

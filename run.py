@@ -61,6 +61,7 @@ if __name__ == "__main__":
             self.redis = db.RedisDB()
             self.site = db.SiteDB()
             self.pubtpl = db.PubTplDB()
+            self.notepad = db.NotePadDB()
         def close(self):
             self.user.close()
             self.tpl.close()
@@ -70,6 +71,7 @@ if __name__ == "__main__":
             self.redis.close()
             self.site.close()
             self.pubtpl.close()
+            self.notepad.close()
         
     database = DB()
 

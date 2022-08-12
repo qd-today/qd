@@ -516,11 +516,11 @@ define (require, exports, module) ->
         },
         request: {
           method: 'POST',
-          url: [api_host, '/util/toolbox/1'].join(''),
+          url: [api_host, '/util/toolbox/notepad'].join(''),
           headers: [],
           cookies: [],
           postData: {
-            text: "email={{qd_email|urlencode}}&pwd={{md5(qd_pwd)|urlencode}}&f=read"
+            text: "email={{qd_email|urlencode}}&pwd={{md5(qd_pwd)|urlencode}}&id_notepad=1&f=read"
           }
         },
         response: {},
@@ -547,11 +547,11 @@ define (require, exports, module) ->
         comment: '追加记事本',
         request: {
           method: 'POST',
-          url: [api_host, '/util/toolbox/1'].join(''),
+          url: [api_host, '/util/toolbox/notepad'].join(''),
           headers: [],
           cookies: [],
           postData: {
-            text: "email={{qd_email|urlencode}}&pwd={{md5(qd_pwd)|urlencode}}&f=append&data={{notebook_content|urlencode}}"
+            text: "email={{qd_email|urlencode}}&pwd={{md5(qd_pwd)|urlencode}}&id_notepad=1&f=append&data={{notebook_content|urlencode}}"
           }
         },
         response: {},

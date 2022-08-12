@@ -24,9 +24,9 @@
       <div>
       <label class="control-label" for="note">邮箱</label>
       </div>
-      <input type="text" class="form-control" name="adminmail" value="" id="adminmail" placeholder="必须输入账号密码验证">
+      <input type="text" class="form-control" name="email" value="" id="email" placeholder="必须输入账号验证">
       <label class="control-label" for="note">密码</label>
-      <input type='password' class="form-control" name="adminpwd" value="" id="adminpwd" placeholder="必须输入账号密码验证">
+      <input type='password' class="form-control" name="pwd" value="" id="pwd" placeholder="必须输入密码验证">
       <label class="control-label" for="note">输入文本</label>
       <input type="text" class="form-control" name="New_notepad_content" value="" id="New_notepad_content" >
     </div>
@@ -40,10 +40,10 @@
 <script>
 function send2notepad(mode){
   data = {}
-  data['mode'] = mode
-  data['adminmail'] = $('#adminmail')[0].value;
-  data['adminpwd'] = md5($('#adminpwd')[0].value);
-  data['content'] = $('#New_notepad_content')[0].value;
+  data['f'] = mode
+  data['email'] = $('#email')[0].value;
+  data['pwd'] = md5($('#pwd')[0].value);
+  data['data'] = $('#New_notepad_content')[0].value;
   $.ajax("/util/toolbox/{{ userid }}/notepad", {
         type: 'POST',
         data: data,
