@@ -360,14 +360,6 @@ class DBconverter(_TaskDB, BaseDB):
                 exec_shell("DROP TABLE `site`" )
                 exec_shell('CREATE TABLE `site` as select * from `newsite`')
                 exec_shell("DROP TABLE `newsite`" )
-
-        try:
-            self.db.user.get("1", fields=('notepad'))
-        except :
-            if config.db_type == 'sqlite3':
-                exec_shell("ALTER TABLE `user` ADD `notepad` TEXT NOT NULL DEFAULT '' ") 
-            else:
-                exec_shell("ALTER TABLE `user` ADD `notepad` TEXT NULL") 
             
         try:
             self.db.user.get("1", fields=('diypusher'))
@@ -425,14 +417,13 @@ class DBconverter(_TaskDB, BaseDB):
                     `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1,
                     `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{"en":false,"time":"20:00:00","ts":0,"schanEn":false,"WXPEn":false}',
                     `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
-                    `notepad` TEXT NULL,
                     `diypusher` VARBINARY(1024) NOT NULL DEFAULT '',
                     `qywx_token` VARBINARY(1024) NOT NULL DEFAULT '',
                     `tg_token` VARBINARY(1024) NOT NULL DEFAULT '',
                     `dingding_token` VARBINARY(1024) NOT NULL DEFAULT '',
                     `push_batch`  VARBINARY(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
                     );''' % autokey)
-                exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`notepad`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token`,`push_batch` FROM `userold` ")
+                exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token`,`push_batch` FROM `userold` ")
                 exec_shell("DROP TABLE `userold` ")
         except :
             pass
