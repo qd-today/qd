@@ -396,7 +396,7 @@ class UtilRSAHandler(BaseHandler):
 
 class toolboxHandler(BaseHandler):
     async def get(self, userid):
-        user = self.current_user
+        self.current_user["isadmin"] or self.check_permission({"userid":int(userid)}, 'r')
         await self.render('toolbox.html', userid=userid)
 
     async def post(self, userid):

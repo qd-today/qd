@@ -533,7 +533,7 @@ class UserDBHandler(BaseHandler):
 class toolbox_notpad_Handler(BaseHandler):
     @tornado.web.authenticated
     async def get(self,userid):
-        user = self.current_user
+        self.current_user["isadmin"] or self.check_permission({"userid":int(userid)}, 'r')
         text_data = self.db.user.get(userid, fields=('notepad'))['notepad']
         await self.render('toolbox-notepad.html', text_data = text_data, userid=userid)
         return
