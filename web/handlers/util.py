@@ -109,7 +109,7 @@ class TimeStampHandler(BaseHandler):
             tmp = datetime.datetime.fromtimestamp
 
             if not ts:
-                # 当前本机时间戳，本机时间和北京时间
+                # 当前本机时间戳, 本机时间和北京时间
                 Rtv[u"完整时间戳"] = time.time()
                 Rtv[u"时间戳"] = int(Rtv[u"完整时间戳"])
                 Rtv[u"16位时间戳"] = int(Rtv[u"完整时间戳"]*1000000)
@@ -478,7 +478,75 @@ class toolbox_notepad_Handler(BaseHandler):
             self.set_status(400)
             logger_Web_Handler.error('UserID: %s modify Notepad_Toolbox failed! Reason: %s', userid or '-1', str(e))
             return
+
+class toolbox_notepad_list_Handler(BaseHandler):
+    async def get(self,userid=None):
+        if userid is None:
+            raise HTTPError(405)
+        self.current_user["isadmin"] or self.check_permission({"userid":int(userid)}, 'r')
+        notepadlist = self.db.notepad.list(fields=('notepadid','content'), limit=20, userid=userid )
+        if len(notepadlist) == 0:
+            raise HTTPError(404, log_message=u"用户不存在或未创建记事本",reason=u"用户不存在或未创建记事本")
+        text_data = notepadlist[0]['content']
+        notepadidlist = [x['notepadid'] for x in notepadlist]
+        notepadidlist.sort()
+        await self.render('toolbox-notepad.html', text_data = text_data, notepad_list=notepadidlist, userid=userid)
         return
+    
+    async def post(self,userid=None):
+        try:
+            email = self.get_argument("email", "")
+            pwd = self.get_argument("pwd", "")
+            f = self.get_argument("f", "list")
+            if (email) and (pwd) and (f):
+                if self.db.user.challenge_MD5(email, pwd) or self.db.user.challenge(email, pwd):
+                    userid = self.db.user.get(email=email, fields=('id'))['id']
+                    notepadid = int(self.get_argument("id_notepad", -1))
+                    notepadlist = self.db.notepad.list(fields=('notepadid'), limit=20, userid=userid )
+                    notepadlist = [x['notepadid'] for x in notepadlist]
+                    notepadlist.sort()
+                    if len(notepadlist) == 0:
+                        raise Exception(u"无法获取该用户记事本编号")
+                    if f.find('add') > -1:
+                        if len(notepadlist) >= 20:
+                            raise Exception(u"记事本数量超过上限, limit: 20")
+                        new_data = self.get_argument("data", "")
+                        if notepadid == -1:
+                            notepadid = notepadlist[-1]+1
+                        elif notepadid in notepadlist:
+                            raise Exception(u"记事本编号已存在, id_notepad: %s" % notepadid)
+                        self.db.notepad.add(dict(userid=userid, notepadid=notepadid, content=new_data))
+                        self.write(u"添加成功, id_notepad: %s" % (notepadid))
+                        return
+                    elif f.find('delete') > -1:
+                        if notepadid > 0:
+                            if notepadid not in notepadlist:
+                                raise Exception(u"记事本编号不存在, id_notepad: %s" % notepadid)
+                            if notepadid == 1:
+                                raise Exception(u"默认记事本不能删除")
+                            self.db.notepad.delete(userid, notepadid)
+                            self.write(u"删除成功, id_notepad: %s" % (notepadid))
+                            return
+                        else:
+                            raise Exception(u"id_notepad参数不完整, 请确认")
+                    elif f.find('list') > -1:
+                        self.write(notepadlist)
+                        return
+                    else:
+                        raise Exception(u"参数不完整, 请确认")
+                else:
+                    raise Exception(u"账号密码错误")
+            else:
+                raise Exception(u"参数不完整, 请确认")
+        except Exception as e:
+            if config.traceback_print:
+                traceback.print_exc()
+            if (str(e).find('get user need id or email') > -1):
+                e = u'请输入用户名/密码'
+            self.write(str(e))
+            self.set_status(400)
+            logger_Web_Handler.error('UserID: %s %s Notepad_Toolbox failed! Reason: %s', userid or '-1', f, str(e))
+            return
 
 class DdddOCRServer(object):
     def __init__(self):
@@ -642,6 +710,8 @@ handlers = [
     ('/util/toolbox/notepad', toolbox_notepad_Handler),
     ('/util/toolbox/(\d+)/notepad', toolbox_notepad_Handler),
     ('/util/toolbox/(\d+)/notepad/(\d+)', toolbox_notepad_Handler),
+    ('/util/toolbox/notepad/list', toolbox_notepad_list_Handler),
+    ('/util/toolbox/(\d+)/notepad/list', toolbox_notepad_list_Handler),
     ('/util/dddd/ocr', DdddOcrHandler),
     ('/util/dddd/det', DdddDetHandler),
 ]

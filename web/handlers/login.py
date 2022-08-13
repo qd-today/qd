@@ -125,7 +125,7 @@ class RegisterHandler(BaseHandler):
                     await self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
                     return
                 user = self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role'))
-
+                self.db.notepad.add(dict(userid=user['id'], notepadid=1, content=user['notepad']))
                 setcookie = dict(
                         expires_days=config.cookie_days,
                         httponly=True,

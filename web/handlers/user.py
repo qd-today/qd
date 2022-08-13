@@ -371,6 +371,10 @@ class UserManagerHandler(BaseHandler):
                                 for tpl in self.db.tpl.list(fields=('id', 'userid'), limit=None):
                                     if tpl['userid'] == int(sub_user):
                                         self.db.tpl.delete(tpl['id'])
+                                        
+                                for notepad in self.db.notepad.list(fields=('userid','notepadid'), limit=None, userid=sub_user):
+                                    self.db.notepad.delete(sub_user, notepad['notepadid'])
+                                
                                 self.db.user.delete(sub_user)
                 else:
                     raise Exception(u"账号/密码错误")
