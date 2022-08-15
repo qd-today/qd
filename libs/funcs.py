@@ -2,6 +2,7 @@
 # -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 
+import os
 import sys
 import json
 import croniter
@@ -287,11 +288,16 @@ class pusher(object):
 
     #上传临时素材,返回素材id
     async def get_ShortTimeMedia(self,pic_url,access_token):
-        obj = {'request': {'method': 'GET', 'url': pic_url, 'headers': {}, 'cookies': []}, 'rule': {
-                   'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-        _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+        if pic_url == config.push_pic:
+            with open(os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'web','static','img','push_pic.png'),'rb') as f:
+                res = f.read()
+        else:
+            obj = {'request': {'method': 'GET', 'url': pic_url, 'headers': {}, 'cookies': []}, 'rule': {
+                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+            _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+            res = res.body
         url='https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token={access_token}&type=image'.format(access_token = access_token)
-        r = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, url, files={'image':res.body}, json=True, verify=False))
+        r = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, url, files={'image':res}, json=True, verify=False))
         return json.loads(r.text)['media_id']
 
     async def qywx_pusher_send(self, qywx_token, t, log):
@@ -311,7 +317,10 @@ class pusher(object):
             pic_url = config.push_pic if qywx[u'图片'] == '' else qywx[u'图片']
             if (get_access_token_res.get('access_token','') != '' and get_access_token_res['errmsg'] == 'ok'):
                 access_token = get_access_token_res["access_token"]
-                media_id = await self.get_ShortTimeMedia(pic_url,access_token)
+                if utils.urlmatch(pic_url):
+                    media_id = await self.get_ShortTimeMedia(pic_url,access_token)
+                else:
+                    media_id = pic_url
                 msgUrl = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={0}'.format(access_token)
                 postData = {"touser": "@all",
                             "toparty": "@all",
