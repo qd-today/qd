@@ -439,6 +439,8 @@ class toolbox_notepad_Handler(BaseHandler):
         notepadlist.sort(key=lambda x:x['notepadid'])
         if len(notepadlist) == 0:
             raise HTTPError(404, log_message=u"用户不存在或未创建记事本",reason=u"用户不存在或未创建记事本")
+        if int(notepadid) == 0:
+            notepadid = notepadlist[-1]['notepadid']
         await self.render('toolbox-notepad.html', notepad_id = int(notepadid), notepad_list=notepadlist, userid=userid)
         return
 
@@ -452,7 +454,10 @@ class toolbox_notepad_Handler(BaseHandler):
                 if self.db.user.challenge_MD5(email, pwd) or self.db.user.challenge(email, pwd):
                     notepadid=self.get_argument("id_notepad", 1)
                     userid = self.db.user.get(email=email, fields=('id'))['id']
-                    text_data = self.db.notepad.get(userid, notepadid, fields=('content'))['content']
+                    notepad = self.db.notepad.get(userid, notepadid, fields=('content'))
+                    if not notepad:
+                        raise Exception(u"记事本不存在")
+                    text_data = notepad['content']
                     new_data = self.get_argument("data", "")
                     if (f.find('write') > -1 ): 
                         text_data = new_data
@@ -488,6 +493,8 @@ class toolbox_notepad_list_Handler(BaseHandler):
         notepadlist.sort(key=lambda x:x['notepadid'])
         if len(notepadlist) == 0:
             raise HTTPError(404, log_message=u"用户不存在或未创建记事本",reason=u"用户不存在或未创建记事本")
+        if int(notepadid) == 0:
+            notepadid = notepadlist[-1]['notepadid']
         await self.render('toolbox-notepad.html', notepad_id = notepadid, notepad_list=notepadlist, userid=userid)
         return
     
@@ -499,7 +506,11 @@ class toolbox_notepad_list_Handler(BaseHandler):
             if (email) and (pwd) and (f):
                 if self.db.user.challenge_MD5(email, pwd) or self.db.user.challenge(email, pwd):
                     userid = self.db.user.get(email=email, fields=('id'))['id']
-                    notepadid = int(self.get_argument("id_notepad", -1))
+                    notepadid = self.get_argument("id_notepad", "-1")
+                    if not notepadid:
+                        notepadid = -1
+                    else:
+                        notepadid = int(notepadid)
                     notepadlist = self.db.notepad.list(fields=('notepadid'), limit=20, userid=userid )
                     notepadlist = [x['notepadid'] for x in notepadlist]
                     notepadlist.sort()
@@ -508,7 +519,9 @@ class toolbox_notepad_list_Handler(BaseHandler):
                     if f.find('add') > -1:
                         if len(notepadlist) >= 20:
                             raise Exception(u"记事本数量超过上限, limit: 20")
-                        new_data = self.get_argument("data", "")
+                        new_data = self.get_argument("data", '')
+                        if new_data == '':
+                            new_data = None
                         if notepadid == -1:
                             notepadid = notepadlist[-1]+1
                         elif notepadid in notepadlist:

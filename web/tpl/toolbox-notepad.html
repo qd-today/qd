@@ -20,7 +20,7 @@
         <pre id='notepad_value'>{% for notepad in notepad_list %}{% if notepad.notepadid == notepad_id %}{{notepad.content}}{% endif %}{% endfor %}</pre>
     </div>
     <div class="form-group">
-      <label class="control-label" for="note" ><font color='red'>必须输入账号密码验证！！！</font></label>
+      <label class="control-label" for="note" ><font color='red'>除查询以外, 必须输入账号密码验证！！！</font></label>
       <div>
       <label class="control-label" for="note">邮箱</label>
       </div>
@@ -87,8 +87,12 @@ function send2notepad(mode){
           data: data,
         })
         .done(function(jxhr) {
-            window.location.reload();
-          })
+          if (data['id_notepad'] && data['f'] != 'delete'){
+            window.location.assign('/util/toolbox/{{userid}}/notepad/'+data['id_notepad']);
+          } else {
+            window.location.assign('/util/toolbox/{{userid}}/notepad/0');
+          }
+        })
         .fail(function(jxhr) {
           $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
         })
