@@ -12,6 +12,7 @@ define (require) ->
   url = node_url
   tough = node_tough
   querystring = node_querystring
+  curl2har = node_curl2har
 
   exports =
     cookie_parse: (cookie_string) ->
@@ -173,6 +174,51 @@ define (require) ->
             failed_asserts: en.rule?.failed_asserts
             extract_variables: en.rule?.extract_variables
           } for en in tpl)
+          pages: []
+          version: '1.2'
+      }
+    
+    curl2har: (curl) ->
+      if curl?.length? == 0
+        console.error("Curl 命令为空")
+      str_curl = curl.split(/(?=curl )/g)
+      tmp = (curl2har(i) for i in str_curl)
+      return {
+        log:
+          creator:
+            name: 'curl'
+            version: 'qiandao'
+          entries: ({
+            comment: ''
+            checked: true
+            startedDateTime: (new Date()).toISOString()
+            time: 1
+            request:
+              method: en.data.method
+              url: en.data.url
+              headers: ({
+                name: x.name
+                value: x.value
+                checked: true
+              } for x in en.data.headers or [])
+              queryString: []
+              cookies: ({
+                name: x.name
+                value: x.value
+                checked: true
+              } for x in en.data.cookies or [])
+              headersSize: -1
+              bodySize: if en.data.postData.text then en.data.postData.text.length else 0
+              postData: en.data.postData || {}
+            response: {}
+            cache: {}
+            timings: {}
+            connections: "0"
+            pageref: "page_0"
+            success_asserts: []
+            failed_asserts: []
+            extract_variables: []
+          } for en in tmp when en.status != 'error')
           pages: []
           version: '1.2'
       }

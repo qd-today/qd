@@ -59,9 +59,11 @@ define (require, exports, module) ->
         console.log data
         name = ""
         if HARPATH != ""
-          name = HARNAME;
+          name = HARNAME
+        else if not $scope.file? && $scope.curl?.length > 0
+          name = "curl2har"
         else
-          name = $scope.file.name;
+          name = $scope.file.name
         if data.log
           loaded =
             filename: name
@@ -100,14 +102,67 @@ define (require, exports, module) ->
           $scope.load_remote(location.href)
 
       $scope.add_local = () ->
+        if not $scope.file? && $scope.curl?.length? > 0
+          element.find('button').button('loading')
+          old_har = {
+                      filename: utils.storage.get('har_filename'),
+                      har: utils.storage.get('har_har'),
+                      env: utils.storage.get('har_env'),
+                      upload: true
+                    }
+
+          # if !old_har.har && typeof(old_har.har)!="undefined" && old_har.har != 0
+          # 优先读取本地保存的，如果没有则读取全局的
+          old_har = window.global_har if !old_har.har && typeof(old_har.har)!="undefined" && old_har.har != 0
+
+          try
+            har_file_upload = utils.curl2har($scope.curl)
+          catch e
+            console.error e
+            $scope.alert('错误的 Curl 命令')
+            return element.find('button').button('reset')
+          
+          filename = ""
+          if HARPATH != ""
+            filename = HARNAME
+          else if not $scope.file? && $scope.curl?.length? > 0
+            filename = "curl2har"
+          else
+            filename = $scope.file.name
+          new_har = {
+                        filename: filename,
+                        har: analysis.analyze(har_file_upload, {
+                          username: $scope.username,
+                          password: $scope.password
+                        }),
+                        upload: true
+                      }
+
+          new_har.env = {}
+          ref = analysis.find_variables(new_har.har)
+          for each in ref
+            new_har.env[each] = ""
+
+          if $scope.is_loaded
+            target_har = old_har
+            for key in new_har
+              if new_har.hasOwnProperty(key) == true
+                  target_har.env[key] = new_har.env[key]
+            for new_har_log_entry in new_har.har.log.entries
+              target_har.har.log.entries.push(new_har_log_entry)
+          else
+            target_har = new_har
+          $scope.uploaded = true
+          $scope.loaded(target_har)
+          return element.find('button').button('reset')
         if not $scope.file?
           $scope.alert('还没选择文件啊，亲')
           return false
         if $scope.file.size > 50 * 1024 * 1024
           $scope.alert('文件大小超过50M')
           return false
-        element.find('button').button('loading');
-        reader = new FileReader();
+        element.find('button').button('loading')
+        reader = new FileReader()
         reader.onload = (ev) ->
           return $scope.$apply(() ->
             old_har = {
@@ -132,26 +187,26 @@ define (require, exports, module) ->
                           }),
                           upload: true
                         }
-            else 
+            else
               new_har = {
                           filename: $scope.file.name,
                           har: utils.tpl2har(har_file_upload),
                           upload: true
                         }
 
-            new_har.env = {};
-            ref = analysis.find_variables(new_har.har);
-            for each in ref 
+            new_har.env = {}
+            ref = analysis.find_variables(new_har.har)
+            for each in ref
               new_har.env[each] = ""
 
             if $scope.is_loaded
-              target_har = old_har;
+              target_har = old_har
               for key in new_har
                 if new_har.hasOwnProperty(key) == true
-                    target_har.env[key]=new_har.env[key]
+                    target_har.env[key] = new_har.env[key]
               for new_har_log_entry in new_har.har.log.entries
                 target_har.har.log.entries.push(new_har_log_entry)
-            else 
+            else
               target_har = new_har
 
             $scope.uploaded = true
@@ -170,11 +225,20 @@ define (require, exports, module) ->
         return true
       else
         $scope.upload = ->
+          if not $scope.file? && $scope.curl?.length? > 0
+            element.find('button').button('loading')
+            try
+              $scope.load_file(utils.curl2har($scope.curl))
+            catch error
+              console.error error
+              $scope.alert('错误的 Curl 命令')
+            return element.find('button').button('reset')
+
           if not $scope.file?
             $scope.alert '还没选择文件啊，亲'
             return false
 
-          if $scope.file.size > 50*1024*1024
+          if $scope.file.size > 50 * 1024 * 1024
             $scope.alert '文件大小超过50M'
             return false
 
@@ -183,11 +247,11 @@ define (require, exports, module) ->
           reader.onload = (ev) ->
             $scope.$apply ->
               $scope.uploaded = true
-              #try
-              $scope.load_file(angular.fromJson(ev.target.result))
-              #catch error
-                #console.error(error)
-                #$scope.alert('错误的HAR文件')
+              try
+                $scope.load_file(angular.fromJson(ev.target.result))
+              catch error
+                console.error(error)
+                $scope.alert('错误的 HAR 文件')
                 
               element.find('button').button('reset')
           reader.readAsText $scope.file
