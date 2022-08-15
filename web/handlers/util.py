@@ -435,11 +435,11 @@ class toolbox_notepad_Handler(BaseHandler):
         if userid is None:
             raise HTTPError(405)
         self.current_user["isadmin"] or self.check_permission({"userid":int(userid)}, 'r')
-        content = self.db.notepad.get(userid, notepadid, fields=('id', 'content'))
-        if content is None:
-            raise HTTPError(404, log_message=u"未找到该记事本",reason=u"未找到该记事本")
-        text_data = content['content']
-        await self.render('toolbox-notepad.html', text_data = text_data, userid=userid)
+        notepadlist = self.db.notepad.list(fields=('notepadid','content'), limit=20, userid=userid )
+        notepadlist.sort(key=lambda x:x['notepadid'])
+        if len(notepadlist) == 0:
+            raise HTTPError(404, log_message=u"用户不存在或未创建记事本",reason=u"用户不存在或未创建记事本")
+        await self.render('toolbox-notepad.html', notepad_id = int(notepadid), notepad_list=notepadlist, userid=userid)
         return
 
     # @tornado.web.authenticated
@@ -480,17 +480,15 @@ class toolbox_notepad_Handler(BaseHandler):
             return
 
 class toolbox_notepad_list_Handler(BaseHandler):
-    async def get(self,userid=None):
+    async def get(self,userid=None,notepadid=1):
         if userid is None:
             raise HTTPError(405)
         self.current_user["isadmin"] or self.check_permission({"userid":int(userid)}, 'r')
         notepadlist = self.db.notepad.list(fields=('notepadid','content'), limit=20, userid=userid )
+        notepadlist.sort(key=lambda x:x['notepadid'])
         if len(notepadlist) == 0:
             raise HTTPError(404, log_message=u"用户不存在或未创建记事本",reason=u"用户不存在或未创建记事本")
-        text_data = notepadlist[0]['content']
-        notepadidlist = [x['notepadid'] for x in notepadlist]
-        notepadidlist.sort()
-        await self.render('toolbox-notepad.html', text_data = text_data, notepad_list=notepadidlist, userid=userid)
+        await self.render('toolbox-notepad.html', notepad_id = notepadid, notepad_list=notepadlist, userid=userid)
         return
     
     async def post(self,userid=None):
@@ -712,6 +710,7 @@ handlers = [
     ('/util/toolbox/(\d+)/notepad/(\d+)', toolbox_notepad_Handler),
     ('/util/toolbox/notepad/list', toolbox_notepad_list_Handler),
     ('/util/toolbox/(\d+)/notepad/list', toolbox_notepad_list_Handler),
+    ('/util/toolbox/(\d+)/notepad/list/(\d+)', toolbox_notepad_list_Handler),
     ('/util/dddd/ocr', DdddOcrHandler),
     ('/util/dddd/det', DdddDetHandler),
 ]
