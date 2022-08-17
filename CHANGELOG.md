@@ -4,9 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+<!-- ## [Unreleased]
 
 Nothing right now.
+
+## [20220818] - 2022.08.18 更新 -->
+
+## [Unreleased]
+
+1. 添加多种 jinja2 过滤器并更新关于页面
+2. 添加 Ja3 Dockerfile
+3. 添加 curlToHAR feature close a76yyyy/qiandao#7
+4. 后端支持单账号多记事本 close qiandao-today/qiandao#154
+5. 其他优化和修复
 
 ## [20220728] - 2022.07.28 更新
 
