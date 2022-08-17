@@ -44,7 +44,7 @@ define (require, exports, module) ->
           config = res.config
           element.find('button').button('reset')
           $scope.loaded(data)
-        ,(res) ->
+        , (res) ->
           data = res.data
           status = res.status
           headers = res.headers
@@ -65,18 +65,20 @@ define (require, exports, module) ->
         else
           name = $scope.file.name
         if data.log
-          loaded =
+          loaded = {
             filename: name
             har: analysis.analyze(data, {
                   username: $scope.username
                   password: $scope.password
                 })
             upload: true
+          }
         else
-          loaded =
+          loaded = {
             filename: name
             har: utils.tpl2har data
             upload: true
+          }
 
         loaded.env = {}
         for each in analysis.find_variables loaded.har
@@ -85,11 +87,12 @@ define (require, exports, module) ->
         $scope.loaded(loaded)
 
       $scope.load_local_har = () ->
-        loaded =
+        loaded = {
           filename: utils.storage.get('har_filename')
           har: utils.storage.get('har_har')
           env: utils.storage.get('har_env')
           upload: true
+        }
         $scope.loaded(loaded)
 
       $scope.delete_local = () ->
@@ -113,7 +116,7 @@ define (require, exports, module) ->
 
           # if !old_har.har && typeof(old_har.har)!="undefined" && old_har.har != 0
           # 优先读取本地保存的，如果没有则读取全局的
-          old_har = window.global_har if !old_har.har && typeof(old_har.har)!="undefined" && old_har.har != 0
+          old_har = window.global_har if !old_har.har && typeof(old_har.har) != "undefined" && old_har.har != 0
 
           try
             har_file_upload = utils.curl2har($scope.curl)
@@ -174,7 +177,7 @@ define (require, exports, module) ->
 
             # if !old_har.har && typeof(old_har.har)!="undefined" && old_har.har != 0
             # 优先读取本地保存的，如果没有则读取全局的
-            old_har = window.global_har if !old_har.har && typeof(old_har.har)!="undefined" && old_har.har != 0
+            old_har = window.global_har if !old_har.har && typeof(old_har.har) != "undefined" && old_har.har != 0
 
             har_file_upload = angular.fromJson(ev.target.result)
             new_har = {}

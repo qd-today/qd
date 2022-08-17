@@ -3,7 +3,10 @@
 #         http://binux.me
 # Created on 2014-08-02 10:07:33
 
-window.jinja_globals = ['md5','quote_chinese','utf8','unicode','timestamp','random','date_time','is_num','add','sub','multiply','divide','Faker','dict','lipsum']
+window.jinja_globals = [
+  'md5', 'quote_chinese', 'utf8', 'unicode', 'timestamp', 'random',
+  'date_time', 'is_num', 'add', 'sub', 'multiply', 'divide', 'Faker', 'dict', 'lipsum'
+]
 jinja_globals = window.jinja_globals
 
 Array.prototype.some ?= (f) ->
@@ -46,7 +49,7 @@ define (require, exports, module) ->
     cookie_jar = new utils.CookieJar()
     for entry in har.log.entries?
       cookies = {}
-      for cookie in cookie_jar.getCookiesSync(entry.request.url?, {now: new Date(entry.startedDateTime)})
+      for cookie in cookie_jar.getCookiesSync(entry.request.url?, { now: new Date(entry.startedDateTime) })
         cookies[cookie.key] = cookie.value
       for cookie in entry.request.cookies?
         cookie.checked = false
@@ -75,7 +78,7 @@ define (require, exports, module) ->
       for header in (h for h in entry.response?.headers? || [] when h.name.toLowerCase() == 'set-cookie')? || []
         entry.filter_set_cookie = true
         try
-          cookie_jar.setCookieSync(header.value, entry.request.url, {now: new Date(entry.startedDateTime)})
+          cookie_jar.setCookieSync(header.value, entry.request.url, { now: new Date(entry.startedDateTime) })
         catch error
           console.error(error)
 
@@ -116,7 +119,7 @@ define (require, exports, module) ->
       result = []
       try
         for key, value of utils.querystring_parse(entry.request.postData.text)
-          result.push({name: key, value: value})
+          result.push({ name: key, value: value })
         entry.request.postData.params = result
       catch error
         console.error(error)
@@ -169,8 +172,8 @@ define (require, exports, module) ->
         entry.response?.content.text = undefined
     return har
 
-  exports =
-    analyze: (har, variables={}) ->
+  exports = {
+    analyze: (har, variables = {}) ->
       if har.log?
         replace_variables((xhr mime_type analyze_cookies headers sort post_data rm_content har), variables)
       else
@@ -276,5 +279,6 @@ define (require, exports, module) ->
         for each in @.variables_in_entry entry
           result.push each
       return result
+  }
 
   return exports

@@ -14,19 +14,19 @@ define (require) ->
   querystring = node_querystring
   curl2har = node_curl2har
 
-  exports =
+  exports = {
     cookie_parse: (cookie_string) ->
       cookie = {}
       for each in cookie_string?.split(';')
         index = each.indexOf('=')
         index = if index < 0 then each.length else index
         key = each[..index]
-        value = each[index+1..]
+        value = each[index + 1..]
         cookie[decodeURIComponent(key)] = decodeURIComponent(value)
       return cookie
 
     cookie_unparse: (cookie) ->
-      (encodeURIComponent(key)+'='+encodeURIComponent(value) for key, value in cookie).join(';')
+      (encodeURIComponent(key) + '=' + encodeURIComponent(value) for key, value in cookie).join(';')
 
     url_parse: node_url.parse
     url_unparse: node_url.format
@@ -51,7 +51,7 @@ define (require) ->
           else
             replace_list[encodeURIComponent(m[0])] = m[0]
       if node_querystring.stringify(replace_list)
-          console.log('The replace_list is',replace_list)
+          console.log('The replace_list is', replace_list)
       for key, value of replace_list
         query = query.replace(new RegExp(RegExp.escape(key), 'g'), value)
       return query
@@ -60,7 +60,7 @@ define (require) ->
       re = /{{\s*([\w]+)[^}]*?\s*\|urlencode}}/g
       _query = decodeURIComponent(query)
       while m = re.exec(_query)
-        replace_list[encodeURIComponent(m[0])] = m[0][..-13]+'}}'
+        replace_list[encodeURIComponent(m[0])] = m[0][..-13] + '}}'
       for key, value of replace_list
         query = query.replace(new RegExp(RegExp.escape(key), 'g'), value)
 
@@ -70,7 +70,10 @@ define (require) ->
     Cookie: node_tough.Cookie
 
     dict2list: (dict) ->
-      ({name: k, value: v} for k, v of dict)
+      ({
+        name: k,
+        value: v
+      } for k, v of dict)
     list2dict: (list) ->
       dict = {}
       if list
@@ -111,7 +114,7 @@ define (require) ->
 
         return result
 
-    storage:
+    storage: {
       set: (key, value) ->
         if not window.localStorage?
           return false
@@ -133,19 +136,21 @@ define (require) ->
           return window.localStorage.removeItem(key)
         catch error
           return null
+    }
 
     tpl2har: (tpl) ->
       return {
-        log:
-          creator:
+        log: {
+          creator: {
             name: 'binux'
             version: 'qiandao'
+          },
           entries: ({
             comment: en.comment
             checked: true
             startedDateTime: (new Date()).toISOString()
             time: 1
-            request:
+            request: {
               method: en.request.method
               url: en.request.url
               headers: ({
@@ -161,9 +166,11 @@ define (require) ->
               } for x in en.request.cookies or [])
               headersSize: -1
               bodySize: if en.request.data then en.request.data.length else 0
-              postData:
+              postData: {
                 mimeType: en.request.mimeType
                 text: en.request.data
+              }
+            }
             response: {}
             cache: {}
             timings: {}
@@ -176,6 +183,7 @@ define (require) ->
           } for en in tpl)
           pages: []
           version: '1.2'
+        }
       }
     
     curl2har: (curl) ->
@@ -184,16 +192,17 @@ define (require) ->
       str_curl = curl.split(/(?=curl )/g)
       tmp = (curl2har(i) for i in str_curl)
       return {
-        log:
-          creator:
+        log: {
+          creator: {
             name: 'curl'
             version: 'qiandao'
+          },
           entries: ({
             comment: ''
             checked: true
             startedDateTime: (new Date()).toISOString()
             time: 1
-            request:
+            request: {
               method: en.data.method
               url: en.data.url
               headers: ({
@@ -210,6 +219,7 @@ define (require) ->
               headersSize: -1
               bodySize: if en.data.postData.text then en.data.postData.text.length else 0
               postData: en.data.postData || {}
+            }
             response: {}
             cache: {}
             timings: {}
@@ -221,6 +231,8 @@ define (require) ->
           } for en in tmp when en.status != 'error')
           pages: []
           version: '1.2'
+        }
       }
+  }
 
   return exports
