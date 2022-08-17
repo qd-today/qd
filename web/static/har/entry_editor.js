@@ -194,7 +194,7 @@
             method: 'GET',
             url: '',
             postData: {
-              test: ''
+              text: ''
             },
             headers: [],
             cookies: []
@@ -212,7 +212,7 @@
             method: 'GET',
             url: '{% for variable in variables %}',
             postData: {
-              test: ''
+              text: ''
             },
             headers: [],
             cookies: []
@@ -231,7 +231,7 @@
             method: 'GET',
             url: '{% endfor %}',
             postData: {
-              test: ''
+              text: ''
             },
             headers: [],
             cookies: []
@@ -250,7 +250,7 @@
             method: 'GET',
             url: '{% if Conditional_Expression %}',
             postData: {
-              test: ''
+              text: ''
             },
             headers: [],
             cookies: []
@@ -269,7 +269,7 @@
             method: 'GET',
             url: '{% else %}',
             postData: {
-              test: ''
+              text: ''
             },
             headers: [],
             cookies: []
@@ -288,7 +288,7 @@
             method: 'GET',
             url: '{% endif %}',
             postData: {
-              test: ''
+              text: ''
             },
             headers: [],
             cookies: []
@@ -307,7 +307,7 @@
             method: 'GET',
             url: [api_host, '/util/timestamp'].join(''),
             postData: {
-              test: ''
+              text: ''
             },
             headers: [],
             cookies: []
@@ -331,7 +331,7 @@
             method: 'GET',
             url: [api_host, '/util/delay/3'].join(''),
             postData: {
-              test: ''
+              text: ''
             },
             headers: [],
             cookies: []
@@ -352,10 +352,13 @@
           recommend: true,
           comment: 'Unicode转换',
           request: {
-            method: 'GET',
-            url: [api_host, '/util/unicode?content='].join(''),
+            method: 'POST',
+            url: [api_host, '/util/unicode'].join(''),
             headers: [],
-            cookies: []
+            cookies: [],
+            postData: {
+              text: "content="
+            }
           },
           response: {},
           success_asserts: [
@@ -384,10 +387,13 @@
           recommend: true,
           comment: 'URL解码',
           request: {
-            method: 'GET',
-            url: [api_host, '/util/urldecode?content='].join(''),
+            method: 'POST',
+            url: [api_host, '/util/urldecode'].join(''),
             headers: [],
-            cookies: []
+            cookies: [],
+            postData: {
+              text: "content="
+            }
           },
           response: {},
           success_asserts: [
@@ -416,10 +422,13 @@
           recommend: true,
           comment: 'GB2312编码',
           request: {
-            method: 'GET',
-            url: [api_host, '/util/gb2312?content='].join(''),
+            method: 'POST',
+            url: [api_host, '/util/gb2312'].join(''),
             headers: [],
-            cookies: []
+            cookies: [],
+            postData: {
+              text: "content="
+            }
           },
           response: {},
           success_asserts: [
@@ -448,10 +457,13 @@
           recommend: true,
           comment: '正则提取',
           request: {
-            method: 'GET',
-            url: [api_host, '/util/regex?p=&data='].join(''),
+            method: 'POST',
+            url: [api_host, '/util/regex'].join(''),
             headers: [],
-            cookies: []
+            cookies: [],
+            postData: {
+              text: "p=&data="
+            }
           },
           response: {},
           success_asserts: [
@@ -480,10 +492,13 @@
           recommend: true,
           comment: '字符串替换',
           request: {
-            method: 'GET',
-            url: [api_host, '/util/string/replace?r=json&p=&s=&t='].join(''),
+            method: 'POST',
+            url: [api_host, '/util/string/replace'].join(''),
             headers: [],
-            cookies: []
+            cookies: [],
+            postData: {
+              text: "r=json&p=&s=&t="
+            }
           },
           response: {},
           success_asserts: [
@@ -512,10 +527,13 @@
           recommend: true,
           comment: 'RSA加密',
           request: {
-            method: 'GET',
-            url: [api_host, '/util/rsa?key=&data=&f=encode'].join(''),
+            method: 'POST',
+            url: [api_host, '/util/rsa'].join(''),
             headers: [],
-            cookies: []
+            cookies: [],
+            postData: {
+              text: "f=encode&key=&data="
+            }
           },
           response: {},
           success_asserts: [
@@ -540,10 +558,13 @@
           recommend: true,
           comment: 'RSA解密',
           request: {
-            method: 'GET',
-            url: [api_host, '/util/rsa?key=&data=&f=decode'].join(''),
+            method: 'POST',
+            url: [api_host, '/util/rsa'].join(''),
             headers: [],
-            cookies: []
+            cookies: [],
+            postData: {
+              text: "f=decode&key=&data="
+            }
           },
           response: {},
           success_asserts: [
