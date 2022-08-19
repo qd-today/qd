@@ -18,9 +18,10 @@ import re
 import urllib
 import config
 from tornado import httpclient
+from Crypto.Cipher import AES
 
 from libs.convert import to_text, to_bytes, to_native
-from libs.mcrypto import passlib_or_crypt
+from libs.mcrypto import passlib_or_crypt,aes_encrypt,aes_decrypt
 from .log import Log
 
 logger_Util = Log('qiandao.Http.Util').getlogger()
@@ -615,6 +616,44 @@ def b64encode(string, encoding='utf-8'):
 def b64decode(string, encoding='utf-8'):
     return to_text(base64.b64decode(to_bytes(string, errors='surrogate_or_strict')), encoding=encoding)
 
+def switch_mode(mode):
+    mode = mode.upper()
+    if mode == 'CBC':
+        return AES.MODE_CBC
+    elif mode == 'ECB':
+        return AES.MODE_ECB
+    elif mode == 'CFB':
+        return AES.MODE_CFB
+    elif mode == 'OFB':
+        return AES.MODE_OFB
+    elif mode == 'CTR':
+        return AES.MODE_CTR
+    elif mode == 'OPENPGP':
+        return AES.MODE_OPENPGP
+    elif mode == 'GCM':
+        return AES.MODE_GCM
+    elif mode == 'CCM':
+        return AES.MODE_CCM
+    elif mode == 'SIV':
+        return AES.MODE_SIV
+    elif mode == 'OCB':
+        return AES.MODE_OCB
+    elif mode == 'EAX':
+        return AES.MODE_EAX
+    else:
+        raise Exception('Invalid AES mode: %s' % mode)
+
+def _aes_encrypt(word:str, key:str, mode='CBC', iv:str=None, output_format='base64', padding=True, padding_style='pkcs7', no_packb=True):
+    if key is None:
+        raise Exception('key is required')
+    mode = switch_mode(mode)
+    return aes_encrypt(word.encode("utf-8"), key.encode("utf-8"), mode=mode, iv=iv.encode("utf-8"), output=output_format, padding=padding, padding_style=padding_style, no_packb=no_packb)
+
+def _aes_decrypt(word:str, key:str, mode='CBC', iv:str=None, input_format='base64', padding=True, padding_style='pkcs7', no_packb=True):
+    if key is None:
+        raise Exception('key is required')
+    mode = switch_mode(mode)
+    return aes_decrypt(word.encode("utf-8"), key.encode("utf-8"), mode=mode, iv=iv.encode("utf-8"), input=input_format, padding=padding, padding_style=padding_style, no_packb=no_packb)
 
 jinja_globals = {
     # types
@@ -645,6 +684,8 @@ jinja_globals = {
     # generic hashing
     'password_hash': get_encrypted_password,
     'hash': get_hash,
+    'aes_encrypt': _aes_encrypt,
+    'aes_decrypt': _aes_decrypt,
     # regex
     'regex_replace': regex_replace,
     'regex_escape': regex_escape,

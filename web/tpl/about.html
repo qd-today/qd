@@ -392,6 +392,20 @@
       </tr>
 
       <tr>
+        <td>{{aes_encrypt(word, key, mode, iv, output_format='base64', padding=True, padding_style='pkcs7')}}</td>
+        <td>计算 word 的 AES 加密值; <br>word: 待加密文本 <br>key: 密钥, 长度应为16, 24或32 <br>mode: 加密模式, ("ECB","CBC","CFB","OFB","CTR","GCM") <br>iv: 初始化向量, 长度为16 <br>output_format: 输出格式, 默认为 base64 <br>padding: 是否使用填充, 默认为 True <br>padding_style: 填充方式, 默认为 pkcs7</td>
+        <td>{{aes_encrypt("hello", "1234567890123456", "ECB", "1234567890123456", "hex")}}</td>
+        <td class="autowrap">ebb7c703e675db3da397038b4c17823c</td>
+      </tr>
+
+      <tr>
+        <td>{{aes_decrypt(word, key, mode, iv, input_format='base64', padding=True, padding_style='pkcs7')}}</td>
+        <td>计算 word 的 AES 解密值; <br>word: 待解密文本 <br>key: 密钥, 长度应为16, 24或32 <br>mode: 加密模式, ("ECB","CBC","CFB","OFB","CTR","GCM") <br>iv: 初始化向量, 长度为16 <br>input_format: 输入格式, 默认为 base64 <br>padding: 是否使用填充, 默认为 True <br>padding_style: 填充方式, 默认为 pkcs7</td>
+        <td>{{aes_decrypt("ebb7c703e675db3da397038b4c17823c", "1234567890123456", "ECB", "1234567890123456", "hex")}}</td>
+        <td class="autowrap">hello</td>
+      </tr>
+
+      <tr>
         <td>{{password_hash(password, hashtype, salt=salt, salt_size=salt_size, rounds=rounds, ident=ident)}}</td>
         <td>计算 password 的 加密hash 值; <br>hashtype: Hash 类型 ("md5", "sha256", "sha512", "blowfish"), 默认为 sha512 <br>salt: password 盐值 <br>salt_size: password 盐值尺寸 <br>rounds: password hash迭代次数 <br>ident: blowfish 算法版本, 默认为 2b</td>
         <td>{{password_hash("hello")}}</td>
