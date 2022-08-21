@@ -45,7 +45,6 @@ class DBnew(BaseDB):
                 `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1,
                 `logtime`  VARBINARY(1024) NOT NULL DEFAULT '{"en":false,"time":"20:00:00","ts":0,"schanEn":false,"WXPEn":false}',
                 `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable',
-                `notepad` TEXT NULL,
                 `diypusher` VARBINARY(1024) NOT NULL DEFAULT '',
                 `qywx_token` VARBINARY(1024) NOT NULL DEFAULT '',
                 `tg_token` VARBINARY(1024) NOT NULL DEFAULT '',
@@ -127,6 +126,12 @@ class DBnew(BaseDB):
                 `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0,
                 `logDay` INT UNSIGNED NOT NULL DEFAULT 365,
                 `repos` TEXT NOT NULL
+                );
+                CREATE TABLE IF NOT EXISTS `notepad` (
+                `id` INTEGER NOT NULL PRIMARY KEY,
+                `userid` INTEGER NOT NULL ,
+                `notepadid` INTEGER NOT NULL ,
+                `content` TEXT NULL
                 );
                 ''' )
 

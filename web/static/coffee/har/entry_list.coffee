@@ -49,26 +49,26 @@ define (require, exports, module) ->
           utils.storage.set('har_har', $scope.har)
       ), 1)
 
-      $scope.save_change = ()->
+      $scope.save_change = () ->
         $scope.update_checked_status()
         $scope.save_change_storage()
 
       $scope.update_checked_status = utils.debounce((() ->
-        no_checked = (()->
+        no_checked = (() ->
           for e in $scope.har.log.entries when !e.checked
             return e
         )()
         $scope.is_check_all = no_checked == undefined
-        $scope.$apply();
+        $scope.$apply()
       ), 1)
 
       $scope.check_all = () ->
-        $scope.is_check_all = !$scope.is_check_all;
+        $scope.is_check_all = !$scope.is_check_all
         for entry in $scope.har.log.entries when entry.checked != $scope.is_check_all
           entry.checked = $scope.is_check_all
         $scope.save_change_storage()
 
-      $scope.inverse = ()->
+      $scope.inverse = () ->
         for entry in $scope.har.log.entries
           entry.checked = !entry.checked
         $scope.save_change_storage()
@@ -108,17 +108,17 @@ define (require, exports, module) ->
         $scope.pre_save()
         # tpl = btoa(unescape(encodeURIComponent(angular.toJson(har2tpl($scope.har)))))
         # angular.element('#download-har').attr('download', $scope.setting.sitename+'.har').attr('href', 'data:application/json;base64,'+tpl)
-        $scope.export_add($scope.setting.sitename+'.har',decodeURIComponent(encodeURIComponent(angular.toJson(har2tpl($scope.har)))))
+        $scope.export_add($scope.setting.sitename + '.har', decodeURIComponent(encodeURIComponent(angular.toJson(har2tpl($scope.har)))))
         return true
 
-      $scope.ev_click = (obj) -> 
-        ev = document.createEvent("MouseEvents");
+      $scope.ev_click = (obj) ->
+        ev = document.createEvent("MouseEvents")
         ev.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null)
         obj.dispatchEvent(ev)
 
-      $scope.export_add = (name, data) -> 
+      $scope.export_add = (name, data) ->
         urlObject = window.URL || window.webkitURL || window
-        export_blob = new Blob([data], {type: "application/json"})
+        export_blob = new Blob([data], { type: "application/json" })
         save_link = document.createElementNS("http://www.w3.org/1999/xhtml", "a")
         save_link.href = urlObject.createObjectURL(export_blob)
         save_link.download = name
@@ -150,22 +150,30 @@ define (require, exports, module) ->
       har2tpl = (har) ->
         return ({
           comment: entry.comment
-          request:
+          request: {
             method: entry.request.method
             url: entry.request.url
-            headers: ({name: h.name, value: h.value} for h in entry.request.headers when h.checked)
-            cookies: ({name: c.name, value: c.value} for c in entry.request.cookies when c.checked)
+            headers: ({
+              name: h.name,
+              value: h.value
+            } for h in entry.request.headers when h.checked)
+            cookies: ({
+              name: c.name,
+              value: c.value
+            } for c in entry.request.cookies when c.checked)
             data: entry.request.postData?.text
             mimeType: entry.request.postData?.mimeType
-          rule:
+          }
+          rule: {
             success_asserts: entry.success_asserts
             failed_asserts: entry.failed_asserts
             extract_variables: entry.extract_variables
+          }
           } for entry in har.log.entries when entry.checked)
 
       $scope.save = () ->
         # 十六委托偷天修改，主要是HAR保存页面对自定义时间的支持
-        $scope.setting.interval = angular.element('#jiange_second').val();
+        $scope.setting.interval = angular.element('#jiange_second').val()
         # End
         data = {
           id: $scope.id,
@@ -177,7 +185,7 @@ define (require, exports, module) ->
         save_btn = angular.element('#save-har .btn').button('loading')
         alert_elem = angular.element('#save-har .alert-danger').hide()
         alert_info_elem = angular.element('#save-har .alert-info').hide()
-        replace_text = 'save?reponame='+HARPATH+'&'+'name='+HARNAME
+        replace_text = 'save?reponame=' + HARPATH + '&' + 'name=' + HARNAME
         $http.post(location.pathname.replace('edit', replace_text), data)
         .then((res) ->
           data = res.data
@@ -192,7 +200,7 @@ define (require, exports, module) ->
           if pathname != location.pathname
             location.pathname = pathname
           alert_info_elem.text('保存成功').show()
-        ,(res) ->
+        , (res) ->
           data = res.data
           status = res.status
           headers = res.headers
@@ -202,11 +210,13 @@ define (require, exports, module) ->
         )
 
       $scope.test = () ->
-        data =
-          env:
+        data = {
+          env: {
             variables: utils.list2dict($scope.env)
             session: []
+          }
           tpl: har2tpl($scope.har)
+        }
 
         result = angular.element('#test-har .result').hide()
         btn = angular.element('#test-har .btn').button('loading')
@@ -214,8 +224,10 @@ define (require, exports, module) ->
         .then((res) ->
           result.html(res.data).show()
           btn.button('reset')
-        ,(res) ->
-          result.html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(res.data)
+        , (res) ->
+          result.html(
+            '<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>'
+            ).show().find('div').text(res.data)
           btn.button('reset')
         )
     )

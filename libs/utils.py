@@ -5,9 +5,12 @@
 #         http://binux.me
 # Created on 2014-08-07 22:00:27
 
+import base64
+import hashlib
 import socket
 import struct
 import ipaddress
+import uuid
 import jinja2
 from tornado import gen
 from faker import Faker
@@ -15,10 +18,13 @@ import re
 import urllib
 import config
 from tornado import httpclient
+from Crypto.Cipher import AES
+
+from libs.convert import to_text, to_bytes, to_native
+from libs.mcrypto import passlib_or_crypt,aes_encrypt,aes_decrypt
 from .log import Log
 
 logger_Util = Log('qiandao.Http.Util').getlogger()
-
 def ip2int(addr):
     try:
         return struct.unpack("!I", socket.inet_aton(addr))[0]
@@ -206,6 +212,16 @@ def conver2unicode(string):
     tmp = bytes(tmp,'utf-8').decode('unicode_escape')
     return tmp.encode('utf-8').replace(b'\xc2\xa0',b'\xa0').decode('unicode_escape')
 
+def to_bool(a):
+    ''' return a bool for the arg '''
+    if a is None or isinstance(a, bool):
+        return a
+    if isinstance(a, str):
+        a = a.lower()
+    if a in ('yes', 'on', '1', 'true', 1):
+        return True
+    return False
+
 async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提醒 <noreply@{}>".format(config.mail_domain)):
     if not config.mailgun_key:
         subtype = 'html' if html else 'plain'
@@ -322,9 +338,25 @@ def quote_chinese(url, encodeing="utf-8"):
     return "".join(res)
 
 
-import hashlib
-md5string = lambda x: hashlib.md5(utf8(x)).hexdigest()
+from hashlib import sha1
+try:
+    from hashlib import md5 as _md5
+except ImportError:
+    # Assume we're running in FIPS mode here
+    _md5 = None
 
+def secure_hash_s(data, hash_func=sha1):
+    ''' Return a secure hash hex digest of data. '''
+
+    digest = hash_func()
+    data = to_bytes(data, errors='surrogate_or_strict')
+    digest.update(data)
+    return digest.hexdigest()
+
+def md5string(data):
+    if not _md5:
+        raise ValueError('MD5 not available.  Possibly running in FIPS mode')
+    return secure_hash_s(data, _md5)
 
 import random
 def get_random(min_num, max_num, unit):
@@ -338,6 +370,18 @@ def random_fliter(*args, **kwargs):
     except:
         result = random.choice(*args, **kwargs)
     return result
+
+def randomize_list(mylist, seed=None):
+    try:
+        mylist = list(mylist)
+        if seed:
+            r = random.Random(seed)
+            r.shuffle(mylist)
+        else:
+            random.shuffle(mylist)
+    except Exception:
+        raise
+    return mylist
 
 import datetime
 def get_date_time(date=True, time=True, time_difference=0):
@@ -357,6 +401,99 @@ def get_date_time(date=True, time=True, time_difference=0):
         return str(now_date.time()).split('.')[0]
     else:
         return ""
+
+def strftime(string_format, second=None):
+    ''' return a date string using string. See https://docs.python.org/3/library/time.html#time.strftime for format '''
+    if second is not None:
+        try:
+            second = float(second)
+        except Exception:
+            raise Exception('Invalid value for epoch value (%s)' % second)
+    return time.strftime(string_format, time.localtime(second))
+
+def regex_replace(value='', pattern='', replacement='', count=0, ignorecase=False, multiline=False):
+    ''' Perform a `re.sub` returning a string '''
+
+    value = to_text(value, errors='surrogate_or_strict', nonstring='simplerepr')
+
+    flags = 0
+    if ignorecase:
+        flags |= re.I
+    if multiline:
+        flags |= re.M
+    _re = re.compile(pattern, flags=flags)
+    return _re.sub(replacement, value, count)
+
+def regex_findall(value, pattern, ignorecase=False, multiline=False):
+    ''' Perform re.findall and return the list of matches '''
+
+    value = to_text(value, errors='surrogate_or_strict', nonstring='simplerepr')
+
+    flags = 0
+    if ignorecase:
+        flags |= re.I
+    if multiline:
+        flags |= re.M
+    return str(re.findall(pattern, value, flags))
+
+def regex_search(value, pattern, *args, **kwargs):
+    ''' Perform re.search and return the list of matches or a backref '''
+
+    value = to_text(value, errors='surrogate_or_strict', nonstring='simplerepr')
+
+    groups = list()
+    for arg in args:
+        if arg.startswith('\\g'):
+            match = re.match(r'\\g<(\S+)>', arg).group(1)
+            groups.append(match)
+        elif arg.startswith('\\'):
+            match = int(re.match(r'\\(\d+)', arg).group(1))
+            groups.append(match)
+        else:
+            raise Exception('Unknown argument')
+
+    flags = 0
+    if kwargs.get('ignorecase'):
+        flags |= re.I
+    if kwargs.get('multiline'):
+        flags |= re.M
+
+    match = re.search(pattern, value, flags)
+    if match:
+        if not groups:
+            return str(match.group())
+        else:
+            items = list()
+            for item in groups:
+                items.append(match.group(item))
+            return str(items)
+
+def ternary(value, true_val, false_val, none_val=None):
+    '''  value ? true_val : false_val '''
+    if (value is None or isinstance(value, jinja2.Undefined)) and none_val is not None:
+        return none_val
+    elif bool(value):
+        return true_val
+    else:
+        return false_val
+
+def regex_escape(value, re_type='python'):
+    value = to_text(value, errors='surrogate_or_strict', nonstring='simplerepr')
+    '''Escape all regular expressions special characters from STRING.'''
+    if re_type == 'python':
+        return re.escape(value)
+    elif re_type == 'posix_basic':
+        # list of BRE special chars:
+        # https://en.wikibooks.org/wiki/Regular_Expressions/POSIX_Basic_Regular_Expressions
+        return regex_replace(value, r'([].[^$*\\])', r'\\\1')
+    # TODO: implement posix_extended
+    # It's similar to, but different from python regex, which is similar to,
+    # but different from PCRE.  It's possible that re.escape would work here.
+    # https://remram44.github.io/regex-cheatsheet/regex.html#programs
+    elif re_type == 'posix_extended':
+        raise Exception('Regex type (%s) not yet implemented' % re_type)
+    else:
+        raise Exception('Invalid regex type (%s)' % re_type)
 
 import time
 def timestamp(type='int'):
@@ -425,21 +562,144 @@ def is_num(s:str=''):
     else:
         return s.lstrip('-').isdigit()
 
+def get_hash(data, hashtype='sha1'):
+    try:
+        h = hashlib.new(hashtype)
+    except Exception as e:
+        # hash is not supported?
+        raise Exception(e)
+
+    h.update(to_bytes(data, errors='surrogate_or_strict'))
+    return h.hexdigest()
+
+def get_encrypted_password(password, hashtype='sha512', salt=None, salt_size=None, rounds=None, ident=None):
+    passlib_mapping = {
+        'md5': 'md5_crypt',
+        'blowfish': 'bcrypt',
+        'sha256': 'sha256_crypt',
+        'sha512': 'sha512_crypt',
+    }
+
+    hashtype = passlib_mapping.get(hashtype, hashtype)
+    return passlib_or_crypt(password, hashtype, salt=salt, salt_size=salt_size, rounds=rounds, ident=ident)
+
+def to_uuid(string, namespace=uuid.NAMESPACE_URL):
+    uuid_namespace = namespace
+    if not isinstance(uuid_namespace, uuid.UUID):
+        try:
+            uuid_namespace = uuid.UUID(namespace)
+        except (AttributeError, ValueError) as e:
+            raise Exception("Invalid value '%s' for 'namespace': %s" % (to_native(namespace), to_native(e)))
+    # uuid.uuid5() requires bytes on Python 2 and bytes or text or Python 3
+    return to_text(uuid.uuid5(uuid_namespace, to_native(string, errors='surrogate_or_strict')))
+
+def mandatory(a, msg=None):
+    from jinja2.runtime import Undefined
+
+    ''' Make a variable mandatory '''
+    if isinstance(a, Undefined):
+        if a._undefined_name is not None:
+            name = "'%s' " % to_text(a._undefined_name)
+        else:
+            name = ''
+
+        if msg is not None:
+            raise Exception(to_native(msg))
+        else:
+            raise Exception("Mandatory variable %s not defined." % name)
+
+    return a
+
+def b64encode(string, encoding='utf-8'):
+    return to_text(base64.b64encode(to_bytes(string, encoding=encoding, errors='surrogate_or_strict')))
+
+def b64decode(string, encoding='utf-8'):
+    return to_text(base64.b64decode(to_bytes(string, errors='surrogate_or_strict')), encoding=encoding)
+
+def switch_mode(mode):
+    mode = mode.upper()
+    if mode == 'CBC':
+        return AES.MODE_CBC
+    elif mode == 'ECB':
+        return AES.MODE_ECB
+    elif mode == 'CFB':
+        return AES.MODE_CFB
+    elif mode == 'OFB':
+        return AES.MODE_OFB
+    elif mode == 'CTR':
+        return AES.MODE_CTR
+    elif mode == 'OPENPGP':
+        return AES.MODE_OPENPGP
+    elif mode == 'GCM':
+        return AES.MODE_GCM
+    elif mode == 'CCM':
+        return AES.MODE_CCM
+    elif mode == 'SIV':
+        return AES.MODE_SIV
+    elif mode == 'OCB':
+        return AES.MODE_OCB
+    elif mode == 'EAX':
+        return AES.MODE_EAX
+    else:
+        raise Exception('Invalid AES mode: %s' % mode)
+
+def _aes_encrypt(word:str, key:str, mode='CBC', iv:str=None, output_format='base64', padding=True, padding_style='pkcs7', no_packb=True):
+    if key is None:
+        raise Exception('key is required')
+    mode = switch_mode(mode)
+    return aes_encrypt(word.encode("utf-8"), key.encode("utf-8"), mode=mode, iv=iv.encode("utf-8"), output=output_format, padding=padding, padding_style=padding_style, no_packb=no_packb)
+
+def _aes_decrypt(word:str, key:str, mode='CBC', iv:str=None, input_format='base64', padding=True, padding_style='pkcs7', no_packb=True):
+    if key is None:
+        raise Exception('key is required')
+    mode = switch_mode(mode)
+    return aes_decrypt(word.encode("utf-8"), key.encode("utf-8"), mode=mode, iv=iv.encode("utf-8"), input=input_format, padding=padding, padding_style=padding_style, no_packb=no_packb)
 
 jinja_globals = {
-    'md5': md5string,
+    # types
     'quote_chinese': quote_chinese,
+    'bool': to_bool,
     'utf8': utf8,
     'unicode': conver2unicode,
+    # time
     'timestamp': timestamp,
     'date_time': get_date_time,
+    # Calculate
     'is_num': is_num,
     'add': add,
     'sub': sub,
     'multiply': multiply,
     'divide': divide,
+    'Faker': Faker,
+    # base64
+    'b64decode': b64decode,
+    'b64encode': b64encode,
+    # uuid
+    'to_uuid': to_uuid,
+    # hash filters
+    # md5 hex digest of string
+    'md5': md5string,
+    # sha1 hex digest of string
+    'sha1': secure_hash_s,
+    # generic hashing
+    'password_hash': get_encrypted_password,
+    'hash': get_hash,
+    'aes_encrypt': _aes_encrypt,
+    'aes_decrypt': _aes_decrypt,
+    # regex
+    'regex_replace': regex_replace,
+    'regex_escape': regex_escape,
+    'regex_search': regex_search,
+    'regex_findall': regex_findall,
+    # ? : ;
+    'ternary': ternary,
+    # random stuff
     'random': random_fliter,
-    'Faker': Faker
+    'shuffle': randomize_list,
+    # undefined
+    'mandatory': mandatory,
+    # debug
+    'type_debug': lambda o: o.__class__.__name__,
 }
 
 jinja_inner_globals = {

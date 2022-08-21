@@ -5,7 +5,7 @@
 
 define (require, exports, module) ->
   angular.module('editablelist', [])
-    .directive('editablelist', ()->
+    .directive('editablelist', () -> {
       restrict: 'A'
       scope: true
       templateUrl: '/static/har/editablelist.html'
@@ -14,4 +14,4 @@ define (require, exports, module) ->
         $scope.$watch($attr.editablelist, (value) ->
           $scope.$list = value
         )
-    )
+    })

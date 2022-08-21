@@ -288,7 +288,7 @@
             <div class="form-group">
               <label class="col-sm-3 control-label">上传 HAR 文件</label>
               <div class="col-sm-9">
-                <input type="file">
+                <input type="file" style="width: 80%">
               </div>
             </div>
             <div class="form-group">
@@ -303,6 +303,12 @@
               <div class="col-sm-9">
                 <input ng-model="password">
                 <p class="help-block">登录目标网站时输入的密码，用于变量替换</p>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="col-sm-3 control-label">Curl 命令</label>
+              <div class="col-sm-9">
+                <textarea contenteditable style="width:80%;overflow:scroll;overflow-x:hidden;" rows="5" ng-model="curl" ></textarea>
               </div>
             </div>
           </div>

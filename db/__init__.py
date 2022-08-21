@@ -13,5 +13,6 @@ from .push_request import PRDB
 from .redisdb import RedisDB
 from .site import SiteDB
 from .pubtpl import PubTplDB
+from .notepad import NotePadDB
 import os,sys
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))

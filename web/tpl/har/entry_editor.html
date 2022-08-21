@@ -332,30 +332,67 @@
                 <span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
-                <li class="dropdown-header">时间处理</li>
-                <li ng-click="add_delay_request()"><a href="javascript:void(0)">插入延时</a></li>
-                <li ng-click="add_timestamp_request()"><a href="javascript:void(0)">插入时间戳</a></li>
+                <li class="dropdown-header">控制语句</li>
+                <li class="dropdown-submenu">
+                  <a href="#">插入循环</a>
+                  <ul class="dropdown-menu">
+                    <li ng-click="add_for_start()"><a href="javascript:void(0)">循环开始</a></li>
+                    <li ng-click="add_for_end()"><a href="javascript:void(0)">循环结束</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown-submenu">
+                  <a href="#">插入判断</a>
+                  <ul class="dropdown-menu">
+                    <li ng-click="add_if_start()"><a href="javascript:void(0)">判断开始</a></li>
+                    <li ng-click="add_if_else()"><a href="javascript:void(0)">判断不成立</a></li>
+                    <li ng-click="add_if_end()"><a href="javascript:void(0)">判断结束</a></li>
+                  </ul>
+                </li>
                 <li class="divider"></li>
-                <li class="dropdown-header">编码解码</li>
-                <li ng-click="add_unicode_request()"><a href="javascript:void(0)">插入Unicode转换</a></li>
-                <li ng-click="add_urldecode_request()"><a href="javascript:void(0)">插入URL解码</a></li>
-                <li ng-click="add_gb2312_request()"><a href="javascript:void(0)">插入GB2312编码</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">字符串处理</li>
-                <li ng-click="add_regex_request()"><a href="javascript:void(0)">插入正则表达式</a></li>
-                <li ng-click="add_string_replace_request()"><a href="javascript:void(0)">插入字符串替换</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">OCR工具</li>
-                <li ng-click="add_dddd_OCR_request()"><a href="javascript:void(0)">插入OCR识别</a></li>
-                <li ng-click="add_dddd_DET_request()"><a href="javascript:void(0)">插入目标检测</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">加密解密</li>
-                <li ng-click="add_RSA_Encrypt_request()"><a href="javascript:void(0)">插入RSA加密</a></li>
-                <li ng-click="add_RSA_Decrypt_request()"><a href="javascript:void(0)">插入RSA解密</a></li>
-                <li class="divider"></li>
-                <li class="dropdown-header">记事本工具</li>
-                <li ng-click="add_read_notepad_request()"><a href="javascript:void(0)">读取记事本</a></li>
-                <li ng-click="add_append_notepad_request()"><a href="javascript:void(0)">追加记事本</a></li>
+                <li class="dropdown-header">API请求</li>
+                <li class="dropdown-submenu">
+                  <a href="#">时间处理</a>
+                  <ul class="dropdown-menu">
+                    <li ng-click="add_delay_request()"><a href="javascript:void(0)">插入延时</a></li>
+                    <li ng-click="add_timestamp_request()"><a href="javascript:void(0)">插入时间戳</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown-submenu">
+                  <a href="#">编码解码</a>
+                  <ul class="dropdown-menu">
+                    <li ng-click="add_unicode_request()"><a href="javascript:void(0)">插入Unicode转换</a></li>
+                    <li ng-click="add_urldecode_request()"><a href="javascript:void(0)">插入URL解码</a></li>
+                    <li ng-click="add_gb2312_request()"><a href="javascript:void(0)">插入GB2312编码</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown-submenu">
+                  <a href="#">字符串处理</a>
+                  <ul class="dropdown-menu">
+                    <li ng-click="add_regex_request()"><a href="javascript:void(0)">插入正则表达式</a></li>
+                    <li ng-click="add_string_replace_request()"><a href="javascript:void(0)">插入字符串替换</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown-submenu">
+                  <a href="#">OCR工具</a>
+                  <ul class="dropdown-menu">
+                    <li ng-click="add_dddd_OCR_request()"><a href="javascript:void(0)">插入OCR识别</a></li>
+                    <li ng-click="add_dddd_DET_request()"><a href="javascript:void(0)">插入目标检测</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown-submenu">
+                  <a href="#">加密解密</a>
+                  <ul class="dropdown-menu">
+                    <li ng-click="add_RSA_Encrypt_request()"><a href="javascript:void(0)">插入RSA加密</a></li>
+                    <li ng-click="add_RSA_Decrypt_request()"><a href="javascript:void(0)">插入RSA解密</a></li>
+                  </ul>
+                </li>
+                <li class="dropdown-submenu">
+                  <a href="#">记事本工具</a>
+                  <ul class="dropdown-menu">
+                    <li ng-click="add_read_notepad_request()"><a href="javascript:void(0)">读取记事本</a></li>
+                    <li ng-click="add_append_notepad_request()"><a href="javascript:void(0)">追加记事本</a></li>
+                  </ul>
+                </li>
               </ul>
             </div>
           </div>
@@ -369,4 +406,54 @@
     </div><!-- /.modal-dialog -->
   </div><!-- /.modal -->
 </div>
+
+<style type="text/css">
+  .dropdown-submenu {
+    position: relative;
+  }
+
+  .dropdown-submenu>.dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+    margin-left: -1px;
+    -webkit-border-radius: 0 6px 6px 6px;
+    -moz-border-radius: 0 6px 6px;
+    border-radius: 0 6px 6px 6px;
+  }
+
+  .dropdown-submenu:hover>.dropdown-menu {
+    display: block;
+  }
+
+  .dropdown-submenu>a:after {
+    display: block;
+    content: " ";
+    float: right;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 5px 0 5px 5px;
+    border-left-color: #ccc;
+    margin-top: 5px;
+    margin-right: -10px;
+  }
+
+  .dropdown-submenu:hover>a:after {
+    border-left-color: #fff;
+  }
+
+  .dropdown-submenu.pull-left {
+    float: none;
+  }
+
+  .dropdown-submenu.pull-left>.dropdown-menu {
+    left: -100%;
+    margin-left: 10px;
+    -webkit-border-radius: 6px 0 6px 6px;
+    -moz-border-radius: 6px 0 6px 6px;
+    border-radius: 6px 0 6px 6px;
+  }
+</style>
 {% endraw %}

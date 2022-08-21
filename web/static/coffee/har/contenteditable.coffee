@@ -5,7 +5,7 @@
 
 define (require, exports, module) ->
   angular.module('contenteditable', [])
-    .directive('contenteditable', ['$timeout', ($timeout) ->
+    .directive('contenteditable', ['$timeout', ($timeout) -> {
       restrict: 'A'
       require: '?ngModel'
       link: (scope, element, attrs, ngModel) ->
@@ -36,4 +36,4 @@ define (require, exports, module) ->
             oldRender()
           if not element.is(':focus')
             element.text(ngModel.$viewValue || '')
-    ])
+    }])

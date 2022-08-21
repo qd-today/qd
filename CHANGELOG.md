@@ -4,9 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+<!-- ## [Unreleased]
 
 Nothing right now.
+
+## [20220819] - 2022.08.19 更新 -->
+
+## [Unreleased]
+
+1. 添加多种 jinja2 过滤器并更新关于页面
+2. 添加 Ja3 Dockerfile
+3. 添加 curlToHAR feature close a76yyyy/qiandao#7
+4. 后端支持单账号多记事本 close qiandao-today/qiandao#154
+5. 其他优化和修复
+
+## [20220728] - 2022.07.28 更新
+
+1. 增加 if, else endif 关键字支持 (by [aa889788](https://github.com/qiandao-today/qiandao/commits?author=aa889788))
+2. 不允许在单条请求中测试循环或条件控制语句
+3. 添加控制语句API请求并修改插入API样式
+4. 修复因空格导致的任务分组选择出错 Fix qiandao-today/qiandao#275
+5. 其他优化和修复
 
 ## [20220525] - 2022.05.25 更新
 

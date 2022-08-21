@@ -5,17 +5,19 @@
 #         http://binux.me
 # Created on 2014-08-01 10:35:08
 
+import re
 import time
 import json
 import asyncio
 import functools
+from io import BytesIO
 
 import umsgpack
-from tornado import gen
+from tornado import gen, httpclient
 from jinja2 import Environment, meta
+
 from libs import utils
 from libs.fetcher import Fetcher
-
 from .base import *
 
 class HAREditor(BaseHandler):
@@ -73,16 +75,37 @@ class HARTest(BaseHandler):
         except :
             pass
         data = json.loads(self.request.body)
-        ret = await gen.convert_yielded(self.fetcher.fetch(data))
-
-        result = {
-                'success': ret['success'],
-                'har': self.fetcher.response2har(ret['response']),
+        FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}').match(data['request']['url'])
+        IF_START = re.compile('{%\s*if\s+(.+)\s*%}').match(data['request']['url'])
+        ELSE_START = re.compile('{%\s*else\s*%}').match(data['request']['url'])
+        PARSE_END = re.compile('{%\s*end(for|if)\s*%}').match(data['request']['url'])
+        if FOR_START or IF_START or ELSE_START or PARSE_END:
+            tmp = {'env':data['env'],'rule':data['rule']}
+            tmp['request'] = {'method': 'GET', 'url': 'api://util/unicode?content=', 'headers': [], 'cookies': []}
+            req, rule, env = self.fetcher.build_request(tmp)
+            e = httpclient.HTTPError(405, "循环或条件控制语句不支持在单条请求中测试")
+            response = httpclient.HTTPResponse(request=req,code=e.code,reason=e.message,buffer=BytesIO(str(e).encode()))
+            env['session'].extract_cookies_to_jar(response.request, response)
+            success, _ = self.fetcher.run_rule(response, rule, env)
+            result = {
+                'success': success,
+                'har': self.fetcher.response2har(response),
                 'env': {
-                    'variables': ret['env']['variables'],
-                    'session': ret['env']['session'].to_json(),
+                    'variables': env['variables'],
+                    'session': env['session'].to_json(),
                     }
                 }
+        else :
+            ret = await gen.convert_yielded(self.fetcher.fetch(data))
+
+            result = {
+                    'success': ret['success'],
+                    'har': self.fetcher.response2har(ret['response']),
+                    'env': {
+                        'variables': ret['env']['variables'],
+                        'session': ret['env']['session'].to_json(),
+                        }
+                    }
 
         await self.finish(result)
 
