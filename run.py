@@ -3,6 +3,7 @@
 #
 # Copyright © 2016 Binux <roy@binux.me>
 import asyncio
+from db import db_converter
 from libs.log import Log
 import tornado.log
 
@@ -46,10 +47,10 @@ if __name__ == "__main__":
         config.autoreload = False
 
     try:
-        from db import sqlite3_db_task_converter,DB
+        from db import DB
         from db.basedb import engine
         database = DB()
-        converter = sqlite3_db_task_converter.DBconverter()
+        converter = db_converter.DBconverter()
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         run = asyncio.ensure_future(converter.ConvertNewType(database) , loop=loop)
