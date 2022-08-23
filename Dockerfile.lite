@@ -30,7 +30,7 @@ WORKDIR /usr/src/app
 # Qiandao & Pip install modules
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
     && ln -s /usr/bin/python3 /usr/bin/python \
-    && apk add --update --no-cache openssh-client python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging \
+    && apk add --update --no-cache openssh-client python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet \
     && chmod 600 /root/.ssh/id_rsa \
     && ssh-keyscan gitee.com > /root/.ssh/known_hosts \
     && let num=$RANDOM%100+10 \
@@ -52,6 +52,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     sed -i '/pillow/d' requirements.txt && \
     sed -i '/opencv/d' requirements.txt && \
     sed -i '/numpy/d' requirements.txt && \
+    sed -i '/greenlet/d' requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \
     apk del .build_deps && \
     rm -rf /var/cache/apk/* && \
