@@ -114,9 +114,14 @@ def func_cache(f):
 def method_cache(fn):
     @functools.wraps(fn)
     def wrapper(self, *args, **kwargs):
+        tmp = {}
+        for i in kwargs:
+            if i == 'sql_session':
+                continue
+            tmp[i] = kwargs[i]
         if not hasattr(self, '_cache'):
             self._cache = dict()
-        key = umsgpack.packb((args, kwargs))
+        key = umsgpack.packb((args, tmp))
         if key not in self._cache:
             self._cache[key] = fn(self, *args, **kwargs)
         return self._cache[key]
@@ -225,7 +230,7 @@ def to_bool(a):
 async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提醒 <noreply@{}>".format(config.mail_domain)):
     if not config.mailgun_key:
         subtype = 'html' if html else 'plain'
-        _send_mail(to, subject, html or text or '', subtype)
+        await _send_mail(to, subject, html or text or '', subtype)
         return
 
     httpclient.AsyncHTTPClient.configure('tornado.curl_httpclient.CurlAsyncHTTPClient')
@@ -254,14 +259,14 @@ async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签�
         auth_password=config.mailgun_key,
         body=urllib.parse.urlencode(body)
     )
-    res = await gen.convert_yielded(client.fetch(req))
+    res = await client.fetch(req)
     return res
 
 
 import smtplib
 from email.mime.text import MIMEText
 
-def _send_mail(to, subject, text=None, subtype='html'):
+async def _send_mail(to, subject, text=None, subtype='html'):
     if not config.mail_smtp:
         logger_Util.info('no smtp')
         return

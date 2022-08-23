@@ -6,19 +6,26 @@
 # Created on 2014-08-08 20:18:29
 
 import time
-import config
-from libs import utils
-from .basedb import BaseDB
 
-class TaskLogDB(BaseDB):
+from sqlalchemy import INTEGER, Column, Integer, Text, delete, select
+from sqlalchemy.dialects.mysql import TINYINT
+from .basedb import AlchemyMixin, BaseDB
+
+class Tasklog(BaseDB,AlchemyMixin):
     '''
     task log db
 
     id, taskid, success, ctime, msg
     '''
     __tablename__ = 'tasklog'
+    
+    id = Column(Integer, primary_key=True)
+    taskid = Column(INTEGER, nullable=False)
+    success = Column(TINYINT(1), nullable=False)
+    ctime = Column(INTEGER, nullable=False)
+    msg = Column(Text)
 
-    def add(self, taskid, success, msg=''):
+    def add(self, taskid, success, msg='', sql_session=None):
         now = time.time()
 
         insert = dict(
@@ -27,19 +34,26 @@ class TaskLogDB(BaseDB):
                 msg = msg,
                 ctime = now,
                 )
-        return self._insert(**insert)
+        return self._insert(Tasklog(**insert), sql_session=sql_session)
 
-    def list(self, fields=None, limit=1000, **kwargs):
-        where = '1=1'
-        where_values = []
+    async def list(self, fields=None, limit=1000, to_dict=True, sql_session=None, **kwargs):
+        if fields is None:
+            _fields = Tasklog
+        else:
+            _fields = (getattr(Tasklog, field) for field in fields)
+        
+        smtm = select(_fields)
+        
         for key, value in kwargs.items():
-            if value is None:
-                where += ' and %s is %s ORDER BY ctime DESC' % (self.escape(key), self.placeholder)
-            else:
-                where += ' and %s = %s ORDER BY ctime DESC' % (self.escape(key), self.placeholder)
-            where_values.append(value)
-        for tasklog in self._select2dic(what=fields, where=where, where_values=where_values, limit=limit):
-            yield tasklog
+            smtm = smtm.where(getattr(Tasklog, key) == value)
+            
+        if limit:
+            smtm = smtm.limit(limit)
+
+        result = await self._get(smtm.order_by(Tasklog.ctime.desc()), sql_session=sql_session)
+        if to_dict and result is not None:
+            return [self.to_dict(row,fields) for row in result]
+        return result
     
-    def delete(self, id):
-        self._delete(where="id=%s" % self.placeholder, where_values=(id, ))
+    def delete(self, id, sql_session=None):
+        return self._delete(delete(Tasklog).where(Tasklog.id == id), sql_session=sql_session)

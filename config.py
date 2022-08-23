@@ -50,7 +50,7 @@ class mysql(object):
     auth_plugin = parse_qs(mysql_url.query).get('auth_plugin',[''])[0]      # auth_plugin, 默认为空, 可修改为'mysql_native_password','caching_sha2_password'
 
 class sqlite3(object):
-    path = './config/database.db'                                           # Sqlite3数据库文件地址
+    path = os.path.join(os.path.dirname(__file__),'config','database.db')   # Sqlite3数据库文件地址
 
 # 数据库类型, 修改 sqlite3 为 mysql 使用 mysql
 db_type = os.getenv('DB_TYPE', 'sqlite3')                                   # 默认为Sqlite3, 需要使用MySQL时设置为'mysql'

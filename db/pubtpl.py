@@ -5,43 +5,71 @@
 #         http://binux.me
 # Created on 2014-08-08 19:53:09
 
-import time
-import umsgpack
+from sqlalchemy import Column, Integer, Text, delete, select, update
+from .basedb import AlchemyMixin, BaseDB
 
-import config
-from libs import utils
-from .basedb import BaseDB, logger_DB
-class PubTplDB(BaseDB):
+class Pubtpl(BaseDB,AlchemyMixin):
     '''
     Site db
 
     regEn
     '''
     __tablename__ = 'pubtpl'
+    id = Column(Integer, primary_key=True)
+    name = Column(Text)
+    author = Column(Text)
+    comments = Column(Text)
+    content = Column(Text)
+    filename = Column(Text)
+    date = Column(Text)
+    version = Column(Text)
+    url = Column(Text)
+    update = Column(Text)
+    reponame = Column(Text)
+    repourl = Column(Text)
+    repoacc = Column(Text)
+    repobranch = Column(Text)
+    commenturl = Column(Text)
 
-    def add(self, insert):
-        return self._insert(**insert)
+    def add(self, insert, sql_session=None):
+        return self._insert(Pubtpl(**insert), sql_session=sql_session)
 
-    def mod(self, id, **kwargs):
+    def mod(self, id, sql_session=None, **kwargs):
         assert id, 'need id'
-        return self._update(where="id=%s" % self.placeholder, where_values=(id, ), **kwargs)
+        return self._update(update(Pubtpl).where(Pubtpl.id == id).values(**kwargs), sql_session=sql_session)
 
-    def get(self, id, fields=None):
+    async def get(self, id, fields=None, one_or_none=False, first=True, to_dict=True, sql_session=None):
         assert id, 'need id'
-        for task in self._select2dic(what=fields, where='id=%s' % self.placeholder, where_values=(id, )):
-            return task
-            
-    def list(self, fields=None, limit=1000, **kwargs):
-        where = '1=1'
-        where_values = []
-        for key, value in kwargs.items():
-            if value is None:
-                where += ' and %s is %s' % (self.escape(key), self.placeholder)
-            else:
-                where += ' and %s = %s' % (self.escape(key), self.placeholder)
-            where_values.append(value)
+        if fields is None:
+            _fields = Pubtpl
+        else:
+            _fields = (getattr(Pubtpl, field) for field in fields)
+
+        smtm = select(_fields).where(Pubtpl.id == id)
         
-        return self._select2dic(tablename=self.__tablename__, what=fields, where=where, where_values=where_values, limit=limit)
+        result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
+        if to_dict and result is not None:
+            return self.to_dict(result,fields)
+        return result
+            
+    async def list(self, fields=None, limit=1000, to_dict=True, sql_session=None, **kwargs):
+        if fields is None:
+            _fields = Pubtpl
+        else:
+            _fields = (getattr(Pubtpl, field) for field in fields)
+        
+        smtm = select(_fields)
+        
+        for key, value in kwargs.items():
+            smtm = smtm.where(getattr(Pubtpl, key) == value)
+            
+        if limit:
+            smtm = smtm.limit(limit)
+
+        result = await self._get(smtm, sql_session=sql_session)
+        if to_dict and result is not None:
+            return [self.to_dict(row,fields) for row in result]
+        return result
     
-    def delete(self, id):
-        self._delete(where="id=%s" % self.placeholder, where_values=(id, ))
+    def delete(self, id, sql_session=None):
+        return self._delete(delete(Pubtpl).where(Pubtpl.id == id), sql_session=sql_session)

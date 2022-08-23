@@ -1,8 +1,8 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 # vim:fenc=utf-8
 #
 # Copyright © 2016 Binux <roy@binux.me>
+import asyncio
 from libs.log import Log
 import tornado.log
 
@@ -10,7 +10,6 @@ import sys
 import platform
 import config
 
-from db import sqlite3_db_task_converter
 import requests
 
 requests.packages.urllib3.disable_warnings()
@@ -46,42 +45,18 @@ if __name__ == "__main__":
     if config.multiprocess and config.autoreload:
         config.autoreload = False
 
-    if config.db_type == 'sqlite3':
-        import sqlite3_db as db
-    else:
-        import db
-
-    class DB(object):
-        def __init__(self) -> None:
-            self.user = db.UserDB()
-            self.tpl = db.TPLDB()
-            self.task = db.TaskDB()
-            self.tasklog = db.TaskLogDB()
-            self.push_request = db.PRDB()
-            self.redis = db.RedisDB()
-            self.site = db.SiteDB()
-            self.pubtpl = db.PubTplDB()
-            self.notepad = db.NotePadDB()
-        def close(self):
-            self.user.close()
-            self.tpl.close()
-            self.task.close()
-            self.tasklog.close()
-            self.push_request.close()
-            self.redis.close()
-            self.site.close()
-            self.pubtpl.close()
-            self.notepad.close()
-        
-    database = DB()
-
     try:
-        from web.app import Application
+        from db import sqlite3_db_task_converter,DB
+        from db.basedb import engine
+        database = DB()
         converter = sqlite3_db_task_converter.DBconverter()
-        converter.ConvertNewType(DB()) 
-        converter.db.close()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        run = asyncio.ensure_future(converter.ConvertNewType(database) , loop=loop)
+        loop.run_until_complete(run)
 
         from tornado.httpserver import HTTPServer
+        from web.app import Application
         http_server = HTTPServer(Application(database), xheaders=True)
         http_server.bind(port, config.bind)
         if config.multiprocess:
@@ -99,6 +74,6 @@ if __name__ == "__main__":
         IOLoop.instance().start()
     except KeyboardInterrupt :
         logger_Qiandao.info("Http Server is being manually interrupted... ")
-        database.close()
+        engine.dispose()
         logger_Qiandao.info("Http Server is ended. ")
 

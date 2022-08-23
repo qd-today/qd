@@ -16,7 +16,7 @@ class IndexHandlers(BaseHandler):
 
         tplid = self.get_argument('tplid', None)
         fields = ('id', 'sitename', 'success_count')
-        tpls = sorted(self.db.tpl.list(userid=None, fields=fields, limit=None), key=lambda t: -t['success_count'])
+        tpls = sorted(await self.db.tpl.list(userid=None, fields=fields, limit=None), key=lambda t: -t['success_count'])
         if not tpls:
             return await self.render('index.html', tpls=[], tplid=0, tpl=None, variables=[])
 
@@ -26,7 +26,7 @@ class IndexHandlers(BaseHandler):
                     tplid = tpl['id']
                     break
         tplid = int(tplid)
-        tpl = self.check_permission(self.db.tpl.get(tplid, fields=('id', 'userid', 'sitename', 'siteurl', 'note', 'variables')))
+        tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid', 'sitename', 'siteurl', 'note', 'variables')))
         variables = json.loads(tpl['variables'])
         
         return await self.render('index.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables)
