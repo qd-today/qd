@@ -75,6 +75,9 @@ if __name__ == "__main__":
         IOLoop.instance().start()
     except KeyboardInterrupt :
         logger_Qiandao.info("Http Server is being manually interrupted... ")
-        engine.dispose()
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        run = asyncio.ensure_future(engine.dispose() , loop=loop)
+        loop.run_until_complete(run)
         logger_Qiandao.info("Http Server is ended. ")
 

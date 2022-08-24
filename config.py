@@ -55,6 +55,25 @@ class sqlite3(object):
 # 数据库类型, 修改 sqlite3 为 mysql 使用 mysql
 db_type = os.getenv('DB_TYPE', 'sqlite3')                                   # 默认为Sqlite3, 需要使用MySQL时设置为'mysql'
 
+# SQLAlchmey配置
+class sqlalchemy(object):
+    echo = os.getenv('QIANDAO_SQL_ECHO',str(debug))                         # 是否启用 SQLAlchmey 的日志输出, 默认为 False
+    if echo != "debug":
+        echo = bool(strtobool(echo))                                        # 允许设置为 debug 以启用 debug 模式
+    echo_pool = os.getenv('QIANDAO_SQL_ECHO_POOL', 'True')                   # 是否启用连接池的日志输出
+    if echo_pool != "debug":
+        echo_pool = bool(strtobool(echo_pool))                              # 允许设置为 debug 以启用 debug 模式
+    logging_name = os.getenv('QIANDAO_SQL_LOGGING_NAME', 'qiandao.sql_engine')          # SQLAlchmey日志名称
+    logging_level = os.getenv('QIANDAO_SQL_LOGGING_LEVEL', 'Warning')          # SQLAlchmey日志级别
+    pool_logging_name = os.getenv('QIANDAO_SQL_POOL_LOGGING_NAME', 'qiandao.sql_pool')  # 连接池日志名称
+    pool_logging_level = os.getenv('QIANDAO_SQL_POOL_LOGGING_LEVEL', 'Warning')  # 连接池日志级别
+    pool_size = int(os.getenv('QIANDAO_SQL_POOL_SIZE', '5'))                # 连接池大小
+    max_overflow = int(os.getenv('QIANDAO_SQL_MAX_OVERFLOW', '10'))         # 连接池连接数量超过 pool_size 时, 最大连接数
+    pool_pre_ping = bool(strtobool(os.getenv('QIANDAO_SQL_POOL_PRE_PING', 'True')))     # 是否在获取连接前进行 ping 操作, 默认为 True
+    pool_recycle = int(os.getenv('QIANDAO_SQL_POOL_RECYCLE', '3600'))     # 连接池中连接复用时间, 默认为 3600 秒
+    pool_timeout = int(os.getenv('QIANDAO_SQL_POOL_TIMEOUT', '30'))         # 连接池获取连接超时时间, 默认为 30 秒
+    pool_use_lifo = bool(strtobool(os.getenv('QIANDAO_SQL_POOL_USE_LIFO', 'True')))     # 连接池是否使用 LIFO, 默认为 True
+
 # redis 连接参数, 可选
 class redis(object):
     host = redis_url.hostname or 'localhost'                                # 访问Redis的Hostname
