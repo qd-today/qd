@@ -57,16 +57,10 @@ db_type = os.getenv('DB_TYPE', 'sqlite3')                                   # �
 
 # SQLAlchmey配置
 class sqlalchemy(object):
-    echo = os.getenv('QIANDAO_SQL_ECHO',str(debug))                         # 是否启用 SQLAlchmey 的日志输出, 默认为 False
-    if echo != "debug":
-        echo = bool(strtobool(echo))                                        # 允许设置为 debug 以启用 debug 模式
-    echo_pool = os.getenv('QIANDAO_SQL_ECHO_POOL', 'True')                   # 是否启用连接池的日志输出
-    if echo_pool != "debug":
-        echo_pool = bool(strtobool(echo_pool))                              # 允许设置为 debug 以启用 debug 模式
-    logging_name = os.getenv('QIANDAO_SQL_LOGGING_NAME', 'qiandao.sql_engine')          # SQLAlchmey日志名称
-    logging_level = os.getenv('QIANDAO_SQL_LOGGING_LEVEL', 'Warning')          # SQLAlchmey日志级别
-    pool_logging_name = os.getenv('QIANDAO_SQL_POOL_LOGGING_NAME', 'qiandao.sql_pool')  # 连接池日志名称
-    pool_logging_level = os.getenv('QIANDAO_SQL_POOL_LOGGING_LEVEL', 'Warning')  # 连接池日志级别
+    logging_name = os.getenv('QIANDAO_SQL_LOGGING_NAME', 'qiandao.sql')     # SQLAlchmey日志名称
+    logging_level = os.getenv('QIANDAO_SQL_LOGGING_LEVEL', 'WARNING')             # SQLAlchmey日志级别
+    pool_logging_name = os.getenv('QIANDAO_SQL_POOL_LOGGING_NAME', 'qiandao.sql.pool')                  # 连接池日志名称
+    pool_logging_level = os.getenv('QIANDAO_SQL_POOL_LOGGING_LEVEL', 'WARNING')   # 连接池日志级别
     pool_size = int(os.getenv('QIANDAO_SQL_POOL_SIZE', '5'))                # 连接池大小
     max_overflow = int(os.getenv('QIANDAO_SQL_MAX_OVERFLOW', '10'))         # 连接池连接数量超过 pool_size 时, 最大连接数
     pool_pre_ping = bool(strtobool(os.getenv('QIANDAO_SQL_POOL_PRE_PING', 'True')))     # 是否在获取连接前进行 ping 操作, 默认为 True

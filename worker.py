@@ -61,11 +61,11 @@ class MainWorker(object):
                 userlist = await self.db.user.list(fields=('id', 'email', 'status', 'push_batch'), sql_session=sql_session)
                 pushtool = pusher(self.db, sql_session=sql_session)
                 if userlist:
-                    logger_Worker.debug('Scaned push_batch task, waiting...')
                     for user in userlist:
                         userid = user['id']
                         push_batch = json.loads(user['push_batch'])
                         if user['status'] == "Enable" and push_batch["sw"] and isinstance(push_batch['time'],(float,int)) and time.time() >= push_batch['time']:
+                            logger_Worker.debug('Exist push_batch task, waiting...')
                             title = u"定期签到日志推送"
                             delta = push_batch.get("delta", 86400)
                             logtemp = "{}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(push_batch['time'])))
@@ -111,33 +111,29 @@ class MainWorker(object):
         failed = 0
         try:
             tasks = await self.scan()
-            if tasks is None:
-                return
-            for task in tasks:
-                # TODO 并发执行任务
-                running.append(asyncio.ensure_future(self.do(task)))
-                if len(running) >= 50:
-                    logger_Worker.debug('scaned %d task, waiting...', len(running))
-                    result = await asyncio.gather(*running[:10])
-                    for each in result:
-                        if each:
-                            success += 1
-                        else:
-                            failed += 1
-                    running = running[10:]
-            logger_Worker.debug('scaned %d task, waiting...', len(running))
-            result = await asyncio.gather(*running)
-            for each in result:
-                if each:
-                    success += 1
-                else:
-                    failed += 1
+            if tasks is not None and len(tasks) > 0:
+                for task in tasks:
+                    running.append(asyncio.ensure_future(self.do(task)))
+                    if len(running) >= 50:
+                        logger_Worker.debug('scaned %d task, waiting...', len(running))
+                        result = await asyncio.gather(*running[:10])
+                        for each in result:
+                            if each:
+                                success += 1
+                            else:
+                                failed += 1
+                        running = running[10:]
+                logger_Worker.debug('scaned %d task, waiting...', len(running))
+                result = await asyncio.gather(*running)
+                for each in result:
+                    if each:
+                        success += 1
+                    else:
+                        failed += 1
             if config.push_batch_sw:
                 await self.push_batch()
         except Exception as e:
             logger_Worker.exception(e)
-        # if success or failed:
-        #     logger_Worker.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
         return (success, failed)
 
     async def scan(self):

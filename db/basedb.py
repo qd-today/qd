@@ -7,6 +7,7 @@
 
 from asyncio import current_task
 import contextlib
+import logging
 from typing import Tuple
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine,async_scoped_session
@@ -17,9 +18,6 @@ from sqlalchemy.orm import declarative_base,sessionmaker
 import config
 from libs.log import Log
 
-logger_DB = Log('qiandao.sql').getlogger()
-
-
 if config.db_type == 'mysql':
     host=config.mysql.host
     port=config.mysql.port
@@ -28,10 +26,9 @@ if config.db_type == 'mysql':
     passwd=config.mysql.passwd
     auth_plugin=config.mysql.auth_plugin
     engine = create_async_engine(f"mysql+aiomysql://{user}:{passwd}@{host}:{port}/{database}?auth_plugin={auth_plugin}",
-                                echo = config.sqlalchemy.echo,
+                                logging_name = config.sqlalchemy.logging_name,
                                 pool_size = config.sqlalchemy.pool_size,
                                 max_overflow = config.sqlalchemy.max_overflow,
-                                echo_pool = config.sqlalchemy.echo_pool,
                                 pool_logging_name = config.sqlalchemy.pool_logging_name,
                                 pool_pre_ping = config.sqlalchemy.pool_pre_ping,
                                 pool_recycle = config.sqlalchemy.pool_recycle,
@@ -39,17 +36,23 @@ if config.db_type == 'mysql':
                                 pool_use_lifo = config.sqlalchemy.pool_use_lifo)
 elif config.db_type == 'sqlite3':
     engine = create_async_engine(f"sqlite+aiosqlite:///{config.sqlite3.path}", 
-                                echo = config.sqlalchemy.echo,
-                                pool_size = config.sqlalchemy.pool_size,
-                                max_overflow = config.sqlalchemy.max_overflow,
-                                echo_pool = config.sqlalchemy.echo_pool,
+                                logging_name = config.sqlalchemy.logging_name,
                                 pool_logging_name = config.sqlalchemy.pool_logging_name,
                                 pool_pre_ping = config.sqlalchemy.pool_pre_ping,
-                                pool_recycle = config.sqlalchemy.pool_recycle,
-                                pool_timeout = config.sqlalchemy.pool_timeout,
-                                pool_use_lifo = config.sqlalchemy.pool_use_lifo )
+                                pool_recycle = config.sqlalchemy.pool_recycle )
 else:
     raise Exception('db_type must be mysql or sqlite3')
+logger_DB = Log(engine.engine.logger, 
+                logger_level=config.sqlalchemy.logging_level,
+                channel_level=config.sqlalchemy.logging_level).getlogger()
+if hasattr(engine.pool.logger, 'logger'):
+    logger_DB_POOL = Log(engine.pool.logger.logger,
+                        logger_level=config.sqlalchemy.pool_logging_level,
+                        channel_level=config.sqlalchemy.pool_logging_level).getlogger()
+else:
+    logger_DB_POOL = Log(engine.pool.logger,
+                        logger_level=config.sqlalchemy.pool_logging_level,
+                        channel_level=config.sqlalchemy.pool_logging_level).getlogger()
 async_session = async_scoped_session(sessionmaker(engine, class_=AsyncSession, expire_on_commit=False),
                                      scopefunc=current_task)
 BaseDB = declarative_base(bind=engine, name="BaseDB")

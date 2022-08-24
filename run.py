@@ -21,7 +21,7 @@ if __name__ == "__main__":
         importlib.reload(sys)
     # init logging
     logger = Log().getlogger()
-    logger_Qiandao = Log('qiandao.run').getlogger()
+    logger_Qiandao = Log('qiandao.Run').getlogger()
 
     if config.debug:
         import logging
