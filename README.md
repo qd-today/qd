@@ -23,7 +23,7 @@ Qiandao —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR
 ![repo size][repo-size-image]
 ![python version][python-version-image]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-5-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [HomePage-image]: https://img.shields.io/badge/HomePage-qiandao--today-brightgreen
@@ -316,6 +316,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/AragonSnow"><img src="https://avatars.githubusercontent.com/u/22835918?v=4?s=100" width="100px;" alt=""/><br /><sub><b>AragonSnow</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=AragonSnow" title="Code">💻</a> <a href="#design-AragonSnow" title="Design">🎨</a> <a href="#maintenance-AragonSnow" title="Maintenance">🚧</a></td>
     <td align="center"><a href="https://www.quchao.net"><img src="https://avatars.githubusercontent.com/u/36469805?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mark</b></sub></a><br /><a href="#design-Mark-1215" title="Design">🎨</a> <a href="#blog-Mark-1215" title="Blogposts">📝</a> <a href="#example-Mark-1215" title="Examples">💡</a> <a href="https://github.com/qiandao-today/qiandao/commits?author=Mark-1215" title="Documentation">📖</a></td>
     <td align="center"><a href="https://github.com/cdpidan"><img src="https://avatars.githubusercontent.com/u/8141453?v=4?s=100" width="100px;" alt=""/><br /><sub><b>pidan</b></sub></a><br /><a href="#design-cdpidan" title="Design">🎨</a></td>
+    <td align="center"><a href="https://buzhibujue.cf"><img src="https://avatars.githubusercontent.com/u/24644841?v=4?s=100" width="100px;" alt=""/><br /><sub><b>buzhibujue</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=buzhibujuelb" title="Code">💻</a></td>
   </tr>
 </table>
 
