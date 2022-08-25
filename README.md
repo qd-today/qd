@@ -255,7 +255,7 @@ EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.j
 
    ``` bash
    # 先cd到源码所在目录, 执行命令后重启进程 
-   wget https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
+   wget https://gitee.com/a76yyyy/qiandao/raw/master/update.sh -O ./update.sh && \
    sh ./update.sh 
    ```
 
@@ -263,7 +263,7 @@ EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.j
 
    ``` bash
    # 先进入容器后台, 执行命令后重启容器 
-   wget https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O /usr/src/app/update.sh && \
+   wget https://gitee.com/a76yyyy/qiandao/raw/master/update.sh -O /usr/src/app/update.sh && \
    sh /usr/src/app/update.sh
    ```
 
@@ -271,7 +271,7 @@ EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.j
 
    ``` bash
    # 先cd到仓库代码根目录, 执行命令后重启进程 
-   wget https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
+   wget https://gitee.com/a76yyyy/qiandao/raw/master/update.sh -O ./update.sh && \
    sh ./update.sh -f
    ```
 

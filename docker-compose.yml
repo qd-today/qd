@@ -18,6 +18,7 @@ services:
       # - GZIP=True
       # - BIND=0.0.0.0
       # - PORT=80
+      # - QUEUE_NUM=50
       # - ENABLE_HTTPS=False
       # - ACCESS_LOG=True
       # - DOMAIN=
@@ -34,9 +35,21 @@ services:
       # - TRACEBACK_PRINT=False
       # - PUSH_PIC_URL=https://fastly.jsdelivr.net/gh/a76yyyy/qiandao@master/web/static/img/push_pic.png
       # - PUSH_BATCH_SW=True
+      # - PUSH_BATCH_DELTA=60
       # - DB_TYPE=sqlite3
+      # - QIANDAO_SQL_LOGGING_NAME=qiandao.sql
+      # - QIANDAO_SQL_LOGGING_LEVEL=WARNING
+      # - QIANDAO_SQL_POOL_LOGGING_NAME=qiandao.sql.pool
+      # - QIANDAO_SQL_POOL_LOGGING_LEVEL=WARNING
+      # - QIANDAO_SQL_POOL_SIZE=5
+      # - QIANDAO_SQL_MAX_OVERFLOW=10
+      # - QIANDAO_SQL_POOL_PRE_PING=True
+      # - QIANDAO_SQL_POOL_RECYCLE=3600
+      # - QIANDAO_SQL_POOL_TIMEOUT=30
+      # - QIANDAO_SQL_POOL_USE_LIFO=True
       # - REDIS_DB_INDEX=1
       # - QIANDAO_EVIL=1000
+      # - EVIL_PASS_LAN_IP=True
       - PBKDF2_ITERATIONS=400
       - AES_KEY=binux
       - COOKIE_SECRET=binux
@@ -48,6 +61,7 @@ services:
       # - PROXIES=
       # - PROXY_DIRECT_MODE=regexp
       # - PROXY_DIRECT=(?xi)\A([a-z][a-z0-9+\-.]*://)?(0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])(:[0-9]+)?
+      # - NEW_TASK_DELAY=1
       # - EXTRA_ONNX_NAME=
       # - EXTRA_CHARSETS_NAME=
       # - NEW_TASK_DELAY=1

@@ -16,7 +16,9 @@ Nothing right now.
 2. 添加 Ja3 Dockerfile
 3. 添加 curlToHAR feature close a76yyyy/qiandao#7
 4. 后端支持单账号多记事本 close qiandao-today/qiandao#154
-5. 其他优化和修复
+5. 添加 SQLAlchemy ORM 特性
+6. 优化定时任务执行性能, 实现生产者-消费者异步队列模型
+7. 其他优化和修复
 
 ## [20220728] - 2022.07.28 更新
 
