@@ -72,7 +72,6 @@ class TPLDelHandler(BaseHandler):
         user = self.current_user
         async with self.db.transaction() as sql_session:
             tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid'),sql_session=sql_session), 'w')
-
             await self.db.tpl.delete(tplid,sql_session=sql_session)
         referer = self.request.headers.get('referer', '/my/')
         self.redirect(referer)

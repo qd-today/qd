@@ -113,4 +113,4 @@ class Tpl(BaseDB,AlchemyMixin):
         return result
 
     def delete(self, id, sql_session=None):
-        self._delete(delete(Tpl).where(Tpl.id == id), sql_session=sql_session)
+        return self._delete(delete(Tpl).where(Tpl.id == id), sql_session=sql_session)
