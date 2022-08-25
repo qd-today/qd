@@ -76,6 +76,16 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "acooler15",
+      "name": "acooler15",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19186382?v=4",
+      "profile": "http://www.lingyan8.com",
+      "contributions": [
+        "code",
+        "maintenance"
+      ]
     }
   ],
   "contributorsPerLine": 7,
