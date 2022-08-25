@@ -68,6 +68,7 @@ update() {
     remoteversion=$(git ls-remote --tags origin | grep -o 'refs/tags/[0-9]*' | sort -r | head -n 1 | grep -o '[^\/]*$')
     if [ $(echo $localversion $remoteversion | awk '$1>=$2 {print 0} $1<$2 {print 1}') == 1 ];then
         echo -e "Info: 当前版本: $localversion \nInfo: 新版本: $remoteversion \nInfo: 正在更新中, 请稍候..."
+        wget https://gitee.com/a76yyyy/qiandao/raw/$remoteversion/requirements.txt -O /usr/src/app/requirements.txt && \
         [[ -z $(file /bin/busybox | grep -i "musl") ]] && {\
             pip install -r requirements.txt && \
             echo "如需使用DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
@@ -111,10 +112,10 @@ update() {
             apk del .build_deps 
             rm -rf /var/cache/apk/* 
             rm -rf /usr/share/man/*
-        }
-        git fetch --all
-        git reset --hard origin/master
-        git checkout master
+        } && \
+        git fetch --all && \
+        git reset --hard origin/master && \
+        git checkout master && \
         git pull
     else
         echo "Info: 当前版本: $localversion , 无需更新!"
@@ -128,6 +129,7 @@ force_update() {
     localversion=$(python -c 'import sys, json; print(json.load(open("version.json"))["version"])')
     remoteversion=$(git ls-remote --tags origin | grep -o 'refs/tags/[0-9]*' | sort -r | head -n 1 | grep -o '[^\/]*$')
     echo -e "Info: 正在强制更新中, 请稍候..."
+    wget https://gitee.com/a76yyyy/qiandao/raw/master/requirements.txt -O /usr/src/app/requirements.txt && \
     [[ -z $(file /bin/busybox | grep -i "musl") ]] && {\
         pip install -r requirements.txt && \
         echo "如需使用DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
@@ -171,10 +173,10 @@ force_update() {
         apk del .build_deps 
         rm -rf /var/cache/apk/* 
         rm -rf /usr/share/man/*
-    }
-    git fetch --all
-    git reset --hard origin/master
-    git checkout master
+    } && \
+    git fetch --all && \
+    git reset --hard origin/master && \
+    git checkout master && \
     git pull
     if [ $(printenv AUTO_RELOAD) ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器, 或设置环境变量AUTO_RELOAD以开启热更新功能"
@@ -183,8 +185,7 @@ force_update() {
 
 update_version() {
     echo -e "Info: 正在强制切换至指定Tag版本: $1, 请稍候..."
-    git fetch --all
-    git checkout -f $1
+    wget https://gitee.com/a76yyyy/qiandao/raw/$1/requirements.txt -O /usr/src/app/requirements.txt && \
     [[ -z $(file /bin/busybox | grep -i "musl") ]] && {\
         pip install -r requirements.txt && \
         echo "如需使用DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
@@ -228,7 +229,9 @@ update_version() {
         apk del .build_deps 
         rm -rf /var/cache/apk/* 
         rm -rf /usr/share/man/*
-    }
+    } && \
+    git fetch --all && \
+    git checkout -f $1
     if [ $(printenv AUTO_RELOAD) ] && [ "$AUTO_RELOAD" == "False" ];then
         echo "Info: 请手动重启容器, 或设置环境变量AUTO_RELOAD以开启热更新功能"
     fi
