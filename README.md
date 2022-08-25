@@ -23,7 +23,7 @@ Qiandao —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR
 ![repo size][repo-size-image]
 ![python version][python-version-image]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-8-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [HomePage-image]: https://img.shields.io/badge/HomePage-qiandao--today-brightgreen
@@ -318,6 +318,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://github.com/cdpidan"><img src="https://avatars.githubusercontent.com/u/8141453?v=4?s=100" width="100px;" alt=""/><br /><sub><b>pidan</b></sub></a><br /><a href="#design-cdpidan" title="Design">🎨</a></td>
     <td align="center"><a href="https://buzhibujue.cf"><img src="https://avatars.githubusercontent.com/u/24644841?v=4?s=100" width="100px;" alt=""/><br /><sub><b>buzhibujue</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=buzhibujuelb" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/billypon"><img src="https://avatars.githubusercontent.com/u/1763302?v=4?s=100" width="100px;" alt=""/><br /><sub><b>billypon</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=billypon" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="http://www.lingyan8.com"><img src="https://avatars.githubusercontent.com/u/19186382?v=4?s=100" width="100px;" alt=""/><br /><sub><b>acooler15</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=acooler15" title="Code">💻</a> <a href="#maintenance-acooler15" title="Maintenance">🚧</a></td>
   </tr>
 </table>
 
