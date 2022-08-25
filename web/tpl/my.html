@@ -162,7 +162,7 @@
         <tr class="{{ tplgroup }} tplgroup" >
           <td>
             {% if  tpl.updateable == 1 %}
-            <a class="btn btn-default btn-xs" href="/tpl/{{ tpl.id }}/edit?tplurl={{ tpl.tplurl | urlencode }}?tpldata={{ tpl.tpldata | urlencode }}" target="_blank" title="更新模板">更新
+            <a class="btn btn-default btn-xs" href="/tpl/{{ tpl.id }}/edit?tplurl={{ tpl.tplurl | urlencode }}" target="_blank" title="更新模板">更新
             </a>
             {% endif %}
             {{ utils.tplname(tpl) }}

@@ -15,6 +15,7 @@ import asyncio
 import functools
 
 import config
+from db import DB
 from libs import utils
 from tornado import gen
 from libs.fetcher import Fetcher
@@ -22,9 +23,10 @@ from .log import Log
 
 logger_Funcs = Log('qiandao.Http.Funcs').getlogger()
 class pusher(object):
-    def __init__(self,db=None):
+    def __init__(self,db=DB(),sql_session=None):
         self.db = db
         self.fetcher = Fetcher()
+        self.sql_session = sql_session
     
     def judge_res(self,res):
         if (res.status_code == 200):
@@ -43,10 +45,11 @@ class pusher(object):
         return r
     
     async def pusher(self, userid, pushsw, flg, title, content):
-        notice = self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token', 'diypusher'))
+        sql_session = self.sql_session
+        notice = await self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token', 'diypusher'), sql_session=sql_session)
 
         if (notice['noticeflg'] & flg != 0):
-            user = self.db.user.get(userid, fields=('id', 'email', 'email_verified', 'nickname'))
+            user = await self.db.user.get(userid, fields=('id', 'email', 'email_verified', 'nickname'), sql_session=sql_session)
             diypusher = notice['diypusher']
             if (diypusher != ''):diypusher = json.loads(diypusher)
             self.barklink =  notice['barkurl']
@@ -60,7 +63,7 @@ class pusher(object):
             pusher["tgpushersw"] = False if (notice['noticeflg'] & 0x400) == 0 else True
             pusher["dingdingpushersw"] = False if (notice['noticeflg'] & 0x800) == 0 else True
 
-            def nonepush(*args):
+            def nonepush(*args,**kwargs):
                 return 
 
             if (pushsw['pushen']):
@@ -74,13 +77,13 @@ class pusher(object):
                 send2dingding = self.send2dingding if (pusher["dingdingpushersw"]) else nonepush 
 
                 await gen.convert_yielded([send2bark(notice['barkurl'], title, content),
-                                           send2s(notice['skey'], title, content),
-                                           send2wxpusher( notice['wxpusher'], title+u"  "+content),
-                                           sendmail( user['email'], title, content),
-                                           cus_pusher_send( diypusher, title, content),
-                                           qywx_pusher_send( notice['qywx_token'], title, content),
-                                           send2tg( notice['tg_token'], title, content),
-                                           send2dingding(notice['dingding_token'], title, content)])
+                                        send2s(notice['skey'], title, content),
+                                        send2wxpusher( notice['wxpusher'], title+u"  "+content),
+                                        sendmail( user['email'], title, content, sql_session=sql_session),
+                                        cus_pusher_send( diypusher, title, content),
+                                        qywx_pusher_send( notice['qywx_token'], title, content),
+                                        send2tg( notice['tg_token'], title, content),
+                                        send2dingding(notice['dingding_token'], title, content)])
 
     async def send2bark(self, barklink, title, content):
         r = 'False'
@@ -282,7 +285,7 @@ class pusher(object):
         access_url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={id}&corpsecret={secret}'.format(id=qywx[u'企业ID'], secret=qywx[u'应用密钥'])
         obj = {'request': {'method': 'GET', 'url': access_url, 'headers': [], 'cookies': []}, 'rule': {
                 'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-        _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+        _,_,res = await self.fetcher.build_response(obj = obj)
         get_access_token_res = json.loads(res.body)
         return get_access_token_res
 
@@ -294,7 +297,7 @@ class pusher(object):
         else:
             obj = {'request': {'method': 'GET', 'url': pic_url, 'headers': {}, 'cookies': []}, 'rule': {
                     'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-            _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
+            _,_,res = await self.fetcher.build_response(obj = obj)
             res = res.body
         url='https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token={access_token}&type=image'.format(access_token = access_token)
         r = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, url, files={'image':res}, json=True, verify=False))
@@ -362,15 +365,15 @@ class pusher(object):
             return e
         return r
 
-    async def sendmail(self, email, title, content):
-        user = self.db.user.get(email=email, fields=('id', 'email', 'email_verified', 'nickname'))
+    async def sendmail(self, email, title, content, sql_session=None):
+        user = await self.db.user.get(email=email, fields=('id', 'email', 'email_verified', 'nickname'), sql_session=sql_session)
         if user['email'] and user['email_verified']:
             try:
                 content = content.replace('\\r\\n','\n')
-                await gen.convert_yielded(utils.send_mail(to = email, 
+                await utils.send_mail(to = email, 
                                 subject = u"在网站{0} {1}".format(config.domain, title),
                                 text = content,
-                                shark=True))
+                                shark=True)
             except Exception as e:
                 logger_Funcs.error('Send mail error: %r', e)
 

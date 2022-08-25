@@ -35,30 +35,16 @@ class MyHandler(BaseHandler):
         user = self.current_user
         adminflg = False
         # 验证用户是否存在
-        if (self.db.user.get(user['id'], fields=('id'))):
-            if  self.db.user.get(user['id'], fields=('role'))['role'] == 'admin':
+        if (await self.db.user.get(user['id'], fields=('id',))):
+            if (await self.db.user.get(user['id'], fields=('role',)))['role'] == 'admin':
                 adminflg = True
 
-            hfile = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "config"+os.path.sep+"tpls_history.json")
+            tpls = await self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', '_groups', 'updateable', 'tplurl'), limit=None)
 
-            if os.path.isfile(hfile):
-                hjson = json.loads(open(hfile, 'r' ,encoding='utf-8').read())
-            else:
-                hjson = {}
-            tpls = []
-
-            for tpl in self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', '_groups', 'updateable', 'tplurl'), limit=None):
-                tplurl = tpl['tplurl']
-                if (tpl['updateable'] == 1) and (tplurl in hjson):
-                    if (hjson[tplurl]['update']):
-                        tpl['tpldata'] = hjson[tplurl]['content']
-                tpls.append(tpl)
-
-            tasks = []
-            for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', '_groups'), limit=None):
-                tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
+            tasks = await self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', '_groups'), limit=None)
+            for task in tasks:
+                tpl = await self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
                 task['tpl'] = tpl
-                tasks.append(task)
 
             _groups = []
             for task in tasks:
@@ -83,61 +69,18 @@ class CheckUpdateHandler(BaseHandler):
     @tornado.web.authenticated
     async def get(self):
         user = self.current_user
-        tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable",), limit=None)
-        
-        tasks = []
-        for task in self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', '_groups'), limit=None):
-            tpl = self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
-            task['tpl'] = tpl
-            tasks.append(task)
-        _groups = []
-        for task in tasks:
-            if not isinstance(task['_groups'], str):
-                task['_groups'] = str(task['_groups'])
-            temp = task['_groups']
-            if (temp not  in _groups):
-                _groups.append(temp)
-                
-        common_tpls = []
-        res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get,"https://github.com/qiandao-today/templates", verify=False)))
-        if (res.status_code == 200):
-            content = res.content.decode(res.encoding, 'replace')
-            README_content = re.findall(r"<article([\w\W]+?)</article", content)[0]
-            tpls_temp = re.findall(r"tr>([\w\W]+?)</tr", README_content)
-            
-            for cnt in range(1, len(tpls_temp)):
-                tpl_temp = re.findall(r"center\">(.+?)</td", tpls_temp[cnt])
-                harurl = re.findall(r"href=\"(.+?)\"", tpl_temp[2])[0]
-                filename = re.findall(r">(.+?)<", tpl_temp[2])[0]
-                update_time_ts = int(time.mktime((datetime.datetime.strptime(tpl_temp[3], "%Y-%m-%d %H:%M:%S").timetuple())))
-                
-                common_tpls.append ({
-                                "name":tpl_temp[0],
-                                "author":tpl_temp[1],
-                                "filename":filename,
-                                "url":harurl,
-                                "update_time":tpl_temp[3],
-                                "update_time_ts":update_time_ts,
-                                "comments":tpl_temp[4]
-                            })
-                    
-        for tpl in tpls:
-            HarFileNames = re.findall(r'/master/(.+)', tpl['tplurl'])
-            for HarFileName in HarFileNames:
-                for common_tpl in common_tpls:
-                    if (HarFileName == common_tpl["filename"] ):
-                        if (tpl['mtime'] < common_tpl['update_time_ts']):
-                            self.db.tpl.mod(tpl["id"], updateable=1)
-                            
-        tpls = self.db.tpl.list(userid=user['id'], fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'tplurl', "updateable", '_groups'), limit=None)
-        
-        tplgroups = []
-        for tpl in tpls:
-            temp = tpl['_groups']
-            if (temp not  in tplgroups):
-                _groups.append(temp)
+        async with self.db.transaction() as sql_session:
+            tpls = await self.db.tpl.list(userid=user['id'], fields=('id', 'mtime', 'tplurl'), limit=None, sql_session=sql_session)
 
-        await self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=_groups, tplgroups=tplgroups)
+            hjson = {}
+            for h in await self.db.pubtpl.list(fields=('id', 'filename', 'reponame', 'date', 'update'), sql_session=sql_session):
+                hjson[f'{h["filename"]}|{h["reponame"]}'] = h
+                        
+            for tpl in tpls:
+                if tpl["tplurl"] in hjson and hjson[tpl["tplurl"]]["update"] and tpl['mtime'] < time.mktime(time.strptime(hjson[tpl["tplurl"]]['date'],"%Y-%m-%d %H:%M:%S")):
+                    await self.db.tpl.mod(tpl["id"], updateable=1, sql_session=sql_session)
+
+        self.redirect('/my/')
 
 handlers = [
         ('/my/?', MyHandler),

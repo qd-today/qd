@@ -13,14 +13,16 @@ pytz = "*"
 croniter = "*"
 Jinja2 = "*"
 redis = "*"
-mysql-connector-python = "*"
 incremental = "*"
 u-msgpack-python = "*"
 pysocks = "*"
 faker = "*"
 colorama = {version = "*", markers="sys_platform == 'win32'"}
 aiofiles = "*"
+sqlalchemy = {version = "*", extras = ["asyncio"]}
 passlib = "*"
+aiomysql = "*"
+aiosqlite = "*"
 
 [dev-packages]
 opencv-python-headless = "*"

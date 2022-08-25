@@ -22,13 +22,14 @@ from .base import *
 
 class HAREditor(BaseHandler):
     async def get(self, id=None):
-        reponame = self.get_argument("reponame", "")
-        harname = self.get_argument("name", "")
+        tplurl = self.get_argument("tplurl", "|").split("|")
+        harname = self.get_argument("name", tplurl[0])
+        reponame = self.get_argument("reponame", tplurl[1])
 
         if (reponame != '') and (harname != ''):
-            tpl = await asyncio.get_event_loop().run_in_executor(None, functools.partial(self.db.pubtpl.list,filename = harname, 
+            tpl = await self.db.pubtpl.list(filename = harname, 
                                       reponame = reponame,
-                                      fields=('id', 'name', 'content')))
+                                      fields=('id', 'name', 'content'))
             if (len(tpl) > 0):
                 hardata = tpl[0]['content']
             else:
@@ -42,16 +43,23 @@ class HAREditor(BaseHandler):
     async def post(self, id):
         user = self.current_user
         taskid = self.get_query_argument('taskid', '')
+        
+        async with self.db.transaction() as sql_session:
+            tpl = self.check_permission(
+                    await self.db.tpl.get(id, fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note', 'interval', 'har', 'variables', 'lock'), sql_session=sql_session))
 
-        tpl = self.check_permission(
-                self.db.tpl.get(id, fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note', 'interval',
-                    'har', 'variables', 'lock')))
+            tpl['har'] = await self.db.user.decrypt(tpl['userid'], tpl['har'], sql_session=sql_session)
+            tpl['variables'] = json.loads(tpl['variables'])
+            if taskid:
+                task = await self.db.task.get(taskid, sql_session=sql_session)
+                if task['init_env']:
+                    envs = await self.db.user.decrypt(user['id'], task['init_env'], sql_session=sql_session)
+                else:
+                    envs = {}
+            else:
+                envs = {}
 
-        tpl['har'] = self.db.user.decrypt(tpl['userid'], tpl['har'])
-        tpl['variables'] = json.loads(tpl['variables'])
-        envs = self.db.user.decrypt(user['id'], self.db.task.get(taskid, 'init_env')['init_env']) if taskid and self.db.task.get(taskid) else {}
-
-        #self.db.tpl.mod(id, atime=time.time())
+            #await self.db.tpl.mod(id, atime=time.time(), sql_session=sql_session)
         await self.finish(dict(
             filename = tpl['sitename'] or '未命名模板',
             har = tpl['har'],
@@ -96,7 +104,7 @@ class HARTest(BaseHandler):
                     }
                 }
         else :
-            ret = await gen.convert_yielded(self.fetcher.fetch(data))
+            ret = await self.fetcher.fetch(data)
 
             result = {
                     'success': ret['success'],
@@ -156,34 +164,35 @@ class HARSave(BaseHandler):
             pass
         data = json.loads(self.request.body)
 
-        har = self.db.user.encrypt(userid, data['har'])
-        tpl = self.db.user.encrypt(userid, data['tpl'])
-        variables = json.dumps(list(self.get_variables(data['tpl'])))
-        groupName = 'None'
-        if id:
-            _tmp = self.check_permission(self.db.tpl.get(id, fields=('id', 'userid', 'lock')), 'w')
-            if not _tmp['userid']:
-                self.set_status(403)
-                await self.finish(u'公开模板不允许编辑')
-                return
-            if _tmp['lock']:
-                self.set_status(403)
-                await self.finish(u'模板已锁定')
-                return
+        async with self.db.transaction() as sql_session:
+            har = await self.db.user.encrypt(userid, data['har'], sql_session=sql_session)
+            tpl = await self.db.user.encrypt(userid, data['tpl'], sql_session=sql_session)
+            variables = json.dumps(list(self.get_variables(data['tpl'])))
+            groupName = 'None'
+            if id:
+                _tmp = self.check_permission(await self.db.tpl.get(id, fields=('id', 'userid', 'lock'), sql_session=sql_session), 'w')
+                if not _tmp['userid']:
+                    self.set_status(403)
+                    await self.finish(u'公开模板不允许编辑')
+                    return
+                if _tmp['lock']:
+                    self.set_status(403)
+                    await self.finish(u'模板已锁定')
+                    return
 
-            self.db.tpl.mod(id, har=har, tpl=tpl, variables=variables)
-            groupName = self.db.tpl.get(id, fields=('_groups'))['_groups']
-        else:
-            try:
-                id = self.db.tpl.add(userid, har, tpl, variables)
-            except Exception as e:
-                if "max_allowed_packet" in str(e):
-                    raise Exception('har大小超过MySQL max_allowed_packet 限制; \n'+str(e))
-            if not id:
-                raise Exception('create tpl error')
+                await self.db.tpl.mod(id, har=har, tpl=tpl, variables=variables, sql_session=sql_session)
+                groupName = (await self.db.tpl.get(id, fields=('_groups',), sql_session=sql_session))['_groups']
+            else:
+                try:
+                    id = await self.db.tpl.add(userid, har, tpl, variables, sql_session=sql_session)
+                except Exception as e:
+                    if "max_allowed_packet" in str(e):
+                        raise Exception('har大小超过MySQL max_allowed_packet 限制; \n'+str(e))
+                if not id:
+                    raise Exception('create tpl error')
 
         setting = data.get('setting', {})
-        self.db.tpl.mod(id,
+        await self.db.tpl.mod(id,
                 tplurl = '{0}|{1}'.format(harname, reponame),
                 sitename=setting.get('sitename'),
                 siteurl=setting.get('siteurl'),
@@ -191,7 +200,8 @@ class HARSave(BaseHandler):
                 interval=setting.get('interval') or None,
                 mtime=time.time(),
                 updateable=0,
-                _groups=groupName)
+                _groups=groupName,
+                sql_session=sql_session)
         await self.finish({
             'id': id
             })

@@ -11,6 +11,7 @@ import tornado.websocket
 from tornado.web import HTTPError
 
 import config
+from db import DB
 from libs import utils
 from libs.log import Log
 
@@ -20,6 +21,7 @@ __ALL__ = ['HTTPError', 'BaseHandler', 'BaseWebSocket', 'BaseUIModule', 'logger_
 
 class BaseHandler(tornado.web.RequestHandler):
     application_export = set(('db', 'fetcher'))
+    # db = DB()
     def __getattr__(self, key):
         if key in self.application_export:
             return getattr(self.application, key)

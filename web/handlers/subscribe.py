@@ -28,7 +28,7 @@ class SubscribeHandler(BaseHandler):
         adminflg = False
         if (user['id'] == int(userid)) and (user['role'] == u'admin'):
             adminflg = True
-        repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
+        repos = json.loads((await self.db.site.get(1, fields=('repos',)))['repos'])
         try:
             if proxies:
                 proxy = random.choice(proxies)
@@ -37,18 +37,18 @@ class SubscribeHandler(BaseHandler):
             now_ts = int(time.time())
             # 如果上次更新时间大于1天则更新模板仓库
             if (now_ts - int(repos['lastupdate']) > 24 * 3600):
-                tpls = self.db.pubtpl.list()
+                tpls = await self.db.pubtpl.list()
                 await self.render('pubtpl_wait.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
                 return
 
-            tpls = self.db.pubtpl.list()
+            tpls = await self.db.pubtpl.list()
             await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
 
         except Exception as e:
             if config.traceback_print:
                 traceback.print_exc()
             user = self.current_user
-            tpls = self.db.pubtpl.list()
+            tpls = await self.db.pubtpl.list()
             await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
             logger_Web_Handler.error('UserID: %s browse Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
@@ -62,75 +62,77 @@ class SubscribeUpdatingHandler(BaseHandler):
         adminflg = False
         if (user['id'] == int(userid)) and (user['role'] == u'admin'):
             adminflg = True
-        repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
-        try:
-            if proxies:
-                proxy = random.choice(proxies)
-            else:
-                proxy = {}
-            now_ts = int(time.time())
-            # 如果上次更新时间大于1天则更新模板仓库
-            if (now_ts - int(repos['lastupdate']) > 24 * 3600):
-                for repo in repos['repos']:
-                    if repo['repoacc']:
-                        url = '{0}@{1}'.format(repo['repourl'].replace('https://github.com/', 'https://fastly.jsdelivr.net/gh/'), repo['repobranch'])
-                    else:
-                        if (repo['repourl'].find('https://github.com/') > -1):
-                            url = '{0}/{1}'.format(repo['repourl'].replace('https://github.com/', 'https://raw.githubusercontent.com/'), repo['repobranch'])
+        async with self.db.transaction() as sql_session:
+            repos = json.loads((await self.db.site.get(1, fields=('repos',), sql_session=sql_session))['repos'])
+            try:
+                if proxies:
+                    proxy = random.choice(proxies)
+                else:
+                    proxy = {}
+                now_ts = int(time.time())
+                # 如果上次更新时间大于1天则更新模板仓库
+                if (now_ts - int(repos['lastupdate']) > 24 * 3600):
+                    for repo in repos['repos']:
+                        if repo['repoacc']:
+                            url = '{0}@{1}'.format(repo['repourl'].replace('https://github.com/', 'https://cdn.jsdelivr.net/gh/'), repo['repobranch'])
                         else:
-                            url = repo['repourl']
-
-                    hfile_link = url + '/tpls_history.json'
-                    obj = {'request': {'method': 'GET', 'url': hfile_link, 'headers': [], 'cookies': []}, 'rule': {
-                        'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                    _,_,res = await gen.convert_yielded(fetcher.build_response(obj = obj, proxy = proxy))
-                    if res.code == 200:
-                        hfile = json.loads(res.body.decode(find_encoding(res.body, res.headers), 'replace'))
-                        for har in hfile['har'].values():
-                            if (har['content'] == ''):
-                                obj['request']['url'] = "{0}/{1}".format(url, quote(har['filename']))
-                                _,_,har_res = await gen.convert_yielded(fetcher.build_response(obj, proxy = proxy))
-                                if har_res.code == 200:
-                                    har['content'] = base64.b64encode(har_res.body).decode()
-                                else:
-                                    msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
-                                    continue
-
-                            for k, v in repo.items():
-                                har[k] = v
-                            tpl = self.db.pubtpl.list(name = har['name'], 
-                                                      reponame=har['reponame'],
-                                                      repourl=har['repourl'], 
-                                                      repobranch=har['repobranch'], 
-                                                      fields=('id', 'name', 'version'))
-
-                            if (len(tpl) > 0):
-                                if (int(tpl[0]['version']) < int(har['version'])):
-                                    har['update'] = True
-                                    self.db.pubtpl.mod(tpl[0]['id'], **har)
+                            if (repo['repourl'].find('https://github.com/') > -1):
+                                url = '{0}/{1}'.format(repo['repourl'].replace('https://github.com/', 'https://raw.githubusercontent.com/'), repo['repobranch'])
                             else:
-                                self.db.pubtpl.add(har)
-                    else:
-                        msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
-            repos["lastupdate"] = now_ts
-            self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
-            
-            if msg:
-                raise Exception(msg)
+                                url = repo['repourl']
 
-            tpls = self.db.pubtpl.list()
+                        hfile_link = url + '/tpls_history.json'
+                        obj = {'request': {'method': 'GET', 'url': hfile_link, 'headers': [], 'cookies': []}, 'rule': {
+                            'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                        _,_,res = await fetcher.build_response(obj = obj, proxy = proxy)
+                        if res.code == 200:
+                            hfile = json.loads(res.body.decode(find_encoding(res.body, res.headers), 'replace'))
+                            for har in hfile['har'].values():
+                                if (har['content'] == ''):
+                                    obj['request']['url'] = "{0}/{1}".format(url, quote(har['filename']))
+                                    _,_,har_res = await fetcher.build_response(obj, proxy = proxy)
+                                    if har_res.code == 200:
+                                        har['content'] = base64.b64encode(har_res.body).decode()
+                                    else:
+                                        msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
+                                        continue
 
-            await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
-            return
+                                for k, v in repo.items():
+                                    har[k] = v
+                                tpl = await self.db.pubtpl.list(name = har['name'], 
+                                                        reponame=har['reponame'],
+                                                        repourl=har['repourl'], 
+                                                        repobranch=har['repobranch'], 
+                                                        fields=('id', 'name', 'version'),
+                                                        sql_session=sql_session)
 
-        except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
-            user = self.current_user
-            tpls = self.db.pubtpl.list()
-            await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
-            logger_Web_Handler.error('UserID: %s update Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
-            return
+                                if (len(tpl) > 0):
+                                    if (int(tpl[0]['version']) < int(har['version'])):
+                                        har['update'] = True
+                                        await self.db.pubtpl.mod(tpl[0]['id'], **har, sql_session=sql_session)
+                                else:
+                                    await self.db.pubtpl.add(har, sql_session=sql_session)
+                        else:
+                            msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
+                repos["lastupdate"] = now_ts
+                await self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4), sql_session=sql_session)
+                
+                if msg:
+                    raise Exception(msg)
+
+                tpls = await self.db.pubtpl.list(sql_session=sql_session)
+
+                await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
+                return
+
+            except Exception as e:
+                if config.traceback_print:
+                    traceback.print_exc()
+                user = self.current_user
+                tpls = await self.db.pubtpl.list(sql_session=sql_session)
+                await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
+                logger_Web_Handler.error('UserID: %s update Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
+                return
 
 class SubscribeRefreshHandler(BaseHandler):
     @tornado.web.authenticated
@@ -140,16 +142,17 @@ class SubscribeRefreshHandler(BaseHandler):
             op = self.get_argument('op', '')
             if (op == ''):
                 raise Exception('op参数为空')
-
-            if (user['id'] == int(userid)) and (user['role'] == u'admin'):
-                repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
-                repos["lastupdate"] = 0
-                self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
-                if (op == 'clear'):
-                    for pubtpl in self.db.pubtpl.list(fields=('id')):
-                        self.db.pubtpl.delete(pubtpl['id'])
-            else:
-                raise Exception('没有权限操作')
+            
+            async with self.db.transaction() as sql_session:
+                if (user['id'] == int(userid)) and (user['role'] == u'admin'):
+                    repos = json.loads((await self.db.site.get(1, fields=('repos',), sql_session=sql_session))['repos'])
+                    repos["lastupdate"] = 0
+                    await self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4), sql_session=sql_session)
+                    if (op == 'clear'):
+                        for pubtpl in await self.db.pubtpl.list(fields=('id',), sql_session=sql_session):
+                            await self.db.pubtpl.delete(pubtpl['id'], sql_session=sql_session)
+                else:
+                    raise Exception('没有权限操作')
         except Exception as e:
             if config.traceback_print:
                 traceback.print_exc()
@@ -187,7 +190,7 @@ class Subscrib_signup_repos_Handler(BaseHandler):
                         env[k] = v[0]
 
                 if (env['reponame'] != '') and (env['repourl'] != '') and (env['repobranch'] != ''):
-                    repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
+                    repos = json.loads((await self.db.site.get(1, fields=('repos',)))['repos'])
                     tmp = repos['repos']
                     inflg = False
 
@@ -203,7 +206,7 @@ class Subscrib_signup_repos_Handler(BaseHandler):
                         tmp.append(env)
                         repos['repos'] = tmp
                         repos["lastupdate"] = 0
-                        self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
+                        await self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
                 else:
                     raise Exception('仓库名/url/分支不能为空')
             else:
@@ -228,7 +231,7 @@ class GetReposInfoHandler(BaseHandler):
                 envs = {}
                 for key in self.request.body_arguments:
                     envs[key] = self.get_body_arguments(key)
-                tmp = json.loads(self.db.site.get(1, fields=('repos'))['repos'])['repos']
+                tmp = json.loads((await self.db.site.get(1, fields=('repos',)))['repos'])['repos']
                 repos = []
                 for repoid, selected  in envs.items():
                     if isinstance(selected[0],bytes):
@@ -278,19 +281,20 @@ class unsubscribe_repos_Handler(BaseHandler):
                         env[k] = json.loads(v[0])
                     except:
                         env[k] = v[0]
-                repos = json.loads(self.db.site.get(1, fields=('repos'))['repos'])
-                tmp = repos['repos']
-                result = []
-                for i, j  in enumerate(tmp):
-                    # 检查是否存在同名仓库
-                    if not env['selectedrepos'].get(str(i),False) :
-                        result.append(j)
-                    else:
-                        pubtpls = self.db.pubtpl.list(reponame=j['reponame'], fields=('id'))
-                        for pubtpl in pubtpls:
-                            self.db.pubtpl.delete(pubtpl['id'])
-                repos['repos'] = result
-                self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4))
+                async with self.db.transaction() as sql_session:
+                    repos = json.loads((await self.db.site.get(1, fields=('repos',),sql_session=sql_session))['repos'])
+                    tmp = repos['repos']
+                    result = []
+                    for i, j  in enumerate(tmp):
+                        # 检查是否存在同名仓库
+                        if not env['selectedrepos'].get(str(i),False) :
+                            result.append(j)
+                        else:
+                            pubtpls = await self.db.pubtpl.list(reponame=j['reponame'], fields=('id',),sql_session=sql_session)
+                            for pubtpl in pubtpls:
+                                await self.db.pubtpl.delete(pubtpl['id'],sql_session=sql_session)
+                    repos['repos'] = result
+                    await self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4), sql_session=sql_session)
             else:
                 raise Exception('非管理员用户，不可设置')
 

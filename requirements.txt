@@ -7,20 +7,22 @@
 
 -i https://pypi.tuna.tsinghua.edu.cn/simple
 aiofiles==0.8.0
+aiomysql==0.1.1
+aiosqlite==0.17.0
 async-timeout==4.0.2; python_version >= '3.6'
 certifi==2022.6.15; python_version >= '3.6'
 chardet==5.0.0
-charset-normalizer==2.1.0; python_version >= '3.6'
+charset-normalizer==2.1.1; python_version >= '3.6'
 colorama==0.4.5; sys_platform == 'win32'
 croniter==1.3.5
 # ddddocr==1.4.3
 deprecated==1.2.13; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-faker==13.15.1
+faker==14.1.0
+greenlet==1.1.2; python_version >= '3' and platform_machine == 'aarch64' or (platform_machine == 'ppc64le' or (platform_machine == 'x86_64' or (platform_machine == 'amd64' or (platform_machine == 'AMD64' or (platform_machine == 'win32' or platform_machine == 'WIN32')))))
 idna==3.3; python_version >= '3.5'
 incremental==21.3.0
 jinja2==3.1.2
 markupsafe==2.1.1; python_version >= '3.7'
-mysql-connector-python==8.0.30
 # opencv-python-headless==4.5.5.62
 packaging==21.3; python_version >= '3.6'
 passlib==1.7.4
@@ -28,14 +30,17 @@ pbkdf2==1.3
 protobuf==3.20.1; python_version >= '3.7'
 pycryptodome==3.15.0
 # pycurl==7.45.1
+pymysql==1.0.2; python_version >= '3.6'
 pyparsing==3.0.9; python_full_version >= '3.6.8'
 pysocks==1.7.1
 python-dateutil==2.8.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-pytz==2022.1
+pytz==2022.2.1
 redis==4.3.4
 requests==2.28.1
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+sqlalchemy[asyncio]==1.4.40
 tornado==6.2
+typing-extensions==4.3.0; python_version >= '3.7'
 u-msgpack-python==2.7.1
-urllib3==1.26.11; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5' and python_version < '4'
+urllib3==1.26.12; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5' and python_version < '4'
 wrapt==1.14.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'

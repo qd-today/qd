@@ -5,17 +5,9 @@
 #         http://binux.me
 # Created on 2014-08-09 11:39:25
 
-import json
-import time
-import datetime
-import re
-
-import config
 import sqlite3
 
-from sqlite3_db.basedb import BaseDB
-
-class DBnew(BaseDB):
+class DBnew():
     def __init__(self, path):
         self.path = path        
                 

@@ -5,177 +5,130 @@
 #         http://binux.me
 # Created on 2012-08-30 17:43:49
 
-import sqlite3
+from asyncio import current_task
+import contextlib
+import logging
+from typing import Tuple
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine,async_scoped_session
+from sqlalchemy.sql import Select, Update, Delete
+from sqlalchemy.dialects.mysql import Insert
+from sqlalchemy.engine import Result, ScalarResult, CursorResult
+from sqlalchemy.orm import declarative_base,sessionmaker
 import config
 from libs.log import Log
 
-logger_DB = Log('qiandao.Database').getlogger()
+if config.db_type == 'mysql':
+    host=config.mysql.host
+    port=config.mysql.port
+    database=config.mysql.database
+    user=config.mysql.user
+    passwd=config.mysql.passwd
+    auth_plugin=config.mysql.auth_plugin
+    engine = create_async_engine(f"mysql+aiomysql://{user}:{passwd}@{host}:{port}/{database}?auth_plugin={auth_plugin}",
+                                logging_name = config.sqlalchemy.logging_name,
+                                pool_size = config.sqlalchemy.pool_size,
+                                max_overflow = config.sqlalchemy.max_overflow,
+                                pool_logging_name = config.sqlalchemy.pool_logging_name,
+                                pool_pre_ping = config.sqlalchemy.pool_pre_ping,
+                                pool_recycle = config.sqlalchemy.pool_recycle,
+                                pool_timeout = config.sqlalchemy.pool_timeout,
+                                pool_use_lifo = config.sqlalchemy.pool_use_lifo)
+elif config.db_type == 'sqlite3':
+    engine = create_async_engine(f"sqlite+aiosqlite:///{config.sqlite3.path}", 
+                                logging_name = config.sqlalchemy.logging_name,
+                                pool_logging_name = config.sqlalchemy.pool_logging_name,
+                                pool_pre_ping = config.sqlalchemy.pool_pre_ping,
+                                pool_recycle = config.sqlalchemy.pool_recycle )
+    Log('aiosqlite',
+        logger_level=config.sqlalchemy.pool_logging_level,
+        channel_level=config.sqlalchemy.pool_logging_level).getlogger()
+else:
+    raise Exception('db_type must be mysql or sqlite3')
+logger_DB = Log('sqlalchemy', 
+                logger_level=config.sqlalchemy.logging_level,
+                channel_level=config.sqlalchemy.logging_level).getlogger()
+logger_DB_Engine = Log(engine.engine.logger, 
+                logger_level=config.sqlalchemy.logging_level,
+                channel_level=config.sqlalchemy.logging_level).getlogger()
+if hasattr(engine.pool.logger, 'logger'):
+    logger_DB_POOL = Log(engine.pool.logger.logger,
+                        logger_level=config.sqlalchemy.pool_logging_level,
+                        channel_level=config.sqlalchemy.pool_logging_level).getlogger()
+else:
+    logger_DB_POOL = Log(engine.pool.logger,
+                        logger_level=config.sqlalchemy.pool_logging_level,
+                        channel_level=config.sqlalchemy.pool_logging_level).getlogger()
+async_session = async_scoped_session(sessionmaker(engine, class_=AsyncSession, expire_on_commit=False),
+                                     scopefunc=current_task)
+BaseDB = declarative_base(bind=engine, name="BaseDB")
 
-def tostr(s):
-    if isinstance(s, bytes):
-        try:
-            return s.decode()
-        except :
-            return s
-    if isinstance(s, bytearray):
-        try:
-            return s.decode()
-        except :
-            return s
-    return s
+class AlchemyMixin:
+    @property
+    def sql_session(self) -> AsyncSession:
+        return async_session()
     
+    @contextlib.asynccontextmanager
+    async def transaction(self, sql_session:AsyncSession=None):
+        if sql_session is None:
+            async with self.sql_session as sql_session:
+                async with sql_session.begin():
+                    yield sql_session
+        elif not sql_session.in_transaction():
+            async with sql_session.begin():
+                yield sql_session
+        else:
+            yield sql_session
+        
+    async def _execute(self, text:Tuple[str,text], sql_session:AsyncSession=None):
+        async with self.transaction(sql_session) as sql_session:
+            if isinstance(text, str):
+                text = text.replace(':', r'\:')
+            result = await sql_session.execute(text)
+            return result
 
-class BaseDB(object):
-    '''
-    BaseDB
+    async def _get(self, stmt: Select, one_or_none=False, first=False, all=True, sql_session:AsyncSession=None):
+        async with self.transaction(sql_session) as sql_session:
+            result: Result = await sql_session.execute(stmt)
+            if one_or_none:
+                return result.scalar_one_or_none()
+            elif first:
+                return result.first()
+            elif all:
+                return result.all()
+            else:
+                return result
+    
+    async def _insert(self, instance, many=False, sql_session:AsyncSession=None):
+        async with self.transaction(sql_session) as sql_session:
+            if many:
+                sql_session.add_all(instance)
+            else:
+                sql_session.add(instance)
+                await sql_session.flush()
+                return instance.id
 
-    dbcur should be overwirte
-    '''
-    placeholder = "%s" # mysql
-    # placeholder = '?' # sqlite3
+    async def _update(self, stmt: Update, sql_session:AsyncSession=None):
+        async with self.transaction(sql_session) as sql_session:
+            result: Result = await sql_session.execute(stmt)
+            return result.rowcount
 
-    def __init__(self, host=config.mysql.host, port=config.mysql.port,
-            database=config.mysql.database, user=config.mysql.user, passwd=config.mysql.passwd, auth_plugin=config.mysql.auth_plugin):
-        import mysql.connector
-        self.conn = mysql.connector.connect(user=user, password=passwd, host=host, port=port,
-                database=database, auth_plugin=auth_plugin, autocommit=True)
+    async def _insert_or_update(self, insert_stmt: Insert, sql_session:AsyncSession=None, **kwargs) -> int:
+        async with self.transaction(sql_session) as sql_session:
+            on_duplicate_key_stmt = insert_stmt.on_duplicate_key_update(**kwargs)
+            result: CursorResult = await sql_session.execute(on_duplicate_key_stmt)
+            return result.lastrowid
+            
+    async def _delete(self, stmt: Delete, sql_session:AsyncSession=None):
+        async with self.transaction(sql_session) as sql_session:
+            result: Result = await sql_session.execute(stmt)
+            return result.rowcount
 
     @staticmethod
-    def escape(string):
-        return '`%s`' % string
-
-    @property
-    def dbcur(self):
-        if self.conn.unread_result:
-            try:
-                self.conn.get_rows()
-            except:
-                pass
-        self.conn.ping(reconnect=True)
-        return self.conn.cursor()
-
-    def _execute(self, sql_query, values=[]):
-        dbcur = self.dbcur
-        dbcur.execute(sql_query, values)
-        return dbcur
-    
-    def _select(self, tablename=None, what="*", where="", where_values=[], offset=0, limit=None):
-        tablename = self.escape(tablename or self.__tablename__)
-        if isinstance(what, list) or isinstance(what, tuple) or what is None:
-            what = ','.join(self.escape(f) for f in what) if what else '*'
-
-        sql_query = "SELECT %s FROM %s" % (what, tablename)
-        if where: sql_query += " WHERE %s" % where
-        if limit: sql_query += " LIMIT %d, %d" % (offset, limit)
-        logger_DB.debug("<sql: %s>", sql_query)
-
-        dbcur = self._execute(sql_query, where_values)
-        for row in dbcur:
-            yield [tostr(x) for x in row]
-        dbcur.close()
-
-    def _select2dic(self, tablename=None, what="*", where="", where_values=[], offset=0, limit=None):
-        tablename = self.escape(tablename or self.__tablename__)
-        if isinstance(what, list) or isinstance(what, tuple) or what is None:
-            what = ','.join(self.escape(f) for f in what) if what else '*'
-
-        sql_query = "SELECT %s FROM %s" % (what, tablename)
-        if where: sql_query += " WHERE %s" % where
-        if limit: sql_query += " LIMIT %d, %d" % (offset, limit)
-        logger_DB.debug("<sql: %s>", sql_query)
-
-        dbcur = self._execute(sql_query, where_values)
-        fields = [f[0] for f in dbcur.description]
-
-        rtv = []
-        for row in dbcur:
-            rtv.append(dict(zip(fields, [tostr(x) for x in row])))
-            #yield dict(zip(fields, [tostr(x) for x in row]))
-
-        dbcur.close()
-        return rtv
- 
-    def _replace(self, tablename=None, **values):
-        tablename = self.escape(tablename or self.__tablename__)
-        if values:
-            _keys = ", ".join(self.escape(k) for k in values.keys())
-            _values = ", ".join([self.placeholder, ] * len(values))
-            sql_query = "REPLACE INTO %s (%s) VALUES (%s)" % (tablename, _keys, _values)
+    def to_dict(result,fields=None):
+        if result is None:
+            return result
+        if fields is None:
+            return {c.name: getattr(result[0], c.name) for c in result[0].__table__.columns}
         else:
-            sql_query = "REPLACE INTO %s DEFAULT VALUES" % tablename
-        logger_DB.debug("<sql: %s>", sql_query)
-        
-        if values:
-            dbcur = self._execute(sql_query, list(values.values()))
-        else:
-            dbcur = self._execute(sql_query)
-        lastrowid = dbcur.lastrowid
-        dbcur.close()
-        return lastrowid
- 
-    def _insert(self, tablename=None, **values):
-        tablename = self.escape(tablename or self.__tablename__)
-        if values:
-            _keys = ", ".join((self.escape(k) for k in values.keys()))
-            _values = ", ".join([self.placeholder, ] * len(values))
-            sql_query = "INSERT INTO %s (%s) VALUES (%s)" % (tablename, _keys, _values)
-        else:
-            sql_query = "INSERT INTO %s DEFAULT VALUES" % tablename
-        logger_DB.debug("<sql: %s>", sql_query)
-        
-        if values:
-            dbcur = self._execute(sql_query, list(values.values()))
-        else:
-            dbcur = self._execute(sql_query)
-        lastrowid = dbcur.lastrowid
-        dbcur.close()
-        return lastrowid
-
-    def _update(self, tablename=None, where="1=0", where_values=[], **values):
-        tablename = self.escape(tablename or self.__tablename__)
-        _key_values = ", ".join(["%s = %s" % (self.escape(k), self.placeholder) for k in values.keys()]) 
-        sql_query = "UPDATE %s SET %s WHERE %s" % (tablename, _key_values, where)
-        logger_DB.debug("<sql: %s>", sql_query)
-        
-        dbcur = self._execute(sql_query, list(values.values())+list(where_values))
-        dbcur.close()
-        return 
-    
-    def _delete(self, tablename=None, where="1=0", where_values=[]):
-        tablename = self.escape(tablename or self.__tablename__)
-        sql_query = "DELETE FROM %s" % tablename
-        if where: sql_query += " WHERE %s" % where
-        logger_DB.debug("<sql: %s>", sql_query)
-
-        dbcur = self._execute(sql_query, where_values)
-        dbcur.close()
-        return 
-    
-    def close(self):
-        self.conn.close()
-
-if __name__ == "__main__":
-    class DB(BaseDB):
-        __tablename__ = "test"
-        def __init__(self):
-            self.placeholder='?'
-            self.conn = sqlite3.connect(":memory:")
-            cursor = self.conn.cursor()
-            cursor.execute('''CREATE TABLE `%s` (id INTEGER PRIMARY KEY AUTOINCREMENT, name, age)'''
-                    % self.__tablename__)
-              
-        @property
-        def dbcur(self):
-            return self.conn.cursor()
-
-    db = DB()
-    assert db._insert(db.__tablename__, name="binux", age=23) == 1
-    assert next(db._select(db.__tablename__, "name, age")) == ["binux", 23]
-    assert db._select2dic(db.__tablename__, "name, age")[0]["name"] == "binux"
-    assert db._select2dic(db.__tablename__, "name, age")[0]["age"] == 23
-    db._replace(db.__tablename__, id=1, age=24)
-    assert next(db._select(db.__tablename__, "name, age")) == [None, 24]
-    db._update(db.__tablename__, "id = 1", age=16)
-    assert next(db._select(db.__tablename__, "name, age")) == [None, 16]
-    db._delete(db.__tablename__, "id = 1")
-    assert list(db._select(db.__tablename__)) == []
+            return dict(result._mapping)

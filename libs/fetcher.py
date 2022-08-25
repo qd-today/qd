@@ -443,23 +443,23 @@ class Fetcher(object):
     async def build_response(self, obj, proxy={}, CURL_ENCODING=config.curl_encoding, CURL_CONTENT_LENGTH=config.curl_length, EMPTY_RETRY = config.empty_retry):
         try:
             req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=CURL_ENCODING,CURL_CONTENT_LENGTH=CURL_CONTENT_LENGTH)
-            response =  await gen.convert_yielded(self.client.fetch(req))
+            response =  await self.client.fetch(req)
         except httpclient.HTTPError as e:
             try:
                 if config.allow_retry and pycurl:
                     if e.__dict__.get('errno','') == 61:
                         logger_Fetcher.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
                         req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=False,CURL_CONTENT_LENGTH=CURL_CONTENT_LENGTH)
-                        e.response =  await gen.convert_yielded(self.client.fetch(req))
+                        e.response =  await self.client.fetch(req)
                     elif e.code == 400 and e.message == 'Bad Request' and req and req.headers.get('content-length'):
                         logger_Fetcher.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
                         req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=CURL_ENCODING,CURL_CONTENT_LENGTH=False)
-                        e.response =  await gen.convert_yielded(self.client.fetch(req))
+                        e.response =  await self.client.fetch(req)
                     elif e.code not in NOT_RETYR_CODE or (EMPTY_RETRY and not e.response):
                         try:
                             logger_Fetcher.warning('{} {} [Warning] {} -> Try to retry!'.format(req.method,req.url,e))
                             client = simple_httpclient.SimpleAsyncHTTPClient()
-                            e.response =  await gen.convert_yielded(client.fetch(req))
+                            e.response =  await client.fetch(req)
                         except Exception:
                             logger_Fetcher.error(e.message.replace('\\r\\n','\r\n') or e.response.replace('\\r\\n','\r\n') or Exception)
                     else:
@@ -507,7 +507,7 @@ class Fetcher(object):
         }
         """
 
-        rule, env, response = await gen.convert_yielded(self.build_response(obj, proxy, CURL_ENCODING, CURL_CONTENT_LENGTH, EMPTY_RETRY))
+        rule, env, response = await self.build_response(obj, proxy, CURL_ENCODING, CURL_CONTENT_LENGTH, EMPTY_RETRY)
 
         env['session'].extract_cookies_to_jar(response.request, response)
         success, msg = self.run_rule(response, rule, env)
@@ -592,25 +592,25 @@ class Fetcher(object):
             elif block['type'] == 'for':
                 for each in env['variables'].get(block['from'], []):
                     env['variables'][block['target']] = each
-                    env = await gen.convert_yielded(self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit))
+                    env = await self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit)
             elif block['type'] == 'if':
                 try:
                     condition = safe_eval(block['condition'],env['variables'])
                 except NameError:
                     condition = False
                 if condition:
-                    await gen.convert_yielded(self.do_fetch(block['true'], env, proxies=[proxy], request_limit=request_limit))
+                    await self.do_fetch(block['true'], env, proxies=[proxy], request_limit=request_limit)
                 else:
-                    await gen.convert_yielded(self.do_fetch(block['false'], env, proxies=[proxy], request_limit=request_limit))
+                    await self.do_fetch(block['false'], env, proxies=[proxy], request_limit=request_limit)
             elif block['type'] == 'request':
                 entry = block['entry']
                 try:
                     request_limit -= 1
-                    result = await gen.convert_yielded(self.fetch(dict(
+                    result = await self.fetch(dict(
                         request = entry['request'],
                         rule = entry['rule'],
                         env = env,
-                        ), proxy=proxy))
+                        ), proxy=proxy)
                     env = result['env']
                 except Exception as e:
                     if config.debug:

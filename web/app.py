@@ -11,6 +11,7 @@ import tornado.web
 
 import config
 import json
+from db import DB
 from libs import utils
 from libs.fetcher import Fetcher
 from web.handlers import handlers, ui_modules, ui_methods
@@ -18,7 +19,7 @@ from libs.log import Log
 
 logger_Web = Log('qiandao.Web').getlogger()
 class Application(tornado.web.Application):
-    def __init__(self,db=None):
+    def __init__(self,db=DB()):
         settings = dict(
                 template_path = os.path.join(os.path.dirname(__file__), "tpl"),
                 static_path = os.path.join(os.path.dirname(__file__), "static"),

@@ -86,7 +86,7 @@ Docker容器部署方式
    ```
 
    > 配置描述见下文[配置环境变量](#configpy-配置环境变量)
-   > 
+   >
    > 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`a76yyyy/qiandao:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 其他与主线版本保持一致**。
 
 3. **Docker部署方式**
@@ -198,6 +198,18 @@ COOKIE_SECRET|否|binux|cookie加密密钥, **<强烈建议修改>**
 COOKIE_DAY|否|5|Cookie在客户端保留天数
 DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
 JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 <mysql://用户名:密码@hostname:port/数据库名?auth_plugin=>
+QIANDAO_SQL_ECHO|否|False|是否启用 SQLAlchmey 的日志输出, 默认为 False, <br>设置为 True 时, 会在控制台输出 SQL 语句, <br>允许设置为 debug 以启用 debug 模式
+QIANDAO_SQL_LOGGING_NAME|否|qiandao.sql_engine|SQLAlchmey 日志名称, 默认为 'qiandao.sql_engine'
+QIANDAO_SQL_LOGGING_LEVEL|否|Warning|SQLAlchmey 日志级别, 默认为 'Warning'
+QIANDAO_SQL_ECHO_POOL|否|True|是否启用 SQLAlchmey 的连接池日志输出, 默认为 True, <br>允许设置为 debug 以启用 debug 模式
+QIANDAO_SQL_LOGGING_POOL_NAME|否|qiandao.sql_pool|SQLAlchmey 连接池日志名称, 默认为 'qiandao.sql_pool'
+QIANDAO_SQL_LOGGING_POOL_LEVEL|否|Warning|SQLAlchmey 连接池日志级别, 默认为 'Warning'
+QIANDAO_SQL_POOL_SIZE|否|5|SQLAlchmey 连接池大小, 默认为 5
+QIANDAO_SQL_MAX_OVERFLOW|否|10|SQLAlchmey 连接池最大溢出, 默认为 10
+QIANDAO_SQL_POOL_PRE_PING|否|True|是否在连接池获取连接前, <br>先ping一下, 默认为 True
+QIANDAO_SQL_POOL_RECYCLE|否|3600|SQLAlchmey 连接池回收时间, 默认为 3600
+QIANDAO_SQL_POOL_TIMEOUT|否|30|SQLAlchmey 连接池超时时间, 默认为 30
+QIANDAO_SQL_POOL_USE_LIFO|否|True|SQLAlchmey 是否使用 LIFO 算法, 默认为 True
 REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时, <br>设置为 <http://rediscloud:密码@hostname:port>
 REDIS_DB_INDEX|否|1|默认为1
 QIANDAO_EVIL|否|500|(限Redis连接已开启)登录用户或IP在1小时内 <br>操作失败(如登录, 验证, 测试等操作)次数*相应惩罚分值 <br>达到evil上限后自动封禁直至下一小时周期
