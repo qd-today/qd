@@ -104,6 +104,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "hiCasper",
+      "name": "hiCasper",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25276620?v=4",
+      "profile": "https://blog.hicasper.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
