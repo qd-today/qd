@@ -23,7 +23,7 @@ Qiandao —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR
 ![repo size][repo-size-image]
 ![python version][python-version-image]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-11-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [HomePage-image]: https://img.shields.io/badge/HomePage-qiandao--today-brightgreen
@@ -323,6 +323,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="http://www.lingyan8.com"><img src="https://avatars.githubusercontent.com/u/19186382?v=4?s=100" width="100px;" alt=""/><br /><sub><b>acooler15</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=acooler15" title="Code">💻</a> <a href="#maintenance-acooler15" title="Maintenance">🚧</a></td>
     <td align="center"><a href="https://github.com/aa889788"><img src="https://avatars.githubusercontent.com/u/16019986?v=4?s=100" width="100px;" alt=""/><br /><sub><b>shxyke</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=aa889788" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/gxitm"><img src="https://avatars.githubusercontent.com/u/2405087?v=4?s=100" width="100px;" alt=""/><br /><sub><b>xiaoxiao</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=gxitm" title="Code">💻</a></td>
+    <td align="center"><a href="https://blog.hicasper.com"><img src="https://avatars.githubusercontent.com/u/25276620?v=4?s=100" width="100px;" alt=""/><br /><sub><b>hiCasper</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=hiCasper" title="Code">💻</a></td>
   </tr>
 </table>
 
