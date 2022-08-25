@@ -390,10 +390,11 @@ class DBconverter():
 
         try:
             await self.db.user.list(limit=1, fields=('password_md5',))
-            for user in await self.db.user.list(fields=('id', 'password', 'password_md5')):
+            for user in await self.db.user.list(fields=('id', 'password_md5')):
                 if isinstance(user['password_md5'],str) and re.match(r'^[a-z0-9]{32}$',user['password_md5']):
-                    await self.db.user.mod(user['id'],password_md5=crypto.password_hash(user['password_md5'],await self.db.user.decrypt(user['id'], user['password'])))
-        except :
+                    password = (await self.db.user.get(user['id'], fields=('password',)))['password']
+                    await self.db.user.mod(user['id'],password_md5=crypto.password_hash(user['password_md5'],await self.db.user.decrypt(user['id'], password)))
+        except Exception as e:
             await exec_shell("ALTER TABLE `user` ADD  `password_md5` VARBINARY(128) NOT NULL DEFAULT '' ") 
 
         try:

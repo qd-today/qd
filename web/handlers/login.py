@@ -136,7 +136,7 @@ class RegisterHandler(BaseHandler):
                     if config.https:
                         setcookie['secure'] = True
                     self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
-                    usertmp = await self.db.user.list(sql_session=sql_session)
+                    usertmp = await self.db.user.list(sql_session=sql_session, fields=('id', 'email', 'nickname', 'role', 'email_verified'))
                     if len(usertmp) == 1 and config.user0isadmin:
                         if (usertmp[0]['email'] == email):
                             await self.db.user.mod(usertmp[0]['id'], role='admin', sql_session=sql_session)
