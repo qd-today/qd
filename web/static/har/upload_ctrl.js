@@ -60,9 +60,6 @@
           return element.find('button').button('reset');
         });
       };
-      if (!$scope.local_har && remoteload()) {
-        $scope.load_remote(location.href);
-      }
       $scope.load_file = function(data) {
         var each, i, len, loaded, name, ref1, ref2;
         console.log(data);
@@ -259,9 +256,15 @@
         reader = new FileReader();
         data = Base64.decode(HARDATA); // 解码
         $scope.load_file(angular.fromJson(data));
+        if (utils.storage.get('har_har') != null) {
+          $scope.local_har = utils.storage.get('har_filename');
+        }
         element.find('button').button('reset');
         return true;
       } else {
+        if (!$scope.local_har && remoteload()) {
+          $scope.load_remote(location.href);
+        }
         return $scope.upload = function() {
           var error, ref1;
           if (($scope.file == null) && (((ref1 = $scope.curl) != null ? ref1.length : void 0) != null) > 0) {

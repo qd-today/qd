@@ -74,7 +74,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                 if (now_ts - int(repos['lastupdate']) > 24 * 3600):
                     for repo in repos['repos']:
                         if repo['repoacc']:
-                            url = '{0}@{1}'.format(repo['repourl'].replace('https://github.com/', 'https://fastly.jsdelivr.net/gh/'), repo['repobranch'])
+                            url = '{0}@{1}'.format(repo['repourl'].replace('https://github.com/', 'https://cdn.jsdelivr.net/gh/'), repo['repobranch'])
                         else:
                             if (repo['repourl'].find('https://github.com/') > -1):
                                 url = '{0}/{1}'.format(repo['repourl'].replace('https://github.com/', 'https://raw.githubusercontent.com/'), repo['repobranch'])

@@ -22,8 +22,9 @@ from .base import *
 
 class HAREditor(BaseHandler):
     async def get(self, id=None):
-        reponame = self.get_argument("reponame", "")
-        harname = self.get_argument("name", "")
+        tplurl = self.get_argument("tplurl", "|").split("|")
+        harname = self.get_argument("name", tplurl[0])
+        reponame = self.get_argument("reponame", tplurl[1])
 
         if (reponame != '') and (harname != ''):
             tpl = await self.db.pubtpl.list(filename = harname, 
@@ -45,27 +46,33 @@ class HAREditor(BaseHandler):
         
         async with self.db.transaction() as sql_session:
             tpl = self.check_permission(
-                    await self.db.tpl.get(id, fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note', 'interval',
-                        'har', 'variables', 'lock'), sql_session=sql_session))
+                    await self.db.tpl.get(id, fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note', 'interval', 'har', 'variables', 'lock'), sql_session=sql_session))
 
             tpl['har'] = await self.db.user.decrypt(tpl['userid'], tpl['har'], sql_session=sql_session)
             tpl['variables'] = json.loads(tpl['variables'])
-            envs = await self.db.user.decrypt(user['id'], (await self.db.task.get(taskid, 'init_env'))['init_env'], sql_session=sql_session) if taskid and await self.db.task.get(taskid, sql_session=sql_session) else {}
+            if taskid:
+                task = await self.db.task.get(taskid, sql_session=sql_session)
+                if task['init_env']:
+                    envs = await self.db.user.decrypt(user['id'], task['init_env'], sql_session=sql_session)
+                else:
+                    envs = {}
+            else:
+                envs = {}
 
             #await self.db.tpl.mod(id, atime=time.time(), sql_session=sql_session)
-            await self.finish(dict(
-                filename = tpl['sitename'] or '未命名模板',
-                har = tpl['har'],
-                env = dict((x, envs[x] if x in envs else '') for x in tpl['variables']),
-                setting = dict(
-                    sitename = tpl['sitename'],
-                    siteurl = tpl['siteurl'],
-                    note = tpl['note'],
-                    banner = tpl['banner'],
-                    interval = tpl['interval'] or '',
-                    ),
-                readonly = not tpl['userid'] or not self.permission(tpl, 'w') or tpl['lock'],
-                ))
+        await self.finish(dict(
+            filename = tpl['sitename'] or '未命名模板',
+            har = tpl['har'],
+            env = dict((x, envs[x] if x in envs else '') for x in tpl['variables']),
+            setting = dict(
+                sitename = tpl['sitename'],
+                siteurl = tpl['siteurl'],
+                note = tpl['note'],
+                banner = tpl['banner'],
+                interval = tpl['interval'] or '',
+                ),
+            readonly = not tpl['userid'] or not self.permission(tpl, 'w') or tpl['lock'],
+            ))
 
 class HARTest(BaseHandler):
     async def post(self):
@@ -184,17 +191,17 @@ class HARSave(BaseHandler):
                 if not id:
                     raise Exception('create tpl error')
 
-            setting = data.get('setting', {})
-            await self.db.tpl.mod(id,
-                    tplurl = '{0}|{1}'.format(harname, reponame),
-                    sitename=setting.get('sitename'),
-                    siteurl=setting.get('siteurl'),
-                    note=setting.get('note'),
-                    interval=setting.get('interval') or None,
-                    mtime=time.time(),
-                    updateable=0,
-                    _groups=groupName,
-                    sql_session=sql_session)
+        setting = data.get('setting', {})
+        await self.db.tpl.mod(id,
+                tplurl = '{0}|{1}'.format(harname, reponame),
+                sitename=setting.get('sitename'),
+                siteurl=setting.get('siteurl'),
+                note=setting.get('note'),
+                interval=setting.get('interval') or None,
+                mtime=time.time(),
+                updateable=0,
+                _groups=groupName,
+                sql_session=sql_session)
         await self.finish({
             'id': id
             })

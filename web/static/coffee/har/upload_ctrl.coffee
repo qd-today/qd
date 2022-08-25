@@ -52,8 +52,6 @@ define (require, exports, module) ->
           $scope.alert(data)
           element.find('button').button('reset')
         )
-      if not $scope.local_har and remoteload()
-        $scope.load_remote(location.href)
 
       $scope.load_file = (data) ->
         console.log data
@@ -221,12 +219,14 @@ define (require, exports, module) ->
       if HARDATA != ""
         element.find('button').button('loading')
         reader = new FileReader()
-        
         data = Base64.decode(HARDATA)   # 解码
         $scope.load_file(angular.fromJson(data))
+        $scope.local_har = utils.storage.get('har_filename') if utils.storage.get('har_har')?
         element.find('button').button('reset')
         return true
       else
+        if not $scope.local_har and remoteload()
+          $scope.load_remote(location.href)
         $scope.upload = ->
           if not $scope.file? && $scope.curl?.length? > 0
             element.find('button').button('loading')
