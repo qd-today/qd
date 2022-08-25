@@ -1,0 +1,24 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "a76yyyy",
+      "name": "a76yyyyy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/56478790?v=4",
+      "profile": "http://www.a76yyyy.cn",
+      "contributions": [
+        "design"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "qiandao",
+  "projectOwner": "qiandao-today",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
