@@ -49,6 +49,15 @@
         "example",
         "doc"
       ]
+    },
+    {
+      "login": "cdpidan",
+      "name": "pidan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8141453?v=4",
+      "profile": "https://github.com/cdpidan",
+      "contributions": [
+        "design"
+      ]
     }
   ],
   "contributorsPerLine": 7,
