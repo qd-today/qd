@@ -11,11 +11,12 @@ from urllib.parse import urlparse,parse_qs
 from distutils.util import strtobool
 
 debug = bool(strtobool(os.getenv('QIANDAO_DEBUG','False')))                 # 是否启用Debug
-multiprocess = bool(strtobool(os.getenv('MULTI_PROCESS','False')))          # 是否启用多进程模式, Windows平台无效
+multiprocess = bool(strtobool(os.getenv('MULTI_PROCESS','False')))          # 是否启用多进程模式, Windows平台无效, 请谨慎使用
 autoreload = bool(strtobool(os.getenv('AUTO_RELOAD','False')))              # 是否启用自动热加载, multiprocess=True时无效
 gzip = bool(strtobool(os.getenv('GZIP','True')))                            # 是否启用gzip
 bind = str(os.getenv('BIND', '0.0.0.0'))                                    # 框架运行监听地址(0.0.0.0表示监听所有IP地址)
 port = int(os.getenv('PORT', 8923))                                         # 监听端口Port
+queue_num = int(os.getenv('QUEUE_NUM', 50))                                 # 定时执行任务队列最大数量
 https = bool(strtobool(os.getenv('ENABLE_HTTPS', 'False')))                 # 发送的邮件链接启用HTTPS, 非框架自身HTTPS开关, 需要HTTPS请使用外部反向代理
 accesslog = bool(strtobool(os.getenv('ACCESS_LOG', 'True')))                # 是否输出Access Log
 
@@ -39,7 +40,8 @@ redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))                       # �
 # 日志及推送设置
 traceback_print = bool(strtobool(os.getenv('TRACEBACK_PRINT', 'True' if debug else 'False')))    # 是否启用在控制台日志中打印Exception的TraceBack信息
 push_pic = os.getenv('PUSH_PIC_URL', 'https://gitee.com/a76yyyy/qiandao/raw/master/web/static/img/push_pic.png')      # 日志推送默认图片地址
-push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送签到任务日志, 默认为True
+push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送签到任务日志, 默认为 True
+push_batch_delta = int(os.getenv('PUSH_BATCH_DELTA', 60))                   # 执行 PUSH_BATCH 的时间间隔, 单位为秒, 默认为 60s, 非全局推动签到任务日志间隔
 
 class mysql(object):
     host = mysql_url.hostname or 'localhost'                                # 访问MySQL的Hostname

@@ -40,9 +40,15 @@ elif config.db_type == 'sqlite3':
                                 pool_logging_name = config.sqlalchemy.pool_logging_name,
                                 pool_pre_ping = config.sqlalchemy.pool_pre_ping,
                                 pool_recycle = config.sqlalchemy.pool_recycle )
+    Log('aiosqlite',
+        logger_level=config.sqlalchemy.pool_logging_level,
+        channel_level=config.sqlalchemy.pool_logging_level).getlogger()
 else:
     raise Exception('db_type must be mysql or sqlite3')
-logger_DB = Log(engine.engine.logger, 
+logger_DB = Log('sqlalchemy', 
+                logger_level=config.sqlalchemy.logging_level,
+                channel_level=config.sqlalchemy.logging_level).getlogger()
+logger_DB_Engine = Log(engine.engine.logger, 
                 logger_level=config.sqlalchemy.logging_level,
                 channel_level=config.sqlalchemy.logging_level).getlogger()
 if hasattr(engine.pool.logger, 'logger'):

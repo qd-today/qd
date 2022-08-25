@@ -8,10 +8,8 @@
 import time
 import datetime
 import asyncio
-import functools
 import tornado.log
 import tornado.ioloop
-from tornado import gen
 import json
 import config
 from db import DB
@@ -30,23 +28,25 @@ class MainWorker(object):
         self.running = False
         self.db = db
         self.fetcher = Fetcher()
+        self.queue = asyncio.Queue(maxsize=config.queue_num)
+        self.task_lock = {}
+        self.success = 0
+        self.failed = 0
 
-    def __call__(self):
-        # self.running = tornado.ioloop.IOLoop.current().spawn_callback(self.run)
-        # if self.running:
-        #     success, failed = self.running
-        #     if success or failed:
-        #         logger_Worker.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
-        if self.running:
-            return
-        self.running = gen.convert_yielded(self.run())
-        def done(future):
-            self.running = None
-            success, failed = future.result()
-            if success or failed:
-                logger_Worker.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
-            return
-        self.running.add_done_callback(done)
+    async def __call__(self):
+        asyncio.create_task(self.producer())
+        for i in range(config.queue_num):
+            asyncio.create_task(self.runner(i))
+
+        while True:
+            sleep = asyncio.sleep( config.push_batch_delta )
+            if self.success or self.failed:
+                logger_Worker.info('Last %d seconds, %d task done. %d success, %d failed' % (config.push_batch_delta, self.success+self.failed, self.success, self.failed))
+                self.success = 0
+                self.failed = 0
+            if config.push_batch_sw:
+                await self.push_batch()
+            await sleep
         
 
     async def ClearLog(self, taskid, sql_session=None):
@@ -105,39 +105,34 @@ class MainWorker(object):
                 traceback.print_exc()
             logger_Worker.error('Push batch task failed: {}'.format(str(e)))
       
-    async def run(self):
-        running = []
-        success = 0
-        failed = 0
-        try:
-            tasks = await self.scan()
+    async def runner(self,id):
+        while True:
+            sleep = asyncio.sleep(config.check_task_loop/1000.0)
+            task = await self.queue.get()
+            logger_Worker.debug('Runner %d get task: %s, running...' % (id, task['id']))
+            if await self.do(task):
+                self.success += 1
+                self.task_lock.pop(task['id'], None)
+            else:
+                self.failed += 1
+                self.task_lock[task['id']] = False
+            await sleep
+
+
+    async def producer(self):
+        while True:
+            sleep = asyncio.sleep(config.check_task_loop/1000.0)
+            tasks = await self.db.task.scan()
+            unlock_tasks = 0
             if tasks is not None and len(tasks) > 0:
                 for task in tasks:
-                    running.append(asyncio.ensure_future(self.do(task)))
-                    if len(running) >= 50:
-                        logger_Worker.debug('scaned %d task, waiting...', len(running))
-                        result = await asyncio.gather(*running[:10])
-                        for each in result:
-                            if each:
-                                success += 1
-                            else:
-                                failed += 1
-                        running = running[10:]
-                logger_Worker.debug('scaned %d task, waiting...', len(running))
-                result = await asyncio.gather(*running)
-                for each in result:
-                    if each:
-                        success += 1
-                    else:
-                        failed += 1
-            if config.push_batch_sw:
-                await self.push_batch()
-        except Exception as e:
-            logger_Worker.exception(e)
-        return (success, failed)
-
-    async def scan(self):
-        return await self.db.task.scan()
+                    if not self.task_lock.get(task['id'], False):
+                        self.task_lock[task['id']] = True
+                        unlock_tasks += 1
+                        await self.queue.put(task)
+                if unlock_tasks > 0:
+                    logger_Worker.debug('Scaned %d task, put in Queue...' % unlock_tasks)
+            await sleep
 
     @staticmethod
     def failed_count_to_time(last_failed_count, retry_count=8, retry_interval=None, interval=None):
@@ -194,15 +189,13 @@ class MainWorker(object):
 
     async def do(self, task):
         async with self.db.transaction() as sql_session:
-            task['note'] = (await self.db.task.get(task['id'], fields=('note',), sql_session=sql_session))['note']
             user = await self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname', 'logtime'), sql_session=sql_session)
             tpl = await self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl', 'interval', 'last_success'), sql_session=sql_session)
-            ontime = await self.db.task.get(task['id'], fields=('ontime', 'ontimeflg', 'pushsw', 'newontime', 'next'), sql_session=sql_session)
-            newontime = json.loads(ontime["newontime"])
+            newontime = json.loads(task["newontime"])
             pushtool = pusher(self.db, sql_session=sql_session)
             caltool = cal()
             logtime = json.loads(user['logtime'])
-            pushsw = json.loads(ontime['pushsw'])
+            pushsw = json.loads(task['pushsw'])
 
             if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0 
 
@@ -226,7 +219,7 @@ class MainWorker(object):
                 await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
                 return False
 
-            start = time.time()
+            start = time.perf_counter()
             try:
                 fetch_tpl = await self.db.user.decrypt(0 if not tpl['userid'] else task['userid'], tpl['tpl'], sql_session=sql_session)
                 env = dict(
@@ -282,7 +275,7 @@ class MainWorker(object):
                 logtemp = u"{0} \\r\\n日志：{1}".format(t, logtemp)
                 await pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
 
-                logger_Worker.info('taskid:%d tplid:%d successed! %.5fs', task['id'], task['tplid'], time.time()-start)
+                logger_Worker.info('taskid:%d tplid:%d successed! %.5fs', task['id'], task['tplid'], time.perf_counter()-start)
                 # delete log
                 await self.ClearLog(task['id'],sql_session=sql_session)
                 logger_Worker.info('taskid:%d tplid:%d clear log.', task['id'], task['tplid'])
@@ -318,7 +311,7 @@ class MainWorker(object):
                         sql_session=sql_session)
                 await self.db.tpl.incr_failed(tpl['id'], sql_session=sql_session)
 
-                logger_Worker.error('taskid:%d tplid:%d failed! %.4fs \r\n%s', task['id'], task['tplid'], time.time()-start, str(e).replace('\\r\\n','\r\n'))
+                logger_Worker.error('taskid:%d tplid:%d failed! %.4fs \r\n%s', task['id'], task['tplid'], time.perf_counter()-start, str(e).replace('\\r\\n','\r\n'))
                 return False
         return True
 

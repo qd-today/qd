@@ -66,10 +66,11 @@ if __name__ == "__main__":
             http_server.start()
 
         from worker import MainWorker
-        from tornado.ioloop import IOLoop, PeriodicCallback
+        from tornado.ioloop import IOLoop
         worker = MainWorker(database)
-        PeriodicCallback(worker, config.check_task_loop).start()
-        worker()
+        # PeriodicCallback(worker, config.check_task_loop).start()
+        
+        IOLoop.instance().add_callback(worker)
 
         logger_Qiandao.info("Http Server started on %s:%s", config.bind, port)
         IOLoop.instance().start()
