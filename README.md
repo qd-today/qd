@@ -10,20 +10,7 @@
 Qiandao —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Editor and Tornado Server
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![HomePage][HomePage-image]][HomePage-url]
-[![Github][Github-image]][Github-url]
-[![Gitee][Gitee-image]][Gitee-url]
-[![license][github-license-image]][github-license-url]
-[![Build Image][workflow-image]][workflow-url]
-[![last commit][last-commit-image]][last-commit-url]
-[![commit activity][commit-activity-image]][commit-activity-url]
-[![docker version][docker-version-image]][docker-version-url]
-[![docker pulls][docker-pulls-image]][docker-pulls-url]
-[![docker stars][docker-stars-image]][docker-stars-url]
-[![docker image size][docker-image-size-image]][docker-image-size-url]
-![repo size][repo-size-image]
-![python version][python-version-image]
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [HomePage-image]: https://img.shields.io/badge/HomePage-qiandao--today-brightgreen
@@ -312,6 +299,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="http://www.a76yyyy.cn"><img src="https://avatars.githubusercontent.com/u/56478790?v=4?s=100" width="100px;" alt=""/><br /><sub><b>a76yyyyy</b></sub></a><br /><a href="#design-a76yyyy" title="Design">🎨</a></td>
+    <td align="center"><a href="http://binux.me/"><img src="https://avatars.githubusercontent.com/u/646451?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Roy Binux</b></sub></a><br /><a href="#design-Binux" title="Design">🎨</a></td>
   </tr>
 </table>
 
