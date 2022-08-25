@@ -37,6 +37,18 @@
         "design",
         "maintenance"
       ]
+    },
+    {
+      "login": "Mark-1215",
+      "name": "Mark",
+      "avatar_url": "https://avatars.githubusercontent.com/u/36469805?v=4",
+      "profile": "https://www.quchao.net",
+      "contributions": [
+        "design",
+        "blog",
+        "example",
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
