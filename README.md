@@ -1,7 +1,4 @@
 <p align="center">
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
    <a href="https://github.com/qiandao-today/qiandao">
    <img style="border-radius:50%" width="150" src="https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/icon.png">
    </a>
@@ -12,6 +9,7 @@
 <div align="center">
 Qiandao —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Editor and Tornado Server
 
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![HomePage][HomePage-image]][HomePage-url]
 [![Github][Github-image]][Github-url]
 [![Gitee][Gitee-image]][Gitee-url]
@@ -25,6 +23,8 @@ Qiandao —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR
 [![docker image size][docker-image-size-image]][docker-image-size-url]
 ![repo size][repo-size-image]
 ![python version][python-version-image]
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [HomePage-image]: https://img.shields.io/badge/HomePage-qiandao--today-brightgreen
 [HomePage-url]: https://qiandao.a76yyyy.cn
