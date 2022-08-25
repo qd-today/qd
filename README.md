@@ -23,7 +23,7 @@ Qiandao —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR
 ![repo size][repo-size-image]
 ![python version][python-version-image]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-13-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-14-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [HomePage-image]: https://img.shields.io/badge/HomePage-qiandao--today-brightgreen
@@ -326,6 +326,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://blog.hicasper.com"><img src="https://avatars.githubusercontent.com/u/25276620?v=4?s=100" width="100px;" alt=""/><br /><sub><b>hiCasper</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=hiCasper" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/ckx000"><img src="https://avatars.githubusercontent.com/u/5800591?v=4?s=100" width="100px;" alt=""/><br /><sub><b>旋子</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=ckx000" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/chen8945"><img src="https://avatars.githubusercontent.com/u/44148812?v=4?s=100" width="100px;" alt=""/><br /><sub><b>chen8945</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=chen8945" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/seiuneko"><img src="https://avatars.githubusercontent.com/u/25706824?v=4?s=100" width="100px;" alt=""/><br /><sub><b>seiuneko</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=seiuneko" title="Code">💻</a></td>
   </tr>
 </table>
 
