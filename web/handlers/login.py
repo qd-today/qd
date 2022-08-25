@@ -76,12 +76,13 @@ class LoginHandler(BaseHandler):
                 tmp = crypto.password_hash(hash.hexdigest(),await self.db.user.decrypt(user['id'], user['password'], sql_session=sql_session))
                 if (user['password_md5'] != tmp):
                     await self.db.user.mod(user['id'], password_md5=tmp, sql_session=sql_session)
-
-                next = self.get_argument('next', '/my/')
-                self.redirect(next)
             else:
                 self.evil(+5)
                 await self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
+                return
+                
+        if user:
+            self.redirect('/my/')
 
 class LogoutHandler(BaseHandler):
     def get(self):
@@ -140,16 +141,12 @@ class RegisterHandler(BaseHandler):
                         if (usertmp[0]['email'] == email):
                             await self.db.user.mod(usertmp[0]['id'], role='admin', sql_session=sql_session)
 
-                    if siteconfig['MustVerifyEmailEn'] != 1:
-                        next = self.get_argument('next', '/my/')
-                        self.redirect(next)
-                    else:
+                    if siteconfig['MustVerifyEmailEn'] == 1:
                         await self.render('register.html', email_error=u'请验证邮箱后再登陆', regFlg=regFlg)
                     await self.send_mail(user, sql_session=sql_session)
-                    
                 else:
                     await self.render('register.html', email_error=u'管理员关闭注册', regFlg=regFlg)
-                return
+                    return
             else:
                 if (MustVerifyEmailEn == 1):
                     if (user['email_verified'] != 1):
@@ -159,7 +156,9 @@ class RegisterHandler(BaseHandler):
                         await self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
                 else:
                     await self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
-        return
+                return
+        if user:
+            self.redirect('/my/')
 
     async def send_mail(self, user, sql_session=None):
         verified_code = [user['email'], time.time()]
