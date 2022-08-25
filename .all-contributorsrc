@@ -113,6 +113,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "ckx000",
+      "name": "旋子",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5800591?v=4",
+      "profile": "https://github.com/ckx000",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
