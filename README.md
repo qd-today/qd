@@ -268,34 +268,7 @@ EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.j
 
 详见 **[CHANGELOG.md](./CHANGELOG.md)**
 
-鸣谢
-===========
-
-[Binux](https://github.com/binux/qiandao)
-
-[Mark](https://www.quchao.net/)
-
-[PiDan](https://github.com/cdpidan)
-
-[AragonSnow](https://hexo.aragon.wang/)
-
-[AragonSnow/qiandao](https://github.com/aragonsnow/qiandao)
-
-[戏如人生](https://49594425.xyz/)
-
-[buzhibujuelb](https://github.com/buzhibujuelb)
-
-[billypon](https://github.com/billypon)
-
-[powersee](https://github.com/powersee)
-
-[acooler15](https://github.com/acooler15)
-
-[a76yyyy](https://github.com/a76yyyy/qiandao)
-
-[……](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/version.json)
-
-个人项目精力有限, 仅保证对Chrome浏览器的支持。如果测试了其他浏览器可以pull request。
+维护项目精力有限, 仅保证对 Chrome 浏览器的支持。如果测试了其他浏览器可以 Pull Request。
 
 许可
 ===========
