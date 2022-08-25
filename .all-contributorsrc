@@ -15,6 +15,15 @@
         "code",
         "maintenance"
       ]
+    },
+    {
+      "login": "Binux",
+      "name": "Roy Binux",
+      "avatar_url": "https://avatars.githubusercontent.com/u/646451?v=4",
+      "profile": "http://binux.me/",
+      "contributions": [
+        "design"
+      ]
     }
   ],
   "contributorsPerLine": 7,
