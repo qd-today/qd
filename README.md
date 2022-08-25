@@ -312,7 +312,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tr>
     <td align="center"><a href="http://www.a76yyyy.cn"><img src="https://avatars.githubusercontent.com/u/56478790?v=4?s=100" width="100px;" alt=""/><br /><sub><b>a76yyyyy</b></sub></a><br /><a href="#design-a76yyyy" title="Design">🎨</a> <a href="https://github.com/qiandao-today/qiandao/commits?author=a76yyyy" title="Code">💻</a> <a href="#maintenance-a76yyyy" title="Maintenance">🚧</a></td>
-    <td align="center"><a href="http://binux.me/"><img src="https://avatars.githubusercontent.com/u/646451?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Roy Binux</b></sub></a><br /><a href="#design-Binux" title="Design">🎨</a></td>
+    <td align="center"><a href="http://binux.me/"><img src="https://avatars.githubusercontent.com/u/646451?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Roy Binux</b></sub></a><br /><a href="#design-Binux" title="Design">🎨</a> <a href="https://github.com/qiandao-today/qiandao/commits?author=Binux" title="Code">💻</a> <a href="#maintenance-Binux" title="Maintenance">🚧</a></td>
     <td align="center"><a href="https://github.com/AragonSnow"><img src="https://avatars.githubusercontent.com/u/22835918?v=4?s=100" width="100px;" alt=""/><br /><sub><b>AragonSnow</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=AragonSnow" title="Code">💻</a> <a href="#design-AragonSnow" title="Design">🎨</a> <a href="#maintenance-AragonSnow" title="Maintenance">🚧</a></td>
   </tr>
 </table>
