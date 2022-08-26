@@ -444,6 +444,11 @@ class Fetcher(object):
         try:
             req, rule, env = self.build_request(obj, download_size_limit=self.download_size_limit,proxy=proxy,CURL_ENCODING=CURL_ENCODING,CURL_CONTENT_LENGTH=CURL_CONTENT_LENGTH)
             response =  await self.client.fetch(req)
+            logger_Fetcher.debug("%d %s %s %.2fms",
+            response.code,
+            response.request.method,
+            response.request.url,
+            1000.0 * response.request_time)
         except httpclient.HTTPError as e:
             try:
                 if config.allow_retry and pycurl:
