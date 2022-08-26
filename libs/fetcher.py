@@ -603,6 +603,11 @@ class Fetcher(object):
                     condition = safe_eval(block['condition'],env['variables'])
                 except NameError:
                     condition = False
+                except ValueError as e:
+                    if len(str(e)) > 20 and str(e)[:20] == "<class 'NameError'>:":
+                        condition = False
+                    else:
+                        raise e
                 if condition:
                     await self.do_fetch(block['true'], env, proxies=[proxy], request_limit=request_limit)
                 else:
