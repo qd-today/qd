@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/qiandao-today/qiandao#readme",
   "dependencies": {
+    "curl2har": "^0.0.6",
     "querystring": "^0.2.1",
     "tough-cookie": "^4.0.0",
     "url": "^0.11.0"
@@ -30,7 +31,6 @@
   "devDependencies": {
     "bower": "^1.8.14",
     "coffeescript": "^2.6.1",
-    "curl2har": "^0.0.5",
     "grunt": "^1.5.3",
     "grunt-bower-task": "^0.6.1",
     "grunt-contrib-clean": "^2.0.0",
