@@ -88,15 +88,6 @@ class SubscribeUpdatingHandler(BaseHandler):
                         if res.code == 200:
                             hfile = json.loads(res.body.decode(find_encoding(res.body, res.headers), 'replace'))
                             for har in hfile['har'].values():
-                                if (har['content'] == ''):
-                                    obj['request']['url'] = "{0}/{1}".format(url, quote(har['filename']))
-                                    _,_,har_res = await fetcher.build_response(obj, proxy = proxy)
-                                    if har_res.code == 200:
-                                        har['content'] = base64.b64encode(har_res.body).decode()
-                                    else:
-                                        msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
-                                        continue
-
                                 for k, v in repo.items():
                                     har[k] = v
                                 tpl = await self.db.pubtpl.list(name = har['name'], 
@@ -108,9 +99,25 @@ class SubscribeUpdatingHandler(BaseHandler):
 
                                 if (len(tpl) > 0):
                                     if (int(tpl[0]['version']) < int(har['version'])):
+                                        if (har['content'] == ''):
+                                            obj['request']['url'] = "{0}/{1}".format(url, quote(har['filename']))
+                                            _,_,har_res = await fetcher.build_response(obj, proxy = proxy)
+                                            if har_res.code == 200:
+                                                har['content'] = base64.b64encode(har_res.body).decode()
+                                            else:
+                                                msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
+                                                continue
                                         har['update'] = True
                                         await self.db.pubtpl.mod(tpl[0]['id'], **har, sql_session=sql_session)
                                 else:
+                                    if (har['content'] == ''):
+                                        obj['request']['url'] = "{0}/{1}".format(url, quote(har['filename']))
+                                        _,_,har_res = await fetcher.build_response(obj, proxy = proxy)
+                                        if har_res.code == 200:
+                                            har['content'] = base64.b64encode(har_res.body).decode()
+                                        else:
+                                            msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
+                                            continue
                                     await self.db.pubtpl.add(har, sql_session=sql_session)
                         else:
                             msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
