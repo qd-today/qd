@@ -15,10 +15,12 @@ Nothing right now.
 1. 添加多种 jinja2 过滤器并更新关于页面
 2. 添加 Ja3 Dockerfile
 3. 添加 curlToHAR feature close a76yyyy/qiandao#7
-4. 后端支持单账号多记事本 close qiandao-today/qiandao#154
-5. 添加 SQLAlchemy ORM 特性
-6. 优化定时任务执行性能, 实现生产者-消费者异步队列模型
-7. 其他优化和修复
+4. 添加 单账号多记事本 feature close qiandao-today/qiandao#154
+5. 添加 SQLAlchemy ORM feature for qiandao-today/qiandao#253
+6. Debug 日志模式记录 Tornado Client 请求
+7. 优化公共模板更新性能, 仅 har version 更新时增量更新 content
+8. 优化定时任务执行性能, 实现生产者-消费者异步队列模型
+9. 其他优化和修复
 
 ## [20220728] - 2022.07.28 更新
 
