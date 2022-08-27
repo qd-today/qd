@@ -22,3 +22,4 @@ jobs:
               tag: ja3-latest,ja3-${{ steps.get_version.outputs.VERSION }}
               dockerUser: ${{ secrets.DOCKER_USERNAME }} # docker hub userid 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
               dockerPassword: ${{ secrets.DOCKER_PASSWORD }} # docker hub password,在setting创建secrets name=DOCKER_PASSWORD  value=dockerpassword
+              dockerFile: Dockerfile.ja3

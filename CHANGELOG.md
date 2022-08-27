@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
-## [20220819] - 2022.08.19 更新 -->
+## [20220826] - 2022.08.26 更新 -->
 
 ## [Unreleased]
 
