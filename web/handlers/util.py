@@ -439,7 +439,11 @@ class toolbox_notepad_Handler(BaseHandler):
         notepadlist = await self.db.notepad.list(fields=('notepadid','content'), limit=20, userid=userid )
         notepadlist.sort(key=lambda x:x['notepadid'])
         if len(notepadlist) == 0:
-            raise HTTPError(404, log_message=u"用户不存在或未创建记事本",reason=u"用户不存在或未创建记事本")
+            if await self.db.user.get(id=userid, fields=('id',)) is not None:
+                await self.db.notepad.add(dict(userid=userid, notepadid=1))
+                notepadlist = await self.db.notepad.list(fields=('notepadid','content'), limit=20, userid=userid )
+            else:
+                raise HTTPError(404, log_message=u"用户不存在或未创建记事本",reason=u"用户不存在或未创建记事本")
         if int(notepadid) == 0:
             notepadid = notepadlist[-1]['notepadid']
         await self.render('toolbox-notepad.html', notepad_id = int(notepadid), notepad_list=notepadlist, userid=userid)
@@ -454,11 +458,14 @@ class toolbox_notepad_Handler(BaseHandler):
             if (email) and (pwd) and (f):
                 async with self.db.transaction() as sql_session:
                     if await self.db.user.challenge_MD5(email, pwd, sql_session=sql_session) or await self.db.user.challenge(email, pwd, sql_session=sql_session):
-                        notepadid=self.get_argument("id_notepad", 1)
+                        notepadid = int(self.get_argument("id_notepad", 1))
                         userid = (await self.db.user.get(email=email, fields=('id',), sql_session=sql_session))['id']
                         notepad = await self.db.notepad.get(userid, notepadid, fields=('content',), sql_session=sql_session)
                         if not notepad:
-                            raise Exception(u"记事本不存在")
+                            if notepadid == 1:
+                                await self.db.notepad.add(dict(userid=userid, notepadid=notepadid), sql_session=sql_session)
+                            else:
+                                raise Exception(u"记事本不存在")
                         text_data = notepad['content']
                         new_data = self.get_argument("data", "")
                         if (f.find('write') > -1 ): 
@@ -494,7 +501,11 @@ class toolbox_notepad_list_Handler(BaseHandler):
         notepadlist = await self.db.notepad.list(fields=('notepadid','content'), limit=20, userid=userid )
         notepadlist.sort(key=lambda x:x['notepadid'])
         if len(notepadlist) == 0:
-            raise HTTPError(404, log_message=u"用户不存在或未创建记事本",reason=u"用户不存在或未创建记事本")
+            if await self.db.user.get(id=userid, fields=('id',)) is not None:
+                await self.db.notepad.add(dict(userid=userid, notepadid=1))
+                notepadlist = await self.db.notepad.list(fields=('notepadid','content'), limit=20, userid=userid )
+            else:
+                raise HTTPError(404, log_message=u"用户不存在或未创建记事本",reason=u"用户不存在或未创建记事本")
         if int(notepadid) == 0:
             notepadid = notepadlist[-1]['notepadid']
         await self.render('toolbox-notepad.html', notepad_id = notepadid, notepad_list=notepadlist, userid=userid)
