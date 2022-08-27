@@ -39,7 +39,7 @@ redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))                       # �
 
 # 日志及推送设置
 traceback_print = bool(strtobool(os.getenv('TRACEBACK_PRINT', 'True' if debug else 'False')))    # 是否启用在控制台日志中打印Exception的TraceBack信息
-push_pic = os.getenv('PUSH_PIC_URL', 'https://gitee.com/a76yyyy/qiandao/raw/master/web/static/img/push_pic.png')      # 日志推送默认图片地址
+push_pic = os.getenv('PUSH_PIC_URL', 'https://gitee.com/a76yyyy/qiandao/raw/master/web/static/img/push_pic.png')    # 日志推送默认图片地址
 push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送签到任务日志, 默认为 True
 push_batch_delta = int(os.getenv('PUSH_BATCH_DELTA', 60))                   # 执行 PUSH_BATCH 的时间间隔, 单位为秒, 默认为 60s, 非全局推动签到任务日志间隔
 
@@ -60,15 +60,15 @@ db_type = os.getenv('DB_TYPE', 'sqlite3')                                   # �
 # SQLAlchmey配置
 class sqlalchemy(object):
     logging_name = os.getenv('QIANDAO_SQL_LOGGING_NAME', 'qiandao.sql')     # SQLAlchmey日志名称
-    logging_level = os.getenv('QIANDAO_SQL_LOGGING_LEVEL', 'WARNING')             # SQLAlchmey日志级别
+    logging_level = os.getenv('QIANDAO_SQL_LOGGING_LEVEL', 'WARNING')       # SQLAlchmey日志级别
     pool_logging_name = os.getenv('QIANDAO_SQL_POOL_LOGGING_NAME', 'qiandao.sql.pool')                  # 连接池日志名称
-    pool_logging_level = os.getenv('QIANDAO_SQL_POOL_LOGGING_LEVEL', 'WARNING')   # 连接池日志级别
+    pool_logging_level = os.getenv('QIANDAO_SQL_POOL_LOGGING_LEVEL', 'WARNING')                         # 连接池日志级别
     pool_size = int(os.getenv('QIANDAO_SQL_POOL_SIZE', '5'))                # 连接池大小
     max_overflow = int(os.getenv('QIANDAO_SQL_MAX_OVERFLOW', '10'))         # 连接池连接数量超过 pool_size 时, 最大连接数
     pool_pre_ping = bool(strtobool(os.getenv('QIANDAO_SQL_POOL_PRE_PING', 'True')))     # 是否在获取连接前进行 ping 操作, 默认为 True
-    pool_recycle = int(os.getenv('QIANDAO_SQL_POOL_RECYCLE', '3600'))     # 连接池中连接复用时间, 默认为 3600 秒
+    pool_recycle = int(os.getenv('QIANDAO_SQL_POOL_RECYCLE', '3600'))       # 连接池中连接复用时间, 默认为 3600 秒
     pool_timeout = int(os.getenv('QIANDAO_SQL_POOL_TIMEOUT', '30'))         # 连接池获取连接超时时间, 默认为 30 秒
-    pool_use_lifo = bool(strtobool(os.getenv('QIANDAO_SQL_POOL_USE_LIFO', 'True')))     # 连接池是否使用 LIFO, 默认为 True
+    pool_use_lifo = bool(strtobool(os.getenv('QIANDAO_SQL_POOL_USE_LIFO', 'True')))                     # 连接池是否使用 LIFO, 默认为 True
 
 # redis 连接参数, 可选
 class redis(object):
