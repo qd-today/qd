@@ -42,7 +42,7 @@ RUN chmod 600 /root/.ssh/id_rsa \
 RUN apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging && \
     [[ $(getconf LONG_BIT) = "32" ]] && \
     echo "Tips: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python" || \
-    apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow py3-greenlet && \
+    apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow py3-greenlet py3-urllib3 && \
     apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
         linux-headers libtool util-linux && \
     sed -i '/ddddocr/d' requirements.txt && \
@@ -55,6 +55,7 @@ RUN apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3
     sed -i '/opencv/d' requirements.txt && \
     sed -i '/numpy/d' requirements.txt && \
     sed -i '/greenlet/d' requirements.txt && \
+    sed -i '/urllib3/d' requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \
     apk del .build_deps && \
     rm -rf /var/cache/apk/* && \
