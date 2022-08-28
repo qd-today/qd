@@ -389,6 +389,18 @@ class DBconverter():
             await exec_shell("ALTER TABLE `user` ADD `dingding_token`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
 
         try:
+            import aiosqlite
+            from sqlalchemy import update
+            from db import User
+            conn = await aiosqlite.connect(f"{config.sqlite3.path}")
+            conn.text_factory = bytes
+            cursor = await conn.execute('SELECT id, password, userkey FROM user')
+            for row in await cursor.fetchall():
+                result = await self.db._update(update(User).where(User.id == row[0]).values(password=row[1],userkey=row[2]))
+        except Exception as e:
+            raise e
+
+        try:
             await self.db.user.list(limit=1, fields=('password_md5',))
             for user in await self.db.user.list(fields=('id', 'password_md5')):
                 if isinstance(user['password_md5'],str) and re.match(r'^[a-z0-9]{32}$',user['password_md5']):
@@ -502,7 +514,6 @@ class DBconverter():
                 await exec_shell('''ALTER TABLE `pubtpl` ADD  `commenturl` TEXT ''')
                 await exec_shell('''UPDATE `pubtpl` SET `commenturl` = '' WHERE 1=1 ''')
 
-            
         try:
             async with self.db.transaction() as sql_session:
                 await exec_shell("ALTER TABLE `user` RENAME TO `userold`", sql_session=sql_session)
@@ -514,9 +525,9 @@ class DBconverter():
                     `id` INTEGER NOT NULL PRIMARY KEY  %s,
                     `email` VARCHAR(256) NOT NULL,
                     `email_verified` TINYINT NOT NULL DEFAULT 0,
-                    `password` VARBINARY(128) NOT NULL,
+                    `password` BLOB(128) NOT NULL,
                     `password_md5` VARBINARY(128) NOT NULL DEFAULT '',
-                    `userkey` VARBINARY(128) NOT NULL,
+                    `userkey` BLOB(128) NOT NULL,
                     `nickname` VARCHAR(64) NULL,
                     `role` VARCHAR(128) NULL,
                     `ctime` INT UNSIGNED NOT NULL,
