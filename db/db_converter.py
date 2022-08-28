@@ -451,7 +451,16 @@ class DBconverter():
             pass
         
         try:
-            if await self.db.user.list(limit=1, fields=('cip','mip','aip')) and str.isdigit(str(list(await self.db.user.list( fields=('cip',)))[0]['cip'])):
+            await self.db.user.list(limit=1, fields=('cip','mip','aip'))
+            cip_is_num = False
+            for row in await self.db.user.list(fields=('id','cip')):
+                cip = row['cip']
+                if len(cip) > 16:
+                    cip = bytes()
+                    await self.db.user.mod(id=row['id'], cip=cip)
+                if str.isdigit(str(cip)):
+                    cip_is_num = True
+            if cip_is_num:
                 await exec_shell("ALTER TABLE `user` RENAME TO `userold`")
                 if config.db_type == 'sqlite3':
                     autokey = 'AUTOINCREMENT'
@@ -486,7 +495,7 @@ class DBconverter():
                     );''' % autokey)
                 await exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token`,`push_batch` FROM `userold` ")
                 await exec_shell("DROP TABLE `userold` ")
-        except :
+        except Exception as e:
             pass
 
         try:
@@ -502,7 +511,7 @@ class DBconverter():
             tmp = (await self.db.site.get("1", fields=('repos',)))['repos']
             if tmp == None or tmp == '':
                  await exec_shell('''UPDATE `site` SET `repos` = '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' WHERE `site`.`id` = 1 ''')
-        except :
+        except Exception as e:
             pass
 
         try:
