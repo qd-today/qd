@@ -4,13 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-<!-- ## [Unreleased]
+## [Unreleased]
 
 Nothing right now.
 
-## [20220826] - 2022.08.26 更新 -->
-
-## [Unreleased]
+## [20220828] - 2022.08.28 更新
 
 1. 添加多种 jinja2 过滤器并更新关于页面
 2. 添加 Ja3 Dockerfile
