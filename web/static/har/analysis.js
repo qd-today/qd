@@ -7,7 +7,7 @@
   var base, base1, jinja_globals,
     indexOf = [].indexOf;
 
-  window.jinja_globals = ['md5', 'quote_chinese', 'utf8', 'unicode', 'timestamp', 'random', 'date_time', 'is_num', 'add', 'sub', 'multiply', 'divide', 'Faker', 'dict', 'lipsum'];
+  window.jinja_globals = ['quote_chinese', 'bool', 'utf8', 'unicode', 'timestamp', 'date_time', 'is_num', 'add', 'sub', 'multiply', 'divide', 'Faker', 'b64decode', 'b64encode', 'to_uuid', 'md5', 'sha1', 'password_hash', 'hash', 'aes_encrypt', 'aes_decrypt', 'regex_replace', 'regex_escape', 'regex_search', 'regex_findall', 'ternary', 'random', 'shuffle', 'mandatory', 'type_debug', 'dict', 'lipsum', 'range'];
 
   jinja_globals = window.jinja_globals;
 
