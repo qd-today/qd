@@ -388,17 +388,18 @@ class DBconverter():
         except :
             await exec_shell("ALTER TABLE `user` ADD `dingding_token`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
 
-        try:
-            import aiosqlite
-            from sqlalchemy import update
-            from db import User
-            conn = await aiosqlite.connect(f"{config.sqlite3.path}")
-            conn.text_factory = bytes
-            cursor = await conn.execute('SELECT id, password, userkey FROM user')
-            for row in await cursor.fetchall():
-                result = await self.db._update(update(User).where(User.id == row[0]).values(password=row[1],userkey=row[2]))
-        except Exception as e:
-            raise e
+        if config.db_type == 'sqlite3':
+            try:
+                import aiosqlite
+                from sqlalchemy import update
+                from db import User
+                conn = await aiosqlite.connect(f"{config.sqlite3.path}")
+                conn.text_factory = bytes
+                cursor = await conn.execute('SELECT id, password, userkey FROM user')
+                for row in await cursor.fetchall():
+                    result = await self.db._update(update(User).where(User.id == row[0]).values(password=row[1],userkey=row[2]))
+            except Exception as e:
+                raise e
 
         try:
             await self.db.user.list(limit=1, fields=('password_md5',))
