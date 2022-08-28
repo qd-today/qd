@@ -6,7 +6,7 @@
 
 import warnings
 import config
-from db import DB
+from db import DB,Site
 from db.basedb import BaseDB
 import json
 import re
@@ -253,7 +253,7 @@ class DBconverter():
                 raise Exception("new")
         except Exception as e:
             insert = dict(regEn = 1, repos='{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}')
-            await self.db.site._insert(**insert)
+            await self.db.site._insert(Site(**insert))
             
         try:
             await self.db.site.get("1", fields=('MustVerifyEmailEn',))
