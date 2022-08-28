@@ -65,7 +65,7 @@ class MainWorker(object):
                         userid = user['id']
                         push_batch = json.loads(user['push_batch'])
                         if user['status'] == "Enable" and push_batch["sw"] and isinstance(push_batch['time'],(float,int)) and time.time() >= push_batch['time']:
-                            logger_Worker.debug('Exist push_batch task, waiting...')
+                            logger_Worker.debug('User %d check push_batch task, waiting...' % userid)
                             title = u"定期签到日志推送"
                             delta = push_batch.get("delta", 86400)
                             logtemp = "{}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(push_batch['time'])))
@@ -97,9 +97,11 @@ class MainWorker(object):
                             await self.db.user.mod(userid, push_batch=json.dumps(push_batch), sql_session=sql_session)
                             if tmp and numlog:
                                 user_email = user.get('email','Unkown')
-                                logger_Worker.debug("Start push batch log for {}".format(user_email))
+                                logger_Worker.debug("Start push batch log for user {}, email:{}".format(userid,user_email))
                                 await pushtool.pusher(userid, {"pushen": bool(push_batch.get("sw",False))}, 4080, title, logtemp)
-                                logger_Worker.info("Success push batch log for {}".format(user_email))
+                                logger_Worker.info("Success push batch log for user {}, email:{}".format(userid,user_email))
+                            else:
+                                logger_Worker.debug('User %d does not need to perform push_batch task, stop.' % userid)
         except Exception as e:
             if config.traceback_print:
                 traceback.print_exc()
