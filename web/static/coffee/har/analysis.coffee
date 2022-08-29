@@ -51,11 +51,11 @@ define (require, exports, module) ->
   analyze_cookies = (har) ->
     # analyze where cookie from
     cookie_jar = new utils.CookieJar()
-    for entry in har.log.entries?
+    for entry in har.log.entries
       cookies = {}
-      for cookie in cookie_jar.getCookiesSync(entry.request.url?, { now: new Date(entry.startedDateTime) })
+      for cookie in cookie_jar.getCookiesSync(entry.request.url, { now: new Date(entry.startedDateTime) })
         cookies[cookie.key] = cookie.value
-      for cookie in entry.request.cookies?
+      for cookie in entry.request.cookies
         cookie.checked = false
         if cookie.name of cookies
           if cookie.value == cookies[cookie.name]
@@ -79,7 +79,7 @@ define (require, exports, module) ->
           #})), entry.request.url)
 
       # update cookie from response
-      for header in (h for h in entry.response?.headers? || [] when h.name.toLowerCase() == 'set-cookie')? || []
+      for header in (h for h in entry.response?.headers || [] when h.name.toLowerCase() == 'set-cookie') || []
         entry.filter_set_cookie = true
         try
           cookie_jar.setCookieSync(header.value, entry.request.url, { now: new Date(entry.startedDateTime) })
@@ -105,8 +105,8 @@ define (require, exports, module) ->
 
   headers = (har) ->
     to_remove_headers = ['x-devtools-emulate-network-conditions-client-id', 'cookie', 'host', 'content-length', ]
-    for entry in har.log.entries?
-      for header, i in entry.request.headers?
+    for entry in har.log.entries
+      for header, i in entry.request.headers
         if header.name.toLowerCase() not in to_remove_headers
           header.checked = true
         else
@@ -114,7 +114,7 @@ define (require, exports, module) ->
     return har
 
   post_data = (har) ->
-    for entry in har.log.entries?
+    for entry in har.log.entries
       if not entry.request.postData?.text
         continue
       if not (entry.request.postData?.mimeType?.toLowerCase().indexOf("application/x-www-form-urlencoded") == 0)

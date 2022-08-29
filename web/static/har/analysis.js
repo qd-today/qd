@@ -98,18 +98,18 @@
       var cookie, cookie_jar, cookies, entry, error, h, header, j, l, len, len1, len2, len3, n, o, ref, ref1, ref2, ref3;
       // analyze where cookie from
       cookie_jar = new utils.CookieJar();
-      ref = har.log.entries != null;
+      ref = har.log.entries;
       for (j = 0, len = ref.length; j < len; j++) {
         entry = ref[j];
         cookies = {};
-        ref1 = cookie_jar.getCookiesSync(entry.request.url != null, {
+        ref1 = cookie_jar.getCookiesSync(entry.request.url, {
           now: new Date(entry.startedDateTime)
         });
         for (l = 0, len1 = ref1.length; l < len1; l++) {
           cookie = ref1[l];
           cookies[cookie.key] = cookie.value;
         }
-        ref2 = entry.request.cookies != null;
+        ref2 = entry.request.cookies;
         for (n = 0, len2 = ref2.length; n < len2; n++) {
           cookie = ref2[n];
           cookie.checked = false;
@@ -131,9 +131,9 @@
             entry.filter_cookie_added = true;
           }
         }
-        ref3 = (((function() {
+        ref3 = ((function() {
           var len3, p, ref3, ref4, results;
-          ref4 = (((ref3 = entry.response) != null ? ref3.headers : void 0) != null) || [];
+          ref4 = ((ref3 = entry.response) != null ? ref3.headers : void 0) || [];
           results = [];
           for (p = 0, len3 = ref4.length; p < len3; p++) {
             h = ref4[p];
@@ -142,7 +142,7 @@
             }
           }
           return results;
-        })()) != null) || [];
+        })()) || [];
         //cookie_jar.setCookieSync(utils.Cookie.fromJSON(angular.toJson({
         //key: cookie.name
         //value: cookie.value
@@ -185,10 +185,10 @@
     headers = function(har) {
       var entry, header, i, j, l, len, len1, ref, ref1, ref2, to_remove_headers;
       to_remove_headers = ['x-devtools-emulate-network-conditions-client-id', 'cookie', 'host', 'content-length'];
-      ref = har.log.entries != null;
+      ref = har.log.entries;
       for (j = 0, len = ref.length; j < len; j++) {
         entry = ref[j];
-        ref1 = entry.request.headers != null;
+        ref1 = entry.request.headers;
         for (i = l = 0, len1 = ref1.length; l < len1; i = ++l) {
           header = ref1[i];
           if (ref2 = header.name.toLowerCase(), indexOf.call(to_remove_headers, ref2) < 0) {
@@ -202,7 +202,7 @@
     };
     post_data = function(har) {
       var entry, error, j, key, len, ref, ref1, ref2, ref3, ref4, result, value;
-      ref = har.log.entries != null;
+      ref = har.log.entries;
       for (j = 0, len = ref.length; j < len; j++) {
         entry = ref[j];
         if (!((ref1 = entry.request.postData) != null ? ref1.text : void 0)) {
