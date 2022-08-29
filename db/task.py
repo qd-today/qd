@@ -98,7 +98,7 @@ class Task(BaseDB,AlchemyMixin):
             smtm = smtm.where(Task.userid == userid)
         
         if scan:
-            smtm = smtm.where(Task.next < scan_time)
+            smtm = smtm.where(Task.next <= scan_time)
         
         for key, value in kwargs.items():
             smtm = smtm.where(getattr(Task, key) == value)
@@ -114,7 +114,5 @@ class Task(BaseDB,AlchemyMixin):
     def delete(self, id, sql_session=None):
         return self._delete(delete(Task).where(Task.id == id), sql_session=sql_session)
 
-    async def scan(self, now=None, fields=None, sql_session=None):
-        if now is None:
-            now = time.time()
+    async def scan(self, now=time.time(), fields=None, sql_session=None):
         return await self.list(fields=fields, scan=True, scan_time=now, limit=None, sql_session=sql_session)
