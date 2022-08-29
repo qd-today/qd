@@ -224,7 +224,7 @@ def timeout(sec, raise_sec=1):
                     try:
                         res = func(*args, **kwargs)
                     except FuncTimeoutError:
-                        pass
+                        _logger.debug(f'Function {func.__name__} timed out after {sec} seconds')
                     except Exception as e:
                         exception.append(e)
                     else:

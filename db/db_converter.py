@@ -8,9 +8,12 @@ import warnings
 import config
 from db import DB,Site
 from db.basedb import BaseDB
+from libs.log import Log
 import json
 import re
 from libs import mcrypto as crypto
+
+logger_DB_converter = Log('qiandao.DB.Converter').getlogger()
 
 class DBconverter():
     def __init__(self, path=config.sqlite3.path):
@@ -154,7 +157,7 @@ class DBconverter():
                 `content` TEXT NULL
             );'''% autokey)
 
-        if config.db_type == 'sqlite':
+        if config.db_type == 'sqlite3':
             for each in ('email', 'nickname'):
                 await exec_shell('''CREATE UNIQUE INDEX IF NOT EXISTS `ix_%s_%s` ON %s (%s)''' % (
                     self.db.user.__tablename__, each, self.db.user.__tablename__, each))
@@ -164,51 +167,60 @@ class DBconverter():
                     await exec_shell('''ALTER TABLE `%s` ADD UNIQUE INDEX `ix_%s_%s` (%s)''' % (
                         self.db.user.__tablename__,  self.db.user.__tablename__, each, each))
                 except Exception as e:
-                    pass
+                    logger_DB_converter.debug(e)
 
         try:
             await self.db.task.list(limit=1, fields=('retry_count',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `task` ADD `retry_count` INT NOT NULL DEFAULT 8 " )
 
         try:
             await self.db.task.list(limit=1, fields=('retry_interval',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `task` ADD `retry_interval` INT UNSIGNED NULL " )
 
         try:
             await self.db.task.list(limit=1, fields=('ontimeflg',))
-        except:
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `task` ADD `ontimeflg` INT UNSIGNED NOT NULL DEFAULT 0 ")
 
         try:
             await self.db.task.list(limit=1, fields=('ontime',))
-        except:                
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `task` ADD `ontime` VARCHAR(256) NOT NULL DEFAULT '00:10:00' " )
             
         try:
             await self.db.user.list(limit=1, fields=('skey',))
-        except:
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `user` ADD `skey` VARBINARY(128) NOT NULL DEFAULT '' ")
             
         try:
             await self.db.user.list(limit=1, fields=('barkurl',))
-        except:
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `user` ADD `barkurl` VARBINARY(128) NOT NULL DEFAULT '' " )
             
         try:
             await self.db.user.list(limit=1, fields=('wxpusher',))
-        except:
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `user` ADD `wxpusher` VARBINARY(128) NOT NULL DEFAULT '' " )
             
         try:
             await self.db.user.list(limit=1, fields=('noticeflg',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `user` ADD `noticeflg` INT UNSIGNED NOT NULL DEFAULT 1 " ) 
         
         try:
             await self.db.user.list(limit=1, fields=('push_batch',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `user` ADD `push_batch` VARBINARY(1024) NOT NULL DEFAULT '{\"sw\":false,\"time\":0,\"delta\":86400}' " ) 
 
         for user in await self.db.user.list(fields=('id','push_batch')):
@@ -219,45 +231,53 @@ class DBconverter():
 
         try:
             await self.db.tpl.list(limit=1, fields=('tplurl',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `tpl` ADD `tplurl` VARCHAR(1024) NULL DEFAULT '' " )
             
         try:
             await self.db.tpl.list(limit=1, fields=('updateable',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `tpl` ADD `updateable` INT UNSIGNED NOT NULL DEFAULT 0 " )       
 
         try:
             await self.db.task.list(limit=1, fields=('pushsw',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `task` ADD `pushsw` VARBINARY(128) NOT NULL DEFAULT '{\"logen\":false,\"pushen\":true}' " )   
         
         try:
             await self.db.task.list(limit=1, fields=('newontime',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `task` ADD `newontime`  VARBINARY(256) NOT NULL DEFAULT '{\"sw\":false,\"time\":\"00:10:10\",\"randsw\":false,\"tz1\":0,\"tz2\":0 }' " )   
 
         try:
             await self.db.user.list(limit=1, fields=('logtime',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `user` ADD `logtime` VARBINARY(128) NOT NULL DEFAULT '{\"en\":false,\"time\":\"20:00:00\",\"ts\":0,\"schanEn\":false,\"WXPEn\":false}' " )
                         
         try:
             await self.db.user.list(limit=1, fields=('status',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `user` ADD `status`  VARBINARY(1024) NOT NULL DEFAULT 'Enable' " )  
             
         try:
             temp = await self.db.site.get("1", fields=('regEn',))
             if not (temp):
-                raise Exception("new")
+                raise Exception("for table site, new row will be created")
         except Exception as e:
+            logger_DB_converter.debug(e)
             insert = dict(regEn = 1, repos='{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}')
             await self.db.site._insert(Site(**insert))
             
         try:
             await self.db.site.get("1", fields=('MustVerifyEmailEn',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `site` ADD `MustVerifyEmailEn`  INT UNSIGNED NOT NULL DEFAULT 0 " )  
 
         try:
@@ -295,12 +315,14 @@ class DBconverter():
                 );'''% autokey)
                 await exec_shell("INSERT INTO `task` SELECT `id`,`tplid`,`userid`,`disabled`,`init_env`,`env`,`session`,`retry_count`,`retry_interval`,`last_success`,`last_failed`,`success_count`,`failed_count`,`last_failed_count`,`next`,`note`,`ctime`,`mtime`,`ontimeflg`,`ontime`,`groups`,`pushsw`,`newontime` FROM `taskold` ")
                 await exec_shell("DROP TABLE `taskold` ")
-        except :
-            pass
+        except Exception as e:
+            if str(e).find('has no attribute \'`groups`\'') < 0 and str(e).find('no such column') > -1: 
+                logger_DB_converter.debug(e)
         
         try:
             await self.db.task.list(limit=1, fields=('_groups',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `task` ADD `_groups` VARCHAR(256) NOT NULL DEFAULT 'None' " )
 
         try:
@@ -338,19 +360,22 @@ class DBconverter():
                 );'''% autokey)
                 await exec_shell("INSERT INTO `tpl` SELECT `id`,`userid`,`siteurl`,`sitename`,`banner`,`disabled`,`public`,`lock`,`fork`,`har`,`tpl`,`variables`,`interval`,`note`,`success_count`,`failed_count`,`last_success`,`ctime`,`mtime`,`atime`,`tplurl`,`updateable`,`groups` FROM `tplold` ")
                 await exec_shell("DROP TABLE `tplold` ")
-        except :
-            pass
+        except Exception as e:
+            if str(e).find('has no attribute \'`groups`\'') < 0  and str(e).find('no such column') < 0:
+                logger_DB_converter.debug(e)
 
         try:
             await self.db.tpl.list(limit=1, fields=('_groups',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `tpl` ADD `_groups` VARCHAR(256) NOT NULL DEFAULT 'None' " )
             
         try:
             tmp = await self.db.site.get("1", fields=('logDay',))
             tmp = tmp['logDay']
         except Exception as e:
-            if (str(e).find('no such column') > -1):
+            logger_DB_converter.debug(e)
+            if (str(e).find('no such column') > -1 or str(e).find('has no attribute') > -1):
                 await exec_shell("ALTER TABLE `site` ADD `logDay`  INT UNSIGNED NOT NULL DEFAULT 365 " )
             else:
                 if config.db_type == 'sqlite3':
@@ -370,22 +395,26 @@ class DBconverter():
             
         try:
             await self.db.user.list(limit=1, fields=('diypusher',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `user` ADD `diypusher`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
 
         try:
             await self.db.user.list(limit=1, fields=('qywx_token',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `user` ADD `qywx_token`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
         
         try:
             await self.db.user.list(limit=1, fields=('tg_token',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `user` ADD `tg_token`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
 
         try:
             await self.db.user.list(limit=1, fields=('dingding_token',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             await exec_shell("ALTER TABLE `user` ADD `dingding_token`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
 
         if config.db_type == 'sqlite3':
@@ -403,12 +432,17 @@ class DBconverter():
 
         try:
             await self.db.user.list(limit=1, fields=('password_md5',))
+        except Exception as e:
+            logger_DB_converter.debug(e)
+            await exec_shell("ALTER TABLE `user` ADD  `password_md5` VARBINARY(128) NOT NULL DEFAULT '' ") 
+            
+        try:
             for user in await self.db.user.list(fields=('id', 'password_md5')):
                 if isinstance(user['password_md5'],str) and re.match(r'^[a-z0-9]{32}$',user['password_md5']):
                     password = (await self.db.user.get(user['id'], fields=('password',)))['password']
                     await self.db.user.mod(user['id'],password_md5=crypto.password_hash(user['password_md5'],await self.db.user.decrypt(user['id'], password)))
         except Exception as e:
-            await exec_shell("ALTER TABLE `user` ADD  `password_md5` VARBINARY(128) NOT NULL DEFAULT '' ") 
+            logger_DB_converter.debug(e)
 
         try:
             await self.db.user.list(limit=1, fields=('notepad',))
@@ -448,8 +482,10 @@ class DBconverter():
                 );'''% autokey)
             await exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token`,`push_batch` FROM `userold`")
             await exec_shell("DROP TABLE `userold`")
-        except :
-            pass
+        except Exception as e:
+            if str(e).find('has no attribute \'notepad\'') < 0 and str(e).find('no such column') < 0:
+                logger_DB_converter.debug(e)
+                raise e
         
         try:
             await self.db.user.list(limit=1, fields=('cip','mip','aip'))
@@ -497,11 +533,12 @@ class DBconverter():
                 await exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token`,`push_batch` FROM `userold` ")
                 await exec_shell("DROP TABLE `userold` ")
         except Exception as e:
-            pass
+            logger_DB_converter.debug(e)
 
         try:
             await self.db.site.get("1", fields=('repos',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             if config.db_type == 'sqlite3':
                 await exec_shell('''ALTER TABLE `site` ADD  `repos` TEXT NOT NULL DEFAULT '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' ''')
             else:
@@ -513,11 +550,12 @@ class DBconverter():
             if tmp == None or tmp == '':
                  await exec_shell('''UPDATE `site` SET `repos` = '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' WHERE `site`.`id` = 1 ''')
         except Exception as e:
-            pass
+            logger_DB_converter.debug(e)
 
         try:
             await self.db.pubtpl.list(limit=1, fields=('commenturl',))
-        except :
+        except Exception as e:
+            logger_DB_converter.debug(e)
             if config.db_type == 'sqlite3':
                 await exec_shell('''ALTER TABLE `pubtpl` ADD  `commenturl` TEXT NOT NULL DEFAULT ''; ''') 
             else:
@@ -561,7 +599,7 @@ class DBconverter():
                 await exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token`,`push_batch` FROM `userold` ", sql_session=sql_session)
                 await exec_shell("DROP TABLE `userold` ", sql_session=sql_session)
         except Exception as e:
-            pass
+            logger_DB_converter.debug(e)
             
         try:
             async with self.db.transaction() as sql_session:
@@ -598,5 +636,5 @@ class DBconverter():
                 await exec_shell("INSERT INTO `task` SELECT `id`,`tplid`,`userid`,`disabled`,`init_env`,`env`,`session`,`retry_count`,`retry_interval`,`last_success`,`last_failed`,`success_count`,`failed_count`,`last_failed_count`,`next`,`note`,`ctime`,`mtime`,`ontimeflg`,`ontime`,`_groups`,`pushsw`,`newontime` FROM `taskold` ", sql_session=sql_session)
                 await exec_shell("DROP TABLE `taskold` ", sql_session=sql_session)
         except Exception as e:
-            pass
+            logger_DB_converter.debug(e)
         return 

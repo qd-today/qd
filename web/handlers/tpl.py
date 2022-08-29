@@ -85,8 +85,8 @@ class TPLRunHandler(BaseHandler):
             if 'json' in self.request.headers['Content-Type']:
                 self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
                 data = json.loads(self.request.body)
-        except :
-            pass
+        except Exception as e:
+            logger_Web_Handler.debug('TPLRunHandler post error: %s' % e)
 
         tplid = tplid or data.get('tplid') or self.get_argument('_binux_tplid', None)
         tpl = dict()

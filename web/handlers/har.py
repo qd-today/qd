@@ -80,8 +80,8 @@ class HARTest(BaseHandler):
         try:
             if 'json' in self.request.headers['Content-Type']:
                 self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
-        except :
-            pass
+        except Exception as e:
+            logger_Web_Handler.debug('HARTest Replace error: %s' % e)
         data = json.loads(self.request.body)
         FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}').match(data['request']['url'])
         IF_START = re.compile('{%\s*if\s+(.+)\s*%}').match(data['request']['url'])
@@ -161,7 +161,7 @@ class HARSave(BaseHandler):
             if 'json' in self.request.headers['Content-Type']:
                 self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
         except :
-            pass
+            logger_Web_Handler.debug('HARSave Replace error: %s' % e)
         data = json.loads(self.request.body)
 
         async with self.db.transaction() as sql_session:

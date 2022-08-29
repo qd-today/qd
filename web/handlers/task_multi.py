@@ -63,7 +63,6 @@ class TaskMultiOperateHandler(BaseHandler):
                     tasktype = tasktype.decode()
             else:
                 raise Exception('错误参数')
-            pass
             for k, v  in envs.items():
                 env[k] = json.loads(v[0])
             for taskid, selected  in env['selectedtasks'].items():

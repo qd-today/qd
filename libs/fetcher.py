@@ -112,8 +112,8 @@ class Fetcher(object):
                 if not CURL_ENCODING:
                     try:
                         curl.unsetopt(pycurl.ENCODING)
-                    except:
-                        pass
+                    except Exception as e:
+                        logger_Fetcher.debug('unsetopt pycurl.ENCODING failed: %s',e)
                 if not CURL_CONTENT_LENGTH:
                     try:
                         if headers.get('content-length'):
@@ -123,8 +123,8 @@ class Fetcher(object):
                                     "%s: %s" % (native_str(k), native_str(v))
                                     for k, v in HTTPHeaders(headers).get_all()]
                             )
-                    except:
-                        pass
+                    except Exception as e:
+                        logger_Fetcher.debug('unsetopt pycurl.CONTENT_LENGTH failed: %s',e)
                 if config.dns_server:
                     curl.setopt(pycurl.DNS_SERVERS,config.dns_server)
                 curl.setopt(pycurl.NOPROGRESS, 0)

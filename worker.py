@@ -34,6 +34,7 @@ class MainWorker(object):
         self.failed = 0
 
     async def __call__(self):
+        logger_Worker.info('Schedule Worker start...')
         asyncio.create_task(self.producer())
         for i in range(config.queue_num):
             asyncio.create_task(self.runner(i))
@@ -108,6 +109,7 @@ class MainWorker(object):
             logger_Worker.error('Push batch task failed: {}'.format(str(e)))
       
     async def runner(self,id):
+        logger_Worker.debug('Runner %d started' % id)
         while True:
             sleep = asyncio.sleep(config.check_task_loop/1000.0)
             task = await self.queue.get()
@@ -122,6 +124,7 @@ class MainWorker(object):
 
 
     async def producer(self):
+        logger_Worker.debug('Schedule Producer started')
         while True:
             sleep = asyncio.sleep(config.check_task_loop/1000.0)
             tasks = await self.db.task.scan()
