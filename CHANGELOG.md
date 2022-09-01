@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20220901] - 2022.09.01 更新
+
+1. 修复多个数据库转换问题
+2. 修复前端 header 无法勾选的问题
+3. 其他优化和修复
+
 ## [20220828] - 2022.08.28 更新
 
 1. 添加多种 jinja2 过滤器并更新关于页面
