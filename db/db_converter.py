@@ -421,18 +421,24 @@ class DBconverter():
             try:
                 import aiosqlite
                 from sqlalchemy import update
-                from db import User, Task
+                from db import User, Task, Tpl
                 conn = await aiosqlite.connect(f"{config.sqlite3.path}")
                 conn.text_factory = bytes
-                cursor = await conn.execute('SELECT id, password, userkey FROM user')
+                cursor = await conn.execute('SELECT id, password, userkey, cip, mip, aip FROM user')
                 for row in await cursor.fetchall():
-                    result = await self.db._update(update(User).where(User.id == row[0]).values(password=row[1],userkey=row[2]))
+                    result = await self.db._update(update(User).where(User.id == row[0]).values(password=row[1],userkey=row[2],cip=row[3],mip=row[4],aip=row[5]))
                 await cursor.close()
                     
                 cursor = await conn.execute('SELECT id, init_env, env, session FROM task')
                 for row in await cursor.fetchall():
                     result = await self.db._update(update(Task).where(Task.id == row[0]).values(init_env=row[1],env=row[2],session=row[3]))
                 await cursor.close()
+                
+                cursor = await conn.execute('SELECT id, har, tpl FROM tpl')
+                for row in await cursor.fetchall():
+                    result = await self.db._update(update(Tpl).where(Tpl.id == row[0]).values(har=row[1],tpl=row[2]))
+                await cursor.close()
+                
                 await conn.close()
             except Exception as e:
                 raise e
