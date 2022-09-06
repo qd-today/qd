@@ -23,6 +23,7 @@ sqlalchemy = {version = "*", extras = ["asyncio"]}
 passlib = "*"
 aiomysql = "*"
 aiosqlite = "*"
+cryptography = "*"
 
 [dev-packages]
 opencv-python-headless = "*"
