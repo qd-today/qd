@@ -246,8 +246,6 @@ class pusher(object):
 
             if (diypusher['mode'] == 'POST'):
                 postDatatmp = diypusher['postData'].replace('{log}', log).replace("{t}", t)
-                if (postDatatmp != ''):
-                    postDatatmp = json.loads(postDatatmp)
                 if headerstmp:
                     headerstmp.pop('content-type','')
                     headerstmp.pop('Content-Type','')
@@ -256,9 +254,16 @@ class pusher(object):
                     # headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
                     # obj = {'request': {'method': 'POST', 'url': curltmp, 'headers': headerstmp, 'cookies': [], 'data':utils.urllib.parse.urlencode(postDatatmp)}, 'rule': {
                     #     'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
+                    if (postDatatmp != ''):
+                        try:
+                            postDatatmp = json.loads(postDatatmp)
+                        except:
+                            pass
                     res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, curltmp, headers=headerstmp, data=postDatatmp, verify=False)),timeout=3.0)
                 else:
                     headerstmp['Content-Type'] = "application/json; charset=UTF-8"
+                    if (postDatatmp != ''):
+                        postDatatmp = json.loads(postDatatmp)
                     # headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
                     # obj = {'request': {'method': 'POST', 'url': curltmp, 'headers': headerstmp, 'cookies': [], 'data':json.dumps(postDatatmp)}, 'rule': {
                     #     'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
