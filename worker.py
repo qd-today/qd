@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux<i@binux.me>
@@ -10,12 +9,12 @@ import datetime
 import asyncio
 import tornado.log
 import tornado.ioloop
+from tornado import gen
 import json
 import config
 from db import DB
 from libs.fetcher import Fetcher
 from libs.parse_url import parse_url
-
 from libs.funcs import pusher
 from libs.funcs import cal
 import traceback
@@ -23,33 +22,12 @@ from libs.log import Log
 
 logger_Worker = Log('qiandao.Worker').getlogger()
 
-class MainWorker(object):
+class BaseWorker(object):
     def __init__(self, db=DB()):
         self.running = False
         self.db = db
         self.fetcher = Fetcher()
-        self.queue = asyncio.Queue(maxsize=config.queue_num)
-        self.task_lock = {}
-        self.success = 0
-        self.failed = 0
-
-    async def __call__(self):
-        logger_Worker.info('Schedule Worker start...')
-        asyncio.create_task(self.producer())
-        for i in range(config.queue_num):
-            asyncio.create_task(self.runner(i))
-
-        while True:
-            sleep = asyncio.sleep( config.push_batch_delta )
-            if self.success or self.failed:
-                logger_Worker.info('Last %d seconds, %d task done. %d success, %d failed' % (config.push_batch_delta, self.success+self.failed, self.success, self.failed))
-                self.success = 0
-                self.failed = 0
-            if config.push_batch_sw:
-                await self.push_batch()
-            await sleep
-        
-
+    
     async def ClearLog(self, taskid, sql_session=None):
         logDay = int((await self.db.site.get(1, fields=('logDay',), sql_session=sql_session))['logDay'])
         for log in await self.db.tasklog.list(taskid = taskid, fields=('id', 'ctime'), sql_session=sql_session):
@@ -107,37 +85,6 @@ class MainWorker(object):
             if config.traceback_print:
                 traceback.print_exc()
             logger_Worker.error('Push batch task failed: {}'.format(str(e)))
-      
-    async def runner(self,id):
-        logger_Worker.debug('Runner %d started' % id)
-        while True:
-            sleep = asyncio.sleep(config.check_task_loop/1000.0)
-            task = await self.queue.get()
-            logger_Worker.debug('Runner %d get task: %s, running...' % (id, task['id']))
-            if await self.do(task):
-                self.success += 1
-                self.task_lock.pop(task['id'], None)
-            else:
-                self.failed += 1
-                self.task_lock[task['id']] = False
-            await sleep
-
-
-    async def producer(self):
-        logger_Worker.debug('Schedule Producer started')
-        while True:
-            sleep = asyncio.sleep(config.check_task_loop/1000.0)
-            tasks = await self.db.task.scan()
-            unlock_tasks = 0
-            if tasks is not None and len(tasks) > 0:
-                for task in tasks:
-                    if not self.task_lock.get(task['id'], False):
-                        self.task_lock[task['id']] = True
-                        unlock_tasks += 1
-                        await self.queue.put(task)
-                if unlock_tasks > 0:
-                    logger_Worker.debug('Scaned %d task, put in Queue...' % unlock_tasks)
-            await sleep
 
     @staticmethod
     def failed_count_to_time(last_failed_count, retry_count=8, retry_interval=None, interval=None):
@@ -320,9 +267,128 @@ class MainWorker(object):
                 return False
         return True
 
+class QueueWorker(BaseWorker):
+    def __init__(self, db=DB()):
+        logger_Worker.info('Queue Worker start...')
+        self.queue = asyncio.Queue(maxsize=config.queue_num)
+        self.task_lock = {}
+        self.success = 0
+        self.failed = 0
+        super().__init__(db)
+
+    async def __call__(self):
+        
+        asyncio.create_task(self.producer())
+        for i in range(config.queue_num):
+            asyncio.create_task(self.runner(i))
+
+        while True:
+            sleep = asyncio.sleep( config.push_batch_delta )
+            if self.success or self.failed:
+                logger_Worker.info('Last %d seconds, %d task done. %d success, %d failed' % (config.push_batch_delta, self.success+self.failed, self.success, self.failed))
+                self.success = 0
+                self.failed = 0
+            if config.push_batch_sw:
+                await self.push_batch()
+            await sleep
+
+    async def runner(self,id):
+        logger_Worker.debug('Runner %d started' % id)
+        while True:
+            sleep = asyncio.sleep(config.check_task_loop/1000.0)
+            task = await self.queue.get()
+            logger_Worker.debug('Runner %d get task: %s, running...' % (id, task['id']))
+            if await self.do(task):
+                self.success += 1
+                self.task_lock.pop(task['id'], None)
+            else:
+                self.failed += 1
+                self.task_lock[task['id']] = False
+            await sleep
+
+
+    async def producer(self):
+        logger_Worker.debug('Schedule Producer started')
+        while True:
+            sleep = asyncio.sleep(config.check_task_loop/1000.0)
+            tasks = await self.db.task.scan()
+            unlock_tasks = 0
+            if tasks is not None and len(tasks) > 0:
+                for task in tasks:
+                    if not self.task_lock.get(task['id'], False):
+                        self.task_lock[task['id']] = True
+                        unlock_tasks += 1
+                        await self.queue.put(task)
+                if unlock_tasks > 0:
+                    logger_Worker.debug('Scaned %d task, put in Queue...' % unlock_tasks)
+            await sleep
+
+# 旧版本批量任务定时执行
+# 建议仅当新版 Queue 生产者消费者定时执行功能失效时使用
+class BatchWorker(BaseWorker):
+    def __init__(self, db=DB()):
+        logger_Worker.info('Batch Worker start...')
+        super().__init__(db)
+        
+    def __call__(self):
+        # self.running = tornado.ioloop.IOLoop.current().spawn_callback(self.run)
+        # if self.running:
+        #     success, failed = self.running
+        #     if success or failed:
+        #         logger_Worker.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
+        if self.running:
+            return
+        self.running = gen.convert_yielded(self.run())
+        def done(future: asyncio.Future):
+            self.running = None
+            success, failed = future.result()
+            if success or failed:
+                logger_Worker.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
+            return
+        self.running.add_done_callback(done)
+        
+    async def run(self):
+        running = []
+        success = 0
+        failed = 0
+        try:
+            tasks = await self.db.task.scan()
+            if tasks is not None and len(tasks) > 0:
+                for task in tasks:
+                    running.append(asyncio.ensure_future(self.do(task)))
+                    if len(running) >= 50:
+                        logger_Worker.debug('scaned %d task, waiting...', len(running))
+                        result = await asyncio.gather(*running[:10])
+                        for each in result:
+                            if each:
+                                success += 1
+                            else:
+                                failed += 1
+                        running = running[10:]
+                logger_Worker.debug('scaned %d task, waiting...', len(running))
+                result = await asyncio.gather(*running)
+                for each in result:
+                    if each:
+                        success += 1
+                    else:
+                        failed += 1
+            if config.push_batch_sw:
+                await self.push_batch()
+        except Exception as e:
+            logger_Worker.exception(e)
+        return (success, failed)
+
 if __name__ == '__main__':
     tornado.log.enable_pretty_logging()
-    worker = MainWorker()
     io_loop = tornado.ioloop.IOLoop.instance()
-    io_loop.add_callback(worker)
+    if config.worker_method.upper() == 'QUEUE':
+        worker = QueueWorker()
+        io_loop.add_callback(worker)
+    elif config.worker_method.upper() == 'BATCH':
+        worker = BatchWorker()
+        tornado.ioloop.PeriodicCallback(worker, config.check_task_loop).start()
+        # worker()
+    else:
+        raise Exception('Worker_method must be Queue or Batch')
+
     io_loop.start()

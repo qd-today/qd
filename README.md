@@ -189,6 +189,7 @@ config.py-配置环境变量
 BIND|否|0.0.0.0|监听地址
 PORT|否|8923|监听端口
 QIANDAO_DEBUG|否|False|是否启用Debug模式
+WORKER_METHOD|否|Queue|任务定时执行方式, <br>默认为 Queue, 可选 Queue 或 Batch, <br>Batch 模式为旧版定时任务执行方式, 性能较弱, <br>**建议仅当 Queue 定时执行模式失效时使用**
 MULTI_PROCESS|否|False|是否启用多进程模式, <br>Windows平台无效
 AUTO_RELOAD|否|False|是否启用自动热加载, <br>MULTI_PROCESS=True时无效
 ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS, <br>非程序使用HTTPS, 需要HTTPS需要使用反向代理

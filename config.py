@@ -17,6 +17,7 @@ gzip = bool(strtobool(os.getenv('GZIP','True')))                            # �
 bind = str(os.getenv('BIND', '0.0.0.0'))                                    # 框架运行监听地址(0.0.0.0表示监听所有IP地址)
 port = int(os.getenv('PORT', 8923))                                         # 监听端口Port
 queue_num = int(os.getenv('QUEUE_NUM', 50))                                 # 定时执行任务队列最大数量
+worker_method = str(os.getenv('WORKER_METHOD','Queue')).upper()             # 任务定时执行方式, 默认为 Queue, 可选 Queue 或 Batch, Batch 模式为旧版定时任务执行方式, 性能较弱, 建议仅当定时执行失效时使用
 https = bool(strtobool(os.getenv('ENABLE_HTTPS', 'False')))                 # 发送的邮件链接启用HTTPS, 非框架自身HTTPS开关, 需要HTTPS请使用外部反向代理
 accesslog = bool(strtobool(os.getenv('ACCESS_LOG', 'True')))                # 是否输出Access Log
 

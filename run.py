@@ -65,15 +65,24 @@ if __name__ == "__main__":
         else:
             http_server.start()
 
-        from worker import MainWorker
-        from tornado.ioloop import IOLoop
-        worker = MainWorker(database)
-        # PeriodicCallback(worker, config.check_task_loop).start()
-        
-        IOLoop.instance().add_callback(worker)
+        from worker import QueueWorker,BatchWorker
+        from tornado.ioloop import IOLoop,PeriodicCallback
+        io_loop = IOLoop.instance()
+        try:
+            if config.worker_method.upper() == 'QUEUE':
+                worker = QueueWorker(database)
+                io_loop.add_callback(worker)
+            elif config.worker_method.upper() == 'BATCH':
+                worker = BatchWorker(database)
+                PeriodicCallback(worker, config.check_task_loop).start()
+            else:
+                raise Exception('worker_method must be Queue or Batch, please check config!')
+        except Exception as e:
+            logger.exception('worker start error!')
+            raise KeyboardInterrupt()
 
         logger_Qiandao.info("Http Server started on %s:%s", config.bind, port)
-        IOLoop.instance().start()
+        io_loop.start()
     except KeyboardInterrupt :
         logger_Qiandao.info("Http Server is being manually interrupted... ")
         loop = asyncio.new_event_loop()
