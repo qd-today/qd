@@ -298,12 +298,20 @@ class QueueWorker(BaseWorker):
             sleep = asyncio.sleep(config.check_task_loop/1000.0)
             task = await self.queue.get()
             logger_Worker.debug('Runner %d get task: %s, running...' % (id, task['id']))
-            if await self.do(task):
+            done = False
+            try:
+                done =  await self.do(task)
+            except Exception as e:
+                logger_Worker.error('Runner %d get task: %s, failed! %s' % (id, task['id'], str(e)))
+                if config.traceback_print:
+                    traceback.print_exc()
+            if done:
                 self.success += 1
                 self.task_lock.pop(task['id'], None)
             else:
                 self.failed += 1
                 self.task_lock[task['id']] = False
+            self.queue.task_done()
             await sleep
 
 
@@ -311,16 +319,21 @@ class QueueWorker(BaseWorker):
         logger_Worker.debug('Schedule Producer started')
         while True:
             sleep = asyncio.sleep(config.check_task_loop/1000.0)
-            tasks = await self.db.task.scan()
-            unlock_tasks = 0
-            if tasks is not None and len(tasks) > 0:
-                for task in tasks:
-                    if not self.task_lock.get(task['id'], False):
-                        self.task_lock[task['id']] = True
-                        unlock_tasks += 1
-                        await self.queue.put(task)
-                if unlock_tasks > 0:
-                    logger_Worker.debug('Scaned %d task, put in Queue...' % unlock_tasks)
+            try:
+                tasks = await self.db.task.scan()
+                unlock_tasks = 0
+                if tasks is not None and len(tasks) > 0:
+                    for task in tasks:
+                        if not self.task_lock.get(task['id'], False):
+                            self.task_lock[task['id']] = True
+                            unlock_tasks += 1
+                            await self.queue.put(task)
+                    if unlock_tasks > 0:
+                        logger_Worker.debug('Scaned %d task, put in Queue...' % unlock_tasks)
+            except Exception as e:
+                logger_Worker.error('Schedule Producer get tasks failed! %s' % str(e))
+                if config.traceback_print:
+                    traceback.print_exc()
             await sleep
 
 # 旧版本批量任务定时执行
