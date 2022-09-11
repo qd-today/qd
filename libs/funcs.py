@@ -258,7 +258,8 @@ class pusher(object):
                         try:
                             postDatatmp = json.loads(postDatatmp)
                         except:
-                            pass
+                            if isinstance(postDatatmp, str):
+                                postDatatmp = postDatatmp.encode('utf-8')
                     res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, curltmp, headers=headerstmp, data=postDatatmp, verify=False)),timeout=3.0)
                 else:
                     headerstmp['Content-Type'] = "application/json; charset=UTF-8"
