@@ -65,6 +65,8 @@ class TaskMultiOperateHandler(BaseHandler):
                 raise Exception('错误参数')
             for k, v  in envs.items():
                 env[k] = json.loads(v[0])
+            if len(env['selectedtasks']) == 0:
+                raise Exception('请选择任务')
             for taskid, selected  in env['selectedtasks'].items():
                 if (selected):
                     async with self.db.transaction() as sql_session:
@@ -107,7 +109,11 @@ class TaskMultiOperateHandler(BaseHandler):
                                         settime_env['randsw'] = True 
                                     if (time_env['cron_sec'] != ''):
                                         settime_env['cron_sec'] = time_env['cron_sec'] 
-
+                                    if (time_env['ontime_method'] == 'ontime'):
+                                        if (time_env['ontime_run_date'] == ''):
+                                            settime_env['date'] = time.strftime("%Y-%m-%d", time.localtime())
+                                        if (time_env['ontime_val'] == ''): 
+                                            settime_env['time'] = time.strftime("%H:%M:%S", time.localtime())
                                     if (len(settime_env['time'].split(':')) == 2):
                                         settime_env['time'] = settime_env['time'] + ':00'
 
