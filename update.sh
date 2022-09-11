@@ -24,7 +24,7 @@ AUTO_RELOAD=$AUTO_RELOAD
 # Treat unset variables as an error
 set -o nounset
 
-__ScriptVersion="2022.08.24"
+__ScriptVersion="2022.09.11"
 __ScriptName="update.sh"
 
 
@@ -82,7 +82,7 @@ update() {
                 apk del .python-rundeps  
                 echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
             fi
-            apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 && \
+            apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
             if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
                 echo "Info: Qiandao-Lite will not install ddddocr related components. "
             else
@@ -107,6 +107,7 @@ update() {
                 sed -i '/numpy/d' requirements.txt 
                 sed -i '/greenlet/d' requirements.txt
                 sed -i '/urllib3/d' requirements.txt
+                sed -i '/cryptography/d' requirements.txt
             fi
             pip install --no-cache-dir -r requirements.txt 
             pip install --no-cache-dir --compile --upgrade pycurl 
@@ -144,7 +145,7 @@ force_update() {
             apk del .python-rundeps  
             echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
-        apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 && \
+        apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
         if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
             echo "Info: Qiandao-Lite will not install ddddocr related components. "
         else
@@ -169,6 +170,7 @@ force_update() {
             sed -i '/numpy/d' requirements.txt 
             sed -i '/greenlet/d' requirements.txt
             sed -i '/urllib3/d' requirements.txt
+            sed -i '/cryptography/d' requirements.txt
         fi
         pip install --no-cache-dir -r requirements.txt 
         pip install --no-cache-dir --compile --upgrade pycurl 
@@ -201,7 +203,7 @@ update_version() {
             apk del .python-rundeps  
             echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
-        apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 && \
+        apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
         if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
             echo "Info: Qiandao-Lite will not install ddddocr related components. "
         else
@@ -226,6 +228,7 @@ update_version() {
             sed -i '/numpy/d' requirements.txt 
             sed -i '/greenlet/d' requirements.txt
             sed -i '/urllib3/d' requirements.txt
+            sed -i '/cryptography/d' requirements.txt
         fi
         pip install --no-cache-dir -r requirements.txt 
         pip install --no-cache-dir --compile --upgrade pycurl 
