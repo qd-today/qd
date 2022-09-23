@@ -8,6 +8,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20220911] - 2022.09.11 更新
+
+1. 允许用户选择定时任务执行方式
+2. 修复 DIYPusher 的 bug
+3. 其他优化和修复
+
 ## [20220901] - 2022.09.01 更新
 
 1. 修复多个数据库转换问题
