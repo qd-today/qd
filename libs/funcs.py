@@ -326,7 +326,7 @@ class pusher(object):
             pic_url = config.push_pic if qywx[u'图片'] == '' else qywx[u'图片']
             if (get_access_token_res.get('access_token','') != '' and get_access_token_res['errmsg'] == 'ok'):
                 access_token = get_access_token_res["access_token"]
-                if utils.urlmatch(pic_url):
+                if utils.urlMatchWithLimit(pic_url) or utils.domainMatch(pic_url.split('/')[0]):
                     media_id = await self.get_ShortTimeMedia(pic_url,access_token)
                 else:
                     media_id = pic_url
