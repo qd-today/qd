@@ -55,7 +55,7 @@ class PushRequest(BaseDB,AlchemyMixin):
         return self._insert(PushRequest(**insert), sql_session=sql_session)
 
     def mod(self, id, sql_session=None, **kwargs):
-        for each in ('id', 'from_tplid', 'from_userid', 'to_tplid', 'to_userid', 'ctime'):
+        for each in ('id', 'from_tplid', 'from_userid', 'to_userid', 'ctime'):
             assert each not in kwargs, '%s not modifiable' % each
 
         kwargs['mtime'] = time.time()

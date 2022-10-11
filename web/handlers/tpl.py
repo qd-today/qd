@@ -22,7 +22,10 @@ class TPLPushHandler(BaseHandler):
             self.evil(+5)
             await self.finish(u'<span class="alert alert-danger">没有权限</span>')
             return
-        tpls = await self.db.tpl.list(userid=None, limit=None, fields=('id', 'sitename'))
+        tpls = await self.db.tpl.list(userid=None, limit=None, fields=('id', 'sitename', 'public'))
+        for i in range(len(tpls)):
+            if tpls[i]['public'] == 2:
+                tpls[i]['sitename'] += u' [已取消]'
         await self.render('tpl_push.html', tpl=tpl, tpls=tpls)
 
     @tornado.web.authenticated
@@ -147,7 +150,7 @@ class TPLRunHandler(BaseHandler):
 
 class PublicTPLHandler(BaseHandler):
     async def get(self):
-        tpls = await self.db.tpl.list(userid=None, limit=None, fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'success_count'))
+        tpls = await self.db.tpl.list(userid=None, public=1, limit=None, fields=('id', 'siteurl', 'sitename', 'banner', 'note', 'disabled', 'lock', 'last_success', 'ctime', 'mtime', 'fork', 'success_count'))
         tpls = sorted(tpls, key=lambda t: -t['success_count'])
 
         await self.render('tpls_public.html', tpls=tpls)
@@ -155,7 +158,7 @@ class PublicTPLHandler(BaseHandler):
 class TPLGroupHandler(BaseHandler):
     @tornado.web.authenticated
     async def get(self, tplid):
-        user = self.current_user      
+        user = self.current_user
         groupNow = (await self.db.tpl.get(tplid, fields=('_groups',)))['_groups']
         tasks = []
         _groups = []
@@ -168,7 +171,7 @@ class TPLGroupHandler(BaseHandler):
         await self.render('tpl_setgroup.html', tplid=tplid, _groups=_groups, groupNow=groupNow)
     
     @tornado.web.authenticated
-    async def post(self, tplid):        
+    async def post(self, tplid):
         envs = {}
         for key in self.request.body_arguments:
             envs[key] = self.get_body_arguments(key)

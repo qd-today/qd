@@ -80,7 +80,8 @@ class PushActionHandler(BaseHandler):
                 raise HTTPError(404)
 
             if pr['status'] != self.db.push_request.PENDING:
-                raise HTTPError(400)
+                if action != 'cancel':
+                    raise HTTPError(400)
 
             if action in ('accept', 'refuse'):
                 while True:
@@ -90,7 +91,7 @@ class PushActionHandler(BaseHandler):
                         break
                     self.evil(+5)
                     raise HTTPError(401)
-            elif action in ('cancel', ):
+            elif action == 'cancel':
                 while True:
                     if pr['from_userid'] == user['id']:
                         break
@@ -100,9 +101,18 @@ class PushActionHandler(BaseHandler):
                     raise HTTPError(401)
 
             await getattr(self, action)(pr, sql_session=sql_session)
-
+            
+            if action == 'cancel':
+                status = self.db.push_request.CANCEL
+            elif pr['status'] == self.db.push_request.PENDING:
+                if action == 'refuse':
+                    status = self.db.push_request.REFUSE
+                elif action == 'accept':
+                    status = self.db.push_request.ACCEPT
+                else:
+                    status = self.db.push_request.PENDING
             tpl_lock = len(list(await self.db.push_request.list(from_tplid=pr['from_tplid'],
-                status=self.db.push_request.PENDING, sql_session=sql_session))) == 0
+                    status=status, sql_session=sql_session))) == 0
             if not tpl_lock:
                 await self.db.tpl.mod(pr['from_tplid'], lock=False, sql_session=sql_session)
 
@@ -118,6 +128,7 @@ class PushActionHandler(BaseHandler):
         tpl = await self.db.user.decrypt(pr['from_userid'], tplobj['tpl'], sql_session=sql_session)
         har = await self.db.user.encrypt(pr['to_userid'], self.fetcher.tpl2har(tpl), sql_session=sql_session)
         tpl = await self.db.user.encrypt(pr['to_userid'], tpl, sql_session=sql_session)
+        tplid = None
 
         if not pr['to_tplid']:
             tplid = await self.db.tpl.add(
@@ -129,6 +140,7 @@ class PushActionHandler(BaseHandler):
                     sql_session=sql_session
                     )
             await self.db.tpl.mod(tplid,
+                    public = 1,
                     sitename = tplobj['sitename'],
                     siteurl = tplobj['siteurl'],
                     banner = tplobj['banner'],
@@ -141,6 +153,7 @@ class PushActionHandler(BaseHandler):
             await self.db.tpl.mod(tplid,
                     har = har,
                     tpl = tpl,
+                    public = 1,
                     variables = tplobj['variables'],
                     interval = tplobj['interval'],
                     sitename = tplobj['sitename'],
@@ -151,16 +164,21 @@ class PushActionHandler(BaseHandler):
                     mtime = time.time(),
                     sql_session=sql_session
                     )
-        await self.db.push_request.mod(pr['id'], status=self.db.push_request.ACCEPT, sql_session=sql_session)
+        if tplid:
+            await self.db.push_request.mod(pr['id'], to_tplid=tplid, status=self.db.push_request.ACCEPT, sql_session=sql_session)
+        else:
+            await self.db.push_request.mod(pr['id'], status=self.db.push_request.ACCEPT, sql_session=sql_session)
 
     async def cancel(self, pr, sql_session=None):
+        if pr['to_tplid'] and pr['status'] == self.db.push_request.ACCEPT:
+            await self.db.tpl.mod(pr['to_tplid'], public=2, sql_session=sql_session)
         await self.db.push_request.mod(pr['id'], status=self.db.push_request.CANCEL, sql_session=sql_session)
 
     async def refuse(self, pr, sql_session=None):
         await self.db.push_request.mod(pr['id'], status=self.db.push_request.REFUSE, sql_session=sql_session)
         reject_message = self.get_argument('prompt', None)
         if reject_message:
-            self.db.push_request.mod(pr['id'], msg=reject_message, sql_session=sql_session)
+            await self.db.push_request.mod(pr['id'], msg=reject_message, sql_session=sql_session)
 
 class PushViewHandler(BaseHandler):
     @tornado.web.authenticated
@@ -174,7 +192,7 @@ class PushViewHandler(BaseHandler):
         if not pr:
             self.evil(+1)
             raise HTTPError(404)
-        if pr['status'] != self.db.push_request.PENDING:
+        if pr['status'] not in (self.db.push_request.PENDING, self.db.push_request.ACCEPT):
             self.evil(+5)
             raise HTTPError(401)
 
@@ -190,13 +208,21 @@ class PushViewHandler(BaseHandler):
             self.evil(+5)
             raise HTTPError(401)
 
-        tpl = await self.db.tpl.get(pr['from_tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note', 'tpl', 'variables'))
+        tplid = None
+        userid = None
+        if pr['to_tplid'] and pr['status'] != self.db.push_request.PENDING:
+            tplid = pr['to_tplid']
+            userid = pr['to_userid']
+        else:
+            tplid = pr['from_tplid']
+            userid = pr['from_userid']
+        tpl = await self.db.tpl.get(tplid, fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note', 'tpl', 'variables'))
         if not tpl:
             self.evil(+1)
             raise HTTPError(404)
 
         tpl['har'] = self.fetcher.tpl2har(
-                await self.db.user.decrypt(pr['from_userid'], tpl['tpl']))
+                await self.db.user.decrypt(userid, tpl['tpl']))
         tpl['variables'] = json.loads(tpl['variables'])
         await self.finish(dict(
             filename = tpl['sitename'] or '未命名模板',

@@ -61,7 +61,7 @@
             <a href="javascript:void(0)" data-placement="left" data-container="body" data-toggle="popover" data-content="{{ each.msg }}">{{ each.msg | truncate(3, True) }}</a>
           </td>
           <td>
-            {% if each.status == 0 %}
+            {% if each.status == 0 or each.status == 3 %}
             <a href="/push/{{ each.id }}/view" target="_blank">查看</a>
             <a data-method="post" href="/push/{{ each.id }}/cancel">取消</a>
             {% endif %}

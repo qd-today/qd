@@ -12,6 +12,8 @@ from libs.log import Log
 import json
 import re
 from libs import mcrypto as crypto
+from sqlalchemy import update
+from db import User, Task, Tpl
 
 logger_DB_converter = Log('qiandao.DB.Converter').getlogger()
 
@@ -420,8 +422,6 @@ class DBconverter():
         if config.db_type == 'sqlite3':
             try:
                 import aiosqlite
-                from sqlalchemy import update
-                from db import User, Task, Tpl
                 conn = await aiosqlite.connect(f"{config.sqlite3.path}")
                 conn.text_factory = bytes
                 cursor = await conn.execute('SELECT id, password, userkey FROM user')
@@ -650,4 +650,10 @@ class DBconverter():
                 await exec_shell("DROP TABLE `taskold` ", sql_session=sql_session)
         except Exception as e:
             logger_DB_converter.debug(e)
+            
+        try:
+            result = await self.db._update(update(Tpl).where(Tpl.userid == None).where(Tpl.public == 0).values(public=1))
+        except Exception as e:
+            logger_DB_converter.debug(e)
+
         return 
