@@ -30,7 +30,7 @@ class pusher(object):
         self.fetcher = Fetcher()
         self.sql_session = sql_session
     
-    def judge_res(self,res):
+    def judge_res(self,res:requests.Response):
         if (res.status_code == 200):
             r = "True"
         else:
@@ -289,8 +289,8 @@ class pusher(object):
         return r
 
     # 获取Access_Token
-    async def get_access_token(self,qywx):
-        access_url = 'https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid={id}&corpsecret={secret}'.format(id=qywx[u'企业ID'], secret=qywx[u'应用密钥'])
+    async def get_access_token(self, qywx:dict):
+        access_url = '{qywxProxy}cgi-bin/gettoken?corpid={id}&corpsecret={secret}'.format(qywxProxy=qywx[u'代理'], id=qywx[u'企业ID'], secret=qywx[u'应用密钥'])
         obj = {'request': {'method': 'GET', 'url': access_url, 'headers': [], 'cookies': []}, 'rule': {
                 'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
         _,_,res = await self.fetcher.build_response(obj = obj)
@@ -298,7 +298,7 @@ class pusher(object):
         return get_access_token_res
 
     #上传临时素材,返回素材id
-    async def get_ShortTimeMedia(self,pic_url,access_token):
+    async def get_ShortTimeMedia(self,pic_url,access_token,qywxProxy):
         if pic_url == config.push_pic:
             with open(os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'web','static','img','push_pic.png'),'rb') as f:
                 res = f.read()
@@ -307,11 +307,11 @@ class pusher(object):
                     'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
             _,_,res = await self.fetcher.build_response(obj = obj)
             res = res.body
-        url='https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token={access_token}&type=image'.format(access_token = access_token)
+        url=f'{qywxProxy}cgi-bin/media/upload?access_token={access_token}&type=image'
         r = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, url, files={'image':res}, json=True, verify=False))
         return json.loads(r.text)['media_id']
 
-    async def qywx_pusher_send(self, qywx_token, t, log):
+    async def qywx_pusher_send(self, qywx_token, title:str, log:str):
         r = 'False'
         try:
             qywx = {}
@@ -321,18 +321,23 @@ class pusher(object):
                 qywx[u'应用ID'] = tmp[1]
                 qywx[u'应用密钥'] = tmp[2]
                 qywx[u'图片'] = tmp[3] if len(tmp) >= 4 else ''
+                qywx[u'代理'] = tmp[4] if len(tmp) >= 5 else 'https://qyapi.weixin.qq.com/'
             else:
                 raise Exception(u'企业微信获取AccessToken失败或参数不完整!')
 
+            if qywx[u'代理'][-1]!='/':
+                qywx[u'代理'] = qywx[u'代理'] + '/'
+            if qywx[u'代理'][:4] != 'http':
+                qywx[u'代理'] = u'https://{0}'.format(qywx[u'代理'])
             get_access_token_res = await self.get_access_token(qywx)
             pic_url = config.push_pic if qywx[u'图片'] == '' else qywx[u'图片']
             if (get_access_token_res.get('access_token','') != '' and get_access_token_res['errmsg'] == 'ok'):
                 access_token = get_access_token_res["access_token"]
                 if utils.urlMatchWithLimit(pic_url) or utils.domainMatch(pic_url.split('/')[0]):
-                    media_id = await self.get_ShortTimeMedia(pic_url,access_token)
+                    media_id = await self.get_ShortTimeMedia(pic_url,access_token,qywx[u'代理'])
                 else:
                     media_id = pic_url
-                msgUrl = 'https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token={0}'.format(access_token)
+                msgUrl = '{0}cgi-bin/message/send?access_token={1}'.format(qywx[u'代理'], access_token)
                 postData = {"touser": "@all",
                             "toparty": "@all",
                             "totag": "@all",
@@ -341,7 +346,7 @@ class pusher(object):
                             "mpnews": {
                                 "articles": [
                                     {
-                                        "title": t,
+                                        "title": title,
                                         "digest": log.replace("\\r\\n", "\n"),
                                         "content": log.replace("\\r\\n", "<br>"),
                                         "author": "私有签到框架",
@@ -373,7 +378,7 @@ class pusher(object):
             return e
         return r
 
-    async def sendmail(self, email, title, content, sql_session=None):
+    async def sendmail(self, email, title, content:str, sql_session=None):
         user = await self.db.user.get(email=email, fields=('id', 'email', 'email_verified', 'nickname'), sql_session=sql_session)
         if user['email'] and user['email_verified']:
             try:
