@@ -7,12 +7,12 @@
 
 import sys
 
-from tornado.ioloop import IOLoop
 from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop
 
 import config
-from web.app import Application
 from libs.log import Log
+from web.app import Application
 
 if __name__ == "__main__":
     # init logging
@@ -20,6 +20,7 @@ if __name__ == "__main__":
 
     if not config.debug:
         import logging
+
         import tornado.log
         channel = logging.StreamHandler(sys.stderr)
         channel.setFormatter(tornado.log.LogFormatter())

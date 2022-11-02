@@ -5,12 +5,14 @@
 #         http://binux.me
 # Created on 2014-08-18 12:17:21
 
-import sys
-import json
-from libs.log import Log
 import functools
+import json
+import sys
+
 from tornado.ioloop import IOLoop
+
 from libs.fetcher import Fetcher
+from libs.log import Log
 
 logger_QD = Log('qiandao').getlogger()
 

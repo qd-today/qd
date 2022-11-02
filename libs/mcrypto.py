@@ -7,14 +7,14 @@
 
 import base64
 from binascii import a2b_hex, b2a_hex
-import umsgpack
-import config
 
-from pbkdf2 import PBKDF2
+import config
+import umsgpack
 from Crypto import Random
-from Crypto.Hash import SHA256
 from Crypto.Cipher import AES
+from Crypto.Hash import SHA256
 from Crypto.Util.Padding import pad, unpad
+from pbkdf2 import PBKDF2
 
 Crypto_random = Random.new()
 def password_hash(word, salt=None, iterations=config.pbkdf2_iterations):
@@ -81,11 +81,11 @@ def aes_decrypt(word, key=config.aes_key, iv=None, input='base64', padding=True,
         return unpad(word,AES.block_size,padding_style).decode('utf-8')
 
 
-from collections import namedtuple
 import random
 import re
 import string
 import sys
+from collections import namedtuple
 
 from libs.convert import to_bytes, to_text
 

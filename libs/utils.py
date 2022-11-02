@@ -7,21 +7,22 @@
 
 import base64
 import hashlib
+import ipaddress
+import re
 import socket
 import struct
-import ipaddress
-import uuid
-import jinja2
-from tornado import gen
-from faker import Faker
-import re
 import urllib
-import config
-from tornado import httpclient
-from Crypto.Cipher import AES
+import uuid
 
-from libs.convert import to_text, to_bytes, to_native
-from libs.mcrypto import passlib_or_crypt,aes_encrypt,aes_decrypt
+import config
+import jinja2
+from Crypto.Cipher import AES
+from faker import Faker
+from tornado import gen, httpclient
+
+from libs.convert import to_bytes, to_native, to_text
+from libs.mcrypto import aes_decrypt, aes_encrypt, passlib_or_crypt
+
 from .log import Log
 
 logger_Util = Log('qiandao.Http.Util').getlogger()
@@ -203,8 +204,10 @@ def getLocalScheme(scheme):
             return 'http'
     return scheme
 
-import umsgpack
 import functools
+
+import umsgpack
+
 
 def func_cache(f):
     _cache = {}
@@ -236,6 +239,7 @@ def method_cache(fn):
     return wrapper
 
 import datetime
+
 
 #full_format=True，的时候是具体时间，full_format=False就是几秒钟几分钟几小时时间格式----此处为模糊时间格式模式
 def format_date(date, gmt_offset=-8*60, relative=True, shorter=False, full_format=True):
@@ -373,6 +377,7 @@ async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签�
 import smtplib
 from email.mime.text import MIMEText
 
+
 async def _send_mail(to, subject, text=None, subtype='html'):
     if not config.mail_smtp:
         logger_Util.info('no smtp')
@@ -394,7 +399,8 @@ async def _send_mail(to, subject, text=None, subtype='html'):
 
 
 import chardet
-from requests.utils import get_encoding_from_headers, get_encodings_from_content
+from requests.utils import (get_encoding_from_headers,
+                            get_encodings_from_content)
 
 
 def find_encoding(content, headers=None):
@@ -451,6 +457,7 @@ def quote_chinese(url, encodeing="utf-8"):
 
 
 from hashlib import sha1
+
 try:
     from hashlib import md5 as _md5
 except ImportError:
@@ -471,6 +478,8 @@ def md5string(data):
     return secure_hash_s(data, _md5)
 
 import random
+
+
 def get_random(min_num, max_num, unit):
     random_num = random.uniform(min_num, max_num)
     result = "%.{0}f".format(int(unit)) % random_num
@@ -496,6 +505,8 @@ def randomize_list(mylist, seed=None):
     return mylist
 
 import datetime
+
+
 def get_date_time(date=True, time=True, time_difference=0):
     if isinstance(date,str):
         date=int(date)
@@ -608,6 +619,8 @@ def regex_escape(value, re_type='python'):
         raise Exception('Invalid regex type (%s)' % re_type)
 
 import time
+
+
 def timestamp(type='int'):
     if type=='float':
         return time.time()

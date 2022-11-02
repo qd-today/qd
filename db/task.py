@@ -8,9 +8,12 @@
 import time
 from unittest import result
 
-from sqlalchemy import INTEGER, VARBINARY, Column, Integer, LargeBinary, String, delete, select, text, update
+from sqlalchemy import (INTEGER, VARBINARY, Column, Integer, LargeBinary,
+                        String, delete, select, text, update)
 from sqlalchemy.dialects.mysql import TINYINT
+
 from .basedb import AlchemyMixin, BaseDB
+
 
 class Task(BaseDB,AlchemyMixin):
     '''

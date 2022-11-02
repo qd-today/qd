@@ -4,16 +4,17 @@
 #
 # Copyright © 2016 Binux <roy@binux.me>
 
-import warnings
-import config
-from db import DB,Site
-from db.basedb import BaseDB
-from libs.log import Log
 import json
 import re
+import warnings
+
+import config
 from libs import mcrypto as crypto
+from libs.log import Log
 from sqlalchemy import update
-from db import User, Task, Tpl
+
+from db import DB, Site, Task, Tpl, User
+from db.basedb import BaseDB
 
 logger_DB_converter = Log('qiandao.DB.Converter').getlogger()
 

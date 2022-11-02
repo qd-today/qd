@@ -3,15 +3,15 @@
 #
 # Copyright © 2016 Binux <roy@binux.me>
 import asyncio
-from db import db_converter
-from libs.log import Log
-import tornado.log
-
-import sys
 import platform
-import config
+import sys
 
 import requests
+import tornado.log
+
+import config
+from db import db_converter
+from libs.log import Log
 
 requests.packages.urllib3.disable_warnings()
 
@@ -57,6 +57,7 @@ if __name__ == "__main__":
         loop.run_until_complete(run)
 
         from tornado.httpserver import HTTPServer
+
         from web.app import Application
         http_server = HTTPServer(Application(database), xheaders=True)
         http_server.bind(port, config.bind)
@@ -65,8 +66,9 @@ if __name__ == "__main__":
         else:
             http_server.start()
 
-        from worker import QueueWorker,BatchWorker
-        from tornado.ioloop import IOLoop,PeriodicCallback
+        from tornado.ioloop import IOLoop, PeriodicCallback
+
+        from worker import BatchWorker, QueueWorker
         io_loop = IOLoop.instance()
         try:
             if config.worker_method.upper() == 'QUEUE':

@@ -11,7 +11,9 @@ change the role of user
 
 import asyncio
 import sys
+
 import db
+
 
 def usage():
     print('Usage: python3 %s <email> [role]' % sys.argv[0])

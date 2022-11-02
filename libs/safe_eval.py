@@ -13,17 +13,20 @@ condition/math builtins.
 #  - http://code.activestate.com/recipes/286134/
 #  - safe_eval in lp:~xrg/openobject-server/optimize-5.0
 #  - safe_eval in tryton http://hg.tryton.org/hgwebdir.cgi/trytond/rev/bbb5f73319ad
-import dis
-import functools
-import types
-import sys
-import signal
+
 # import multiprocessing
 import ctypes
+import dis
+import functools
+import signal
+import sys
 import threading
-from .log import Log
-from opcode import HAVE_ARGUMENT, opmap, opname
+import types
 from types import CodeType
+
+from opcode import HAVE_ARGUMENT, opmap, opname
+
+from .log import Log
 
 __all__ = ['test_expr', 'safe_eval', 'const_eval']
 
@@ -546,6 +549,7 @@ class wrap_module:
 
 # dateutil submodules are lazy so need to import them for them to "exist"
 import dateutil
+
 mods = ['parser', 'relativedelta', 'rrule', 'tz']
 for mod in mods:
     __import__('dateutil.%s' % mod)

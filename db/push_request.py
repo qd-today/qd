@@ -7,9 +7,11 @@
 
 import time
 
-from sqlalchemy import INTEGER, Column, Integer, String, text, update, select
+from sqlalchemy import INTEGER, Column, Integer, String, select, text, update
 from sqlalchemy.dialects.mysql import TINYINT
+
 from .basedb import AlchemyMixin, BaseDB
+
 
 class PushRequest(BaseDB,AlchemyMixin):
     '''

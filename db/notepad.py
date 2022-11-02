@@ -7,7 +7,9 @@
 # import sys
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sqlalchemy import Column, Integer, Text, delete, select, update
+
 from .basedb import AlchemyMixin, BaseDB, logger_DB
+
 
 class Notepad(BaseDB,AlchemyMixin):
     '''

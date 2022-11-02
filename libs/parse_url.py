@@ -6,6 +6,8 @@
 # Created on 2022-03-14 12:00:00
 
 import re
+
+
 def parse_url(url):
     if not url:
         return None

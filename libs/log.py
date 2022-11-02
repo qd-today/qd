@@ -6,10 +6,12 @@
 # Created on 2022-03-14 11:39:57
 
 import logging
-from config import debug
+import os
+import sys
 import time
-import sys,os
+
 import tornado.log
+from config import debug
 
 default_level = logging.DEBUG if debug else logging.INFO
 

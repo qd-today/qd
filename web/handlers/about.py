@@ -7,6 +7,7 @@
 
 from .base import *
 
+
 class AboutHandler(BaseHandler):
     @tornado.web.addslash
     async def get(self):

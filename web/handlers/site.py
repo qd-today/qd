@@ -5,12 +5,15 @@
 #         http://binux.me
 # Created on 2014-08-09 11:39:25
 
-import time
-from tornado import gen
-import traceback
-from .base import *
 import base64
-    
+import time
+import traceback
+
+from tornado import gen
+
+from .base import *
+
+
 class SiteManagerHandler(BaseHandler):
     @tornado.web.authenticated
     async def get(self, userid):

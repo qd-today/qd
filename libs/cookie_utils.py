@@ -10,11 +10,14 @@ try:
     from collections import MutableMapping as DictMixin
 except ImportError:
     from collections.abc import MutableMapping as DictMixin
-import config
+
 import http.cookiejar as cookielib
 from urllib.parse import urlparse
+
+import config
+from requests.cookies import MockRequest, create_cookie, remove_cookie_by_name
 from tornado import httpclient, httputil
-from requests.cookies import MockRequest,create_cookie,remove_cookie_by_name
+
 from .log import Log
 
 logger_CookieJar = Log('qiandao.Http.CookieJar').getlogger()
@@ -85,7 +88,8 @@ class CookieSession(cookielib.CookieJar, DictMixin):
 
     def make_cookies(self, response, request):
         import time
-        from http.cookiejar import split_header_words,_warn_unhandled_exception,parse_ns_headers
+        from http.cookiejar import (_warn_unhandled_exception,
+                                    parse_ns_headers, split_header_words)
         """Return sequence of Cookie objects extracted from response object."""
         # get cookie-attributes for RFC 2965 and Netscape protocols
         headers = response.info()

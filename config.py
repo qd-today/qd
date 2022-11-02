@@ -5,10 +5,10 @@
 #         http://binux.me
 # Created on 2014-07-30 12:21:48
 
-import os
 import hashlib
-from urllib.parse import urlparse,parse_qs
+import os
 from distutils.util import strtobool
+from urllib.parse import parse_qs, urlparse
 
 debug = bool(strtobool(os.getenv('QIANDAO_DEBUG','False')))                 # 是否启用Debug
 multiprocess = bool(strtobool(os.getenv('MULTI_PROCESS','False')))          # 是否启用多进程模式, Windows平台无效, 请谨慎使用
@@ -128,7 +128,7 @@ ga_key = ""                                                                 # go
 user0isadmin = bool(strtobool(os.getenv('USER0ISADMIN','True'))) 
 
 try:
-    from local_config import *                                              # 修改local_config.py文件的内容不受通过git更新源码的影响
+    from local_config import *  # 修改local_config.py文件的内容不受通过git更新源码的影响
     if not hasattr(mysql, 'auth_plugin'):
         setattr(mysql, 'auth_plugin', parse_qs(mysql_url.query).get('auth_plugin',[''])[0])
 except ImportError:

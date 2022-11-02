@@ -5,8 +5,10 @@
 #         http://binux.me
 # Created on 2014-08-08 19:53:09
 
-from sqlalchemy import INTEGER, Column, Integer, Text, text, update, select
+from sqlalchemy import INTEGER, Column, Integer, Text, select, text, update
+
 from .basedb import AlchemyMixin, BaseDB
+
 
 class Site(BaseDB,AlchemyMixin):
     '''

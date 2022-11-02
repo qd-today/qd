@@ -5,19 +5,22 @@
 #         http://binux.me
 # Created on 2014-08-08 20:28:15
 
-import os,sys
+import os
+import sys
 
 from db.basedb import AlchemyMixin
+
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-from .user import User
-from .tpl import Tpl
-from .task import Task
-from .tasklog import Tasklog
+from .notepad import Notepad
+from .pubtpl import Pubtpl
 from .push_request import PushRequest
 from .redisdb import RedisDB
 from .site import Site
-from .pubtpl import Pubtpl
-from .notepad import Notepad
+from .task import Task
+from .tasklog import Tasklog
+from .tpl import Tpl
+from .user import User
+
 
 class DB(AlchemyMixin):
     def __init__(self) -> None:

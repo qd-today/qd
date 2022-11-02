@@ -7,10 +7,13 @@
 
 import time
 
-from sqlalchemy import INTEGER, Column, Integer, String, Text, delete, select, text, update
+from sqlalchemy import (INTEGER, Column, Integer, String, Text, delete, select,
+                        text, update)
+from sqlalchemy.dialects.mysql import MEDIUMBLOB, TINYINT
 from sqlalchemy.engine import Result
-from sqlalchemy.dialects.mysql import TINYINT, MEDIUMBLOB
+
 from .basedb import AlchemyMixin, BaseDB
+
 
 class Tpl(BaseDB,AlchemyMixin):
     '''

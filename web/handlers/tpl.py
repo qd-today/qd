@@ -6,12 +6,15 @@
 # Created on 2014-08-09 17:52:49
 
 import json
-from tornado import gen
-from .base import *
-from libs import utils
-from libs.parse_url import parse_url
 import traceback
 from codecs import escape_decode
+
+from libs import utils
+from libs.parse_url import parse_url
+from tornado import gen
+
+from .base import *
+
 
 class TPLPushHandler(BaseHandler):
     @tornado.web.authenticated

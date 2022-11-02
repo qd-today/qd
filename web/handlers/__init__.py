@@ -5,9 +5,12 @@
 #         http://binux.me
 # Created on 2012-12-15 16:15:50
 
-import os,sys
+import os
+import sys
+
 sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 from . import base
+
 handlers = []
 ui_modules = {}
 ui_methods = {}

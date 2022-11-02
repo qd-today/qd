@@ -6,7 +6,9 @@
 # Created on 2014-08-08 19:53:09
 
 from sqlalchemy import Column, Integer, Text, delete, select, update
+
 from .basedb import AlchemyMixin, BaseDB
+
 
 class Pubtpl(BaseDB,AlchemyMixin):
     '''

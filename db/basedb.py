@@ -5,18 +5,20 @@
 #         http://binux.me
 # Created on 2012-08-30 17:43:49
 
-from asyncio import current_task
 import contextlib
 import logging
+from asyncio import current_task
 from typing import Tuple
-from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine,async_scoped_session
-from sqlalchemy.sql import Select, Update, Delete
-from sqlalchemy.dialects.mysql import Insert
-from sqlalchemy.engine import Result, ScalarResult, CursorResult
-from sqlalchemy.orm import declarative_base,sessionmaker
+
 import config
 from libs.log import Log
+from sqlalchemy import text
+from sqlalchemy.dialects.mysql import Insert
+from sqlalchemy.engine import CursorResult, Result, ScalarResult
+from sqlalchemy.ext.asyncio import (AsyncSession, async_scoped_session,
+                                    create_async_engine)
+from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.sql import Delete, Select, Update
 
 if config.db_type == 'mysql':
     host=config.mysql.host

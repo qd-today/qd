@@ -9,7 +9,9 @@ import time
 
 from sqlalchemy import INTEGER, Column, Integer, Text, delete, select
 from sqlalchemy.dialects.mysql import TINYINT
+
 from .basedb import AlchemyMixin, BaseDB
+
 
 class Tasklog(BaseDB,AlchemyMixin):
     '''

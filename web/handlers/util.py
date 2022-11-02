@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
+import json
 import os
 import re
-import json
-import datetime
 import time
-import urllib
-import pytz
 import traceback
+import urllib
+
+import pytz
 from libs.log import Log
 
 logger_Web_Util = Log('qiandao.Web.Util').getlogger()
@@ -17,16 +18,19 @@ try:
 except ImportError as e:
     logger_Web_Util.warning('Import DdddOCR module falied: %s',e)
     ddddocr = None
-import requests
 import asyncio
-import functools
-from .base import *
-from tornado import gen
 import base64
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import  PKCS1_v1_5
+import functools
+
+import requests
+from config import delay_max_timeout, strtobool
 from Crypto import Random
-from config import delay_max_timeout,strtobool
+from Crypto.Cipher import PKCS1_v1_5
+from Crypto.PublicKey import RSA
+from tornado import gen
+
+from .base import *
+
 
 def request_parse(req_data):
     '''解析请求数据并以json形式返回'''
