@@ -42,11 +42,7 @@
         <tr>
           {% if adminflg %}
           <td style="text-align:center">
-            {% if repo.reponame == 'default'%}
-            <input type="checkbox"  name="{{loop.index0}}" class="Repo checkbox" style="display: inline; min-height: unset;" disabled=true>
-            {% else %}
             <input type="checkbox"  name="{{loop.index0}}" class="Repo checkbox" style="display: inline; min-height: unset;" onclick="repoNode.toggle(this)">
-            {% endif %}
           </td>
           <td style="text-align:center">
             {{loop.index0}}

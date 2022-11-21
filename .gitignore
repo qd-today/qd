@@ -26,3 +26,4 @@ bower_components/
 web/static/components/*/package-lock.json
 redis
 tmp/
+*.db-journal
