@@ -67,6 +67,8 @@ Qiandao —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR
 
 **请勿同时运行新旧版 Qiandao 框架, 或将不同运行中容器的数据库映射为同一文件, 更新后请重启容器或清空浏览器缓存**
 
+**请勿使用阿里云镜像源拉取 Docker 容器, 会导致无法拉取最新镜像**
+
 Docker容器部署方式
 ==========
 
@@ -88,6 +90,8 @@ Docker容器部署方式
    > 配置描述见下文[配置环境变量](#configpy-配置环境变量)
    >
    > 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`a76yyyy/qiandao:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 其他与主线版本保持一致**。
+   >
+   > **请勿使用 阿里云镜像源 拉取 Docker 容器, 会导致无法拉取最新镜像**
 
 3. **Docker部署方式**
 
@@ -95,9 +99,10 @@ Docker容器部署方式
    docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config a76yyyy/qiandao
    ```
 
-- 容器内部无法连通外网时尝试该命令:  
+   容器内部无法连通外网时尝试该命令:  
 
    ``` bash
+   # 使用 Host 网络模式创建容器, 端口号: 8923
    docker run -d --name qiandao --env PORT=8923 --net=host -v $(pwd)/qiandao/config:/usr/src/app/config a76yyyy/qiandao
    ```
 
@@ -109,11 +114,11 @@ Docker容器部署方式
    docker cp 容器名:/usr/src/app/config/database.db .
    ```
 
-- **数据库恢复指令** :
+   **数据库恢复指令** :
 
-  ``` bash
-  docker cp database.db 容器名:/usr/src/app/config/
-  ```
+   ``` bash
+   docker cp database.db 容器名:/usr/src/app/config/
+   ```
 
 5. Docker 配置邮箱(强制使用SSL)
 
@@ -239,7 +244,8 @@ EXTRA_ONNX_NAME|否|""|config目录下自定义ONNX文件名<br>(不填 ".onnx" 
 EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.json文件名<br>(不填 ".json" 后缀)<br>多个json文件名用"\|"分隔
 > 详细信息请查阅[config.py](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/config.py)
 
-## 旧版local_config.py迁移
+旧版local_config.py迁移
+----------
 
 |  Line  |  Delete  |  Modify  |
 |  ----  | ----  | ----  |
@@ -288,6 +294,9 @@ EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.j
 
 [MIT](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/LICENSE) 许可协议
 
+致谢
+===========
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -297,7 +306,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="http://www.a76yyyy.cn"><img src="https://avatars.githubusercontent.com/u/56478790?v=4?s=100" width="100px;" alt=""/><br /><sub><b>a76yyyyy</b></sub></a><br /><a href="#design-a76yyyy" title="Design">🎨</a> <a href="https://github.com/qiandao-today/qiandao/commits?author=a76yyyy" title="Code">💻</a> <a href="#maintenance-a76yyyy" title="Maintenance">🚧</a></td>
+    <td align="center"><a href="http://www.a76yyyy.cn"><img src="https://avatars.githubusercontent.com/u/56478790?v=4?s=100" width="100px;" alt=""/><br /><sub><b>a76yyyy</b></sub></a><br /><a href="#design-a76yyyy" title="Design">🎨</a> <a href="https://github.com/qiandao-today/qiandao/commits?author=a76yyyy" title="Code">💻</a> <a href="#maintenance-a76yyyy" title="Maintenance">🚧</a></td>
     <td align="center"><a href="http://binux.me/"><img src="https://avatars.githubusercontent.com/u/646451?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Roy Binux</b></sub></a><br /><a href="#design-Binux" title="Design">🎨</a> <a href="https://github.com/qiandao-today/qiandao/commits?author=Binux" title="Code">💻</a> <a href="#maintenance-Binux" title="Maintenance">🚧</a></td>
     <td align="center"><a href="https://github.com/AragonSnow"><img src="https://avatars.githubusercontent.com/u/22835918?v=4?s=100" width="100px;" alt=""/><br /><sub><b>AragonSnow</b></sub></a><br /><a href="https://github.com/qiandao-today/qiandao/commits?author=AragonSnow" title="Code">💻</a> <a href="#design-AragonSnow" title="Design">🎨</a> <a href="#maintenance-AragonSnow" title="Maintenance">🚧</a></td>
     <td align="center"><a href="https://www.quchao.net"><img src="https://avatars.githubusercontent.com/u/36469805?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mark</b></sub></a><br /><a href="#design-Mark-1215" title="Design">🎨</a> <a href="#blog-Mark-1215" title="Blogposts">📝</a> <a href="#example-Mark-1215" title="Examples">💡</a> <a href="https://github.com/qiandao-today/qiandao/commits?author=Mark-1215" title="Documentation">📖</a></td>
