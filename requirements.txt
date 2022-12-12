@@ -10,7 +10,7 @@ aiofiles==22.1.0
 aiomysql==0.1.1
 aiosqlite==0.17.0
 async-timeout==4.0.2; python_version >= '3.6'
-certifi==2022.9.24; python_version >= '3.6'
+certifi==2022.12.7; python_version >= '3.6'
 cffi==1.15.1
 chardet==5.0.0
 charset-normalizer==2.1.1; python_version >= '3.6'
