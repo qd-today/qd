@@ -14,9 +14,10 @@ except ImportError:
 import http.cookiejar as cookielib
 from urllib.parse import urlparse
 
-import config
 from requests.cookies import MockRequest, create_cookie, remove_cookie_by_name
 from tornado import httpclient, httputil
+
+import config
 
 from .log import Log
 

@@ -13,10 +13,11 @@ import time
 import traceback
 from urllib.parse import quote
 
+from tornado import gen
+
 from config import proxies
 from libs.fetcher import Fetcher
 from libs.utils import find_encoding
-from tornado import gen
 
 from .base import *
 

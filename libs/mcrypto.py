@@ -8,13 +8,14 @@
 import base64
 from binascii import a2b_hex, b2a_hex
 
-import config
 import umsgpack
 from Crypto import Random
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from Crypto.Util.Padding import pad, unpad
 from pbkdf2 import PBKDF2
+
+import config
 
 Crypto_random = Random.new()
 def password_hash(word, salt=None, iterations=config.pbkdf2_iterations):

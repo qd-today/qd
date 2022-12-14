@@ -14,12 +14,12 @@ import struct
 import urllib
 import uuid
 
-import config
 import jinja2
 from Crypto.Cipher import AES
 from faker import Faker
 from tornado import gen, httpclient
 
+import config
 from libs.convert import to_bytes, to_native, to_text
 from libs.mcrypto import aes_decrypt, aes_encrypt, passlib_or_crypt
 

@@ -10,8 +10,6 @@ import logging
 from asyncio import current_task
 from typing import Tuple
 
-import config
-from libs.log import Log
 from sqlalchemy import text
 from sqlalchemy.dialects.mysql import Insert
 from sqlalchemy.engine import CursorResult, Result, ScalarResult
@@ -19,6 +17,9 @@ from sqlalchemy.ext.asyncio import (AsyncSession, async_scoped_session,
                                     create_async_engine)
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.sql import Delete, Select, Update
+
+import config
+from libs.log import Log
 
 if config.db_type == 'mysql':
     host=config.mysql.host

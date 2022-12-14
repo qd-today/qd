@@ -5,8 +5,9 @@
 #         http://binux.me
 # Created on 2014-08-08 20:40:53
 
-import config
 import umsgpack
+
+import config
 from libs.log import Log
 from libs.utils import is_lan
 

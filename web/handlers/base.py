@@ -5,15 +5,16 @@
 #         http://binux.me
 # Created on 2012-12-15 16:16:38
 
-import config
 import jinja2
 import tornado.web
 import tornado.websocket
 import umsgpack
+from tornado.web import HTTPError
+
+import config
 from db import DB
 from libs import utils
 from libs.log import Log
-from tornado.web import HTTPError
 
 logger_Web_Handler = Log('qiandao.Web.Handler').getlogger()
 
