@@ -15,12 +15,12 @@ import urllib.parse as urlparse
 from datetime import datetime
 from io import BytesIO
 
-import config
 from jinja2.sandbox import SandboxedEnvironment as Environment
 from tornado import gen, httpclient, simple_httpclient
 from tornado.escape import native_str
 from tornado.httputil import HTTPHeaders
 
+import config
 from libs import cookie_utils, utils
 
 from .log import Log

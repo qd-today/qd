@@ -14,9 +14,10 @@ from io import BytesIO
 
 import umsgpack
 from jinja2 import Environment, meta
+from tornado import gen, httpclient
+
 from libs import utils
 from libs.fetcher import Fetcher
-from tornado import gen, httpclient
 
 from .base import *
 

@@ -12,12 +12,12 @@ import sys
 import time
 import traceback
 
-import config
 import croniter
 import requests
-from db import DB
 from tornado import gen
 
+import config
+from db import DB
 from libs import utils
 from libs.fetcher import Fetcher
 
