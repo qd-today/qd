@@ -8,13 +8,13 @@ import json
 import re
 import warnings
 
-import config
-from libs import mcrypto as crypto
-from libs.log import Log
 from sqlalchemy import update
 
+import config
 from db import DB, Site, Task, Tpl, User
 from db.basedb import BaseDB
+from libs import mcrypto as crypto
+from libs.log import Log
 
 logger_DB_converter = Log('qiandao.DB.Converter').getlogger()
 
@@ -448,7 +448,10 @@ class DBconverter():
             await self.db.user.list(limit=1, fields=('password_md5',))
         except Exception as e:
             logger_DB_converter.debug(e)
-            await exec_shell("ALTER TABLE `user` ADD  `password_md5` VARBINARY(128) NOT NULL DEFAULT '' ") 
+            try:
+                await exec_shell("ALTER TABLE `user` ADD  `password_md5` VARBINARY(128) NOT NULL DEFAULT '' ") 
+            except Exception as e:
+                logger_DB_converter.debug(e)
             
         try:
             for user in await self.db.user.list(fields=('id', 'password_md5')):
