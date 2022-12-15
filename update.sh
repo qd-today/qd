@@ -24,7 +24,7 @@ AUTO_RELOAD=$AUTO_RELOAD
 # Treat unset variables as an error
 set -o nounset
 
-__ScriptVersion="2022.09.11"
+__ScriptVersion="2022.12.15"
 __ScriptName="update.sh"
 
 
@@ -69,11 +69,11 @@ update() {
     if [ $(echo $localversion $remoteversion | awk '$1>=$2 {print 0} $1<$2 {print 1}') == 1 ];then
         echo -e "Info: 当前版本: $localversion \nInfo: 新版本: $remoteversion \nInfo: 正在更新中, 请稍候..."
         wget https://gitee.com/a76yyyy/qiandao/raw/$remoteversion/requirements.txt -O /usr/src/app/requirements.txt && \
-        [[ -z $(file /bin/busybox | grep -i "musl") ]] && {\
+        [[ -z "$(file /bin/busybox | grep -i 'musl')" ]] && { \
             pip install -r requirements.txt && \
-            echo "如需使用DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+            echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
             echo "pip3 install ddddocr" && \
-            echo "如需使用PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+            echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
             echo "pip3 install pycurl" ;\
         } || { \
             if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') == 1 ];then
@@ -82,16 +82,16 @@ update() {
                 apk del .python-rundeps  
                 echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
             fi
-            apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
+            apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
             if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
                 echo "Info: Qiandao-Lite will not install ddddocr related components. "
             else
                 [[ $(getconf LONG_BIT) = "32" ]] && \
                     echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. " || \
-                    apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow 
+                    apk add --update --no-cache py3-opencv py3-pillow 
             fi && \
             apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
-                linux-headers libtool util-linux 
+                linux-headers libtool util-linux py3-pip py3-setuptools py3-wheel python3-dev py3-numpy-dev 
             if [ -n $(ls /usr/bin | grep -w "python3$") ];then
                 ls /usr/bin | grep -w "python3$"
                 ln -sf /usr/bin/python3 /usr/bin/python 
@@ -132,11 +132,11 @@ force_update() {
     remoteversion=$(git ls-remote --tags origin | grep -o 'refs/tags/[0-9]*' | sort -r | head -n 1 | grep -o '[^\/]*$')
     echo -e "Info: 正在强制更新中, 请稍候..."
     wget https://gitee.com/a76yyyy/qiandao/raw/master/requirements.txt -O /usr/src/app/requirements.txt && \
-    [[ -z $(file /bin/busybox | grep -i "musl") ]] && {\
+    [[ -z "$(file /bin/busybox | grep -i 'musl')" ]] && { \
         pip install -r requirements.txt && \
-        echo "如需使用DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
         echo "pip3 install ddddocr" && \
-        echo "如需使用PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
         echo "pip3 install pycurl" ;\
     } || { \
         if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') == 1 ];then
@@ -145,16 +145,16 @@ force_update() {
             apk del .python-rundeps  
             echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
-        apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
+        apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
         if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
             echo "Info: Qiandao-Lite will not install ddddocr related components. "
         else
             [[ $(getconf LONG_BIT) = "32" ]] && \
                 echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. " || \
-                apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow 
+                apk add --update --no-cache py3-opencv py3-pillow 
         fi && \
         apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
-            linux-headers libtool util-linux 
+            linux-headers libtool util-linux py3-pip py3-setuptools py3-wheel python3-dev py3-numpy-dev 
         if [ -n $(ls /usr/bin | grep -w "python3$") ];then
             ls /usr/bin | grep -w "python3$"
             ln -sf /usr/bin/python3 /usr/bin/python 
@@ -190,11 +190,11 @@ force_update() {
 update_version() {
     echo -e "Info: 正在强制切换至指定Tag版本: $1, 请稍候..."
     wget https://gitee.com/a76yyyy/qiandao/raw/$1/requirements.txt -O /usr/src/app/requirements.txt && \
-    [[ -z $(file /bin/busybox | grep -i "musl") ]] && {\
+    [[ -z "$(file /bin/busybox | grep -i 'musl')" ]] && { \
         pip install -r requirements.txt && \
-        echo "如需使用DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
         echo "pip3 install ddddocr" && \
-        echo "如需使用PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
         echo "pip3 install pycurl" ;\
     } || { \
         if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') == 1 ];then
@@ -203,16 +203,16 @@ update_version() {
             apk del .python-rundeps  
             echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
-        apk add --update --no-cache python3 py3-pip py3-setuptools py3-wheel python3-dev py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
+        apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
         if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
             echo "Info: Qiandao-Lite will not install ddddocr related components. "
         else
             [[ $(getconf LONG_BIT) = "32" ]] && \
                 echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. " || \
-                apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow 
+                apk add --update --no-cache py3-opencv py3-pillow 
         fi && \
         apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
-            linux-headers libtool util-linux 
+            linux-headers libtool util-linux py3-pip py3-setuptools py3-wheel python3-dev py3-numpy-dev 
         if [ -n $(ls /usr/bin | grep -w "python3$") ];then
             ls /usr/bin | grep -w "python3$"
             ln -sf /usr/bin/python3 /usr/bin/python 
