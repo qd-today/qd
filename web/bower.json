@@ -6,8 +6,8 @@
     "AragonSnow",
     "binux <roy@binux.me>)"
   ],
-  "description": "qiandao.today",
-  "homepage": "http://qiandao.today/",
+  "description": "qiandao",
+  "homepage": "https://github.com/qiandao-today/qiandao",
   "private": true,
   "ignore": [
     "**/.*",

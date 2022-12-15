@@ -8,6 +8,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+1. 支持退订默认公共模板分支
+2. 添加企业微信代理URL设置支持
+3. 优化公开模板发布逻辑 fix qiandao-today/qiandao#321
+4. 更新 openssl 和 ddddocr
+5. 更新 前端组件
+6. 修复 企业微信应用提示 mediaid 失败 fix qiandao-today/qiandao#316
+7. 修复 Typo
+8. 其他优化和修复
+
 ## [20220911] - 2022.09.11 更新
 
 1. 允许用户选择定时任务执行方式
