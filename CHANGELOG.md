@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20221218] - 2022.12.18 更新
+
 1. 支持退订默认公共模板分支
 2. 添加企业微信代理URL设置支持
 3. 优化公开模板发布逻辑 fix qiandao-today/qiandao#321
