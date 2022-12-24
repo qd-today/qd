@@ -125,6 +125,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                                             logger_Web_Handler.info('Add {repo} public template {name} success!'.format(repo=repo['name'], name=har['name']))
                                         
                                 else:
+                                    logger_Web_Handler.error('Get repo {repo} history file failed! Reason: {link} open error!'.format(repo=repo['name'], link=hfile_link))
                                     msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=hfile_link)
                 repos["lastupdate"] = now_ts
                 await self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4), sql_session=sql_session)

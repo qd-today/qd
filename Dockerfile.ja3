@@ -24,9 +24,9 @@ RUN apk add --update --no-cache openssh-client && \
     chmod +x /usr/src/app/update.sh && \
     ln -s /usr/src/app/update.sh /bin/update && \
     apk add --update --no-cache python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado \
-        py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography \
-        py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist \
-    py3-multidict py3-charset-normalizer py3-aiohttp py3-typing-extensions py3-yarl && \
+        py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal \
+        py3-async-timeout py3-attrs py3-frozenlist py3-multidict py3-charset-normalizer \
+        py3-aiohttp py3-typing-extensions py3-yarl && \
     [[ $(getconf LONG_BIT) = "32" ]] && \
     echo "Tips: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python" || \
     apk add --update --no-cache py3-opencv py3-pillow && \
