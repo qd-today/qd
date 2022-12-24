@@ -124,7 +124,7 @@ class HARSave(BaseHandler):
     def get_variables(tpl):
         variables = set()
         extracted = set(utils.jinja_globals.keys())
-        env = Fetcher.jinja_env
+        env = Fetcher().jinja_env
         for entry in tpl:
             req = entry['request']
             rule = entry['rule']
