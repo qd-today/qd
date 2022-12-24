@@ -24,7 +24,7 @@ AUTO_RELOAD=$AUTO_RELOAD
 # Treat unset variables as an error
 set -o nounset
 
-__ScriptVersion="2022.12.15"
+__ScriptVersion="2022.12.24"
 __ScriptName="update.sh"
 
 
@@ -82,7 +82,7 @@ update() {
                 apk del .python-rundeps  
                 echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
             fi
-            apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
+            apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist py3-multidict py3-charset-normalizer py3-aiohttp py3-typing-extensions py3-yarl && \
             if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
                 echo "Info: Qiandao-Lite will not install ddddocr related components. "
             else
@@ -108,6 +108,15 @@ update() {
                 sed -i '/greenlet/d' requirements.txt
                 sed -i '/urllib3/d' requirements.txt
                 sed -i '/cryptography/d' requirements.txt
+                sed -i '/aiosignal/d' requirements.txt
+                sed -i '/async-timeout/d' requirements.txt
+                sed -i '/attrs/d' requirements.txt
+                sed -i '/frozenlist/d' requirements.txt
+                sed -i '/multidict/d' requirements.txt
+                sed -i '/charset-normalizer/d' requirements.txt
+                sed -i '/aiohttp/d' requirements.txt
+                sed -i '/typing-extensions/d' requirements.txt
+                sed -i '/yarl/d' requirements.txt
             fi
             pip install --no-cache-dir -r requirements.txt 
             pip install --no-cache-dir --compile --upgrade pycurl 
@@ -145,7 +154,7 @@ force_update() {
             apk del .python-rundeps  
             echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
-        apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
+        apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist py3-multidict py3-charset-normalizer py3-aiohttp py3-typing-extensions py3-yarl && \
         if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
             echo "Info: Qiandao-Lite will not install ddddocr related components. "
         else
@@ -171,6 +180,15 @@ force_update() {
             sed -i '/greenlet/d' requirements.txt
             sed -i '/urllib3/d' requirements.txt
             sed -i '/cryptography/d' requirements.txt
+            sed -i '/aiosignal/d' requirements.txt
+            sed -i '/async-timeout/d' requirements.txt
+            sed -i '/attrs/d' requirements.txt
+            sed -i '/frozenlist/d' requirements.txt
+            sed -i '/multidict/d' requirements.txt
+            sed -i '/charset-normalizer/d' requirements.txt
+            sed -i '/aiohttp/d' requirements.txt
+            sed -i '/typing-extensions/d' requirements.txt
+            sed -i '/yarl/d' requirements.txt
         fi
         pip install --no-cache-dir -r requirements.txt 
         pip install --no-cache-dir --compile --upgrade pycurl 
@@ -203,7 +221,7 @@ update_version() {
             apk del .python-rundeps  
             echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
         fi
-        apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
+        apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist py3-multidict py3-charset-normalizer py3-aiohttp py3-typing-extensions py3-yarl && \
         if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
             echo "Info: Qiandao-Lite will not install ddddocr related components. "
         else
@@ -229,6 +247,15 @@ update_version() {
             sed -i '/greenlet/d' requirements.txt
             sed -i '/urllib3/d' requirements.txt
             sed -i '/cryptography/d' requirements.txt
+            sed -i '/aiosignal/d' requirements.txt
+            sed -i '/async-timeout/d' requirements.txt
+            sed -i '/attrs/d' requirements.txt
+            sed -i '/frozenlist/d' requirements.txt
+            sed -i '/multidict/d' requirements.txt
+            sed -i '/charset-normalizer/d' requirements.txt
+            sed -i '/aiohttp/d' requirements.txt
+            sed -i '/typing-extensions/d' requirements.txt
+            sed -i '/yarl/d' requirements.txt
         fi
         pip install --no-cache-dir -r requirements.txt 
         pip install --no-cache-dir --compile --upgrade pycurl 

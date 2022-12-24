@@ -398,9 +398,25 @@ async def _send_mail(to, subject, text=None, subtype='html'):
     return
 
 
-import chardet
-from requests.utils import (get_encoding_from_headers,
-                            get_encodings_from_content)
+import charset_normalizer
+from requests.utils import get_encoding_from_headers
+
+
+def get_encodings_from_content(content):
+    """Returns encodings from given content string.
+
+    :param content: bytestring to extract encodings from.
+    """
+
+    charset_re = re.compile(r'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I)
+    pragma_re = re.compile(r'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I)
+    xml_re = re.compile(r'^<\?xml.*?encoding=["\']*(.+?)["\'>]')
+
+    return (
+        charset_re.findall(content)
+        + pragma_re.findall(content)
+        + xml_re.findall(content)
+    )
 
 
 def find_encoding(content, headers=None):
@@ -417,8 +433,8 @@ def find_encoding(content, headers=None):
             encoding = None
 
     # Fallback to auto-detected encoding.
-    if not encoding and chardet is not None:
-        encoding = chardet.detect(content)['encoding']
+    if not encoding and charset_normalizer is not None:
+        encoding = charset_normalizer.detect(content)['encoding']
     
     # Try charset from content
     if not encoding:

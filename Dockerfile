@@ -22,7 +22,10 @@ RUN apk add --update --no-cache openssh-client && \
     ln -s /usr/src/app/update.sh /bin/update && \
     apk add --update --no-cache openssh-client python3 py3-six \
     py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt \
-    py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
+    py3-packaging py3-greenlet py3-urllib3 py3-cryptography \
+    py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist \
+    py3-multidict py3-charset-normalizer py3-aiohttp \
+    py3-typing-extensions py3-yarl && \
     [[ $(getconf LONG_BIT) = "32" ]] && \
     echo "Tips: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python" || \
     apk add --update --no-cache py3-numpy-dev py3-opencv py3-pillow && \
@@ -41,6 +44,15 @@ RUN apk add --update --no-cache openssh-client && \
     sed -i '/greenlet/d' requirements.txt && \
     sed -i '/urllib3/d' requirements.txt && \
     sed -i '/cryptography/d' requirements.txt && \
+    sed -i '/aiosignal/d' requirements.txt && \
+    sed -i '/async-timeout/d' requirements.txt && \
+    sed -i '/attrs/d' requirements.txt && \
+    sed -i '/frozenlist/d' requirements.txt && \
+    sed -i '/multidict/d' requirements.txt && \
+    sed -i '/charset-normalizer/d' requirements.txt && \
+    sed -i '/aiohttp/d' requirements.txt && \
+    sed -i '/typing-extensions/d' requirements.txt && \
+    sed -i '/yarl/d' requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \
     apk del .build_deps && \
     rm -rf /var/cache/apk/* && \

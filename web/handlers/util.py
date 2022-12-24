@@ -19,11 +19,9 @@ try:
 except ImportError as e:
     logger_Web_Util.warning('Import DdddOCR module falied: %s',e)
     ddddocr = None
-import asyncio
 import base64
-import functools
 
-import requests
+import aiohttp
 from Crypto import Random
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -607,6 +605,18 @@ if ddddocr:
 else:
     DdddOCRServer = None
 
+async def get_img(img = "", imgurl="",):
+    if img:
+        return base64.b64decode(img)
+    elif imgurl:
+        async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+            async with session.get(imgurl, verify_ssl=False, timeout=config.request_timeout) as res:
+                content = await res.read()
+                base64_data = base64.b64encode(content).decode()
+                return base64.b64decode(base64_data)
+    else:
+        raise HTTPError(415)
+
 class DdddOcrHandler(BaseHandler):
     async def get(self):
         Rtv = {}
@@ -616,18 +626,11 @@ class DdddOcrHandler(BaseHandler):
                 imgurl = self.get_argument("imgurl", "")
                 old = bool(strtobool(self.get_argument("old", "False"))) 
                 extra_onnx_name = self.get_argument("extra_onnx_name", "")
-                if img:
-                    img = base64.b64decode(img)
-                elif imgurl:
-                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
-                    base64_data = base64.b64encode(res.content).decode()
-                    img = base64.b64decode(base64_data)
-                else:
-                    raise Exception(400)
-                Rtv[u"Result"] = DdddOCRServer.classification(img,old=old, extra_onnx_name=extra_onnx_name)
+                img = await get_img(img, imgurl)
+                Rtv[u"Result"] = DdddOCRServer.classification(img, old=old, extra_onnx_name=extra_onnx_name)
                 Rtv[u"状态"] = "OK"
             else:
-                raise Exception(404)
+                raise HTTPError(406)
         except Exception as e:
             Rtv[u"状态"] = str(e)
 
@@ -651,18 +654,11 @@ class DdddOcrHandler(BaseHandler):
                     old = bool(strtobool(self.get_argument("old", "False"))) 
                     extra_onnx_name = self.get_argument("extra_onnx_name", "")
 
-                if img:
-                    img = base64.b64decode(img)
-                elif imgurl:
-                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
-                    base64_data = base64.b64encode(res.content).decode()
-                    img = base64.b64decode(base64_data)
-                else:
-                    raise Exception(400)
+                img = await get_img(img, imgurl)
                 Rtv[u"Result"] = DdddOCRServer.classification(img, old=old, extra_onnx_name=extra_onnx_name)
                 Rtv[u"状态"] = "OK"
             else:
-                raise Exception(404)
+                raise HTTPError(406)
         except Exception as e:
             Rtv[u"状态"] = str(e)
 
@@ -677,18 +673,11 @@ class DdddDetHandler(BaseHandler):
             if DdddOCRServer:
                 img = self.get_argument("img", "")
                 imgurl = self.get_argument("imgurl", "")
-                if img:
-                    img = base64.b64decode(img)
-                elif imgurl:
-                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
-                    base64_data = base64.b64encode(res.content).decode()
-                    img = base64.b64decode(base64_data)
-                else:
-                    raise Exception(400)
+                img = await get_img(img, imgurl)
                 Rtv[u"Result"] = DdddOCRServer.detection(img)
                 Rtv[u"状态"] = "OK"
             else:
-                raise Exception(404)
+                raise HTTPError(406)
         except Exception as e:
             Rtv[u"状态"] = str(e)
 
@@ -707,14 +696,7 @@ class DdddDetHandler(BaseHandler):
                 else:
                     img = self.get_argument("img", "")
                     imgurl = self.get_argument("imgurl", "")
-                if img:
-                    img = base64.b64decode(img)
-                elif imgurl:
-                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
-                    base64_data = base64.b64encode(res.content).decode()
-                    img = base64.b64decode(base64_data)
-                else:
-                    raise Exception(400)
+                img = await get_img(img, imgurl)
                 Rtv[u"Result"] = DdddOCRServer.detection(img)
                 Rtv[u"状态"] = "OK"
             else:

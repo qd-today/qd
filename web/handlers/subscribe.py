@@ -7,21 +7,17 @@
 
 import base64
 import json
-import os
 import random
 import time
 import traceback
 from urllib.parse import quote
 
-from tornado import gen
+import aiohttp
 
 from config import proxies
-from libs.fetcher import Fetcher
-from libs.utils import find_encoding
 
 from .base import *
 
-fetcher = Fetcher()
 
 class SubscribeHandler(BaseHandler):
     @tornado.web.addslash
@@ -86,45 +82,51 @@ class SubscribeUpdatingHandler(BaseHandler):
                                 url = repo['repourl']
 
                         hfile_link = url + '/tpls_history.json'
-                        obj = {'request': {'method': 'GET', 'url': hfile_link, 'headers': [], 'cookies': []}, 'rule': {
-                            'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                        _,_,res = await fetcher.build_response(obj = obj, proxy = proxy)
-                        if res.code == 200:
-                            hfile = json.loads(res.body.decode(find_encoding(res.body, res.headers), 'replace'))
-                            for har in hfile['har'].values():
-                                for k, v in repo.items():
-                                    har[k] = v
-                                tpl = await self.db.pubtpl.list(name = har['name'], 
-                                                        reponame=har['reponame'],
-                                                        repourl=har['repourl'], 
-                                                        repobranch=har['repobranch'], 
-                                                        fields=('id', 'name', 'version'),
-                                                        sql_session=sql_session)
+                        async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+                            async with session.get(hfile_link, verify_ssl=False, timeout=config.request_timeout) as res:
+                                if res.status == 200:
+                                    hfile = await res.json()
+                                    logger_Web_Handler.info('200 Get repo {repo} history file success!'.format(repo=repo['reponame']))
+                                    for har in hfile['har'].values():
+                                        for k, v in repo.items():
+                                            har[k] = v
+                                        tpl = await self.db.pubtpl.list(name = har['name'], 
+                                                                reponame=har['reponame'],
+                                                                repourl=har['repourl'], 
+                                                                repobranch=har['repobranch'], 
+                                                                fields=('id', 'name', 'version'),
+                                                                sql_session=sql_session)
 
-                                if (len(tpl) > 0):
-                                    if (int(tpl[0]['version']) < int(har['version'])):
-                                        if (har['content'] == ''):
-                                            obj['request']['url'] = "{0}/{1}".format(url, quote(har['filename']))
-                                            _,_,har_res = await fetcher.build_response(obj, proxy = proxy)
-                                            if har_res.code == 200:
-                                                har['content'] = base64.b64encode(har_res.body).decode()
-                                            else:
-                                                msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
-                                                continue
-                                        har['update'] = True
-                                        await self.db.pubtpl.mod(tpl[0]['id'], **har, sql_session=sql_session)
-                                else:
-                                    if (har['content'] == ''):
-                                        obj['request']['url'] = "{0}/{1}".format(url, quote(har['filename']))
-                                        _,_,har_res = await fetcher.build_response(obj, proxy = proxy)
-                                        if har_res.code == 200:
-                                            har['content'] = base64.b64encode(har_res.body).decode()
+                                        if (len(tpl) > 0):
+                                            if (int(tpl[0]['version']) < int(har['version'])):
+                                                if (har['content'] == ''):
+                                                    har_url = "{0}/{1}".format(url, quote(har['filename']))
+                                                    async with session.get(har_url, verify_ssl=False, timeout=config.request_timeout) as har_res:
+                                                        if har_res.status == 200:
+                                                            har['content'] = base64.b64encode(await har_res.read()).decode()
+                                                        else:
+                                                            logger_Web_Handler.error('Update {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['name'], name=har['name'], link=har_url))
+                                                            msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=har_url)
+                                                            continue
+                                                har['update'] = True
+                                                await self.db.pubtpl.mod(tpl[0]['id'], **har, sql_session=sql_session)
+                                                logger_Web_Handler.info('Update {repo} public template {name} success!'.format(repo=repo['name'], name=har['name']))
                                         else:
-                                            msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
-                                            continue
-                                    await self.db.pubtpl.add(har, sql_session=sql_session)
-                        else:
-                            msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=obj['request']['url'])
+                                            if (har['content'] == ''):
+                                                har_url = "{0}/{1}".format(url, quote(har['filename']))
+                                                async with session.get(har_url, verify_ssl=False, timeout=config.request_timeout) as har_res:
+                                                    if har_res.status == 200:
+                                                        har['content'] = base64.b64encode(await har_res.read()).decode()
+                                                    else:
+                                                        logger_Web_Handler.error('Add {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['name'], name=har['name'], link=har_url))
+                                                        msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=har_url)
+                                                        continue
+                                            await self.db.pubtpl.add(har, sql_session=sql_session)
+                                            logger_Web_Handler.info('Add {repo} public template {name} success!'.format(repo=repo['name'], name=har['name']))
+                                        
+                                else:
+                                    logger_Web_Handler.error('Get repo {repo} history file failed! Reason: {link} open error!'.format(repo=repo['name'], link=hfile_link))
+                                    msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=hfile_link)
                 repos["lastupdate"] = now_ts
                 await self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4), sql_session=sql_session)
                 

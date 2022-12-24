@@ -2,24 +2,20 @@
 # -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 
-import asyncio
 import datetime
-import functools
 import json
 import os
 import random
-import sys
 import time
 import traceback
 
+import aiohttp
 import croniter
-import requests
 from tornado import gen
 
 import config
 from db import DB
 from libs import utils
-from libs.fetcher import Fetcher
 
 from .log import Log
 
@@ -27,24 +23,23 @@ logger_Funcs = Log('qiandao.Http.Funcs').getlogger()
 class pusher(object):
     def __init__(self,db=DB(),sql_session=None):
         self.db = db
-        self.fetcher = Fetcher()
         self.sql_session = sql_session
     
-    def judge_res(self,res:requests.Response):
-        if (res.status_code == 200):
-            r = "True"
+    async def judge_res(self,res:aiohttp.ClientResponse):
+        if (res.status == 200):
+            return "True"
         else:
-            if res.text:
+            text = await res.text()
+            if text:
                 try:
-                    text = json.loads(res.text)
-                except :
-                    text = res.text
+                    text = await res.json()
+                except:
+                    pass
                 raise Exception(text)
-            elif res.__dict__.get('reason'):
+            elif res.reason:
                 raise Exception('Reason: %s' % res.reason)
             else:
-                raise Exception('status code: %d' % res.status_code)
-        return r
+                raise Exception('status code: %d' % res.status)
     
     async def pusher(self, userid, pushsw, flg, title, content):
         sql_session = self.sql_session
@@ -94,17 +89,14 @@ class pusher(object):
             if (link[-1] != '/'): link=link+'/'
             content = content.replace('\\r\\n','\n')
             d = {"title":title,"body":content}
-            # obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
-            #        'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-            # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
-            res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
-            r = self.judge_res(res)
+            async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+                    async with session.post(link, json=d, verify_ssl=False, timeout=config.request_timeout) as res:
+                        r = await self.judge_res(res)
 
         except Exception as e:
             r = traceback.format_exc()
             logger_Funcs.error('Sent to Bark error: %s', e)
             return e
-        
         return r
         
     async def send2s(self, skey, title, content):
@@ -114,17 +106,15 @@ class pusher(object):
                 link = u"https://sctapi.ftqq.com/{0}.send".format(skey.replace(".send", ""))
                 content = content.replace('\\r\\n','\n\n')
                 d = {'text': title, 'desp': content}
-                # obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/x-www-form-urlencoded; charset=UTF-8'}], 'cookies': [], 'data':utils.urllib.parse.urlencode(d)}, 'rule': {
-                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
-                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, data=d, verify=False)),timeout=3.0)
-                r = self.judge_res(res)
+                async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+                    async with session.post(link, json=d, verify_ssl=False, timeout=config.request_timeout) as res:
+                        r = await self.judge_res(res)
 
             except Exception as e:
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to ServerChan error: %s', e)
                 return e
-        return r   
+        return r 
     
     async def send2tg(self, tg_token, title, content):
         r = 'False'
@@ -157,19 +147,14 @@ class pusher(object):
                 picurl = config.push_pic if pic == '' else pic
                 content = content.replace('\\r\\n','</pre>\n<pre>')
                 d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QianDao提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
-                # obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
-                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
                 if proxy:
-                    proxies = {
-                        'http': proxy,
-                        'https': proxy
-                    }
-                    # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj, proxy = proxy))
-                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, proxies=proxies, verify=False)),timeout=3.0)
+                    async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+                        async with session.post(link, json=d, verify_ssl=False, proxy=proxy, timeout=config.request_timeout) as res:
+                            r = await self.judge_res(res)
                 else:
-                    # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
-                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
-                r = self.judge_res(res)
+                    async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+                        async with session.post(link, json=d, verify_ssl=False, timeout=config.request_timeout) as res:
+                            r = await self.judge_res(res)
             except Exception as e:
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to Telegram error: %s', e)
@@ -188,13 +173,12 @@ class pusher(object):
                 picurl = config.push_pic if pic == '' else pic
                 content = content.replace('\\r\\n','\n\n > ')
                 d = {"msgtype": "markdown", "markdown": {"title": title, "text": "![QianDao](" + picurl + ")\n " + "#### " + title + "\n > " + content}}
-                # obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
-                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
-                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
-                r = self.judge_res(res)
-                if res.json().get('errcode', '') != 0:
-                    raise Exception(res.json())
+                async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+                    async with session.post(link, json=d, verify_ssl=False, timeout=config.request_timeout) as res:
+                        r = await self.judge_res(res)
+                        _json = await res.json()
+                        if _json.get('errcode', '') != 0:
+                            raise Exception(_json)
             except Exception as e:
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to DingDing error: %s', e)
@@ -218,13 +202,12 @@ class pusher(object):
                             wxpusher_uid
                         ]
                     }
-                # obj = {'request': {'method': 'POST', 'url': link, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(d)}, 'rule': {
-                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
-                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, link, json=d, verify=False)),timeout=3.0)
-                r = self.judge_res(res)
-                if not res.json().get('success', True):
-                    raise Exception(res.json())
+                async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+                    async with session.post(link, json=d, verify_ssl=False, timeout=config.request_timeout) as res:
+                        r = await self.judge_res(res)
+                        _json = await res.json()
+                        if not _json.get('success', True):
+                            raise Exception(_json)
             except Exception as e:
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to WxPusher error: %s', e)
@@ -253,34 +236,28 @@ class pusher(object):
                     headerstmp.pop('Content-Type','')
                 if (diypusher['postMethod'] == 'x-www-form-urlencoded'):
                     headerstmp['Content-Type'] = "application/x-www-form-urlencoded; charset=UTF-8"
-                    # headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
-                    # obj = {'request': {'method': 'POST', 'url': curltmp, 'headers': headerstmp, 'cookies': [], 'data':utils.urllib.parse.urlencode(postDatatmp)}, 'rule': {
-                    #     'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
                     if (postDatatmp != ''):
                         try:
                             postDatatmp = json.loads(postDatatmp)
                         except:
                             if isinstance(postDatatmp, str):
                                 postDatatmp = postDatatmp.encode('utf-8')
-                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, curltmp, headers=headerstmp, data=postDatatmp, verify=False)),timeout=3.0)
+                    async with aiohttp.ClientSession(headers=headerstmp, conn_timeout=config.connect_timeout) as session:
+                        async with session.post(curltmp, data=postDatatmp, verify_ssl=False, timeout=config.request_timeout) as res:
+                            r = await self.judge_res(res)
                 else:
                     headerstmp['Content-Type'] = "application/json; charset=UTF-8"
                     if (postDatatmp != ''):
                         postDatatmp = json.loads(postDatatmp)
-                    # headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
-                    # obj = {'request': {'method': 'POST', 'url': curltmp, 'headers': headerstmp, 'cookies': [], 'data':json.dumps(postDatatmp)}, 'rule': {
-                    #     'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                    res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, curltmp, headers=headerstmp, json=postDatatmp, verify=False)),timeout=3.0)
+                    async with aiohttp.ClientSession(headers=headerstmp, conn_timeout=config.connect_timeout) as session:
+                        async with session.post(curltmp, json=postDatatmp, verify_ssl=False, timeout=config.request_timeout) as res:
+                            r = await self.judge_res(res)
             elif (diypusher['mode'] == 'GET'):
-                # headerstmp = [{'name': name, 'value': headerstmp[name]} for name in headerstmp]
-                # obj = {'request': {'method': 'GET', 'url': curltmp, 'headers': headerstmp, 'cookies': []}, 'rule': {
-                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, curltmp, headers=headerstmp, verify=False)),timeout=3.0)
+                async with aiohttp.ClientSession(headers=headerstmp, conn_timeout=config.connect_timeout) as session:
+                    async with session.get(curltmp, verify_ssl=False, timeout=config.request_timeout) as res:
+                        r = await self.judge_res(res)
             else:
                 raise Exception(u'模式未选择')
-            # _,_,res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
-
-            r = self.judge_res(res)
 
         except Exception as e:
             r = traceback.format_exc()
@@ -291,25 +268,25 @@ class pusher(object):
     # 获取Access_Token
     async def get_access_token(self, qywx:dict):
         access_url = '{qywxProxy}cgi-bin/gettoken?corpid={id}&corpsecret={secret}'.format(qywxProxy=qywx[u'代理'], id=qywx[u'企业ID'], secret=qywx[u'应用密钥'])
-        obj = {'request': {'method': 'GET', 'url': access_url, 'headers': [], 'cookies': []}, 'rule': {
-                'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-        _,_,res = await self.fetcher.build_response(obj = obj)
-        get_access_token_res = json.loads(res.body)
+        async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+            async with session.get(access_url, verify_ssl=False, timeout=config.request_timeout) as res:
+                get_access_token_res = await res.json()
         return get_access_token_res
 
     #上传临时素材,返回素材id
     async def get_ShortTimeMedia(self,pic_url,access_token,qywxProxy):
-        if pic_url == config.push_pic:
-            with open(os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'web','static','img','push_pic.png'),'rb') as f:
-                res = f.read()
-        else:
-            obj = {'request': {'method': 'GET', 'url': pic_url, 'headers': {}, 'cookies': []}, 'rule': {
-                    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-            _,_,res = await self.fetcher.build_response(obj = obj)
-            res = res.body
-        url=f'{qywxProxy}cgi-bin/media/upload?access_token={access_token}&type=image'
-        r = await asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, url, files={'image':res}, json=True, verify=False))
-        return json.loads(r.text)['media_id']
+        async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+            if pic_url == config.push_pic:
+                with open(os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),'web','static','img','push_pic.png'),'rb') as f:
+                    img = f.read()
+            else:
+                async with session.get(pic_url, verify_ssl=False, timeout=config.request_timeout) as res:
+                    img = await res.read()
+            url=f'{qywxProxy}cgi-bin/media/upload?access_token={access_token}&type=image'
+            async with session.post(url, data={'image':img}, verify_ssl=False, timeout=config.request_timeout) as res:
+                await self.judge_res(res)
+                _json = await res.json()
+                return _json['media_id']
 
     async def qywx_pusher_send(self, qywx_token, title:str, log:str):
         r = 'False'
@@ -360,15 +337,12 @@ class pusher(object):
                             "enable_duplicate_check": 0,
                             "duplicate_check_interval": 1800
                             }
-                # obj = {'request': {'method': 'POST', 'url': msgUrl, 'headers': [{'name' : 'Content-Type', 'value': 'application/json; charset=UTF-8'}], 'cookies': [], 'data':json.dumps(postData)}, 'rule': {
-                #    'success_asserts': [], 'failed_asserts': [], 'extract_variables': []}, 'env': {'variables': {}, 'session': []}}
-                # _,_,msg_res = await gen.convert_yielded(self.fetcher.build_response(obj = obj))
-                # tmp = json.loads(msg_res.body)
-                msg_res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.post, msgUrl, json=postData, verify=False)),timeout=3.0)
-                r = self.judge_res(msg_res)
-                tmp = msg_res.json()
-                if (tmp['errmsg'] == 'ok' and tmp['errcode'] == 0):
-                    r = 'True'
+                async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+                    async with session.post(msgUrl, json=postData, verify_ssl=False, timeout=config.request_timeout) as res:
+                        r = await self.judge_res(res)
+                        _json = await res.json()
+                        if _json['errmsg'] == 'ok' and _json['errcode'] == 0:
+                            r = 'True'
             else:
                 raise Exception("企业微信获取AccessToken失败或参数不完整! ")
 

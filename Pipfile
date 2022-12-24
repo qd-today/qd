@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 tornado = "*"
-chardet = "*"
+charset-normalizer = "*"
 requests = "*"
 pbkdf2 = "*"
 pycryptodome = "*"
@@ -24,6 +24,7 @@ passlib = "*"
 aiomysql = "*"
 aiosqlite = "*"
 cryptography = "*"
+aiohttp = "*"
 
 [dev-packages]
 opencv-python-headless = "*"
