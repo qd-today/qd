@@ -399,8 +399,24 @@ async def _send_mail(to, subject, text=None, subtype='html'):
 
 
 import charset_normalizer
-from requests.utils import (get_encoding_from_headers,
-                            get_encodings_from_content)
+from requests.utils import get_encoding_from_headers
+
+
+def get_encodings_from_content(content):
+    """Returns encodings from given content string.
+
+    :param content: bytestring to extract encodings from.
+    """
+
+    charset_re = re.compile(r'<meta.*?charset=["\']*(.+?)["\'>]', flags=re.I)
+    pragma_re = re.compile(r'<meta.*?content=["\']*;?charset=(.+?)["\'>]', flags=re.I)
+    xml_re = re.compile(r'^<\?xml.*?encoding=["\']*(.+?)["\'>]')
+
+    return (
+        charset_re.findall(content)
+        + pragma_re.findall(content)
+        + xml_re.findall(content)
+    )
 
 
 def find_encoding(content, headers=None):

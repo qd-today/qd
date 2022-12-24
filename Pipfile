@@ -24,6 +24,7 @@ passlib = "*"
 aiomysql = "*"
 aiosqlite = "*"
 cryptography = "*"
+aiohttp = "*"
 
 [dev-packages]
 opencv-python-headless = "*"

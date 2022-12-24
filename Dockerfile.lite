@@ -14,7 +14,7 @@ WORKDIR /usr/src/app
 # Qiandao & Pip install modules
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
     # ln -s /usr/bin/python3 /usr/bin/python && \
-    apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography && \
+    apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist py3-multidict py3-charset-normalizer py3-aiohttp py3-typing-extensions py3-yarl && \
     chmod 600 /root/.ssh/id_rsa && \
     ssh-keyscan gitee.com > /root/.ssh/known_hosts && \
     let num=$RANDOM%100+10 && \
@@ -38,6 +38,15 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     sed -i '/greenlet/d' requirements.txt && \
     sed -i '/urllib3/d' requirements.txt && \
     sed -i '/cryptography/d' requirements.txt && \
+    sed -i '/aiosignal/d' requirements.txt && \
+    sed -i '/async-timeout/d' requirements.txt && \
+    sed -i '/attrs/d' requirements.txt && \
+    sed -i '/frozenlist/d' requirements.txt && \
+    sed -i '/multidict/d' requirements.txt && \
+    sed -i '/charset-normalizer/d' requirements.txt && \
+    sed -i '/aiohttp/d' requirements.txt && \
+    sed -i '/typing-extensions/d' requirements.txt && \
+    sed -i '/yarl/d' requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \
     apk del .build_deps && \
     rm -rf /var/cache/apk/* && \

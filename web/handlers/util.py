@@ -19,11 +19,9 @@ try:
 except ImportError as e:
     logger_Web_Util.warning('Import DdddOCR module falied: %s',e)
     ddddocr = None
-import asyncio
 import base64
-import functools
 
-import requests
+import aiohttp
 from Crypto import Random
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -611,9 +609,11 @@ async def get_img(img = "", imgurl="",):
     if img:
         return base64.b64decode(img)
     elif imgurl:
-        res = await asyncio.wait_for(asyncio.get_event_loop().run_in_executor(None, functools.partial(requests.get, imgurl, verify=False)),timeout=6.0)
-        base64_data = base64.b64encode(res.content).decode()
-        return base64.b64decode(base64_data)
+        async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+            async with session.get(imgurl, verify_ssl=False, timeout=config.request_timeout) as res:
+                content = await res.read()
+                base64_data = base64.b64encode(content).decode()
+                return base64.b64decode(base64_data)
     else:
         raise HTTPError(415)
 

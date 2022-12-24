@@ -5,16 +5,7 @@
 #         http://binux.me
 # Created on 2014-08-08 21:06:02
 
-import asyncio
-import datetime
-import functools
-import json
-import os
-import re
 import time
-import urllib
-
-import requests
 
 from .base import *
 

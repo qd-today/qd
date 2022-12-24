@@ -6,14 +6,11 @@ import asyncio
 import platform
 import sys
 
-import requests
 import tornado.log
 
 import config
 from db import db_converter
 from libs.log import Log
-
-requests.packages.urllib3.disable_warnings()
 
 if __name__ == "__main__":
     if sys.getdefaultencoding() != 'utf-8':
