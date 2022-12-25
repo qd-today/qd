@@ -85,7 +85,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                         async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
                             async with session.get(hfile_link, verify_ssl=False, timeout=config.request_timeout) as res:
                                 if res.status == 200:
-                                    hfile = await res.json()
+                                    hfile = await res.json(content_type="")
                                     logger_Web_Handler.info('200 Get repo {repo} history file success!'.format(repo=repo['reponame']))
                                     for har in hfile['har'].values():
                                         for k, v in repo.items():
@@ -105,12 +105,12 @@ class SubscribeUpdatingHandler(BaseHandler):
                                                         if har_res.status == 200:
                                                             har['content'] = base64.b64encode(await har_res.read()).decode()
                                                         else:
-                                                            logger_Web_Handler.error('Update {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['name'], name=har['name'], link=har_url))
+                                                            logger_Web_Handler.error('Update {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['reponame'], name=har['name'], link=har_url))
                                                             msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=har_url)
                                                             continue
                                                 har['update'] = True
                                                 await self.db.pubtpl.mod(tpl[0]['id'], **har, sql_session=sql_session)
-                                                logger_Web_Handler.info('Update {repo} public template {name} success!'.format(repo=repo['name'], name=har['name']))
+                                                logger_Web_Handler.info('Update {repo} public template {name} success!'.format(repo=repo['reponame'], name=har['name']))
                                         else:
                                             if (har['content'] == ''):
                                                 har_url = "{0}/{1}".format(url, quote(har['filename']))
@@ -118,14 +118,14 @@ class SubscribeUpdatingHandler(BaseHandler):
                                                     if har_res.status == 200:
                                                         har['content'] = base64.b64encode(await har_res.read()).decode()
                                                     else:
-                                                        logger_Web_Handler.error('Add {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['name'], name=har['name'], link=har_url))
+                                                        logger_Web_Handler.error('Add {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['reponame'], name=har['name'], link=har_url))
                                                         msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=har_url)
                                                         continue
                                             await self.db.pubtpl.add(har, sql_session=sql_session)
-                                            logger_Web_Handler.info('Add {repo} public template {name} success!'.format(repo=repo['name'], name=har['name']))
+                                            logger_Web_Handler.info('Add {repo} public template {name} success!'.format(repo=repo['reponame'], name=har['name']))
                                         
                                 else:
-                                    logger_Web_Handler.error('Get repo {repo} history file failed! Reason: {link} open error!'.format(repo=repo['name'], link=hfile_link))
+                                    logger_Web_Handler.error('Get repo {repo} history file failed! Reason: {link} open error!'.format(repo=repo['reponame'], link=hfile_link))
                                     msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=hfile_link)
                 repos["lastupdate"] = now_ts
                 await self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4), sql_session=sql_session)
