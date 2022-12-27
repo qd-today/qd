@@ -143,20 +143,14 @@ Docker容器部署方式
 Web源码部署方式
 ===========
 
-1. **Version : python3.8**
+1. **Version >= python3.8**
 
    ``` bash
    # 请先cd到框架源码根目录
    pip3 install -r requirements.txt
    ```
 
-2. **可选 redis, Mysql**
-
-   ``` bash
-   mysql < qiandao.sql
-   ```
-
-3. **修改相关设置**
+2. **修改相关设置**
 
    ``` bash
    # 请先在框架根目录下新建local_config.py, 在linux环境下可执行以下命令
@@ -164,7 +158,7 @@ Web源码部署方式
    # 修改local_config.py文件的内容不受通过git更新源码的影响
    ```
 
-4. **启动**
+3. **启动**
 
    ``` bash
    python ./run.py
@@ -176,13 +170,13 @@ Web源码部署方式
    >
    > 模板需要发布才会在「公开模板」中展示, 你需要管理员权限在「我的发布请求」中审批通过。
 
-5. **设置管理员**
+4. **设置管理员**
 
    ``` bash
    python ./chrole.py your@email.address admin
    ```
 
-6. **qiandao.py-CMD操作**
+5. **qiandao.py-CMD操作**
 
    ``` bash
    python ./qiandao.py tpl.har [--key=value]* [env.json]
