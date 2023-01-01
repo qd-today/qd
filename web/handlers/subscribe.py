@@ -13,7 +13,6 @@ import traceback
 from urllib.parse import quote
 
 import aiohttp
-from tornado.iostream import StreamClosedError
 
 from config import proxies
 
@@ -150,7 +149,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                 tpls = await self.db.pubtpl.list(sql_session=sql_session)
                 try:
                     await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
-                except Exception as e:
+                except:
                     if config.traceback_print:
                         traceback.print_exc()
                 logger_Web_Handler.error('UserID: %s update Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
