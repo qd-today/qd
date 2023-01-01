@@ -65,14 +65,17 @@
                             NProgress.start();
                             count(finish);
                             $.ajax('/subscribe/{{ userid }}/updating/', {
-                                type: 'GET'
+                                type: 'GET',
+                                beforeSend: function (R) {
+                                  R.setRequestHeader('Connection', 'Keep-Alive');
+                                }
                             })
                                 .done(function () {
                                     finish = true;
                                     count(finish)
                                 })
                                 .fail(function () {
-                                    $("#update_loading").html("更新公共模板失败，请刷新重试！").show();
+                                    $("#update_loading").html("更新公共模板失败，请稍后刷新重试，请勿连续刷新！").show();
                                 });
                             return false;
                         }
