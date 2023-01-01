@@ -13,6 +13,7 @@ import traceback
 from urllib.parse import quote
 
 import aiohttp
+from tornado.iostream import StreamClosedError
 
 from config import proxies
 
@@ -82,7 +83,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                                 url = repo['repourl']
 
                         hfile_link = url + '/tpls_history.json'
-                        async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+                        async with aiohttp.ClientSession(conn_timeout=config.connect_timeout*5) as session:
                             async with session.get(hfile_link, verify_ssl=False, timeout=config.request_timeout) as res:
                                 if res.status == 200:
                                     hfile = await res.json(content_type="")
@@ -143,7 +144,10 @@ class SubscribeUpdatingHandler(BaseHandler):
                     traceback.print_exc()
                 user = self.current_user
                 tpls = await self.db.pubtpl.list(sql_session=sql_session)
-                await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
+                try:
+                    await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
+                except StreamClosedError:
+                    pass
                 logger_Web_Handler.error('UserID: %s update Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
                 return
 
