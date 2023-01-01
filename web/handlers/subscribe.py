@@ -136,7 +136,11 @@ class SubscribeUpdatingHandler(BaseHandler):
 
                 tpls = await self.db.pubtpl.list(sql_session=sql_session)
 
-                await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
+                try:
+                    await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
+                except Exception as e:
+                    if config.traceback_print:
+                        traceback.print_exc()
                 return
 
             except Exception as e:
@@ -146,7 +150,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                 tpls = await self.db.pubtpl.list(sql_session=sql_session)
                 try:
                     await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
-                except StreamClosedError:
+                except Exception as e:
                     if config.traceback_print:
                         traceback.print_exc()
                 logger_Web_Handler.error('UserID: %s update Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
