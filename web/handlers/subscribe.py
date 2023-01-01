@@ -147,7 +147,8 @@ class SubscribeUpdatingHandler(BaseHandler):
                 try:
                     await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
                 except StreamClosedError:
-                    pass
+                    if config.traceback_print:
+                        traceback.print_exc()
                 logger_Web_Handler.error('UserID: %s update Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
                 return
 
