@@ -64,6 +64,10 @@ _CONST_OPCODES = set(to_opcodes([
     # 3.6: literal map with constant keys https://bugs.python.org/issue27140
     'BUILD_CONST_KEY_MAP',
     'LIST_EXTEND', 'SET_UPDATE',
+    # 3.11 replace DUP_TOP, DUP_TOP_TWO, ROT_TWO, ROT_THREE, ROT_FOUR
+    'COPY',
+    # Added in 3.11 https://docs.python.org/3.11/whatsnew/3.11.html
+    'RESUME',
 ])) - _BLACKLIST
 
 # operations which are both binary and inplace, same order as in doc'
@@ -86,6 +90,8 @@ _EXPR_OPCODES = _CONST_OPCODES.union(to_opcodes([
     'DICT_MERGE', 'DICT_UPDATE',
     # Basically used in any "generator literal"
     'GEN_START',  # added in 3.10 but already removed from 3.11.
+    # Added in 3.11, replacing all BINARY_* and INPLACE_*
+    'BINARY_OP',
 ])) - _BLACKLIST
 
 _SAFE_OPCODES = _EXPR_OPCODES.union(to_opcodes([
@@ -112,6 +118,22 @@ _SAFE_OPCODES = _EXPR_OPCODES.union(to_opcodes([
     'LOAD_GLOBAL',
 
     'RERAISE', 'JUMP_IF_NOT_EXC_MATCH',
+
+    # replacement of opcodes CALL_FUNCTION, CALL_FUNCTION_KW, CALL_METHOD
+    'PUSH_NULL', 'PRECALL', 'CALL', 'KW_NAMES',
+    # replacement of POP_JUMP_IF_TRUE and POP_JUMP_IF_FALSE
+    'POP_JUMP_FORWARD_IF_FALSE', 'POP_JUMP_FORWARD_IF_TRUE',
+    'POP_JUMP_BACKWARD_IF_FALSE', 'POP_JUMP_BACKWARD_IF_TRUE',
+    #replacement of JUMP_ABSOLUTE
+    'JUMP_BACKWARD',
+    #replacement of JUMP_IF_NOT_EXC_MATCH
+    'CHECK_EXC_MATCH',
+    # new opcodes
+    'RETURN_GENERATOR',
+    'PUSH_EXC_INFO',
+    'NOP',
+    'FORMAT_VALUE', 'BUILD_STRING'
+
 ])) - _BLACKLIST
 
 _logger = Log('qiandao.Http.Fetcher').getlogger()
@@ -335,26 +357,25 @@ def assert_valid_codeobj(allowed_codes, code_obj, expr):
         if isinstance(const, CodeType):
             assert_valid_codeobj(allowed_codes, const, 'lambda')
 
-def test_expr(expr, allowed_codes, mode="eval", check_compiling_input = True):
-    """test_expr(expression, allowed_codes[, mode]) -> code_object
+def test_expr(expr, allowed_codes, mode="eval", filename=None):
+    """test_expr(expression, allowed_codes[, mode[, filename]]) -> code_object
     Test that the expression contains only the allowed opcodes.
     If the expression is valid and contains only allowed codes,
     return the compiled code object.
     Otherwise raise a ValueError, a Syntax Error or TypeError accordingly.
+    :param filename: optional pseudo-filename for the compiled expression,
+                 displayed for example in traceback frames
+    :type filename: string
     """
     try:
-        # Check for potential bad compiler input
-        if check_compiling_input:
-            check_for_pow(expr)
-
         if mode == 'eval':
             # eval() does not like leading/trailing whitespace
             expr = expr.strip()
-        code_obj = compile(expr, "", mode)
-    except (BadCompilingInput, SyntaxError, TypeError, ValueError):
+        code_obj = compile(expr, filename or "", mode)
+    except (SyntaxError, TypeError, ValueError):
         raise
     except Exception as e:
-        raise ValueError('"%s" while compiling\n%r' % (e, expr))
+        raise ValueError('"%s" while compiling\n%r' % (ustr(e), expr))
     assert_valid_codeobj(allowed_codes, code_obj, expr)
     return code_obj
 
@@ -443,8 +464,7 @@ _BUILTINS = {
     'zip': zip,
     'Exception': Exception,
 }
-
-def safe_eval(expr, globals_dict=None, locals_dict=None, mode="eval", nocopy=False, locals_builtins=False):
+def safe_eval(expr, globals_dict=None, locals_dict=None, mode="eval", nocopy=False, locals_builtins=False, filename=None):
     """safe_eval(expression[, globals[, locals[, mode[, nocopy]]]]) -> result
     System-restricted Python expression evaluation
     Evaluates a string that contains an expression that mostly
@@ -452,6 +472,9 @@ def safe_eval(expr, globals_dict=None, locals_dict=None, mode="eval", nocopy=Fal
     objects directly provided in context.
     This can be used to e.g. evaluate
     an OpenERP domain expression from an untrusted source.
+    :param filename: optional pseudo-filename for the compiled expression,
+                     displayed for example in traceback frames
+    :type filename: string
     :throws TypeError: If the expression provided is a code object
     :throws SyntaxError: If the expression provided is not valid Python
     :throws NameError: If the expression provided accesses forbidden names
@@ -485,14 +508,13 @@ def safe_eval(expr, globals_dict=None, locals_dict=None, mode="eval", nocopy=Fal
         if locals_dict is None:
             locals_dict = {}
         locals_dict.update(_BUILTINS)
-    c = test_expr(expr, _SAFE_OPCODES, mode=mode)
+    c = test_expr(expr, _SAFE_OPCODES, mode=mode, filename=filename)
     try:
         return unsafe_eval(c, globals_dict, locals_dict)
     except ZeroDivisionError:
         raise
     except Exception as e:
         raise ValueError('%s: "%s" while evaluating\n%r' % (type(e), e, expr))
-
 def test_python_expr(expr, mode="eval"):
     try:
         test_expr(expr, _SAFE_OPCODES, mode=mode)
