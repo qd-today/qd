@@ -109,8 +109,8 @@ class TaskMultiOperateHandler(BaseHandler):
 
                                     if (time_env['randtimezone1'] != '') and (time_env['randtimezone1'] != ''):
                                         settime_env['randsw'] = True 
-                                    if (time_env['cron_sec'] != ''):
-                                        settime_env['cron_sec'] = time_env['cron_sec'] 
+                                    # if (time_env['cron_sec'] != ''):
+                                    #     settime_env['cron_sec'] = time_env['cron_sec'] 
                                     if (time_env['ontime_method'] == 'ontime'):
                                         if (time_env['ontime_run_date'] == ''):
                                             settime_env['date'] = time.strftime("%Y-%m-%d", time.localtime())
