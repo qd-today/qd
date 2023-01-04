@@ -375,7 +375,7 @@ def test_expr(expr, allowed_codes, mode="eval", filename=None):
     except (SyntaxError, TypeError, ValueError):
         raise
     except Exception as e:
-        raise ValueError('"%s" while compiling\n%r' % (ustr(e), expr))
+        raise ValueError('"%s" while compiling\n%r' % (e, expr))
     assert_valid_codeobj(allowed_codes, code_obj, expr)
     return code_obj
 
