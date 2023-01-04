@@ -26,6 +26,8 @@ from types import CodeType
 
 from opcode import HAVE_ARGUMENT, opmap, opname
 
+import config
+
 from .log import Log
 
 __all__ = ['test_expr', 'safe_eval', 'const_eval']
@@ -294,7 +296,7 @@ def timeout(sec, raise_sec=1):
         return wrapped_func
     return decorator
 
-@timeout(3)
+@timeout(config.unsafe_eval_timeout)
 def unsafe_eval(*args, **kwargs) :
     return eval(*args, **kwargs)
 

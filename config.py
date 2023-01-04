@@ -89,6 +89,7 @@ download_size_limit = int(os.getenv('DOWNLOAD_SIZE_LIMIT', 5*1024*1024))    # �
 request_timeout = float(os.getenv('REQUEST_TIMEOUT', 30.0))                 # HTTPRequest 请求超时时间
 connect_timeout = float(os.getenv('CONNECT_TIMEOUT', 30.0))                 # HTTPRequest 连接超时时间
 delay_max_timeout = float(os.getenv('DELAY_MAX_TIMEOUT', 29.9))             # delay 延时API最大时间限制, 请小于上述timeout配置, 否则会报599错误
+unsafe_eval_timeout = float(os.getenv('UNSAFE_EVAL_TIMEOUT', 3.0))          # unsafe_eval 最大时间限制
 
 # 以下为全局代理域名列表相关设置
 # proxies为全局代理域名列表, 默认为空[], 表示不启用全局代理; 
