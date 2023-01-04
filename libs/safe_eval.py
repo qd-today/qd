@@ -220,7 +220,7 @@ def timeout(sec, raise_sec=1):
                     raise TimeoutError(err_msg)
 
                 signal.signal(signal.SIGALRM, _handle_timeout)
-                signal.alarm(sec)
+                signal.alarm(int(sec))
                 try:
                     result = func(*args, **kwargs)
                 finally:
