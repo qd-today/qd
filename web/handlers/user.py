@@ -515,7 +515,7 @@ class UserDBHandler(BaseHandler):
                                 userid2 = int(userid)
                                 newtask['init_env'] = await self.db.user.encrypt(userid2, newtask['init_env'], sql_session=sql_session)
                                 newtask['env'] = await self.db.user.encrypt(userid2, newtask['env'], sql_session=sql_session)
-                                newtask['retry_count'] = newtask.get('retry_count',8)
+                                newtask['retry_count'] = newtask.get('retry_count',config.task_max_retry_count)
                                 newtask['retry_interval'] = newtask.get('retry_interval')
                                 taskid = await self.db.task.add(newtask['tplid'], userid, newtask['env'], sql_session=sql_session)
                                 await self.db.task.mod(taskid, disabled = newtask['disabled'],

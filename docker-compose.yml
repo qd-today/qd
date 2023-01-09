@@ -54,10 +54,12 @@ services:
       - AES_KEY=binux
       - COOKIE_SECRET=binux
       # - CHECK_TASK_LOOP=500
+      # - TASK_MAX_RETRY_COUNT=8
       # - DOWNLOAD_SIZE_LIMIT=5242880
       # - REQUEST_TIMEOUT=30.0
       # - CONNECT_TIMEOUT=30.0
       # - DELAY_MAX_TIMEOUT=29.9
+      # - UNSAFE_EVAL_TIMEOUT=3.0
       # - PROXIES=
       # - PROXY_DIRECT_MODE=regexp
       # - PROXY_DIRECT=(?xi)\A([a-z][a-z0-9+\-.]*://)?(0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])(:[0-9]+)?

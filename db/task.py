@@ -12,6 +12,8 @@ from sqlalchemy import (INTEGER, VARBINARY, Column, Integer, LargeBinary,
                         String, delete, select, text, update)
 from sqlalchemy.dialects.mysql import TINYINT
 
+import config
+
 from .basedb import AlchemyMixin, BaseDB
 
 
@@ -54,7 +56,7 @@ class Task(BaseDB,AlchemyMixin):
                 userid = userid,
                 disabled = 0,
                 init_env = env,
-                retry_count = 8,
+                retry_count = config.task_max_retry_count,
                 retry_interval = None,
                 last_success = None,
                 last_failed = None,

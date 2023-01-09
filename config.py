@@ -84,6 +84,7 @@ pbkdf2_iterations = int(os.getenv('PBKDF2_ITERATIONS', 400))                # pb
 aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux').encode('utf-8')).digest()                # AES加密密钥, 强烈建议修改
 cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux').encode('utf-8')).digest()    # Cookie加密密钥, 强烈建议修改
 check_task_loop = int(os.getenv('CHECK_TASK_LOOP', 500))                    # Worker检查任务工作循环时间, 单位毫秒
+task_max_retry_count = int(os.getenv('TASK_MAX_RETRY_COUNT', 8))            # 任务失败默认最大重试次数, 默认为8次
 # Tornado httpclient.HTTPRequest参数配置
 download_size_limit = int(os.getenv('DOWNLOAD_SIZE_LIMIT', 5*1024*1024))    # 允许用户单次请求下载最大值
 request_timeout = float(os.getenv('REQUEST_TIMEOUT', 30.0))                 # HTTPRequest 请求超时时间
