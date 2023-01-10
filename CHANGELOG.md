@@ -13,7 +13,7 @@ Nothing right now.
 ### Features
 
 1. 支持6位cron定时 feat qiandao-today/qiandao#347
-2. Support variables for success or fail asserts
+2. 成功失败条件支持jinja2格式变量 Support variables for success or fail asserts
 3. Add keep-alive for updating subscribe
 4. Add config "unsafe_eval_timeout"
 5. Add config "task_max_retry_count"
