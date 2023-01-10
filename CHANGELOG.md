@@ -8,6 +8,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20230111] - 2023.01.11 更新
+
+### Features
+
+1. 支持6位cron定时 feat qiandao-today/qiandao#347
+2. Support variables for success or fail asserts
+3. Add keep-alive for updating subscribe
+4. Add config "unsafe_eval_timeout"
+5. Add config "task_max_retry_count"
+
+### Changed
+
+1. Use aiohttp to initiate requests
+2. 更新 前端组件 & Use pnpm
+
+### Fixed
+
+1. 修复 if 判断表达式报错 Fix qiandao-today/qiandao#350 from odoo/odoo#101136
+2. 修复 Typo
+3. 其他优化和修复
+
 ## [20221218] - 2022.12.18 更新
 
 1. 支持退订默认公共模板分支
