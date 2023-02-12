@@ -43,7 +43,7 @@ class pusher(object):
     
     async def pusher(self, userid, pushsw, flg, title, content):
         sql_session = self.sql_session
-        notice = await self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token', 'diypusher'), sql_session=sql_session)
+        notice = await self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token', 'qywx_webhook', 'diypusher'), sql_session=sql_session)
 
         if (notice['noticeflg'] & flg != 0):
             user = await self.db.user.get(userid, fields=('id', 'email', 'email_verified', 'nickname'), sql_session=sql_session)
@@ -59,6 +59,7 @@ class pusher(object):
             pusher["qywxpushersw"] = False if (notice['noticeflg'] & 0x200) == 0 else True
             pusher["tgpushersw"] = False if (notice['noticeflg'] & 0x400) == 0 else True
             pusher["dingdingpushersw"] = False if (notice['noticeflg'] & 0x800) == 0 else True
+            pusher["qywxwebhooksw"] = False if (notice['noticeflg'] & 0x1000) == 0 else True
 
             def nonepush(*args,**kwargs):
                 return 
@@ -72,7 +73,8 @@ class pusher(object):
                 qywx_pusher_send = self.qywx_pusher_send if (pusher["qywxpushersw"]) else nonepush 
                 send2tg = self.send2tg if (pusher["tgpushersw"]) else nonepush 
                 send2dingding = self.send2dingding if (pusher["dingdingpushersw"]) else nonepush 
-
+                qywx_webhook_send = self.qywx_webhook_send if (pusher["qywxwebhooksw"]) else nonepush
+                
                 await gen.convert_yielded([send2bark(notice['barkurl'], title, content),
                                         send2s(notice['skey'], title, content),
                                         send2wxpusher( notice['wxpusher'], title+u"  "+content),
@@ -80,7 +82,9 @@ class pusher(object):
                                         cus_pusher_send( diypusher, title, content),
                                         qywx_pusher_send( notice['qywx_token'], title, content),
                                         send2tg( notice['tg_token'], title, content),
-                                        send2dingding(notice['dingding_token'], title, content)])
+                                        send2dingding(notice['dingding_token'], title, content),
+                                        qywx_webhook_send(notice['qywx_webhook'], title, content)
+                                        ])
 
     async def send2bark(self, barklink, title, content):
         r = 'False'
@@ -300,7 +304,7 @@ class pusher(object):
                 qywx[u'图片'] = tmp[3] if len(tmp) >= 4 else ''
                 qywx[u'代理'] = tmp[4] if len(tmp) >= 5 else 'https://qyapi.weixin.qq.com/'
             else:
-                raise Exception(u'企业微信获取AccessToken失败或参数不完整!')
+                raise Exception(u'企业微信Pusher获取AccessToken失败或参数不完整!')
 
             if qywx[u'代理'][-1]!='/':
                 qywx[u'代理'] = qywx[u'代理'] + '/'
@@ -341,14 +345,48 @@ class pusher(object):
                     async with session.post(msgUrl, json=postData, verify_ssl=False, timeout=config.request_timeout) as res:
                         r = await self.judge_res(res)
                         _json = await res.json()
-                        if _json['errmsg'] == 'ok' and _json['errcode'] == 0:
+                        if _json.get('errmsg','') == 'ok' and _json.get('errcode',0) == 0:
                             r = 'True'
+                        elif _json.get('errmsg','') != '':
+                            raise Exception(_json['errmsg'])
             else:
-                raise Exception("企业微信获取AccessToken失败或参数不完整! ")
+                raise Exception("企业微信Pusher获取AccessToken失败或参数不完整! ")
 
         except Exception as e:
             r = traceback.format_exc()
-            logger_Funcs.error('Sent to QYWX error: %s', e)
+            logger_Funcs.error('Sent to QYWX Pusher error: %s', e)
+            return e
+        return r
+    
+    async def qywx_webhook_send(self, qywx_webhook, title:str, log:str):
+        r = 'False'
+        try:
+            qywx = {}
+            tmp = qywx_webhook.split(';')
+            if len(tmp) >= 1:
+                qywx[u'Webhook'] = tmp[0]
+            else:
+                raise Exception(u'企业微信WebHook获取AccessToken失败或参数不完整!')
+            
+            log = log.replace("\\r\\n", "\n")
+
+            msgUrl = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={0}".format(qywx[u'Webhook'])
+            postData = {"msgtype": "text",
+                        "text": {
+                            "content": f"{title}\n{log}"
+                        }
+                        }
+            async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+                async with session.post(msgUrl, json=postData, verify_ssl=False, timeout=config.request_timeout) as res:
+                    r = await self.judge_res(res)
+                    _json = await res.json()
+                    if _json.get('errmsg','') == 'ok' and _json.get('errcode',0) == 0:
+                        r = 'True'
+                    elif _json.get('errmsg','') != '':
+                        raise Exception(_json['errmsg'])
+        except Exception as e:
+            r = traceback.format_exc()
+            logger_Funcs.error('Sent to QYWX WebHook error: %s', e)
             return e
         return r
 

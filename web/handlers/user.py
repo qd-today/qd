@@ -60,6 +60,7 @@ class UserRegPush(BaseHandler):
         qywx_token = env["qywx_token"]
         tg_token = env["tg_token"]
         dingding_token = env["dingding_token"]
+        qywx_webhook = env["qywx_webhook"]
         log = ""
         if  ("reg" == self.get_body_argument('func')):
             try:
@@ -96,9 +97,9 @@ class UserRegPush(BaseHandler):
                     if (qywx_token != ""):
                         await self.db.user.mod(userid, qywx_token = qywx_token, sql_session=sql_session)
                         if ((await self.db.user.get(userid, fields=('qywx_token',), sql_session=sql_session))["qywx_token"] == qywx_token):
-                            log = log+u"注册 企业微信 成功\r\n"
+                            log = log+u"注册 企业微信 Pusher 成功\r\n"
                         else:
-                            log = log+u"注册 企业微信 失败\r\n"
+                            log = log+u"注册 企业微信 Pusher 失败\r\n"
                     else:
                         log = log+u"企业微信 未填写完整\r\n"
 
@@ -119,6 +120,15 @@ class UserRegPush(BaseHandler):
                             log = log+u"注册 DingDing Bot 失败\r\n"
                     else:
                         log = log+u"DingDing Bot 未填写完整\r\n"
+                        
+                    if (qywx_webhook != ""):
+                        await self.db.user.mod(userid, qywx_webhook = qywx_webhook, sql_session=sql_session)
+                        if ((await self.db.user.get(userid, fields=('qywx_webhook',), sql_session=sql_session))["qywx_webhook"] == qywx_webhook):
+                            log = log+u"注册 企业微信 Webhook 成功\r\n"
+                        else:
+                            log = log+u"注册 企业微信 Webhook 失败\r\n"
+                    else:
+                        log = log+u"企业微信 Webhook 未填写完整\r\n"
 
             except Exception as e:
                 if config.traceback_print:
@@ -138,7 +148,7 @@ class UserRegPush(BaseHandler):
                 if (barkurl != ""):
                     r = await f.send2bark(barkurl, u"正在测试Bark", u"{t} 发送测试".format(t=t))
                     if r == 'True':
-                        log = u"Bark 已推送,请检查是否收到\r\n"
+                        log = u"Bark 已推送, 请检查是否收到\r\n"
                     else:
                         log = u"Bark 推送失败, 失败原因: {}\r\n".format(r)
                 else:
@@ -147,7 +157,7 @@ class UserRegPush(BaseHandler):
                 if (skey != ""):
                     r = await f.send2s(skey, u"正在测试S酱", u"{t} 发送测试".format(t=t))
                     if r == 'True':
-                        log = log+u"S酱 已推送,请检查是否收到\r\n"
+                        log = log+u"S酱 已推送, 请检查是否收到\r\n"
                     else:
                         log = log+u"S酱 推送失败, 失败原因: {}\r\n".format(r)
                 else:
@@ -156,25 +166,25 @@ class UserRegPush(BaseHandler):
                 if (wxpusher_token != ""):
                     r = await f.send2wxpusher("{0}".format(wxpusher_token),u"{t} 发送测试".format(t=t))
                     if r == 'True':
-                        log = log+u"WxPusher 已推送,请检查是否收到\r\n"
+                        log = log+u"WxPusher 已推送, 请检查是否收到\r\n"
                     else:
                         log = log+u"WxPusher 推送失败, 失败原因: {}\r\n".format(r)
                 else:
                     log = log+u"WxPusher 未填写完整\r\n"
                 
                 if (qywx_token != ""):
-                    r = await f.qywx_pusher_send(qywx_token, "正在测试企业微信", u"{t} 发送测试".format(t=t))
+                    r = await f.qywx_pusher_send(qywx_token, "正在测试企业微信 Pusher", u"{t} 发送测试".format(t=t))
                     if r == 'True':
-                        log = log+u"企业微信 已推送,请检查是否收到\r\n"
+                        log = log+u"企业微信 Pusher 已推送, 请检查是否收到\r\n"
                     else:
-                        log = log+u"企业微信 推送失败, 失败原因: {}\r\n".format(r)
+                        log = log+u"企业微信 Pusher 推送失败, 失败原因: {}\r\n".format(r)
                 else:
                     log = log+u"企业微信 未填写完整\r\n"
 
                 if (tg_token != ""):
                     r = await f.send2tg(tg_token, "正在测试Tg Bot", u"{t} 发送测试".format(t=t))
                     if r == 'True':
-                        log = log+u"Tg Bot 已推送,请检查是否收到\r\n"
+                        log = log+u"Tg Bot 已推送, 请检查是否收到\r\n"
                     else:
                         log = log+u"Tg Bot 推送失败, 失败原因: {}\r\n".format(r)
                 else:
@@ -183,11 +193,18 @@ class UserRegPush(BaseHandler):
                 if (dingding_token != ""):
                     r = await f.send2dingding(dingding_token, "正在测试DingDing Bot", u"{t} 发送测试".format(t=t))
                     if r == 'True':
-                        log = log+u"DingDing Bot 已推送,请检查是否收到\r\n"
+                        log = log+u"DingDing Bot 已推送, 请检查是否收到\r\n"
                     else:
                         log = log+u"DingDing Bot 推送失败, 失败原因: {}\r\n".format(r)
                 else:
                     log = log+u"DingDing Bot 未填写完整\r\n"
+                    
+                if (qywx_webhook != ""):
+                    r = await f.qywx_webhook_send(qywx_webhook, "正在测试企业微信 Webhook", u"{t} 发送测试".format(t=t))
+                    if r == 'True':
+                        log = log+u"企业微信 Webhook 已推送, 请检查是否收到\r\n"
+                    else:
+                        log = log+u"企业微信 Webhook 推送失败, 失败原因: {}\r\n".format(r)
 
             except Exception as e:
                 if config.traceback_print:
@@ -213,18 +230,20 @@ class UserRegPushSw(BaseHandler):
         push_batch['time']=time.strftime("%H:%M:%S",time.localtime(int(push_batch['time'])))
         temp = temp['noticeflg']
         flg = {}
+        flg['handpush_succ'] = False if ((temp & 0x008) == 0) else True 
+        flg['handpush_fail'] = False if ((temp & 0x004) == 0) else True 
+        flg['autopush_succ'] = False if ((temp & 0x002) == 0) else True 
+        flg['autopush_fail'] = False if ((temp & 0x001) == 0) else True
+        
         flg['barksw']        = False if ((temp & 0x040) == 0) else True 
         flg['schansw']       = False if ((temp & 0x020) == 0) else True 
         flg['wxpushersw']    = False if ((temp & 0x010) == 0) else True
         flg['mailpushersw']  = False if ((temp & 0x080) == 0) else True
         flg['cuspushersw']   = False if ((temp & 0x100) == 0) else True
-        flg['qywxpushersw']   = False if ((temp & 0x200) == 0) else True
-        flg['tgpushersw']   = False if ((temp & 0x400) == 0) else True
-        flg['dingdingpushersw']   = False if ((temp & 0x800) == 0) else True
-        flg['handpush_succ'] = False if ((temp & 0x008) == 0) else True 
-        flg['handpush_fail'] = False if ((temp & 0x004) == 0) else True 
-        flg['autopush_succ'] = False if ((temp & 0x002) == 0) else True 
-        flg['autopush_fail'] = False if ((temp & 0x001) == 0) else True
+        flg['qywxpushersw']  = False if ((temp & 0x200) == 0) else True
+        flg['tgpushersw']    = False if ((temp & 0x400) == 0) else True
+        flg['dingdingpushersw'] = False if ((temp & 0x800) == 0) else True
+        flg['qywxwebhooksw'] = False if ((temp & 0x1000) == 0) else True
         logtime = json.loads((await self.db.user.get(userid, fields=('logtime',)))['logtime'])
         if 'schanEN' not in logtime:logtime['schanEN'] = False
         if 'WXPEn' not in logtime:logtime['WXPEn'] = False
@@ -278,12 +297,14 @@ class UserRegPushSw(BaseHandler):
                 qywxpushersw_flg  = 1 if ("qywxpushersw" in env) else 0 
                 tgpushersw_flg  = 1 if ("tgpushersw" in env) else 0 
                 dingdingpushersw_flg  = 1 if ("dingdingpushersw" in env) else 0 
+                qywxwebhooksw_flg  = 1 if ("qywxwebhooksw" in env) else 0
                 handpush_succ_flg = 1 if ("handpush_succ" in env) else 0
                 handpush_fail_flg = 1 if ("handpush_fail" in env) else 0
                 autopush_succ_flg = 1 if ("autopush_succ" in env) else 0
                 autopush_fail_flg = 1 if ("autopush_fail" in env) else 0
                 
-                flg =(dingdingpushersw_flg << 11) \
+                flg = (qywxwebhooksw_flg << 12) \
+                    | (dingdingpushersw_flg << 11) \
                     | (tgpushersw_flg << 10) \
                     | (qywxpushersw_flg << 9) \
                     | (cuspushersw_flg << 8) \
@@ -559,14 +580,16 @@ class UserPushShowPvar(BaseHandler):
             mail = envs['adminmail']
             pwd = envs['adminpwd']
             if await self.db.user.challenge_MD5(mail, pwd) and (user['email'] == mail):
-                key = await self.db.user.get(userid, fields=("barkurl", 'skey', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token'))
-                log = u"""BarkUrl 前值：{bark}\r\nSendkey 前值：{skey}\r\nWxPusher 前值：{wxpusher}\r\n企业微信 前值：{qywx_token}\r\nTg Bot 前值：{tg_token}\r\nDingDing Bot 前值：{dingding_token}""".format(
+                key = await self.db.user.get(userid, fields=("barkurl", 'skey', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token', 'qywx_webhook'))
+                log = u"""BarkUrl 前值：{bark}\r\nSendkey 前值：{skey}\r\nWxPusher 前值：{wxpusher}\r\n企业微信 Pusher 前值：{qywx_token}\r\nTg Bot 前值：{tg_token}\r\nDingDing Bot 前值：{dingding_token}\r\n企业微信 WebHook 前值: {qywx_webhook}""".format(
                           bark = key['barkurl'],
                           skey = key['skey'],
                           wxpusher = key['wxpusher'],
                           qywx_token = key['qywx_token'],
                           tg_token = key['tg_token'],
-                          dingding_token = key['dingding_token'])
+                          dingding_token = key['dingding_token'],
+                          qywx_webhook = key['qywx_webhook'])
+                
                 await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
                 return
             else:

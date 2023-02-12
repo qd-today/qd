@@ -56,6 +56,7 @@ class DBconverter():
             `status`  VARCHAR(1024) NOT NULL DEFAULT 'Enable',
             `diypusher` VARCHAR(1024) NOT NULL DEFAULT '',
             `qywx_token` VARCHAR(1024) NOT NULL DEFAULT '',
+            `qywx_webhook` VARCHAR(1024) NOT NULL DEFAULT '',
             `tg_token` VARCHAR(1024) NOT NULL DEFAULT '',
             `dingding_token` VARCHAR(1024) NOT NULL DEFAULT '',
             `push_batch` VARCHAR(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
@@ -409,6 +410,12 @@ class DBconverter():
             await exec_shell("ALTER TABLE `user` ADD `qywx_token`  VARCHAR(1024) NOT NULL DEFAULT '' ") 
         
         try:
+            await self.db.user.list(limit=1, fields=('qywx_webhook',))
+        except Exception as e:
+            logger_DB_converter.debug(e)
+            await exec_shell("ALTER TABLE `user` ADD `qywx_webhook`  VARCHAR(1024) NOT NULL DEFAULT '' ")
+        
+        try:
             await self.db.user.list(limit=1, fields=('tg_token',))
         except Exception as e:
             logger_DB_converter.debug(e)
@@ -495,9 +502,10 @@ class DBconverter():
                 `qywx_token` VARCHAR(1024) NOT NULL DEFAULT '',
                 `tg_token` VARCHAR(1024) NOT NULL DEFAULT '',
                 `dingding_token` VARCHAR(1024) NOT NULL DEFAULT '',
+                `qywx_webhook` VARCHAR(1024) NOT NULL DEFAULT '',
                 `push_batch` VARCHAR(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
                 );'''% autokey)
-            await exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token`,`push_batch` FROM `userold`")
+            await exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`qywx_webhook`,`tg_token`,`dingding_token`,`push_batch` FROM `userold`")
             await exec_shell("DROP TABLE `userold`")
         except Exception as e:
             if str(e).find('has no attribute \'notepad\'') < 0 and str(e).find('no such column') < 0:
@@ -545,9 +553,10 @@ class DBconverter():
                     `qywx_token` VARCHAR(1024) NOT NULL DEFAULT '',
                     `tg_token` VARCHAR(1024) NOT NULL DEFAULT '',
                     `dingding_token` VARCHAR(1024) NOT NULL DEFAULT '',
+                    `qywx_webhook` VARCHAR(1024) NOT NULL DEFAULT '',
                     `push_batch` VARCHAR(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
                     );''' % autokey)
-                await exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token`,`push_batch` FROM `userold` ")
+                await exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`qywx_webhook`,`tg_token`,`dingding_token`,`push_batch` FROM `userold` ")
                 await exec_shell("DROP TABLE `userold` ")
         except Exception as e:
             logger_DB_converter.debug(e)
@@ -609,11 +618,12 @@ class DBconverter():
                     `status`  VARCHAR(1024) NOT NULL DEFAULT 'Enable',
                     `diypusher` VARCHAR(1024) NOT NULL DEFAULT '',
                     `qywx_token` VARCHAR(1024) NOT NULL DEFAULT '',
+                    `qywx_webhook` VARCHAR(1024) NOT NULL DEFAULT '',
                     `tg_token` VARCHAR(1024) NOT NULL DEFAULT '',
                     `dingding_token` VARCHAR(1024) NOT NULL DEFAULT '',
                     `push_batch` VARCHAR(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
                     );''' % autokey, sql_session=sql_session)
-                await exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`tg_token`,`dingding_token`,`push_batch` FROM `userold` ", sql_session=sql_session)
+                await exec_shell("INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`qywx_webhook`,`tg_token`,`dingding_token`,`push_batch` FROM `userold` ", sql_session=sql_session)
                 await exec_shell("DROP TABLE `userold` ", sql_session=sql_session)
         except Exception as e:
             logger_DB_converter.debug(e)
