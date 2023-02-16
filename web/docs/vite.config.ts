@@ -19,8 +19,8 @@ segment.useDefault();
 
 var options = {
     encode: function (str: any) {
-        return segment.doSegment(str, {simple: true});
-      },
+        return segment.doSegment(str, { simple: true });
+    },
     tokenize: "forward",
 };
 

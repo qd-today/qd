@@ -1,13 +1,13 @@
 ---
 layout: home
-title: 一个HTTP定时任务自动执行Web框架
+title: HTTP定时任务自动执行框架
 
 hero:
   name: QD
   text: 一个 HTTP 定时任务自动执行 Web 框架
   tagline: ""
   image:
-    src: /icon.png
+    src: /logo.png
     alt: QD
   actions:
     - theme: brand

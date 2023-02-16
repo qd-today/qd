@@ -9,4 +9,5 @@ export default defineConfig({
     title: 'QD',
     locales: locales.locales,
     base: '/qiandao/',
+    head: [['link', { rel: 'icon', href: '/qiandao/favicon.ico' }],],
 })

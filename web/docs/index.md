@@ -1,13 +1,13 @@
 ---
 layout: home
-title: A web framework for HTTP timed task automation.
+title: HTTP task automation framework
 
 hero:
   name: QD
   text: A web framework for HTTP timed task automation.
   tagline: ""
   image:
-    src: /icon.png
+    src: /logo.png
     alt: QD
   actions:
     - theme: brand
