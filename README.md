@@ -61,7 +61,7 @@ Qiandao —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR
 操作说明
 ==========
 
-请参阅 **[使用指南](https://qiandao-today.github.io)**
+请参阅 **[使用指南](https://qiandao-today.github.io/qiandao/zh_CN/)**
 
 更新日志
 ===========
