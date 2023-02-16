@@ -8,4 +8,5 @@ const pkg = require('vitepress/package.json')
 export default defineConfig({
     title: 'QD',
     locales: locales.locales,
+    base: '/qiandao/',
 })
