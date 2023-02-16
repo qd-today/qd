@@ -3,7 +3,7 @@ name: Deploy Webdoc
 on:
   push:
     branches:
-      - main
+      - master
       - webdoc
     paths:
       - '.github/workflows/deploy-webdoc.yml'
@@ -11,6 +11,7 @@ on:
 
 jobs:
   deploy:
+    if: startsWith(github.repository, 'qiandao-today/qiandao')
     runs-on: ubuntu-latest
     defaults:
       run:
