@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Features
+
+1. 添加企业微信Webhook支持 feat qiandao-today/qiandao#361
+2. 添加 [QD 文档站](https://qiandao-today.github.io/qiandao/)
+3. 新建任务时自动提取模板变量 default 值 feat a76yyyy/qiandao#29
+
+### Changed
+
+1. 支持在API请求中使用 int(variable) 和 float(variable) 语法 fix qiandao-today/qiandao#374
+
+### Fixed
+
+1. 修复 config 文件夹不存在导致报错的bug Fix qiandao-today/qiandao#363
+
 Nothing right now.
 
 ## [20230111] - 2023.01.11 更新
