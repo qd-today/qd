@@ -17,6 +17,7 @@ import uuid
 import jinja2
 from Crypto.Cipher import AES
 from faker import Faker
+from jinja2.filters import do_float, do_int
 from tornado import gen, httpclient
 
 import config
@@ -799,6 +800,8 @@ def _aes_decrypt(word:str, key:str, mode='CBC', iv:str=None, input_format='base6
 jinja_globals = {
     # types
     'quote_chinese': quote_chinese,
+    'int': do_int,
+    'float': do_float,
     'bool': to_bool,
     'utf8': utf8,
     'unicode': conver2unicode,
