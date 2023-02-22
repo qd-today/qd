@@ -135,7 +135,7 @@ class DBnew():
                                       'mip', 'aip', 'skey', 'barkurl', 'wxpusher', 'noticeflg', 'logtime', 'status', 'notepad', 'diypusher', 'qywx_token', 'tg_token', 'dingding_token', 'qywx_webhook', 'push_batch'))
             userkey = maindb.db.user.__getuserkey(user['env'])
             tpls = []
-            for tpl in maindb.db.tpl.list(fields=('id', 'userid', 'siteurl', 'sitename', 'banner', 'disabled', 'public', 'lock', 'fork', 'har', 'tpl', 'variables', 'interval', 'note', 'success_count', 'failed_count', 'last_success', 'ctime', 'mtime', 'atime', 'tplurl', 'updateable', '_groups'), limit=None):
+            for tpl in maindb.db.tpl.list(fields=('id', 'userid', 'siteurl', 'sitename', 'banner', 'disabled', 'public', 'lock', 'fork', 'har', 'tpl', 'variables', 'interval', 'note', 'success_count', 'failed_count', 'last_success', 'ctime', 'mtime', 'atime', 'tplurl', 'updateable', '_groups', 'init_env'), limit=None):
                 if tpl['userid'] == userid:
                     tpls.append(tpl)
             tasks = []

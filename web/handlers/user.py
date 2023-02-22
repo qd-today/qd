@@ -469,7 +469,7 @@ class UserDBHandler(BaseHandler):
                 if await self.db.user.challenge_MD5(mail, pwd, sql_session=sql_session) and (user['email'] == mail):
                     if ('backuptplsbtn' in envs):
                         tpls = []
-                        for tpl in await self.db.tpl.list(userid=userid, fields=('id', 'siteurl', 'sitename', 'banner', 'note','fork', '_groups', 'har', 'tpl', 'variables'), limit=None, sql_session=sql_session):
+                        for tpl in await self.db.tpl.list(userid=userid, fields=('id', 'siteurl', 'sitename', 'banner', 'note','fork', '_groups', 'har', 'tpl', 'variables','init_env'), limit=None, sql_session=sql_session):
                             tpl['tpl'] = await self.db.user.decrypt(userid, tpl['tpl'], sql_session=sql_session)
                             tpl['har'] = await self.db.user.decrypt(userid, tpl['har'], sql_session=sql_session)
                             tpls.append(tpl)
@@ -519,7 +519,8 @@ class UserDBHandler(BaseHandler):
                                 har = await self.db.user.encrypt(userid2, newtpl['har'], sql_session=sql_session)
                                 tpl = await self.db.user.encrypt(userid2, newtpl['tpl'], sql_session=sql_session)
                                 variables = newtpl['variables']
-                                newid = await self.db.tpl.add(userid2, har, tpl, variables, sql_session=sql_session)
+                                init_env = newtpl.get('init_env', "{}")
+                                newid = await self.db.tpl.add(userid2, har, tpl, variables, init_env=init_env, sql_session=sql_session)
                                 await self.db.tpl.mod(newid, fork = newtpl['fork'],
                                                     siteurl = newtpl['siteurl'],
                                                     sitename = newtpl['sitename'],

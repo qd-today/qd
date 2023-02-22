@@ -43,8 +43,11 @@ class TaskNewHandler(BaseHandler):
         if tplid:
             tplid = int(tplid)
 
-            tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid', 'note', 'sitename', 'siteurl', 'variables')))
+            tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid', 'note', 'sitename', 'siteurl', 'variables','init_env')))
             variables = json.loads(tpl['variables'])
+            if not tpl['init_env']:
+                tpl['init_env'] = '{}'
+            init_env = json.loads(tpl['init_env'])
 
             _groups = []
             if user:
@@ -55,7 +58,7 @@ class TaskNewHandler(BaseHandler):
                     if (temp not  in _groups):
                         _groups.append(temp)
             
-            await self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=tpl['variables'], default_retry_count=config.task_max_retry_count)
+            await self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=init_env, default_retry_count=config.task_max_retry_count)
         else:
             await self.render('utils_run_result.html', log=u'请先添加模板！', title=u'设置失败', flg='danger')
 

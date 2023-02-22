@@ -22,6 +22,7 @@ __ALL__ = ['HTTPError', 'BaseHandler', 'BaseWebSocket', 'BaseUIModule', 'logger_
 
 class BaseHandler(tornado.web.RequestHandler):
     application_export = set(('db', 'fetcher'))
+    db:DB
     # db = DB()
     def __getattr__(self, key):
         if key in self.application_export:

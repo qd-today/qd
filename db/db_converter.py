@@ -12,7 +12,6 @@ from sqlalchemy import update
 
 import config
 from db import DB, Site, Task, Tpl, User
-from db.basedb import BaseDB
 from libs import mcrypto as crypto
 from libs.log import Log
 
@@ -84,7 +83,8 @@ class DBconverter():
             `atime` INT UNSIGNED NOT NULL,
             `tplurl` VARCHAR(1024) NULL DEFAULT '',
             `updateable` INT UNSIGNED NOT NULL DEFAULT 0,
-            `_groups` VARCHAR(256) NOT NULL DEFAULT 'None'
+            `_groups` VARCHAR(256) NOT NULL DEFAULT 'None',
+            `init_env` TEXT NULL
             );'''% autokey)
             await exec_shell('''CREATE TABLE IF NOT EXISTS `task` (
             `id` INTEGER NOT NULL PRIMARY KEY %s,
@@ -669,5 +669,37 @@ class DBconverter():
             result = await self.db._update(update(Tpl).where(Tpl.userid == None).where(Tpl.public == 0).values(public=1))
         except Exception as e:
             logger_DB_converter.debug(e)
+            
+        try:
+            await self.db.tpl.list(limit=1, fields=('init_env',))
+        except Exception as e:
+            logger_DB_converter.debug(e)
+            await exec_shell("ALTER TABLE `tpl` ADD `init_env` TEXT NULL" )
+            from jinja2.nodes import Filter, Name
+
+            from libs.fetcher import Fetcher
+            env = Fetcher().jinja_env
+            async with self.db.transaction() as sql_session:
+                tpls = await self.db.tpl.list(fields=('id', 'userid', 'tpl', 'variables', 'init_env'), sql_session=sql_session)
+                for tpl in tpls:
+                    if not tpl['init_env']:
+                        if not tpl['variables']:
+                            tpl['variables'] = '[]'
+                        variables = json.loads(tpl['variables'])
+                        init_env = {}
+                        if variables:
+                            _tpl = await self.db.user.decrypt(0 if not tpl['userid'] else tpl['userid'], tpl['tpl'], sql_session=sql_session)
+                            try:
+                                ast = env.parse(_tpl)
+                                for x in ast.find_all(Filter):
+                                    if x.name == 'default' and isinstance(x.node, Name) and len(x.args) > 0 and x.node.name in variables and x.node.name not in init_env:
+                                        try:
+                                            init_env[x.node.name] = x.args[0].as_const()
+                                        except Exception as e:
+                                            logger_DB_converter.debug('Convert init_env error: %s' % e)
+                            except Exception as e:
+                                logger_DB_converter.debug('Convert init_env error: %s' % e)
+                        await self.db.tpl.mod(tpl['id'], init_env=json.dumps(init_env), sql_session=sql_session)
+                    
 
         return 
