@@ -41,7 +41,8 @@ six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3
 sqlalchemy[asyncio]==1.4.46
 tornado==6.2
 u-msgpack-python==2.7.2
-urllib3==1.26.14; python_version >= 
+urllib3==1.26.14; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
+yarl==1.8.2; python_version >= '3.7'
 # ddddocr==1.4.7
 # opencv-python-headless==4.7.0.68
 # pycurl==7.45.2
