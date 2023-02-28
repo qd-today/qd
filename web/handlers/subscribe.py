@@ -34,9 +34,8 @@ class SubscribeHandler(BaseHandler):
                 proxy = random.choice(proxies)
             else:
                 proxy = {}
-            now_ts = int(time.time())
             # 如果上次更新时间大于1天则更新模板仓库
-            if (now_ts - int(repos['lastupdate']) > 24 * 3600):
+            if (int(time.time()) - int(repos['lastupdate']) > 24 * 3600):
                 tpls = await self.db.pubtpl.list()
                 await self.render('pubtpl_wait.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
                 return
@@ -56,22 +55,22 @@ class SubscribeHandler(BaseHandler):
 class SubscribeUpdatingHandler(BaseHandler):
     @tornado.web.addslash
     @tornado.web.authenticated
-    async def get(self, userid):
+    async def post(self, userid):
         msg = ''
         user = self.current_user
         adminflg = False
+        success = False
         if (user['id'] == int(userid)) and (user['role'] == u'admin'):
             adminflg = True
-        async with self.db.transaction() as sql_session:
-            repos = json.loads((await self.db.site.get(1, fields=('repos',), sql_session=sql_session))['repos'])
-            try:
+        try:
+            async with self.db.transaction() as sql_session:
+                repos = json.loads((await self.db.site.get(1, fields=('repos',), sql_session=sql_session))['repos'])
                 if proxies:
                     proxy = random.choice(proxies)
                 else:
                     proxy = {}
-                now_ts = int(time.time())
                 # 如果上次更新时间大于1天则更新模板仓库
-                if (now_ts - int(repos['lastupdate']) > 24 * 3600):
+                if (int(time.time()) - int(repos['lastupdate']) > 24 * 3600):
                     for repo in repos['repos']:
                         if repo['repoacc']:
                             url = '{0}@{1}'.format(repo['repourl'].replace('https://github.com/', 'https://cdn.jsdelivr.net/gh/'), repo['repobranch'])
@@ -106,7 +105,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                                                             har['content'] = base64.b64encode(await har_res.read()).decode()
                                                         else:
                                                             logger_Web_Handler.error('Update {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['reponame'], name=har['name'], link=har_url))
-                                                            msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=har_url)
+                                                            msg += '打开链接错误{link}\r\n'.format(link=har_url)
                                                             continue
                                                 har['update'] = True
                                                 await self.db.pubtpl.mod(tpl[0]['id'], **har, sql_session=sql_session)
@@ -119,41 +118,41 @@ class SubscribeUpdatingHandler(BaseHandler):
                                                         har['content'] = base64.b64encode(await har_res.read()).decode()
                                                     else:
                                                         logger_Web_Handler.error('Add {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['reponame'], name=har['name'], link=har_url))
-                                                        msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=har_url)
+                                                        msg += '打开链接错误{link}\r\n'.format(link=har_url)
                                                         continue
                                             await self.db.pubtpl.add(har, sql_session=sql_session)
                                             logger_Web_Handler.info('Add {repo} public template {name} success!'.format(repo=repo['reponame'], name=har['name']))
                                         
                                 else:
                                     logger_Web_Handler.error('Get repo {repo} history file failed! Reason: {link} open error!'.format(repo=repo['reponame'], link=hfile_link))
-                                    msg += '{pre}\r\n打开链接错误{link}\r\n'.format(pre=msg, link=hfile_link)
-                repos["lastupdate"] = now_ts
-                await self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4), sql_session=sql_session)
+                                    msg += '打开链接错误{link}\r\n'.format(link=hfile_link)
                 
-                if msg:
-                    raise Exception(msg)
+            if msg:
+                raise Exception(msg)
+            success = True
+        except Exception as e:
+            if config.traceback_print:
+                traceback.print_exc()
+                
+            msg = str(e).replace('\\r\\n','\r\n')
+            if msg.endswith('\r\n'):
+                msg = msg[:-2]
+            logger_Web_Handler.error('UserID: %s update Subscribe failed! Reason: %s', userid, msg)
 
-                tpls = await self.db.pubtpl.list(sql_session=sql_session)
-
-                try:
-                    await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
-                except Exception as e:
-                    if config.traceback_print:
-                        traceback.print_exc()
-                return
-
-            except Exception as e:
-                if config.traceback_print:
-                    traceback.print_exc()
-                user = self.current_user
-                tpls = await self.db.pubtpl.list(sql_session=sql_session)
-                try:
-                    await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
-                except:
-                    if config.traceback_print:
-                        traceback.print_exc()
-                logger_Web_Handler.error('UserID: %s update Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
-                return
+        try:
+            async with self.db.transaction() as sql_session:
+                repos = json.loads((await self.db.site.get(1, fields=('repos',), sql_session=sql_session))['repos'])
+                repos["lastupdate"] = int(time.time())
+                await self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4), sql_session=sql_session)
+            
+            if success:
+                self.write(json.dumps({'code': 0, 'msg': '更新成功, 请刷新页面查看'}))
+            else:
+                self.write(json.dumps({'code': 1, 'msg': '失败原因: ' + msg.replace("\r\n", "<br>") + "<br>Note: 请刷新页面并修改配置后, 通过强制更新或重建缓存重试!" }))
+        except Exception as e:
+            if config.traceback_print:
+                traceback.print_exc()
+        return
 
 class SubscribeRefreshHandler(BaseHandler):
     @tornado.web.authenticated
