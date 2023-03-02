@@ -32,16 +32,18 @@ class HAREditor(BaseHandler):
         if (reponame != '') and (harname != ''):
             tpl = await self.db.pubtpl.list(filename = harname, 
                                       reponame = reponame,
-                                      fields=('id', 'name', 'content'))
+                                      fields=('id', 'name', 'content', 'comments'))
             if (len(tpl) > 0):
                 hardata = tpl[0]['content']
+                harnote = tpl[0]['comments']
             else:
                 await self.render('tpl_run_failed.html', log=u'此模板不存在')
                 return
         else:
             hardata = ''
+            harnote = ''
 
-        return await self.render('har/editor.html', tplid=id, harpath=reponame, harname=harname, hardata=hardata)
+        return await self.render('har/editor.html', tplid=id, harpath=reponame, harname=harname, hardata=hardata, harnote=harnote)
 
     async def post(self, id):
         user = self.current_user

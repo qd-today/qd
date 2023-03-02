@@ -144,6 +144,9 @@ define (require, exports, module) ->
           $scope.setting.sitename ?= first_entry and utils.get_domain(first_entry.request.url).split('.')[0]
           parsed_url = first_entry and utils.url_parse(first_entry.request.url)
           $scope.setting.siteurl ?= parsed_url.protocol == 'https:' and "#{parsed_url.protocol}//#{parsed_url.host}" or parsed_url.host
+          if HARNOTE != ""
+            $scope.setting.note ?= HARNOTE.replaceAll("&lt;br&gt;", "\r\n")
+          return
         catch error
           console.error(error)
 
