@@ -1,4 +1,11 @@
-{% if tpl.note %}<div class="alert alert-info">{{ tpl.note }}</div>{% endif %}
+{% if tpl.note %}
+<label class="control-label">模板说明</label>
+<div class="alert alert-info">
+  {% autoescape false %}
+  {{ tpl.note|replace("\r\n","<br>")|replace("\n","<br>") }}
+  {% endautoescape %}
+</div>
+{% endif %}
 
 {% macro asurl(siteurl) %}{{ 'http://'+siteurl if not siteurl.startswith('http') else siteurl }}{% endmacro %}
 

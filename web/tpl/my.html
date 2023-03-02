@@ -422,6 +422,7 @@
           if(_hiddenGroups[key]) {
             // $('input[type="checkbox"][name="'+key+'"]').prop('checked', _hiddenGroups[key])
             let _hiddenButton = document.getElementsByName(key)[0]
+            if (_hiddenButton == undefined) continue;
             _hiddenButton.className = _hiddenButton.className.replaceAll('dropup','')
           }
         }
