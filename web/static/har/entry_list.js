@@ -207,7 +207,9 @@
             base1.siteurl = parsed_url.protocol === 'https:' && `${parsed_url.protocol}//${parsed_url.host}` || parsed_url.host;
           }
           if (HARNOTE !== "") {
-            return (base2 = $scope.setting).note != null ? base2.note : base2.note = HARNOTE.replaceAll("&lt;br&gt;", "\r\n");
+            if ((base2 = $scope.setting).note == null) {
+              base2.note = HARNOTE.replaceAll("&lt;br&gt;", "\r\n");
+            }
           }
         } catch (error1) {
           error = error1;
