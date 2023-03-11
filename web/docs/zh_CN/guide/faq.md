@@ -76,3 +76,23 @@ QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycur
 > `pycurl` 模块在 Windows 系统上安装比较麻烦，需要安装 `libcurl` 库，具体安装方法请参考 [pycurl官方文档](http://pycurl.io/docs/latest/install.html)。
 >
 > 建议使用容器或 linux 系统部署 QD 框架, Docker 容器已预装Curl环境, 默认安装pycurl模组。
+
+## 如何注册推送方式
+
+你可以在`工具箱`->`推送注册`中注册不同的推送工具，以便在发生特定事件（例如签到失败）时向你推送通知
+
+### TgBot
+
+假设你已经创建了一个具有自定义域名的 Telegram bot API:
+
+`https://tg.mydomain.com/bot1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/sendMessage?chat_id=222222222&text=HelloWorld`
+
+上面这个请求将会向`222222222`这个聊天发送一条`HelloWorld`消息。那么在注册TgBot作为推送方式时：
+
+- `TG_TOKEN` 应当填写bot的ID以及对应的key的组合，但是不包括`bot`，即申请TgBot时BotFather提供的token：`1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA` 
+- `TG_USERID` 应当填写telegram API中的`chat_id`字段，即 `222222222`
+- `TG_HOST` 填`tg.mydomain.com`，也可以带上`http://`或者`https://`前缀
+
+因此最终填写形式形如：
+
+`1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA;222222222;tg.mydomain.com`
