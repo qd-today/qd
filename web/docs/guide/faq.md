@@ -76,3 +76,23 @@ However, `pycurl` is not required in this framework, if you don't need to use th
 > The `pycurl` module is cumbersome to install on the Windows system, and the `libcurl` library needs to be installed. For the specific installation method, please refer to [pycurl official documentation](http://pycurl.io/docs/latest/install.html).
 >
 > It is recommended to use a container or linux system to deploy the QD framework. The docker container has a pre-installed Curl environment, and the pycurl module is installed by default
+
+## How to Register Notification Tools
+
+You can register different notification tools to receive notifications when specific events (such as failed check-ins) occur.
+
+### TgBot
+
+Assuming you have created a Telegram bot API with a custom domain::
+
+`https://tg.mydomain.com/bot1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/sendMessage?chat_id=222222222&text=HelloWorld`
+
+The above request will send a `HelloWorld` message to the chat with ID `222222222`. When registering TgBot as a notification method:
+
+- `TG_TOKEN` should be filled with the combination of the bot ID and corresponding key, but without `bot`. That is, the token provided by BotFather when applying for TgBot: `1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`
+- `TG_USERID` should be filled with the `chat_id` field in the Telegram API, that is, `222222222`
+- `TG_HOST` should be filled with `tg.mydomain.com`, and it can also include the `http://` or `https://` prefix
+
+Therefore, the final result looks like:
+
+`1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA;222222222;tg.mydomain.com`
