@@ -34,7 +34,7 @@ export default defineConfig({
     },
 
     editLink: {
-      pattern: 'https://github.com/qiandao-today/qiandao/edit/master/docs/:path',
+      pattern: 'https://github.com/qiandao-today/qiandao/edit/master/web/docs/:path',
       text: '在 GitHub 中编辑此页面'
     },
 
