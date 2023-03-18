@@ -391,7 +391,8 @@ async def _send_mail(to, subject, text=None, subtype='html'):
         logger_Util.info('send mail to {}'.format(to))
         s = config.mail_ssl and smtplib.SMTP_SSL(config.mail_smtp) or smtplib.SMTP(config.mail_smtp)
         s.connect(config.mail_smtp)
-        s.login(config.mail_user, config.mail_password)
+        if config.mail_user:
+            s.login(config.mail_user, config.mail_password)
         s.sendmail(config.mail_from, to, msg.as_string())
         s.close()
     except Exception as e:
