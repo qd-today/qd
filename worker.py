@@ -88,7 +88,7 @@ class BaseWorker(object):
             logger_Worker.error('Push batch task failed: {}'.format(str(e)))
 
     @staticmethod
-    def failed_count_to_time(last_failed_count, retry_count=8, retry_interval=None, interval=None):
+    def failed_count_to_time(last_failed_count, retry_count=config.task_max_retry_count, retry_interval=None, interval=None):
         next = None
         if last_failed_count < retry_count or retry_count == -1:
             if retry_interval:

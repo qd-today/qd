@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}编辑签到{% endblock %}
+{% block title %}QD 模板编辑{% endblock %}
 
 {% block head %}
 {{ super() }}
@@ -16,6 +16,7 @@
   HARPATH = "{{ harpath }}";
   HARNAME = "{{ harname }}";
   HARDATA = "{{ hardata }}";
+  HARNOTE = "{{ harnote }}";
 </script>
 
 <script src="{{ static_url('components/draggable-polyfill/lib/draggable-polyfill.js') }}"></script>
@@ -187,8 +188,6 @@
           <div class="modal-content">
             <div class="modal-header">
               <h4 class="modal-title">保存HAR</h4>
-			  <!-- 编辑HAR保存-增加时间转换工具 -->
-			  <a href="http://tool.chinaz.com/Tools/time" id="har-guide" class="btn btn-default" target="_blank" style="position:absolute;margin:10px 10px;top:0;right:0;">时间转换工具</a>
             </div>
             <div class="modal-body">
               <div class="alert alert-danger" role="alert" style="display: none;">
@@ -218,7 +217,7 @@
                 <div class="form-group">
                   <label class="col-sm-3 control-label">备注</label>
                   <div class="col-sm-9">
-                    <input ng-model="setting.note" placeholder="作者、版本号、功能详情等">
+                    <textarea rows="8" ng-model="setting.note" placeholder="请输入 模板说明、功能详情等"></textarea>
                   </div>
                 </div>
 

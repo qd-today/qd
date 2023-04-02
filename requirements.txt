@@ -6,8 +6,8 @@
 #
 
 -i https://pypi.tuna.tsinghua.edu.cn/simple
-aiofiles==22.1.0
-aiohttp==3.8.3
+aiofiles==23.1.0
+aiohttp==3.8.4
 aiomysql==0.1.1
 aiosignal==1.3.1; python_version >= '3.7'
 aiosqlite==0.18.0
@@ -15,34 +15,34 @@ async-timeout==4.0.2; python_version >= '3.6'
 attrs==22.2.0; python_version >= '3.6'
 certifi==2022.12.7; python_version >= '3.6'
 cffi==1.15.1
-charset-normalizer==2.1.1
+charset-normalizer==3.0.1
 colorama==0.4.6; sys_platform == 'win32'
 croniter==1.3.8
-# ddddocr==1.4.3
-cryptography==38.0.4
-faker==15.3.4
+cryptography==39.0.1
+faker==17.0.0
 frozenlist==1.3.3; python_version >= '3.7'
-greenlet==2.0.1; python_version >= '3' and platform_machine == 'aarch64' or (platform_machine == 'ppc64le' or (platform_machine == 'x86_64' or (platform_machine == 'amd64' or (platform_machine == 'AMD64' or (platform_machine == 'win32' or platform_machine == 'WIN32')))))
+greenlet==2.0.2; python_version >= '3' and platform_machine == 'aarch64' or (platform_machine == 'ppc64le' or (platform_machine == 'x86_64' or (platform_machine == 'amd64' or (platform_machine == 'AMD64' or (platform_machine == 'win32' or platform_machine == 'WIN32')))))
 idna==3.4; python_version >= '3.5'
 incremental==22.10.0
 jinja2==3.1.2
-markupsafe==2.1.1; python_version >= '3.7'
-# opencv-python-headless==4.5.5.62
+markupsafe==2.1.2; python_version >= '3.7'
 multidict==6.0.4; python_version >= '3.7'
 passlib==1.7.4
 pbkdf2==1.3
 pycparser==2.21
-pycryptodome==3.16.0
-# pycurl==7.45.2
+pycryptodome==3.17
 pymysql==1.0.2; python_version >= '3.6'
 pysocks==1.7.1
 python-dateutil==2.8.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-pytz==2022.7
-redis==4.4.0
-requests==2.28.1
+pytz==2022.7.1
+redis==4.5.1
+requests==2.28.2
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-sqlalchemy[asyncio]==1.4.45
+sqlalchemy[asyncio]==1.4.46
 tornado==6.2
 u-msgpack-python==2.7.2
-urllib3==1.26.13; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
+urllib3==1.26.14; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
 yarl==1.8.2; python_version >= '3.7'
+# ddddocr==1.4.7
+# opencv-python-headless==4.7.0.68
+# pycurl==7.45.2

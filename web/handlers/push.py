@@ -120,7 +120,7 @@ class PushActionHandler(BaseHandler):
         self.redirect('/pushs')
 
     async def accept(self, pr, sql_session=None):
-        tplobj = await self.db.tpl.get(pr['from_tplid'], fields=('id', 'userid', 'tpl', 'variables', 'sitename', 'siteurl', 'note', 'banner', 'interval'), sql_session=sql_session)
+        tplobj = await self.db.tpl.get(pr['from_tplid'], fields=('id', 'userid', 'tpl', 'variables', 'sitename', 'siteurl', 'note', 'banner', 'interval', 'init_env'), sql_session=sql_session)
         if not tplobj:
             self.cancel(pr)
             raise HTTPError(404)
@@ -137,6 +137,7 @@ class PushActionHandler(BaseHandler):
                     har = har,
                     tpl = tpl,
                     variables = tplobj['variables'],
+                    init_env=tplobj['init_env'],
                     interval = tplobj['interval'],
                     sql_session=sql_session
                     )
@@ -156,6 +157,7 @@ class PushActionHandler(BaseHandler):
                     tpl = tpl,
                     public = 1,
                     variables = tplobj['variables'],
+                    init_env = tplobj['init_env'],
                     interval = tplobj['interval'],
                     sitename = tplobj['sitename'],
                     siteurl = tplobj['siteurl'],

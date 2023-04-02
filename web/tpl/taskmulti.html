@@ -49,11 +49,11 @@
     </div>
     <div id='cron_content' style="display: none;">
       <div name="ontime readme">
-        <label class="control-label">仅支持5位标准 Cron 格式：</label>
+        <label class="control-label">Cron 内容：</label>
       </div>
-      <input type="text" class="form-control" id="cron_val" name="cron_val"  id="cron_val" placeholder="0 12 * * *" >
-      <label class="control-label">精确到秒：</label>
-      <input type="number" id="cron_sec" name="cron_sec" value="" class="modal_input" min="0" max="59" oninput="if(value>59)value=59;if(value.length>2)value=value.slice(0,2);if(value<0)value=0" />
+      <input type="text" class="form-control" id="cron_val" name="cron_val"  id="cron_val" placeholder="5/6位cron格式: 分 时 天 月 周 [秒]" >
+      <!-- <label class="control-label">精确到秒：</label>
+      <input type="number" id="cron_sec" name="cron_sec" value="" class="modal_input" min="0" max="59" oninput="if(value>59)value=59;if(value.length>2)value=value.slice(0,2);if(value<0)value=0" /> -->
     </div>
     <div id="randtime_content">
       <div name="randzone readme">
@@ -142,7 +142,7 @@
           'randtimezone1' : $('#randtimezone1')[0].value,
           'randtimezone2' : $('#randtimezone2')[0].value,
           'cron_val' : $('#cron_val')[0].value,
-          'cron_sec' : $('#cron_sec')[0].value,
+          // 'cron_sec' : $('#cron_sec')[0].value,
         }
         data['settime'] = JSON.stringify(settime_tmp);
       }

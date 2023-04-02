@@ -51,6 +51,7 @@ class User(BaseDB,AlchemyMixin):
     qywx_token = Column(String(1024), nullable=False, server_default=text("''"))
     tg_token = Column(String(1024), nullable=False, server_default=text("''"))
     dingding_token = Column(String(1024), nullable=False, server_default=text("''"))
+    qywx_webhook = Column(String(1024), nullable=False, server_default=text("''"))
     push_batch = Column(String(1024), nullable=False, server_default=text('\'{"sw":false,"time":0,"delta":86400}\''))
     nickname = Column(String(64), unique=True, index=True)
     role = Column(String(128))

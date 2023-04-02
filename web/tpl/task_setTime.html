@@ -24,9 +24,9 @@
     <input type="time" id="ontime_val" value="{{ ontime.time }}" name='ontimevalue', step="1" />
   </div>
   <div id='cron_content' {% if ontime.mode == 'cron' %} style="display: block;" {% else %} style="display: none;" {% endif %}>
-    <input type="text" class="form-control" id="cron_val" name="cron_val" {% if ontime.mode == 'cron'%} value="{{ontime.cron_val}}" {% endif %} id="cron_val" placeholder="仅支持5位标准 cron格式" >
-    <label class="control-label">精确到秒：</label>
-    <input type="number" id="cron_sec" name="cron_sec" value="{{ ontime.cron_sec }}" class="modal_input" min="0" max="59"/>
+    <input type="text" class="form-control" id="cron_val" name="cron_val" {% if ontime.mode == 'cron'%} value="{{ontime.cron_val}}" {% endif %} id="cron_val" placeholder="5/6位cron格式: 分 时 天 月 周 [秒]" >
+    <!-- <label class="control-label">精确到秒：</label>
+    <input type="number" id="cron_sec" name="cron_sec" value="{{ ontime.cron_sec }}" class="modal_input" min="0" max="59"/> -->
   </div>
   <div id="randtime_content">
     <div name="randzone readme">
@@ -87,7 +87,7 @@
           sendData['time'] = $('#ontime_val')[0].value;
         } else if (sendData['mode'] == 'cron'){
           sendData['cron_val'] = $('#cron_val')[0].value;
-          sendData['cron_sec'] = $('#cron_sec')[0].value;
+          // sendData['cron_sec'] = $('#cron_sec')[0].value;
         } else{
           $('#run-result').html("<h1 class=\"alert alert-danger text-center\">模式错误</h1><div><pre>模式错误</pre></div>").show();
           return false;

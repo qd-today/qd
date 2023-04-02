@@ -16,12 +16,8 @@
     <h2>
       已注册仓库
       {% if adminflg %}
-      <span type="span" class="btn btn-default"> 
-        <a data-load-method="GET" class="modal_load"  href="/subscribe/signup_repos/{{userid}}/" title="注册模板仓库">注册</a>       
-      </span>
-      <span type="span" class="btn btn-default"> 
-        <a data-load-method="GET" class="modal_load"  href="/subscribe/unsubscribe_repos/{{userid}}/" title="取消注册此仓库">退订</a>       
-      </span>
+        <button type="button" data-load-method="GET" class="btn btn-default modal_load"  href="/subscribe/signup_repos/{{userid}}/" title="注册模板仓库">注册</button>       
+        <button type="button" data-load-method="GET" class="btn btn-default modal_load"  href="/subscribe/unsubscribe_repos/{{userid}}/" title="取消注册此仓库">退订</button>       
       {% endif %}
     </h2>
     <table id="register_repo" class="table table-hover tablesorter">
@@ -61,16 +57,10 @@
     <h2>
       模板
       {% if adminflg %}
-      <span type="span" class="btn btn-default">
-        <a data-method="POST" href="/subscribe/refresh/{{userid}}/?op=refresh" title="只更新,不清除缓存">强制更新</a>
-      </span>
-      <span type="span" class="btn btn-default">
-        <a data-method="POST" href="/subscribe/refresh/{{userid}}/?op=clear" title="有任务重复的时候，请尝试重建缓存">重建缓存</a>
-      </span>
+        <a data-method="POST" class="btn btn-default" href="/subscribe/refresh/{{userid}}/?op=refresh" title="只更新,不清除缓存">强制更新</a>
+        <a data-method="POST" class="btn btn-default" href="/subscribe/refresh/{{userid}}/?op=clear" title="有任务重复的时候，请尝试重建缓存">重建缓存</a>
       {% endif %}
-      <span type="span" class="btn btn-default">
-        <a href="https://github.com/qiandao-today/templates/discussions/171" title="求模板链接" target="_blank">求模板</a>
-      </span>
+        <button type="button" class="btn btn-default" onclick="window.open('https://github.com/qiandao-today/templates/discussions/171')" title="求模板链接" style="outline: none;">求模板</button>
     </h2>
     <div class="input-group margin-bottom-sm">
       <span class="input-group-addon"><i class="fa fa-search" aria-hidden="true"></i></span>
@@ -93,15 +83,11 @@
         <tr>
           <td style="text-align:center">
             <div class="btn-group btn-group-xs" role="group" aria-label="...">
-                  <span type="span" class="btn btn-default">
-                    <a href="/har/edit?reponame={{ tpl.reponame | urlencode }}&name={{ tpl.filename | urlencode }}" target="_blank" id="{{ tpl.name }}" title="订阅此模板">订阅</a>
-                  </span>
+              <button type="button" class="btn btn-default" onclick="window.open('/har/edit?reponame={{ tpl.reponame | urlencode }}&name={{ tpl.filename | urlencode }}')" id="{{ tpl.name }}" title="订阅此模板" style="outline: none;">订阅</button>
             </div>
             {% if tpl.commenturl != '' %}
             <div class="btn-group btn-group-xs" role="group" aria-label="...">
-              <span type="span" class="btn btn-default">
-                <a href="{{tpl.commenturl}}" target="_blank" id="{{ tpl.name }}" title="跳转到评论区" rel="noopener noreferrer">评论</a>
-              </span>
+              <button type="button" class="btn btn-default" onclick="window.open('{{tpl.commenturl}}')" id="{{ tpl.name }}" title="跳转到评论区" style="outline: none;" rel="noopener noreferrer">评论</button>
             </div>
             {% endif %}
           </td>

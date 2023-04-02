@@ -66,12 +66,14 @@ class TPLPushHandler(BaseHandler):
 class TPLVarHandler(BaseHandler):
     async def get(self, tplid):
         user = self.current_user
-        tpl = await self.db.tpl.get(tplid, fields=('id', 'note', 'userid', 'sitename', 'siteurl', 'variables'))
+        tpl = await self.db.tpl.get(tplid, fields=('id', 'note', 'userid', 'sitename', 'siteurl', 'variables', 'init_env'))
         if not self.permission(tpl):
             self.evil(+5)
             await self.finish('<span class="alert alert-danger">没有权限</span>')
             return
-        await self.render('task_new_var.html', tpl=tpl, variables=json.loads(tpl['variables']))
+        if not tpl['init_env']:
+            tpl['init_env'] = '{}'
+        await self.render('task_new_var.html', tpl=tpl, variables=json.loads(tpl['variables']), init_env=json.loads(tpl['init_env']))
 
 class TPLDelHandler(BaseHandler):
     @tornado.web.authenticated

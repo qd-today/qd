@@ -164,7 +164,7 @@
         return $scope.ev_click(save_link);
       };
       $scope.pre_save = function() {
-        var alert_elem, alert_info_elem, base, base1, error, first_entry, parsed_url;
+        var alert_elem, alert_info_elem, base, base1, base2, error, first_entry, parsed_url;
         alert_elem = angular.element('#save-har .alert-danger').hide();
         alert_info_elem = angular.element('#save-har .alert-info').hide();
         first_entry = (function() {
@@ -203,7 +203,14 @@
             base.sitename = first_entry && utils.get_domain(first_entry.request.url).split('.')[0];
           }
           parsed_url = first_entry && utils.url_parse(first_entry.request.url);
-          return (base1 = $scope.setting).siteurl != null ? base1.siteurl : base1.siteurl = parsed_url.protocol === 'https:' && `${parsed_url.protocol}//${parsed_url.host}` || parsed_url.host;
+          if ((base1 = $scope.setting).siteurl == null) {
+            base1.siteurl = parsed_url.protocol === 'https:' && `${parsed_url.protocol}//${parsed_url.host}` || parsed_url.host;
+          }
+          if (HARNOTE !== "") {
+            if ((base2 = $scope.setting).note == null) {
+              base2.note = HARNOTE.replaceAll("&lt;br&gt;", "\r\n");
+            }
+          }
         } catch (error1) {
           error = error1;
           return console.error(error);

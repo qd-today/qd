@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}我的签到{% endblock %}
+{% block title %}QD 首页{% endblock %}
 
 {% block head %}
 {{ super() }}
@@ -13,7 +13,7 @@
 <section class="task", id="task section">
   <div class="container">
     <h2>
-      我的签到
+      我的任务
       <a href="/task/new" class="btn btn-default btn-xs modal_load glyphicon glyphicon-plus"></a>
       {% if adminflg %}
       <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/user/{{ userid }}/manage" title="管理用户">管理用户
@@ -422,6 +422,7 @@
           if(_hiddenGroups[key]) {
             // $('input[type="checkbox"][name="'+key+'"]').prop('checked', _hiddenGroups[key])
             let _hiddenButton = document.getElementsByName(key)[0]
+            if (_hiddenButton == undefined) continue;
             _hiddenButton.className = _hiddenButton.className.replaceAll('dropup','')
           }
         }

@@ -55,12 +55,12 @@
 
   <div class="form-group">
     <label class="control-label" for="retry_count">重试次数</label>
-    <input type="number" class="form-control" name="_binux_retry_count" list="retry_count" value="{{ retry_count or 8 }}" min="-1" max="8" placeholder="选择或填写重试次数, 不填保持默认" style="width:100%">
+    <input type="number" class="form-control" name="_binux_retry_count" list="retry_count" value="{{ retry_count or default_retry_count }}" min="-1" max="{{ default_retry_count }}" placeholder="选择或填写重试次数, 不填保持默认" style="width:100%">
     <datalist id="retry_count" style="display:none;">
       <option selected="selected" value="">请选择</option>
       <option value="-1">始终重试</option>
       <option value="0">不重试</option>
-      <option value="8">默认</option>
+      <option value="{{ default_retry_count }}">默认</option>
     </datalist>
     {%if retry_count != '' %}
     <div class="text">前值: </div><div class="autowrap showbut" id="pvar_retry_count">{{ retry_count }}

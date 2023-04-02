@@ -14,6 +14,7 @@ from io import BytesIO
 
 import umsgpack
 from jinja2 import Environment, meta
+from jinja2.nodes import Const, Filter, Getattr, List, Name, Tuple
 from tornado import gen, httpclient
 
 from libs import utils
@@ -31,16 +32,18 @@ class HAREditor(BaseHandler):
         if (reponame != '') and (harname != ''):
             tpl = await self.db.pubtpl.list(filename = harname, 
                                       reponame = reponame,
-                                      fields=('id', 'name', 'content'))
+                                      fields=('id', 'name', 'content', 'comments'))
             if (len(tpl) > 0):
                 hardata = tpl[0]['content']
+                harnote = tpl[0]['comments']
             else:
                 await self.render('tpl_run_failed.html', log=u'此模板不存在')
                 return
         else:
             hardata = ''
+            harnote = ''
 
-        return await self.render('har/editor.html', tplid=id, harpath=reponame, harname=harname, hardata=hardata)
+        return await self.render('har/editor.html', tplid=id, harpath=reponame, harname=harname, hardata=hardata, harnote=harnote)
 
     async def post(self, id):
         user = self.current_user
@@ -48,18 +51,18 @@ class HAREditor(BaseHandler):
         
         async with self.db.transaction() as sql_session:
             tpl = self.check_permission(
-                    await self.db.tpl.get(id, fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note', 'interval', 'har', 'variables', 'lock'), sql_session=sql_session))
+                    await self.db.tpl.get(id, fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note', 'interval', 'har', 'variables', 'lock', 'init_env'), sql_session=sql_session))
 
             tpl['har'] = await self.db.user.decrypt(tpl['userid'], tpl['har'], sql_session=sql_session)
             tpl['variables'] = json.loads(tpl['variables'])
+            if not tpl['init_env']:
+                tpl['init_env'] = '{}'
+            envs = json.loads(tpl['init_env'])
             if taskid:
                 task = await self.db.task.get(taskid, sql_session=sql_session)
                 if task['init_env']:
-                    envs = await self.db.user.decrypt(user['id'], task['init_env'], sql_session=sql_session)
-                else:
-                    envs = {}
-            else:
-                envs = {}
+                    task_envs = await self.db.user.decrypt(user['id'], task['init_env'], sql_session=sql_session)
+                    envs.update(task_envs)
 
             #await self.db.tpl.mod(id, atime=time.time(), sql_session=sql_session)
         await self.finish(dict(
@@ -120,11 +123,11 @@ class HARTest(BaseHandler):
         await self.finish(result)
 
 class HARSave(BaseHandler):
+    env = Fetcher().jinja_env
     @staticmethod
-    def get_variables(tpl):
+    def get_variables(env, tpl):
         variables = set()
         extracted = set(utils.jinja_globals.keys())
-        env = Fetcher().jinja_env
         for entry in tpl:
             req = entry['request']
             rule = entry['rule']
@@ -169,7 +172,20 @@ class HARSave(BaseHandler):
         async with self.db.transaction() as sql_session:
             har = await self.db.user.encrypt(userid, data['har'], sql_session=sql_session)
             tpl = await self.db.user.encrypt(userid, data['tpl'], sql_session=sql_session)
-            variables = json.dumps(list(self.get_variables(data['tpl'])))
+            variables = list(self.get_variables(self.env,data['tpl']))
+            init_env = {}
+            try:
+                ast = self.env.parse(data['tpl'])
+                for x in ast.find_all(Filter):
+                    if x.name == 'default' and isinstance(x.node, Name) and len(x.args) > 0 and x.node.name in variables and x.node.name not in init_env:
+                        try:
+                            init_env[x.node.name] = x.args[0].as_const()
+                        except Exception as e:
+                            logger_Web_Handler.debug('HARSave init_env error: %s' % e)
+            except Exception as e:
+                logger_Web_Handler.debug('HARSave ast error: %s' % e)
+            variables = json.dumps(variables)
+            init_env = json.dumps(init_env)
             groupName = 'None'
             if id:
                 _tmp = self.check_permission(await self.db.tpl.get(id, fields=('id', 'userid', 'lock'), sql_session=sql_session), 'w')
@@ -182,11 +198,11 @@ class HARSave(BaseHandler):
                     await self.finish(u'模板已锁定')
                     return
 
-                await self.db.tpl.mod(id, har=har, tpl=tpl, variables=variables, sql_session=sql_session)
+                await self.db.tpl.mod(id, har=har, tpl=tpl, variables=variables, init_env=init_env, sql_session=sql_session)
                 groupName = (await self.db.tpl.get(id, fields=('_groups',), sql_session=sql_session))['_groups']
             else:
                 try:
-                    id = await self.db.tpl.add(userid, har, tpl, variables, sql_session=sql_session)
+                    id = await self.db.tpl.add(userid, har, tpl, variables, init_env=init_env, sql_session=sql_session)
                 except Exception as e:
                     if "max_allowed_packet" in str(e):
                         raise Exception('har大小超过MySQL max_allowed_packet 限制; \n'+str(e))

@@ -277,8 +277,7 @@ class Fetcher(object):
             entry['response']['content']['decoded'] = base64.b64encode(response.body).decode('ascii')
         return entry
 
-    @staticmethod
-    def run_rule(response, rule, env):
+    def run_rule(self, response, rule, env):
         success = True
         msg = ''
 
@@ -314,9 +313,27 @@ class Fetcher(object):
                     logger_Fetcher.error('Run rule failed: %s', str(e))
             else:
                 return ''
+            
+        session=env['session']
+        if isinstance(session, cookie_utils.CookieSession):
+            _cookies = session
+        else:
+            _cookies = cookie_utils.CookieSession()
+            _cookies.from_json(session)
+        def _render(obj, key):
+            if not obj.get(key):
+                return
+            try:
+                obj[key] = self.jinja_env.from_string(obj[key]).render(_cookies=_cookies, **env['variables'])
+                return True
+            except Exception as e:
+                log_error = 'The error occurred when rendering template {}: {} \\r\\n {}'.format(key,obj[key],repr(e))
+                raise httpclient.HTTPError(500,log_error)
+        
 
         for r in rule.get('success_asserts') or '':
-            if re.search(r['re'], getdata(r['from'])):
+            _render(r, 're')
+            if r['re'] and re.search(r['re'], getdata(r['from'])):
                 msg = ''
                 break
             else:
@@ -327,7 +344,8 @@ class Fetcher(object):
                 
 
         for r in rule.get('failed_asserts') or '':
-            if re.search(r['re'], getdata(r['from'])):
+            _render(r, 're')
+            if r['re'] and re.search(r['re'], getdata(r['from'])):
                 success = False
                 msg = 'Fail assert: %s from failed_asserts' % json.dumps(r, ensure_ascii=False)
                 break

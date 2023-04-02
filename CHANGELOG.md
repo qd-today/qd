@@ -8,6 +8,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20230228] - 2023.02.28 更新
+
+### Features
+
+1. 添加企业微信Webhook支持 feat qiandao-today/qiandao#361
+2. 添加 [QD 文档站](https://qiandao-today.github.io/qiandao/)
+3. 新建任务时自动提取模板变量 default 值 feat a76yyyy/qiandao#29
+
+### Changed
+
+1. 支持在API请求中使用 int(variable) 和 float(variable) 语法 fix qiandao-today/qiandao#374
+2. 优化公共模板更新页面前端显示逻辑
+
+### Fixed
+
+1. 修复 config 文件夹不存在导致报错的bug Fix qiandao-today/qiandao#363
+
+## [20230111] - 2023.01.11 更新
+
+### Features
+
+1. 支持6位cron定时 feat qiandao-today/qiandao#347
+2. 成功失败条件支持jinja2格式变量 Support variables for success or fail asserts
+3. Add keep-alive for updating subscribe
+4. Add config "unsafe_eval_timeout"
+5. Add config "task_max_retry_count"
+
+### Changed
+
+1. Use aiohttp to initiate requests
+2. 更新 前端组件 & Use pnpm
+
+### Fixed
+
+1. 修复 if 判断表达式报错 Fix qiandao-today/qiandao#350 from odoo/odoo#101136
+2. 修复 Typo
+3. 其他优化和修复
+
 ## [20221218] - 2022.12.18 更新
 
 1. 支持退订默认公共模板分支

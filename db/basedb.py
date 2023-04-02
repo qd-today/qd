@@ -28,7 +28,8 @@ if config.db_type == 'mysql':
     user=config.mysql.user
     passwd=config.mysql.passwd
     auth_plugin=config.mysql.auth_plugin
-    engine = create_async_engine(f"mysql+aiomysql://{user}:{passwd}@{host}:{port}/{database}?auth_plugin={auth_plugin}",
+    engine_url = f"mysql+aiomysql://{user}:{passwd}@{host}:{port}/{database}?auth_plugin={auth_plugin}"
+    engine = create_async_engine(engine_url,
                                 logging_name = config.sqlalchemy.logging_name,
                                 pool_size = config.sqlalchemy.pool_size,
                                 max_overflow = config.sqlalchemy.max_overflow,
@@ -38,7 +39,8 @@ if config.db_type == 'mysql':
                                 pool_timeout = config.sqlalchemy.pool_timeout,
                                 pool_use_lifo = config.sqlalchemy.pool_use_lifo)
 elif config.db_type == 'sqlite3':
-    engine = create_async_engine(f"sqlite+aiosqlite:///{config.sqlite3.path}", 
+    engine_url = f"sqlite+aiosqlite:///{config.sqlite3.path}"
+    engine = create_async_engine(engine_url, 
                                 logging_name = config.sqlalchemy.logging_name,
                                 pool_logging_name = config.sqlalchemy.pool_logging_name,
                                 pool_pre_ping = config.sqlalchemy.pool_pre_ping,

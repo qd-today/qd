@@ -43,8 +43,11 @@ class TaskNewHandler(BaseHandler):
         if tplid:
             tplid = int(tplid)
 
-            tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid', 'note', 'sitename', 'siteurl', 'variables')))
+            tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid', 'note', 'sitename', 'siteurl', 'variables','init_env')))
             variables = json.loads(tpl['variables'])
+            if not tpl['init_env']:
+                tpl['init_env'] = '{}'
+            init_env = json.loads(tpl['init_env'])
 
             _groups = []
             if user:
@@ -55,7 +58,7 @@ class TaskNewHandler(BaseHandler):
                     if (temp not  in _groups):
                         _groups.append(temp)
             
-            await self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=tpl['variables'])
+            await self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=init_env, default_retry_count=config.task_max_retry_count)
         else:
             await self.render('utils_run_result.html', log=u'请先添加模板！', title=u'设置失败', flg='danger')
 
@@ -120,7 +123,7 @@ class TaskNewHandler(BaseHandler):
             if 'New_group' in envs:
                 await self.db.task.mod(taskid, _groups=target_group, sql_session=sql_session)
 
-            if isinstance(retry_count, int) and -1 <= retry_count <= 8:
+            if isinstance(retry_count, int) and -1 <= retry_count:
                 await self.db.task.mod(taskid, retry_count=retry_count, sql_session=sql_session)
 
             if retry_interval:
@@ -147,7 +150,7 @@ class TaskEditHandler(TaskNewHandler):
 
         proxy = task['init_env']['_proxy'] if '_proxy' in task['init_env'] else ''
 
-        await self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=init_env, proxy=proxy, retry_count=task['retry_count'], retry_interval=task['retry_interval'])
+        await self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=init_env, proxy=proxy, retry_count=task['retry_count'], retry_interval=task['retry_interval'], default_retry_count=config.task_max_retry_count)
 
 class TaskRunHandler(BaseHandler):
     @tornado.web.authenticated

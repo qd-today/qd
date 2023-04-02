@@ -1,10 +1,13 @@
 {
-  "name": "qiandao",
+  "name": "qd",
   "version": "1.0.0",
-  "description": "qiandao-自动签到框架",
+  "description": "QD - 一个 HTTP 请求定时任务自动执行框架 base on HAR Editor and Tornado Server",
   "main": "webpack.config.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs",
+    "docs:serve": "vitepress serve docs"
   },
   "repository": {
     "type": "git",
@@ -29,8 +32,10 @@
     "node": ">= 0.10.0"
   },
   "devDependencies": {
+    "@algolia/client-search": "^4.14.3",
     "bower": "^1.8.14",
     "coffeescript": "^2.7.0",
+    "flexsearch": "^0.7.31",
     "grunt": "^1.5.3",
     "grunt-bower-task": "^0.6.2",
     "grunt-contrib-clean": "^2.0.1",
@@ -38,10 +43,17 @@
     "grunt-contrib-jshint": "^3.2.0",
     "grunt-contrib-uglify": "^5.2.2",
     "grunt-contrib-watch": "^1.1.0",
+    "markdown-it": "^13.0.1",
     "process": "^0.11.10",
+    "segment": "^0.1.3",
     "ts-loader": "^9.4.2",
+    "tslib": "^2.4.1",
     "typescript": "^4.9.4",
     "util": "^0.12.5",
+    "vite": "^4.1.1",
+    "vitepress": "1.0.0-alpha.46",
+    "vitepress-plugin-search": "1.0.4-alpha.19",
+    "vue": "^3.2.47",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1"
   }

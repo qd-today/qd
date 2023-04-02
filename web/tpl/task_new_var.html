@@ -1,4 +1,11 @@
-{% if tpl.note %}<div class="alert alert-info">{{ tpl.note }}</div>{% endif %}
+{% if tpl.note %}
+<label class="control-label">模板说明</label>
+<div class="alert alert-info">
+  {% autoescape false %}
+  {{ tpl.note|replace("\r\n","<br>")|replace("\n","<br>") }}
+  {% endautoescape %}
+</div>
+{% endif %}
 
 {% macro asurl(siteurl) %}{{ 'http://'+siteurl if not siteurl.startswith('http') else siteurl }}{% endmacro %}
 
@@ -33,7 +40,14 @@
 {% for var in variables %}
 <div class="form-group">
   <label class="control-label" for="input-{{ var }}">{{ varname_format(var) }}</label>
-  <input type="text" class="form-control" name="{{ var }}" id="input-{{ var }}" placeholder="请输入 {{var}}">
+  {% if init_env.get(var, '') %}
+    <input type="text" class="form-control" name="{{ var }}" id="input-{{ var }}" value="{{ init_env.get(var, '') }}">
+    默认值：<div class="autowrap showbut" id="pvar-{{ var }}">{{ init_env.get(var, '') }}
+      <div class="btn hljs-button" data-clipboard-target="#pvar-{{ var }}" style="vertical-align:top">复制</div>
+    </div>
+  {% else %}
+    <input type="text" class="form-control" name="{{ var }}" id="input-{{ var }}" placeholder="请输入 {{var}}">
+  {% endif %}
   <!-- 未登录首页-加图标 -->
   <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
   {{ var_tips(var) }}

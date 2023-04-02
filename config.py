@@ -84,11 +84,13 @@ pbkdf2_iterations = int(os.getenv('PBKDF2_ITERATIONS', 400))                # pb
 aes_key = hashlib.sha256(os.getenv('AES_KEY', 'binux').encode('utf-8')).digest()                # AES加密密钥, 强烈建议修改
 cookie_secret = hashlib.sha256(os.getenv('COOKIE_SECRET', 'binux').encode('utf-8')).digest()    # Cookie加密密钥, 强烈建议修改
 check_task_loop = int(os.getenv('CHECK_TASK_LOOP', 500))                    # Worker检查任务工作循环时间, 单位毫秒
+task_max_retry_count = int(os.getenv('TASK_MAX_RETRY_COUNT', 8))            # 任务失败默认最大重试次数, 默认为8次
 # Tornado httpclient.HTTPRequest参数配置
 download_size_limit = int(os.getenv('DOWNLOAD_SIZE_LIMIT', 5*1024*1024))    # 允许用户单次请求下载最大值
 request_timeout = float(os.getenv('REQUEST_TIMEOUT', 30.0))                 # HTTPRequest 请求超时时间
 connect_timeout = float(os.getenv('CONNECT_TIMEOUT', 30.0))                 # HTTPRequest 连接超时时间
 delay_max_timeout = float(os.getenv('DELAY_MAX_TIMEOUT', 29.9))             # delay 延时API最大时间限制, 请小于上述timeout配置, 否则会报599错误
+unsafe_eval_timeout = float(os.getenv('UNSAFE_EVAL_TIMEOUT', 3.0))          # unsafe_eval 最大时间限制
 
 # 以下为全局代理域名列表相关设置
 # proxies为全局代理域名列表, 默认为空[], 表示不启用全局代理; 

@@ -13,7 +13,6 @@
 {{ utils.header(current_user) }}
 
 <section class="tpl">
-  <div id="error-msg"> {% if msg or msg != '' %}<pre>{{msg}}</pre>{% endif %}</div>
   <div class="container">
     <h2>
       已注册仓库
@@ -42,21 +41,20 @@
     </table>
     <h2>
       模板
-      <span type="span" class="btn btn-default">
-        <a href="https://github.com/qiandao-today/templates/discussions/171" title="求模板链接" target="_blank" rel="noopener noreferrer">求模板</a>
-      </span>
+      <button type="button" class="btn btn-default" onclick="window.open('https://github.com/qiandao-today/templates/discussions/171')" title="求模板链接" style="outline: none;" rel="noopener noreferrer">求模板</button>
     </h2>
     <table border=0 cellpadding=0 cellspacing=0 width="100%">
         <tr>
             <form name="loading">
-                <td align=center>
-                    <h3 class="text-center" id="update_loading">正在更新公共模板，请稍候.......</h3><br>
+                <td>
+                    <h3 class="text-center" align=center id="update_loading">正在更新公共模板，请稍候.......</h3><br>
+                    <div id="error-msg"></div>
                     <script>
                         var bar = 0.0
                         var finish = false;
                         update_req();
                         function count(finish) {
-                            if (finish) { NProgress.done(); window.location.replace("/subscribe/{{ userid }}/"); return; }
+                            if (finish) { NProgress.done(); return; }
                             bar = bar + 0.01;
                             NProgress.set(bar);
                             if (bar < 0.99) { setTimeout("count(finish)", 100); }
@@ -65,14 +63,29 @@
                             NProgress.start();
                             count(finish);
                             $.ajax('/subscribe/{{ userid }}/updating/', {
-                                type: 'GET'
+                                type: 'POST',
+                                beforeSend: function (R) {
+                                  R.setRequestHeader('Connection', 'Keep-Alive');
+                                }
                             })
-                                .done(function () {
+                                .done(function (data) {
                                     finish = true;
                                     count(finish)
+                                    var _json = JSON.parse(data);
+                                    if (_json.code == 0) {
+                                      $('title').text('公共模板更新成功');
+                                      $("#update_loading").html("更新公共模板成功，正在跳转，请稍候......").show();
+                                      setTimeout(function () {
+                                          window.location.href = "/subscribe/{{ userid }}/";
+                                      }, 1000);
+                                    } else {
+                                      $('title').text('公共模板更新失败');
+                                      $("#update_loading").html("更新失败或更新不完整!").show();
+                                      $("#error-msg").addClass("well").html(_json.msg);
+                                    }
                                 })
                                 .fail(function () {
-                                    $("#update_loading").html("更新公共模板失败，请刷新重试！").show();
+                                    $("#update_loading").html("更新公共模板失败，请稍后刷新重试，请勿连续刷新！").show();
                                 });
                             return false;
                         }

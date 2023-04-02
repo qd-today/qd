@@ -19,12 +19,12 @@ pysocks = "*"
 faker = "*"
 colorama = {version = "*", markers="sys_platform == 'win32'"}
 aiofiles = "*"
-sqlalchemy = {version = "*", extras = ["asyncio"]}
 passlib = "*"
 aiomysql = "*"
 aiosqlite = "*"
 cryptography = "*"
 aiohttp = "*"
+sqlalchemy = {version = "<2.0", extras = ["asyncio"]}
 
 [dev-packages]
 opencv-python-headless = "*"

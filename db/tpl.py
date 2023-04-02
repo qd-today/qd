@@ -42,12 +42,13 @@ class Tpl(BaseDB,AlchemyMixin):
     har = Column(MEDIUMBLOB)
     tpl = Column(MEDIUMBLOB)
     variables = Column(Text)
+    init_env = Column(Text)
     interval = Column(INTEGER)
     note = Column(String(1024))
     last_success = Column(INTEGER)
     tplurl = Column(String(1024), server_default=text("''"))
 
-    def add(self, userid, har, tpl, variables, interval=None, sql_session=None):
+    def add(self, userid, har, tpl, variables, init_env, interval=None, sql_session=None):
         now = time.time()
 
         insert = dict(
@@ -61,6 +62,7 @@ class Tpl(BaseDB,AlchemyMixin):
                 har = har,
                 tpl = tpl,
                 variables = variables,
+                init_env = init_env,
                 interval = interval,
                 ctime = now,
                 mtime = now,
