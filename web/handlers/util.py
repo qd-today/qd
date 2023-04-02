@@ -17,7 +17,7 @@ logger_Web_Util = Log('qiandao.Web.Util').getlogger()
 try:
     import ddddocr
 except ImportError as e:
-    logger_Web_Util.warning('Import DdddOCR module falied: %s',e)
+    logger_Web_Util.warning('Import DdddOCR module falied: %s', e)
     ddddocr = None
 import base64
 
@@ -40,7 +40,9 @@ def request_parse(req_data):
         data = req_data.arguments
     return data
 
+
 class UtilDelayParaHandler(BaseHandler):
+
     async def get(self):
         try:
             seconds = float(self.get_argument("seconds", 0))
@@ -55,13 +57,17 @@ class UtilDelayParaHandler(BaseHandler):
         elif seconds >= delay_max_timeout:
             seconds = delay_max_timeout
             await gen.sleep(seconds)
-            self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
+            self.write(
+                u'Error, limited by delay_max_timeout, delay {seconds} second.'
+            )
             return
         await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
         return
 
+
 class UtilDelayIntHandler(BaseHandler):
+
     async def get(self, seconds):
         try:
             seconds = float(seconds)
@@ -75,13 +81,17 @@ class UtilDelayIntHandler(BaseHandler):
         elif seconds > delay_max_timeout:
             seconds = delay_max_timeout
             await gen.sleep(seconds)
-            self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
+            self.write(
+                u'Error, limited by delay_max_timeout, delay {seconds} second.'
+            )
             return
         await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
         return
 
+
 class UtilDelayHandler(BaseHandler):
+
     async def get(self, seconds):
         try:
             seconds = float(seconds)
@@ -95,13 +105,17 @@ class UtilDelayHandler(BaseHandler):
         elif seconds >= delay_max_timeout:
             seconds = delay_max_timeout
             await gen.sleep(seconds)
-            self.write(u'Error, limited by delay_max_timeout, delay {seconds} second.')
+            self.write(
+                u'Error, limited by delay_max_timeout, delay {seconds} second.'
+            )
             return
         await gen.sleep(seconds)
         self.write(u'delay %s second.' % seconds)
         return
 
+
 class TimeStampHandler(BaseHandler):
+
     async def get(self):
         Rtv = {}
         try:
@@ -116,27 +130,36 @@ class TimeStampHandler(BaseHandler):
                 # 当前本机时间戳, 本机时间和北京时间
                 Rtv[u"完整时间戳"] = time.time()
                 Rtv[u"时间戳"] = int(Rtv[u"完整时间戳"])
-                Rtv[u"16位时间戳"] = int(Rtv[u"完整时间戳"]*1000000)
+                Rtv[u"16位时间戳"] = int(Rtv[u"完整时间戳"] * 1000000)
                 Rtv[u"本机时间"] = tmp(Rtv[u"完整时间戳"]).strftime(type)
                 Rtv[u"周"] = tmp(Rtv[u"完整时间戳"]).strftime("%w/%W")
-                Rtv[u"日"] = "/".join([tmp(Rtv[u"完整时间戳"]).strftime("%j"),yearday(tmp(Rtv[u"完整时间戳"]).year)])
+                Rtv[u"日"] = "/".join([
+                    tmp(Rtv[u"完整时间戳"]).strftime("%j"),
+                    yearday(tmp(Rtv[u"完整时间戳"]).year)
+                ])
                 Rtv[u"北京时间"] = tmp(Rtv[u"完整时间戳"], cst_tz).strftime(type)
                 Rtv[u"GMT格式"] = tmp(Rtv[u"完整时间戳"], utc_tz).strftime(GMT_FORMAT)
-                Rtv[u"ISO格式"] = tmp(Rtv[u"完整时间戳"], utc_tz).isoformat().split("+")[0] + "Z"
+                Rtv[u"ISO格式"] = tmp(Rtv[u"完整时间戳"],
+                                    utc_tz).isoformat().split("+")[0] + "Z"
             else:
                 # 用户时间戳转北京时间
                 Rtv[u"时间戳"] = int(ts)
                 Rtv[u"周"] = tmp(Rtv[u"时间戳"]).strftime("%w/%W")
-                Rtv[u"日"] = "/".join([tmp(Rtv[u"时间戳"]).strftime("%j"),yearday(tmp(Rtv[u"时间戳"]).year)])
+                Rtv[u"日"] = "/".join([
+                    tmp(Rtv[u"时间戳"]).strftime("%j"),
+                    yearday(tmp(Rtv[u"时间戳"]).year)
+                ])
                 Rtv[u"北京时间"] = tmp(Rtv[u"时间戳"], cst_tz).strftime(type)
                 Rtv[u"GMT格式"] = tmp(Rtv[u"时间戳"], utc_tz).strftime(GMT_FORMAT)
-                Rtv[u"ISO格式"] = tmp(Rtv[u"时间戳"], utc_tz).isoformat().split("+")[0] + "Z"
+                Rtv[u"ISO格式"] = tmp(Rtv[u"时间戳"],
+                                    utc_tz).isoformat().split("+")[0] + "Z"
             Rtv[u"状态"] = "200"
         except Exception as e:
-                Rtv[u"状态"] = str(e)
+            Rtv[u"状态"] = str(e)
 
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+
 
 def yearday(year):
     if (year % 4 == 0 and year % 100 != 0) or (year % 400 == 0):
@@ -144,14 +167,18 @@ def yearday(year):
     else:
         return '365'
 
+
 class UniCodeHandler(BaseHandler):
+
     async def get(self):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
-            tmp = bytes(content,'unicode_escape').decode('utf-8').replace(r'\u',r'\\u').replace(r'\\\u',r'\\u')
-            tmp = bytes(tmp,'utf-8').decode('unicode_escape')
-            Rtv[u"转换后"] = tmp.encode('utf-8').replace(b'\xc2\xa0',b'\xa0').decode('unicode_escape')
+            tmp = bytes(content, 'unicode_escape').decode('utf-8').replace(
+                r'\u', r'\\u').replace(r'\\\u', r'\\u')
+            tmp = bytes(tmp, 'utf-8').decode('unicode_escape')
+            Rtv[u"转换后"] = tmp.encode('utf-8').replace(
+                b'\xc2\xa0', b'\xa0').decode('unicode_escape')
             Rtv[u"状态"] = "200"
         except Exception as e:
             Rtv[u"状态"] = str(e)
@@ -164,9 +191,11 @@ class UniCodeHandler(BaseHandler):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
-            tmp = bytes(content,'unicode_escape').decode('utf-8').replace(r'\u',r'\\u').replace(r'\\\u',r'\\u')
-            tmp = bytes(tmp,'utf-8').decode('unicode_escape')
-            Rtv[u"转换后"] = tmp.encode('utf-8').replace(b'\xc2\xa0',b'\xa0').decode('unicode_escape')
+            tmp = bytes(content, 'unicode_escape').decode('utf-8').replace(
+                r'\u', r'\\u').replace(r'\\\u', r'\\u')
+            tmp = bytes(tmp, 'utf-8').decode('unicode_escape')
+            Rtv[u"转换后"] = tmp.encode('utf-8').replace(
+                b'\xc2\xa0', b'\xa0').decode('unicode_escape')
             Rtv[u"状态"] = "200"
         except Exception as e:
             Rtv[u"状态"] = str(e)
@@ -174,13 +203,15 @@ class UniCodeHandler(BaseHandler):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
         return
+
 
 class GB2312Handler(BaseHandler):
+
     async def get(self):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
-            tmp = urllib.parse.quote(content,encoding="gb2312")
+            tmp = urllib.parse.quote(content, encoding="gb2312")
             Rtv[u"转换后"] = tmp
             Rtv[u"状态"] = "200"
         except Exception as e:
@@ -194,7 +225,7 @@ class GB2312Handler(BaseHandler):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
-            tmp = urllib.parse.quote(content,encoding="gb2312")
+            tmp = urllib.parse.quote(content, encoding="gb2312")
             Rtv[u"转换后"] = tmp
             Rtv[u"状态"] = "200"
         except Exception as e:
@@ -203,8 +234,10 @@ class GB2312Handler(BaseHandler):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
         return
+
 
 class UrlDecodeHandler(BaseHandler):
+
     async def get(self):
         Rtv = {}
         try:
@@ -230,8 +263,10 @@ class UrlDecodeHandler(BaseHandler):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
         return
+
 
 class UtilRegexHandler(BaseHandler):
+
     async def get(self):
         Rtv = {}
         try:
@@ -239,8 +274,8 @@ class UtilRegexHandler(BaseHandler):
             p = self.get_argument("p", "")
             temp = {}
             ds = re.findall(p, data, re.IGNORECASE)
-            for cnt in range (0, len(ds)):
-                temp[cnt+1] = ds[cnt]
+            for cnt in range(0, len(ds)):
+                temp[cnt + 1] = ds[cnt]
             Rtv[u"数据"] = temp
             Rtv[u"状态"] = "OK"
         except Exception as e:
@@ -257,8 +292,8 @@ class UtilRegexHandler(BaseHandler):
             p = self.get_argument("p", "")
             temp = {}
             ds = re.findall(p, data, re.IGNORECASE)
-            for cnt in range (0, len(ds)):
-                temp[cnt+1] = ds[cnt]
+            for cnt in range(0, len(ds)):
+                temp[cnt + 1] = ds[cnt]
             Rtv[u"数据"] = temp
             Rtv[u"状态"] = "OK"
         except Exception as e:
@@ -268,8 +303,10 @@ class UtilRegexHandler(BaseHandler):
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
 
         return
+
 
 class UtilStrReplaceHandler(BaseHandler):
+
     async def get(self):
         Rtv = {}
         try:
@@ -278,12 +315,13 @@ class UtilStrReplaceHandler(BaseHandler):
             t = self.get_argument("t", "")
             Rtv[u"原始字符串"] = s
             Rtv[u"处理后字符串"] = re.sub(p, t, s)
-            Rtv[u"状态"] = "OK"      
-            if self.get_argument("r", "")  == "text":
+            Rtv[u"状态"] = "OK"
+            if self.get_argument("r", "") == "text":
                 self.write(Rtv[u"处理后字符串"])
                 return
             else:
-                self.set_header('Content-Type', 'application/json; charset=UTF-8')
+                self.set_header('Content-Type',
+                                'application/json; charset=UTF-8')
                 self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
                 return
         except Exception as e:
@@ -301,12 +339,13 @@ class UtilStrReplaceHandler(BaseHandler):
             t = self.get_argument("t", "")
             Rtv[u"原始字符串"] = s
             Rtv[u"处理后字符串"] = re.sub(p, t, s)
-            Rtv[u"状态"] = "OK"      
-            if self.get_argument("r", "")  == "text":
+            Rtv[u"状态"] = "OK"
+            if self.get_argument("r", "") == "text":
                 self.write(Rtv[u"处理后字符串"])
                 return
             else:
-                self.set_header('Content-Type', 'application/json; charset=UTF-8')
+                self.set_header('Content-Type',
+                                'application/json; charset=UTF-8')
                 self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
                 return
         except Exception as e:
@@ -316,7 +355,9 @@ class UtilStrReplaceHandler(BaseHandler):
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
         return
 
+
 class UtilRSAHandler(BaseHandler):
+
     async def get(self):
         try:
             key = self.get_argument("key", "")
@@ -331,24 +372,25 @@ class UtilRSAHandler(BaseHandler):
                     for t in temp:
                         keytemp = keytemp.replace(t, "")
 
-                    while(keytemp):
+                    while (keytemp):
                         line = keytemp[0:63]
-                        lines = lines+line+"\n"
+                        lines = lines + line + "\n"
                         keytemp = keytemp.replace(line, "")
-                    
-                    lines = temp[0]+"\n" + lines + temp[1]
+
+                    lines = temp[0] + "\n" + lines + temp[1]
 
                 else:
                     self.write(u"证书格式错误")
-                    return 
+                    return
 
                 cipher_rsa = PKCS1_v1_5.new(RSA.import_key(lines))
                 if (func.find("encode") > -1):
-                    crypt_text = cipher_rsa.encrypt(bytes(data, encoding = "utf8"))
+                    crypt_text = cipher_rsa.encrypt(
+                        bytes(data, encoding="utf8"))
                     crypt_text = base64.b64encode(crypt_text).decode('utf8')
                     self.write(crypt_text)
                     return
-                elif (func.find("decode") > -1): 
+                elif (func.find("decode") > -1):
                     t1 = base64.b64decode(data)
                     decrypt_text = cipher_rsa.decrypt(t1, Random.new().read)
                     decrypt_text = decrypt_text.decode('utf8')
@@ -374,17 +416,19 @@ class UtilRSAHandler(BaseHandler):
                 for line in key.split("\n"):
                     if (line.find("--") < 0):
                         line = line.replace(" ", "+")
-                    lines = lines+line+"\n"
+                    lines = lines + line + "\n"
                 data = data.replace(" ", "+")
-                
+
                 cipher_rsa = PKCS1_v1_5.new(RSA.import_key(lines))
                 if (func.find("encode") > -1):
-                    crypt_text = cipher_rsa.encrypt(bytes(data, encoding = "utf8"))
+                    crypt_text = cipher_rsa.encrypt(
+                        bytes(data, encoding="utf8"))
                     crypt_text = base64.b64encode(crypt_text).decode('utf8')
                     self.write(crypt_text)
                     return
-                elif (func.find("decode") > -1): 
-                    decrypt_text = cipher_rsa.decrypt(base64.b64decode(data), Random.new().read)
+                elif (func.find("decode") > -1):
+                    decrypt_text = cipher_rsa.decrypt(base64.b64decode(data),
+                                                      Random.new().read)
                     decrypt_text = decrypt_text.decode('utf8')
                     self.write(decrypt_text)
                     return
@@ -398,9 +442,12 @@ class UtilRSAHandler(BaseHandler):
             self.write(str(e))
             return
 
+
 class toolboxHandler(BaseHandler):
+
     async def get(self, userid):
-        self.current_user["isadmin"] or self.check_permission({"userid":int(userid)}, 'r')
+        self.current_user["isadmin"] or self.check_permission(
+            {"userid": int(userid)}, 'r')
         await self.render('toolbox.html', userid=userid)
 
     async def post(self, userid):
@@ -410,20 +457,36 @@ class toolboxHandler(BaseHandler):
             f = self.get_argument("f", "")
             if (email) and (pwd) and (f):
                 async with self.db.transaction() as sql_session:
-                    if await self.db.user.challenge_MD5(email, pwd, sql_session=sql_session) or await self.db.user.challenge(email, pwd, sql_session=sql_session):
-                        notepadid=self.get_argument("id_notepad", 1)
-                        userid = (await self.db.user.get(email=email, fields=('id',), sql_session=sql_session))['id']
-                        text_data = (await self.db.notepad.get(userid, notepadid, fields=('content',), sql_session=sql_session))['content']
+                    if await self.db.user.challenge_MD5(
+                            email, pwd, sql_session=sql_session
+                    ) or await self.db.user.challenge(
+                            email, pwd, sql_session=sql_session):
+                        notepadid = self.get_argument("id_notepad", 1)
+                        userid = (await self.db.user.get(
+                            email=email,
+                            fields=('id', ),
+                            sql_session=sql_session))['id']
+                        text_data = (await self.db.notepad.get(
+                            userid,
+                            notepadid,
+                            fields=('content', ),
+                            sql_session=sql_session))['content']
                         new_data = self.get_argument("data", "")
-                        if (f.find('write') > -1 ): 
+                        if (f.find('write') > -1):
                             text_data = new_data
-                            await self.db.notepad.mod(userid, notepadid, content=text_data, sql_session=sql_session)
+                            await self.db.notepad.mod(userid,
+                                                      notepadid,
+                                                      content=text_data,
+                                                      sql_session=sql_session)
                         elif (f.find('append') > -1):
                             if text_data is not None:
                                 text_data = text_data + '\r\n' + new_data
                             else:
                                 text_data = new_data
-                            await self.db.notepad.mod(userid, notepadid, content=text_data, sql_session=sql_session)
+                            await self.db.notepad.mod(userid,
+                                                      notepadid,
+                                                      content=text_data,
+                                                      sql_session=sql_session)
                         self.write(text_data)
                         return
                     else:
@@ -434,53 +497,85 @@ class toolboxHandler(BaseHandler):
             self.write(str(e))
             return
 
+
 class toolbox_notepad_Handler(BaseHandler):
+
     @tornado.web.authenticated
-    async def get(self,userid=None,notepadid=1):
+    async def get(self, userid=None, notepadid=1):
         if userid is None:
             raise HTTPError(405)
-        self.current_user["isadmin"] or self.check_permission({"userid":int(userid)}, 'r')
-        notepadlist = await self.db.notepad.list(fields=('notepadid','content'), limit=20, userid=userid )
-        notepadlist.sort(key=lambda x:x['notepadid'])
+        self.current_user["isadmin"] or self.check_permission(
+            {"userid": int(userid)}, 'r')
+        notepadlist = await self.db.notepad.list(fields=('notepadid',
+                                                         'content'),
+                                                 limit=20,
+                                                 userid=userid)
+        notepadlist.sort(key=lambda x: x['notepadid'])
         if len(notepadlist) == 0:
-            if await self.db.user.get(id=userid, fields=('id',)) is not None:
+            if await self.db.user.get(id=userid, fields=('id', )) is not None:
                 await self.db.notepad.add(dict(userid=userid, notepadid=1))
-                notepadlist = await self.db.notepad.list(fields=('notepadid','content'), limit=20, userid=userid )
+                notepadlist = await self.db.notepad.list(fields=('notepadid',
+                                                                 'content'),
+                                                         limit=20,
+                                                         userid=userid)
             else:
-                raise HTTPError(404, log_message=u"用户不存在或未创建记事本",reason=u"用户不存在或未创建记事本")
+                raise HTTPError(404,
+                                log_message=u"用户不存在或未创建记事本",
+                                reason=u"用户不存在或未创建记事本")
         if int(notepadid) == 0:
             notepadid = notepadlist[-1]['notepadid']
-        await self.render('toolbox-notepad.html', notepad_id = int(notepadid), notepad_list=notepadlist, userid=userid)
+        await self.render('toolbox-notepad.html',
+                          notepad_id=int(notepadid),
+                          notepad_list=notepadlist,
+                          userid=userid)
         return
 
     # @tornado.web.authenticated
-    async def post(self,userid=None):
+    async def post(self, userid=None):
         try:
             email = self.get_argument("email", "")
             pwd = self.get_argument("pwd", "")
             f = self.get_argument("f", "")
             if (email) and (pwd) and (f):
                 async with self.db.transaction() as sql_session:
-                    if await self.db.user.challenge_MD5(email, pwd, sql_session=sql_session) or await self.db.user.challenge(email, pwd, sql_session=sql_session):
+                    if await self.db.user.challenge_MD5(
+                            email, pwd, sql_session=sql_session
+                    ) or await self.db.user.challenge(
+                            email, pwd, sql_session=sql_session):
                         notepadid = int(self.get_argument("id_notepad", 1))
-                        userid = (await self.db.user.get(email=email, fields=('id',), sql_session=sql_session))['id']
-                        notepad = await self.db.notepad.get(userid, notepadid, fields=('content',), sql_session=sql_session)
+                        userid = (await self.db.user.get(
+                            email=email,
+                            fields=('id', ),
+                            sql_session=sql_session))['id']
+                        notepad = await self.db.notepad.get(
+                            userid,
+                            notepadid,
+                            fields=('content', ),
+                            sql_session=sql_session)
                         if not notepad:
                             if notepadid == 1:
-                                await self.db.notepad.add(dict(userid=userid, notepadid=notepadid), sql_session=sql_session)
+                                await self.db.notepad.add(
+                                    dict(userid=userid, notepadid=notepadid),
+                                    sql_session=sql_session)
                             else:
                                 raise Exception(u"记事本不存在")
                         text_data = notepad['content']
                         new_data = self.get_argument("data", "")
-                        if (f.find('write') > -1 ): 
+                        if (f.find('write') > -1):
                             text_data = new_data
-                            await self.db.notepad.mod(userid, notepadid, content=text_data, sql_session=sql_session)
+                            await self.db.notepad.mod(userid,
+                                                      notepadid,
+                                                      content=text_data,
+                                                      sql_session=sql_session)
                         elif (f.find('append') > -1):
                             if text_data is not None:
                                 text_data = text_data + '\r\n' + new_data
                             else:
                                 text_data = new_data
-                            await self.db.notepad.mod(userid, notepadid, content=text_data, sql_session=sql_session)
+                            await self.db.notepad.mod(userid,
+                                                      notepadid,
+                                                      content=text_data,
+                                                      sql_session=sql_session)
                         self.write(text_data)
                         return
                     else:
@@ -494,42 +589,68 @@ class toolbox_notepad_Handler(BaseHandler):
                 e = u'请输入用户名/密码'
             self.write(str(e))
             self.set_status(400)
-            logger_Web_Handler.error('UserID: %s modify Notepad_Toolbox failed! Reason: %s', userid or '-1', str(e))
+            logger_Web_Handler.error(
+                'UserID: %s modify Notepad_Toolbox failed! Reason: %s', userid
+                or '-1', str(e))
             return
 
+
 class toolbox_notepad_list_Handler(BaseHandler):
-    async def get(self,userid=None,notepadid=1):
+
+    async def get(self, userid=None, notepadid=1):
         if userid is None:
             raise HTTPError(405)
-        self.current_user["isadmin"] or self.check_permission({"userid":int(userid)}, 'r')
-        notepadlist = await self.db.notepad.list(fields=('notepadid','content'), limit=20, userid=userid )
-        notepadlist.sort(key=lambda x:x['notepadid'])
+        self.current_user["isadmin"] or self.check_permission(
+            {"userid": int(userid)}, 'r')
+        notepadlist = await self.db.notepad.list(fields=('notepadid',
+                                                         'content'),
+                                                 limit=20,
+                                                 userid=userid)
+        notepadlist.sort(key=lambda x: x['notepadid'])
         if len(notepadlist) == 0:
-            if await self.db.user.get(id=userid, fields=('id',)) is not None:
+            if await self.db.user.get(id=userid, fields=('id', )) is not None:
                 await self.db.notepad.add(dict(userid=userid, notepadid=1))
-                notepadlist = await self.db.notepad.list(fields=('notepadid','content'), limit=20, userid=userid )
+                notepadlist = await self.db.notepad.list(fields=('notepadid',
+                                                                 'content'),
+                                                         limit=20,
+                                                         userid=userid)
             else:
-                raise HTTPError(404, log_message=u"用户不存在或未创建记事本",reason=u"用户不存在或未创建记事本")
+                raise HTTPError(404,
+                                log_message=u"用户不存在或未创建记事本",
+                                reason=u"用户不存在或未创建记事本")
         if int(notepadid) == 0:
             notepadid = notepadlist[-1]['notepadid']
-        await self.render('toolbox-notepad.html', notepad_id = notepadid, notepad_list=notepadlist, userid=userid)
+        await self.render('toolbox-notepad.html',
+                          notepad_id=notepadid,
+                          notepad_list=notepadlist,
+                          userid=userid)
         return
-    
-    async def post(self,userid=None):
+
+    async def post(self, userid=None):
         try:
             email = self.get_argument("email", "")
             pwd = self.get_argument("pwd", "")
             f = self.get_argument("f", "list")
             if (email) and (pwd) and (f):
                 async with self.db.transaction() as sql_session:
-                    if await self.db.user.challenge_MD5(email, pwd, sql_session=sql_session) or await self.db.user.challenge(email, pwd, sql_session=sql_session):
-                        userid = (await self.db.user.get(email=email, fields=('id',), sql_session=sql_session))['id']
+                    if await self.db.user.challenge_MD5(
+                            email, pwd, sql_session=sql_session
+                    ) or await self.db.user.challenge(
+                            email, pwd, sql_session=sql_session):
+                        userid = (await self.db.user.get(
+                            email=email,
+                            fields=('id', ),
+                            sql_session=sql_session))['id']
                         notepadid = self.get_argument("id_notepad", "-1")
                         if not notepadid:
                             notepadid = -1
                         else:
                             notepadid = int(notepadid)
-                        notepadlist = await self.db.notepad.list(fields=('notepadid',), limit=20, userid=userid, sql_session=sql_session )
+                        notepadlist = await self.db.notepad.list(
+                            fields=('notepadid', ),
+                            limit=20,
+                            userid=userid,
+                            sql_session=sql_session)
                         notepadlist = [x['notepadid'] for x in notepadlist]
                         notepadlist.sort()
                         if len(notepadlist) == 0:
@@ -541,20 +662,28 @@ class toolbox_notepad_list_Handler(BaseHandler):
                             if new_data == '':
                                 new_data = None
                             if notepadid == -1:
-                                notepadid = notepadlist[-1]+1
+                                notepadid = notepadlist[-1] + 1
                             elif notepadid in notepadlist:
-                                raise Exception(u"记事本编号已存在, id_notepad: %s" % notepadid)
-                            await self.db.notepad.add(dict(userid=userid, notepadid=notepadid, content=new_data), sql_session=sql_session)
+                                raise Exception(u"记事本编号已存在, id_notepad: %s" %
+                                                notepadid)
+                            await self.db.notepad.add(dict(userid=userid,
+                                                           notepadid=notepadid,
+                                                           content=new_data),
+                                                      sql_session=sql_session)
                             self.write(u"添加成功, id_notepad: %s" % (notepadid))
                             return
                         elif f.find('delete') > -1:
                             if notepadid > 0:
                                 if notepadid not in notepadlist:
-                                    raise Exception(u"记事本编号不存在, id_notepad: %s" % notepadid)
+                                    raise Exception(
+                                        u"记事本编号不存在, id_notepad: %s" %
+                                        notepadid)
                                 if notepadid == 1:
                                     raise Exception(u"默认记事本不能删除")
-                                await self.db.notepad.delete(userid, notepadid, sql_session=sql_session)
-                                self.write(u"删除成功, id_notepad: %s" % (notepadid))
+                                await self.db.notepad.delete(
+                                    userid, notepadid, sql_session=sql_session)
+                                self.write(u"删除成功, id_notepad: %s" %
+                                           (notepadid))
                                 return
                             else:
                                 raise Exception(u"id_notepad参数不完整, 请确认")
@@ -574,21 +703,38 @@ class toolbox_notepad_list_Handler(BaseHandler):
                 e = u'请输入用户名/密码'
             self.write(str(e))
             self.set_status(400)
-            logger_Web_Handler.error('UserID: %s %s Notepad_Toolbox failed! Reason: %s', userid or '-1', f, str(e))
+            logger_Web_Handler.error(
+                'UserID: %s %s Notepad_Toolbox failed! Reason: %s', userid
+                or '-1', f, str(e))
             return
 
+
 class DdddOCRServer(object):
+
     def __init__(self):
-        self.oldocr = ddddocr.DdddOcr(old=True,show_ad=False)
+        self.oldocr = ddddocr.DdddOcr(old=True, show_ad=False)
         self.ocr = ddddocr.DdddOcr(show_ad=False)
-        self.det = ddddocr.DdddOcr(det=True,show_ad=False)
+        self.det = ddddocr.DdddOcr(det=True, show_ad=False)
+        self.slide = ddddocr.DdddOcr(det=False, ocr=False, show_ad=False)
         self.extra = {}
-        if len(config.extra_onnx_name) == len(config.extra_charsets_name) and config.extra_onnx_name[0] and config.extra_charsets_name[0]:
+        if len(config.extra_onnx_name) == len(
+                config.extra_charsets_name
+        ) and config.extra_onnx_name[0] and config.extra_charsets_name[0]:
             for i in range(len(config.extra_onnx_name)):
-                self.extra[config.extra_onnx_name[i]]=ddddocr.DdddOcr(show_ad=False,
-                                                               import_onnx_path=os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),"config",f"{config.extra_onnx_name[i]}.onnx"),
-                                                               charsets_path=os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))),"config",f"{config.extra_charsets_name[i]}.json"))
-                logger_Web_Util.info(f"成功加载自定义Onnx模型: {config.extra_onnx_name[i]}.onnx")
+                self.extra[config.extra_onnx_name[i]] = ddddocr.DdddOcr(
+                    show_ad=False,
+                    import_onnx_path=os.path.join(
+                        os.path.abspath(
+                            os.path.dirname(
+                                os.path.dirname(os.path.dirname(__file__)))),
+                        "config", f"{config.extra_onnx_name[i]}.onnx"),
+                    charsets_path=os.path.join(
+                        os.path.abspath(
+                            os.path.dirname(
+                                os.path.dirname(os.path.dirname(__file__)))),
+                        "config", f"{config.extra_charsets_name[i]}.json"))
+                logger_Web_Util.info(
+                    f"成功加载自定义Onnx模型: {config.extra_onnx_name[i]}.onnx")
 
     def classification(self, img: bytes, old=False, extra_onnx_name=""):
         if extra_onnx_name:
@@ -600,34 +746,49 @@ class DdddOCRServer(object):
 
     def detection(self, img: bytes):
         return self.det.detection(img)
+
+    def slide_match(self, imgtarget: bytes, imgbg: bytes):
+        return self.slide.slide_match(imgtarget, imgbg)
+
+
 if ddddocr:
     DdddOCRServer = DdddOCRServer()
 else:
     DdddOCRServer = None
 
-async def get_img(img = "", imgurl="",):
+
+async def get_img(
+    img="",
+    imgurl="",
+):
     if img:
         return base64.b64decode(img)
     elif imgurl:
-        async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
-            async with session.get(imgurl, verify_ssl=False, timeout=config.request_timeout) as res:
+        async with aiohttp.ClientSession(
+                conn_timeout=config.connect_timeout) as session:
+            async with session.get(imgurl,
+                                   verify_ssl=False,
+                                   timeout=config.request_timeout) as res:
                 content = await res.read()
                 base64_data = base64.b64encode(content).decode()
                 return base64.b64decode(base64_data)
     else:
         raise HTTPError(415)
 
+
 class DdddOcrHandler(BaseHandler):
+
     async def get(self):
         Rtv = {}
         try:
             if DdddOCRServer:
                 img = self.get_argument("img", "")
                 imgurl = self.get_argument("imgurl", "")
-                old = bool(strtobool(self.get_argument("old", "False"))) 
+                old = bool(strtobool(self.get_argument("old", "False")))
                 extra_onnx_name = self.get_argument("extra_onnx_name", "")
                 img = await get_img(img, imgurl)
-                Rtv[u"Result"] = DdddOCRServer.classification(img, old=old, extra_onnx_name=extra_onnx_name)
+                Rtv[u"Result"] = DdddOCRServer.classification(
+                    img, old=old, extra_onnx_name=extra_onnx_name)
                 Rtv[u"状态"] = "OK"
             else:
                 raise HTTPError(406)
@@ -642,7 +803,8 @@ class DdddOcrHandler(BaseHandler):
         Rtv = {}
         try:
             if DdddOCRServer:
-                if self.request.headers.get("Content-Type", "").startswith("application/json"):
+                if self.request.headers.get("Content-Type",
+                                            "").startswith("application/json"):
                     body_dict = json.loads(self.request.body)
                     img = body_dict.get("img", "")
                     imgurl = body_dict.get("imgurl", "")
@@ -651,11 +813,12 @@ class DdddOcrHandler(BaseHandler):
                 else:
                     img = self.get_argument("img", "")
                     imgurl = self.get_argument("imgurl", "")
-                    old = bool(strtobool(self.get_argument("old", "False"))) 
+                    old = bool(strtobool(self.get_argument("old", "False")))
                     extra_onnx_name = self.get_argument("extra_onnx_name", "")
 
                 img = await get_img(img, imgurl)
-                Rtv[u"Result"] = DdddOCRServer.classification(img, old=old, extra_onnx_name=extra_onnx_name)
+                Rtv[u"Result"] = DdddOCRServer.classification(
+                    img, old=old, extra_onnx_name=extra_onnx_name)
                 Rtv[u"状态"] = "OK"
             else:
                 raise HTTPError(406)
@@ -666,7 +829,9 @@ class DdddOcrHandler(BaseHandler):
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
         return
 
+
 class DdddDetHandler(BaseHandler):
+
     async def get(self):
         Rtv = {}
         try:
@@ -689,7 +854,8 @@ class DdddDetHandler(BaseHandler):
         Rtv = {}
         try:
             if DdddOCRServer:
-                if self.request.headers.get("Content-Type", "").startswith("application/json"):
+                if self.request.headers.get("Content-Type",
+                                            "").startswith("application/json"):
                     body_dict = json.loads(self.request.body)
                     img = body_dict.get("img", "")
                     imgurl = body_dict.get("imgurl", "")
@@ -707,6 +873,55 @@ class DdddDetHandler(BaseHandler):
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
         self.write(json.dumps(Rtv, ensure_ascii=False, indent=None))
         return
+
+
+class DdddSlideHandler(BaseHandler):
+
+    async def get(self):
+        Rtv = {}
+        try:
+            if DdddOCRServer:
+                imgtarget = self.get_argument("imgtarget", "")
+                imgbg = self.get_argument("imgbg", "")
+                imgtarget = await get_img(imgtarget, "")
+                imgbg = await get_img(imgbg, "")
+                Rtv[u"Result"] = DdddOCRServer.slide_match(imgtarget, imgbg)
+                Rtv[u"状态"] = "OK"
+            else:
+                raise HTTPError(406)
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=None))
+        return
+
+    async def post(self):
+        Rtv = {}
+        try:
+            if DdddOCRServer:
+                if self.request.headers.get("Content-Type",
+                                            "").startswith("application/json"):
+                    body_dict = json.loads(self.request.body)
+                    imgtarget = body_dict.get("imgtarget", "")
+                    imgbg = body_dict.get("imgbg", "")
+                else:
+                    imgtarget = self.get_argument("imgtarget", "")
+                    imgbg = self.get_argument("imgbg", "")
+
+                imgtarget = await get_img(imgtarget, "")
+                imgbg = await get_img(imgbg, "")
+                Rtv[u"Result"] = DdddOCRServer.slide_match(imgtarget, imgbg)
+                Rtv[u"状态"] = "OK"
+            else:
+                raise HTTPError(406)
+        except Exception as e:
+            Rtv[u"状态"] = str(e)
+
+        self.set_header('Content-Type', 'application/json; charset=UTF-8')
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        return
+
 
 handlers = [
     ('/util/delay', UtilDelayParaHandler),
@@ -728,4 +943,5 @@ handlers = [
     ('/util/toolbox/(\d+)/notepad/list/(\d+)', toolbox_notepad_list_Handler),
     ('/util/dddd/ocr', DdddOcrHandler),
     ('/util/dddd/det', DdddDetHandler),
+    ('/util/dddd/slide', DdddSlideHandler),
 ]
