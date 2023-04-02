@@ -119,10 +119,10 @@ class HARTest(BaseHandler):
                     'username': _proxy['username'],
                     'password': _proxy['password']
                 }
+                ret = await self.fetcher.fetch(data, proxy=proxy)
             else:
-                proxy = {}
+                await self.fetcher.fetch(data)
 
-            ret = await self.fetcher.fetch(data, proxy=proxy)
 
             result = {
                     'success': ret['success'],
