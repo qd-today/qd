@@ -17,8 +17,9 @@ from jinja2 import Environment, meta
 from jinja2.nodes import Const, Filter, Getattr, List, Name, Tuple
 from tornado import gen, httpclient
 
-from libs import utils
+from libs import utils, json_typing
 from libs.fetcher import Fetcher
+from libs.parse_url import parse_url
 
 from .base import *
 
@@ -87,7 +88,7 @@ class HARTest(BaseHandler):
                 self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
         except Exception as e:
             logger_Web_Handler.debug('HARTest Replace error: %s' % e)
-        data = json.loads(self.request.body)
+        data: json_typing.HARTest = json.loads(self.request.body)
         FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}').match(data['request']['url'])
         IF_START = re.compile('{%\s*if\s+(.+)\s*%}').match(data['request']['url'])
         ELSE_START = re.compile('{%\s*else\s*%}').match(data['request']['url'])
@@ -108,8 +109,20 @@ class HARTest(BaseHandler):
                     'session': env['session'].to_json(),
                     }
                 }
-        else :
-            ret = await self.fetcher.fetch(data)
+        else:
+            _proxy = parse_url(data['env']['variables'].get('_proxy', ''))
+            if _proxy:
+                proxy = {
+                    'scheme': _proxy['scheme'],
+                    'host': _proxy['host'],
+                    'port': _proxy['port'],
+                    'username': _proxy['username'],
+                    'password': _proxy['password']
+                }
+            else:
+                proxy = {}
+
+            ret = await self.fetcher.fetch(data, proxy=proxy)
 
             result = {
                     'success': ret['success'],
