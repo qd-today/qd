@@ -6,12 +6,13 @@
 # Created on 2014-08-08 21:06:02
 
 from .base import *
+from . import api
 
 
 class AboutHandler(BaseHandler):
     @tornado.web.addslash
     async def get(self):
-        await self.render('about.html')
+        await self.render('about.html', apis=api.apis)
         return
 
 handlers = [
