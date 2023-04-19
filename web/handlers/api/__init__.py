@@ -38,7 +38,7 @@ class Argument(object):
     description: str
     '''参数描述
     例如："正则表达式"'''
-    type: "type" = str
+    type: typing.Type = str
     """参数类型，默认为 str
     设置了 multi 时，type 描述的是列表内元素的类型"""
     type_display: str | None = None
@@ -204,7 +204,6 @@ def api_wrap(
     arguments: Iterable[Argument] = [],
     example: dict[str, BaseType | Iterable[BaseType]] = {},
     example_display: str = "",
-    display: bool = True,
 ):
     """设置 API 参数、示例、说明等"""
 
@@ -246,7 +245,6 @@ def api_wrap(
         wrapper.api = {
             "arguments": arguments,
             "example": example_display,
-            "display": display,
         }
 
         return wrapper

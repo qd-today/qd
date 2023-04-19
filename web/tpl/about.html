@@ -35,8 +35,8 @@
         <th>名称</th>
         <th>描述</th>
         <th>类型</th>
-        <th>默认</th>
         <th>必须</th>
+        <th>默认</th>
         <th>多重</th>
         <th>From body</th>
       </tr>
@@ -64,8 +64,8 @@
             <td>{{ argv[0].name }}</td>
             <td>{{ argv[0].description | safe }}</td>
             <td>{{ argv[0].type_display }}</td>
-            <td>{{ argv[0].default_display }}</td>
             <td>{{ "✅" if argv[0].required else " " }}</td>
+            <td>{{ argv[0].default_display }}</td>
             <td>{{ "✅" if argv[0].multi else " " }}</td>
             <td>{{ "✅" if argv[0].from_body else " " }}</td>
           {% else %}
@@ -87,13 +87,13 @@
           {% if args > 1 %}
             {% for j in range(1, args) %}
               <tr class="tablesorter-childRow">
-                <td>{{ api.api_arguments[j].name }}</td>
-                <td>{{ api.api_arguments[j].description | safe }}</td>
-                <td>{{ api.api_arguments[j].type_display }}</td>
-                <td>{{ api.api_arguments[j].default_display }}</td>
-                <td>{{ "✅" if api.api_arguments[j].required else " " }}</td>
-                <td>{{ "✅" if api.api_arguments[j].multi else " " }}</td>
-                <td>{{ "✅" if api.api_arguments[j].from_body else " " }}</td>
+                <td>{{ argv[j].name }}</td>
+                <td>{{ argv[j].description | safe }}</td>
+                <td>{{ argv[j].type_display }}</td>
+                <td>{{ "✅" if argv[j].required else " " }}</td>
+                <td>{{ argv[j].default_display }}</td>
+                <td>{{ "✅" if argv[j].multi else " " }}</td>
+                <td>{{ "✅" if argv[j].from_body else " " }}</td>
               </tr>
             {% endfor %}
           {% endif %}
