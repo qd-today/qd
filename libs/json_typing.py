@@ -1,5 +1,5 @@
 import typing
-from typing_extensions import TypedDict
+from typing import TypedDict
 
 
 class Env(TypedDict):
