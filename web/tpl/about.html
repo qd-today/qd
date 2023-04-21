@@ -66,8 +66,8 @@
             <td>{{ argv[0].type_display }}</td>
             <td>{{ "✅" if argv[0].required else " " }}</td>
             <td>{{ argv[0].default_display }}</td>
-            <td>{{ "✅" if argv[0].multi else " " }}</td>
-            <td>{{ "✅" if argv[0].from_body else " " }}</td>
+            <td>{{ "✅" if ismulti(argv[0]) else " " }}</td>
+            <td>{{ "✅" if isbody(argv[0]) else " " }}</td>
           {% else %}
             <td>&nbsp;</td>
             <td>&nbsp;</td>
@@ -92,8 +92,8 @@
                 <td>{{ argv[j].type_display }}</td>
                 <td>{{ "✅" if argv[j].required else " " }}</td>
                 <td>{{ argv[j].default_display }}</td>
-                <td>{{ "✅" if argv[j].multi else " " }}</td>
-                <td>{{ "✅" if argv[j].from_body else " " }}</td>
+                <td>{{ "✅" if ismulti(argv[j]) else " " }}</td>
+                <td>{{ "✅" if isbody(argv[j]) else " " }}</td>
               </tr>
             {% endfor %}
           {% endif %}

@@ -4,7 +4,7 @@ import typing
 
 import config
 
-from . import ApiBase, Argument, api_wrap, ApiError
+from . import ApiBase, Argument, MultiArgument, BodyArgument, api_wrap, ApiError
 
 
 # API 插件设计准则：
@@ -71,10 +71,10 @@ class Echo2(ApiBase):
     # 不提供 example 的示例
     @api_wrap(
         arguments=(
-            Argument(name="text", description="输入的文字", required=True, from_body=True),
+            BodyArgument(name="text", description="输入的文字", required=True, init= lambda x: x),
         ),
     )
-    async def post(self, text: str):
+    async def post(self, text: bytes):
         return text
 
 
@@ -96,7 +96,7 @@ class Echon(ApiBase):
         return d
 
 
-# 用于演示 multi 的示例
+# 用于演示 MultiArgument 的示例
 class Concat(ApiBase):
     api_name = "连接"
     api_description = "输出 = sep.join(text)"
@@ -104,8 +104,8 @@ class Concat(ApiBase):
 
     @api_wrap(
         arguments=(
-            Argument(
-                name="texts", required=True, description="输入", type=str, multi=True
+            MultiArgument(
+                name="texts", required=True, description="输入", type=str
             ),
             Argument(name="sep", required=True, description="n", type=str),
         ),
@@ -115,7 +115,7 @@ class Concat(ApiBase):
         return sep.join(texts)
 
 
-# 用于演示 multi 的示例 API：Sum
+# 用于演示 MultiArgument 的示例 API：Sum
 class Sum(ApiBase):
     api_name = "累加"
     api_description = "输出 = sum(输入)"
@@ -123,8 +123,8 @@ class Sum(ApiBase):
 
     @api_wrap(
         arguments=(
-            Argument(
-                name="input", required=True, description="输入", type=int, multi=True
+            MultiArgument(
+                name="input", required=True, description="输入", type=int
             ),
         ),
         example={"input": [1, 2, 9]},
@@ -181,7 +181,7 @@ class Error(ApiBase):
             raise ApiError(code, reason)
 
 
-# from_body 和 api_write_json 的示例
+# BodyArgument 和 api_write_json 的示例
 class Json(ApiBase):
     api_name = "json echo"
     api_description = "POST JSON 传参示例"
@@ -206,14 +206,13 @@ class Json(ApiBase):
 
     @api_wrap(
         arguments=(
-            Argument(
+            BodyArgument(
                 name="data",
                 required=True,
                 description="输入 JSON",
                 type=typing.Union[dict, list, int, float, bool, None],
                 type_display="json",
-                init=json.loads,
-                from_body=True,
+                init=lambda x: json.loads(x.decode()),
             ),
             Argument(
                 name="indent", required=False, description="缩进", type=int, default=4
@@ -235,13 +234,13 @@ class Echo0(ApiBase):
 
     async def get(self):
         # 使用原生 tornado API，详细参考 tornado 文档
-        text = self.get_argument("text", '')
+        text = self.get_argument("text", "")
         self.write(text)
-    
+
     # 此处的声明只用于生成前端文档
     get.api = {
-        'arguments': (Argument(name="text", description="输入的文字", required=True),),
-        'example': 'text=hello world',
+        "arguments": (Argument(name="text", description="输入的文字", required=True),),
+        "example": "text=hello world",
     }
 
     post = get

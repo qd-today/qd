@@ -28,7 +28,7 @@ class ApiError(HTTPError):
 
 
 @dataclass()
-class Argument(object):
+class ArgumentBase(object):
     name: str
     '''参数名称
     例如："regex"'''
@@ -43,15 +43,11 @@ class Argument(object):
     设置了 multi 时，type 描述的是列表内元素的类型"""
     type_display: str | None = None
     """参数类型在前端的显示值，默认为 self.type.__name__"""
-    init: Callable[[str], typing.Any] = None  # type: ignore
+    init: Callable[[str | bytes], typing.Any] = None  # type: ignore
     """参数初始化函数，初始化规则如下：
     如果用户未提供且 self.type Callable，则使用 self.type；
     如果用户未提供且 self.type 不是 Callable，则使用 lambda x: x。
     该初始化函数原型为 init(str) -> self.type，例如 int("123"), float("123.456")等"""
-    multi: bool = False
-    """是否为多值参数，比如 ?a=1&a=2&a=3 -> a=[1,2,3]"""
-    # multi 为 True 时，参数类型为 list[self.type]
-    # multi 为 True 时，default 必须为 list 或 tuple（如果 default 为 None，会被自动转换为空 tuple）"""
     default: BaseType | Iterable[BaseType] = None
     """参数默认值
     如果设置了 multi，则 default 类型须为 Iterable[str|int|float|bool]（默认为空 tuple）；
@@ -61,9 +57,6 @@ class Argument(object):
     API 被调用时，用户若为提供该参数，则使用 init(default) 作为参数值。"""
     default_display: str | None = None
     """默认值在前端的显示值，默认为 repr(self.default)"""
-    from_body: bool = False
-    """从 request.body 初始化，比如 POST JSON 情形
-    与 multi 互斥"""
 
     def __post_init__(self):
         if self.init is None:
@@ -75,18 +68,83 @@ class Argument(object):
             self.default = None
             self.default_display = "❎"
 
-        if self.multi and self.default is None:
-            self.default = tuple()
-
         if self.default_display is None:
             self.default_display = repr(self.default)
-            
+
         if self.type_display is None:
             self.type_display = self.type.__name__
 
-        if self.multi and self.from_body:
-            # multi 和 from_body 互斥
-            raise ValueError(f"Argument {self.name} is multi but from_body")
+    def get_value(self, api: "ApiBase") -> typing.Any:
+        ...
+
+
+@dataclass()
+class Argument(ArgumentBase):
+    """URL Query 和 POST form 参数"""
+
+    init: Callable[[str], typing.Any] = None  # type: ignore
+    """参数初始化函数，初始化规则如下：
+    如果用户未提供且 self.type Callable，则使用 self.type；
+    如果用户未提供且 self.type 不是 Callable，则使用 lambda x: x。
+    该初始化函数原型为 init(str) -> self.type，例如 int("123"), float("123.456")等"""
+
+    def get_value(self, api: "ApiBase") -> typing.Any:
+
+        value = api.get_argument(self.name, self.default)  # type: ignore
+        if value is None and self.required:
+            raise ApiError(
+                400, f"API {api.api_name}({api.api_url}) 参数 {self.name} 不能为空"
+            )
+        if value is not None and not isinstance(value, self.type):
+            value = self.init(value)
+        return value
+
+
+@dataclass()
+class MultiArgument(ArgumentBase):
+    """多值参数，比如 ?a=1&a=2&a=3 -> a=[1,2,3]"""
+
+    init: Callable[[str], typing.Any] = None  # type: ignore
+    """参数初始化函数，初始化规则如下：
+    如果用户未提供且 self.type Callable，则使用 self.type；
+    如果用户未提供且 self.type 不是 Callable，则使用 lambda x: x。
+    该初始化函数原型为 init(str) -> self.type，例如 int("123"), float("123.456")等"""
+
+    def get_value(self, api: "ApiBase") -> tuple:
+        vs = api.get_arguments(self.name)
+        if not vs:
+            if self.required:
+                raise ApiError(
+                    400, f"API {api.api_name}({api.api_url}) 参数 {self.name} 不能为空"
+                )
+            vs: Iterable[str] = self.default  # type: ignore
+        r = []
+        for v in vs:
+            if not isinstance(v, self.type):
+                v = self.init(v)
+            r.append(v)
+        return tuple(r)
+
+
+@dataclass()
+class BodyArgument(ArgumentBase):
+    """从 request.body 初始化，比如 POST JSON 情形
+    初始化函数原型为 init(bytes) -> self.type"""
+
+    init: Callable[[bytes], typing.Any] = None  # type: ignore
+    """参数初始化函数，初始化规则如下：
+    如果用户未提供且 self.type Callable，则使用 self.type；
+    如果用户未提供且 self.type 不是 Callable，则使用 lambda x: x。
+    该初始化函数原型为 init(bytes) -> self.type"""
+
+    def __post_init__(self):
+        self.default = ""
+        self.default_display = ""
+
+        return super().__post_init__()
+
+    def get_value(self, api: "ApiBase"):
+        return self.init(api.request.body)
 
 
 class ApiMetaclass(type):
@@ -136,34 +194,14 @@ class ApiBase(BaseHandler, metaclass=ApiMetaclass):
     api_frontend: dict
     """API 前端显示的信息，自动生成"""
 
-    def api_get_arguments(self, args_def: Iterable[Argument]) -> dict[str, typing.Any]:
+    def api_get_arguments(
+        self, args_def: Iterable[ArgumentBase]
+    ) -> dict[str, typing.Any]:
         """获取 API 的所有参数"""
         args: dict[str, typing.Any] = {}
 
         for arg in args_def:
-            init = arg.init
-
-            if arg.multi:
-                vs = self.get_arguments(arg.name)
-                if not vs:
-                    if arg.required:
-                        raise ApiError(400, f"参数 {arg.name} 不能为空")
-                    vs: Iterable[str] = arg.default  # type: ignore
-                value = []
-                for v in vs:
-                    if not isinstance(v, arg.type):
-                        v = init(v)
-                    value.append(v)
-            elif arg.from_body:
-                value = init(self.request.body.decode())
-            else:
-                value = self.get_argument(arg.name, arg.default)  # type: ignore
-                if value is None and arg.required:
-                    log = f"参数 {arg.name} 不能为空"
-                    raise ApiError(400, log)
-                if value is not None and not isinstance(value, arg.type):
-                    value = init(value)
-            args[arg.name] = value
+            args[arg.name] = arg.get_value(self)
 
         return args
 
@@ -201,7 +239,7 @@ class ApiBase(BaseHandler, metaclass=ApiMetaclass):
 def api_wrap(
     # func: Callable | None = None,
     # *,
-    arguments: Iterable[Argument] = [],
+    arguments: Iterable[ArgumentBase] = [],
     example: dict[str, BaseType | Iterable[BaseType]] = {},
     example_display: str = "",
 ):
@@ -209,7 +247,7 @@ def api_wrap(
 
     def decorate(func: Callable):
         async def wrapper(self: "ApiBase") -> None:
-            args: Iterable[Argument] = wrapper.api["arguments"]
+            args: Iterable[ArgumentBase] = wrapper.api["arguments"]
             kwargs = self.api_get_arguments(args)
 
             ret = await func(self, **kwargs)
@@ -225,13 +263,13 @@ def api_wrap(
         if not example_display and example:
             kv = []
             for arg in arguments:
-                arg: Argument
+                arg: ArgumentBase
                 k = arg.name
                 if k not in example:
                     if arg.required:
                         raise ValueError(f'api example: "{k}" is required')
                     continue
-                if arg.multi:
+                if isinstance(arg, MultiArgument):
                     e = example[k]
                     if not isinstance(e, (list, tuple)):
                         raise ValueError(f'api example: "{k}" should be list or tuple')
