@@ -5,6 +5,7 @@
 #         http://binux.me
 # Created on 2014-08-09 11:39:25
 
+import base64
 import datetime
 import json
 import time
@@ -625,7 +626,8 @@ class UserDBHandler(BaseHandler):
                 traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            self.set_status(400, reason=str(e))
+            self.set_status(400)
+            self.set_header('Error-Message', base64.b64encode(str(e).encode('utf-8')))
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             logger_Web_Handler.error('UserID: %s backup or restore Database failed! Reason: %s', userid or '-1', str(e))
             return

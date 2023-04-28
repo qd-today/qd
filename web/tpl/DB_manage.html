@@ -4,6 +4,7 @@
   <hr>
   <script src="{{ static_url('components/blueimp-md5/js/md5.js') }}"></script>
   <script src="{{ static_url('components/download.js') }}"></script>
+  <script src="{{ static_url('components/js-base64/base64.js') }}"></script>
   <div id="run-result"></div>
 
   <div>
@@ -71,6 +72,12 @@
             timeout: 600000,
           })
             .fail(function (jxhr) {
+              var msg = jxhr.getResponseHeader('error-message');
+              if (msg) {
+                msg = Base64.decode(msg);
+                $('#run-result').html('<h1 class="alert alert-danger text-center">恢复失败</h1><div class="well"></div>').show().find('div').text(msg);
+                return;
+              }
               $('#run-result').html('<h1 class="alert alert-danger text-center">恢复失败</h1><div class="well"></div>').show().find('div').text(decodeURIComponent(escape(jxhr.statusText)));
             })
             .done(function (data) {
@@ -108,6 +115,12 @@
         },
       })
       .fail(function(jxhr) {
+        var msg = jxhr.getResponseHeader('error-message');
+        if (msg) {
+          msg = Base64.decode(msg);
+          $('#run-result').html('<h1 class="alert alert-danger text-center">备份失败</h1><div class="well"></div>').show().find('div').text(msg);
+          return;
+        }
         $('#run-result').html('<h1 class="alert alert-danger text-center">备份失败</h1><div class="well"></div>').show().find('div').text(decodeURIComponent(escape(jxhr.statusText)));
       })
       .done(function(response, status, xhr) {
