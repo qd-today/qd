@@ -9,7 +9,7 @@ import datetime
 import json
 import time
 
-from tornado import gen
+from tornado import gen, iostream
 
 try:
     import aiofiles
@@ -18,6 +18,7 @@ except:
     aio_import = False
 import os
 import re
+import sqlite3
 import traceback
 
 from Crypto.Hash import MD5
@@ -449,18 +450,49 @@ class UserDBHandler(BaseHandler):
                                 raise Exception(u"抱歉，暂不支持通过本页面备份MySQL数据！ﾍ(;´Д｀ﾍ)")
                             filename = config.sqlite3.path
                             savename = "database_{now}.db".format(now=now)
-                            self.set_header ('Content-Type', 'application/octet-stream')
-                            self.set_header ('Content-Disposition', 'attachment; filename='+savename)
                             if not aio_import:
                                 raise Exception(u"更新容器后请先重启容器!") 
-                            async with aiofiles.open(filename, 'rb') as f:
-                                while True:
-                                    data = await f.read(1024)
-                                    if not data:
-                                        break
-                                    self.write(data)
-                                    self.flush()
-                            await self.finish()
+                            
+                            conn_src = sqlite3.connect(filename, check_same_thread=False)
+                            conn_target = sqlite3.connect(savename, check_same_thread=False)
+                            def progress(status, remaining, total):
+                                logger_Web_Handler.info(f'Sqlite_Backup: Copied {total-remaining} of {total} pages...')
+                            conn_src.backup(conn_target, progress=progress)
+                            conn_target.commit()
+                            conn_src.close()
+                            conn_target.close()
+                            try:
+                                self.set_header ('Content-Type', 'application/octet-stream; charset=UTF-8')
+                                self.set_header ('Content-Disposition', ('attachment; filename='+savename).encode('utf-8'))
+                                content_length = os.stat(savename).st_size
+                                self.set_header("Content-Length", content_length)
+                                
+                                async with aiofiles.open(savename, 'rb') as f:
+                                    self.set_header ('Content-Type', 'application/octet-stream')
+                                    self.set_header ('Content-Disposition', ('attachment; filename='+savename).encode('utf-8'))
+                                    
+                                    chunk_size = 1024*1024*1 # 1MB
+                                    while True:
+                                        chunk = await f.read(chunk_size)
+                                        if not chunk:
+                                            break
+                                        try:
+                                            self.write(chunk) # write the chunk to response
+                                            await self.flush() # send the chunk to client
+                                        except iostream.StreamClosedError:
+                                            # this means the client has closed the connection
+                                            # so break the loop
+                                            raise Exception("Stream closed")
+                                        finally:
+                                            # deleting the chunk is very important because 
+                                            # if many clients are downloading files at the 
+                                            # same time, the chunks in memory will keep 
+                                            # increasing and will eat up the RAM
+                                            del chunk
+                                await self.finish()
+                            finally:
+                                await gen.sleep(3)
+                                os.remove(savename)
                         else:
                             raise Exception(u"管理员才能备份数据库") 
                     else:
@@ -489,21 +521,23 @@ class UserDBHandler(BaseHandler):
                         async with aiofiles.open(savename, 'w', encoding='utf-8') as fp:
                             await fp.write(json.dumps(backupdata, ensure_ascii=False, indent=4 ))
                             fp.close()
-                        self.set_header ('Content-Type', 'application/octet-stream')
-                        self.set_header ('Content-Disposition', 'attachment; filename='+savename)
+                        self.set_header ('Content-Type', 'application/octet-stream; charset=UTF-8')
+                        self.set_header ('Content-Disposition', ('attachment; filename='+savename).encode('utf-8'))
                         async with aiofiles.open(savename, 'rb') as f:
+                            chunk_size = 1024*1024*1 # 1MB
                             while True:
-                                data = await f.read(1024)
+                                data = await f.read(chunk_size)
                                 if not data:
                                     break
                                 self.write(data)
-                                self.flush()
+                                await self.flush()
                         os.remove(savename)
                         await self.finish()
                         return
                         
                     if ('recoverytplsbtn' in envs):
-                        if ('recfile' in envs):
+                        if ('recfile' in self.request.files):
+                            envs['recfile'] = self.request.files['recfile'][0]['body']
                             if envs['recfile'][:6] == 'SQLite':
                                 raise Exception(u"抱歉，暂不支持通过本页面还原SQLite3数据库文件！(╥╯^╰╥)")
                             else:
@@ -564,6 +598,7 @@ class UserDBHandler(BaseHandler):
                 traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
+            self.set_status(400, reason=str(e))
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             logger_Web_Handler.error('UserID: %s backup or restore Database failed! Reason: %s', userid or '-1', str(e))
             return

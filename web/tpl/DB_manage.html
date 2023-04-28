@@ -31,40 +31,40 @@
   {{ utils.submit_loading() }}
 
   <script>
-    $(function() {
-      $('#recoverytpls').on('click', function() {
+    $(function () {
+      $('#recoverytpls').on('click', function () {
         var fileObj = document.getElementById("recfile").files[0];
-        var reader = new FileReader();
-        reader.onload = function(event) {
-          var env = {};
-          var data = {}
-          env["adminpwd"] = md5($('#adminpwd')[0].value);
-          env["adminmail"] = $('#adminmail')[0].value;
-          env["recoverytplsbtn"] = "";
-          env["recfile"] = event.target.result;
-
-          $this = $('#recoverytpls')
+        if (fileObj == undefined) {
+          $('#run-result').html('<h1 class="alert alert-danger text-center">恢复失败</h1><div class="well">请选择文件</div>').show()
+          $('#recoverytpls').button('reset');
+          return false;
+        } else {
+          var env = new FormData();
+          env.append("adminpwd", md5($('#adminpwd')[0].value));
+          env.append("adminmail", $('#adminmail')[0].value);
+          env.append("recoverytplsbtn", "");
+          env.append("recfile", fileObj);
+          var $this = $('#recoverytpls')
           $this.button('loading');
           $.ajax("/user/{{ userid }}/database", {
             type: 'POST',
             data: env,
+            processData: false,
+            contentType: false,
+            cache: false,
+            timeout: 600000,
           })
-          .done(function(data) {
-            $('#run-result').html(data).show()
-          })
-          .fail(function(jxhr) {
-            $('#run-result').html('<h1 class="alert alert-danger text-center">恢复失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
-          })
-          .always(function() {
-            $this.button('reset');
-          });
+            .fail(function (jxhr) {
+              $('#run-result').html('<h1 class="alert alert-danger text-center">恢复失败</h1><div class="well"></div>').show().find('div').text(decodeURIComponent(escape(jxhr.statusText)));
+            })
+            .done(function (data) {
+              $('#run-result').html(data).show()
+            })
+            .always(function () {
+              $this.button('reset');
+            });
           return false;
-          };
-        reader.onprogress = function(event) {
-          $('#recoverytpls').button('reset');
         }
-        reader.readAsText(fileObj);
-        return false;
       });
     })
 
@@ -87,15 +87,16 @@
       $.ajax("/user/{{ userid }}/database", {
         type: 'POST',
         data: env,
+        xhrFields: {
+          responseType: "arraybuffer",
+        },
+      })
+      .fail(function(jxhr) {
+        $('#run-result').html('<h1 class="alert alert-danger text-center">备份失败</h1><div class="well"></div>').show().find('div').text(decodeURIComponent(escape(jxhr.statusText)));
       })
       .done(function(response, status, xhr) {
-        if (response.indexOf('<h1 class="alert') > -1) {
-          console.log(xhr.responseText)
-          $('#run-result').html(xhr.responseText).show()
-        }else{
-          AjaxPosSaveFile(response, xhr)
-          $('#run-result').html('<h1 class="alert alert-success text-center">备份成功</h1>').show()
-        }
+        AjaxPosSaveFile(response, status, xhr)
+        $('#run-result').html('<h1 class="alert alert-success text-center">备份成功</h1>').show()
       })
       .always(function() {
         $this.button('reset');
