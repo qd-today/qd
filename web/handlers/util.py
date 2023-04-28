@@ -747,31 +747,42 @@ class DdddOCRServer(object):
     def detection(self, img: bytes):
         return self.det.detection(img)
 
-    def slide_match(self, imgtarget: bytes, imgbg: bytes):
-        return self.slide.slide_match(imgtarget, imgbg)
-
+    def slide_match(self, imgtarget: bytes, imgbg: bytes, comparison=False, simple_target=False):
+        if comparison:
+            return self.slide.slide_comparison(imgtarget, imgbg)
+        if not simple_target:
+            try:
+                return self.slide.slide_match(imgtarget, imgbg)
+            except:
+                pass
+        return self.slide.slide_match(imgtarget, imgbg, simple_target=True)
 
 if ddddocr:
     DdddOCRServer = DdddOCRServer()
 else:
     DdddOCRServer = None
 
+async def get_img_from_url(imgurl):
+    async with aiohttp.ClientSession(
+            conn_timeout=config.connect_timeout) as session:
+        async with session.get(imgurl,
+                                verify_ssl=False,
+                                timeout=config.request_timeout) as res:
+            content = await res.read()
+            base64_data = base64.b64encode(content).decode()
+            return base64.b64decode(base64_data)
 
-async def get_img(
-    img="",
-    imgurl="",
-):
+async def get_img(img="", imgurl="",):
     if img:
+        # 判断是否为URL
+        if img.startswith("http"):
+            try:
+                return await get_img_from_url(img)
+            except:
+                return base64.b64decode(img)
         return base64.b64decode(img)
     elif imgurl:
-        async with aiohttp.ClientSession(
-                conn_timeout=config.connect_timeout) as session:
-            async with session.get(imgurl,
-                                   verify_ssl=False,
-                                   timeout=config.request_timeout) as res:
-                content = await res.read()
-                base64_data = base64.b64encode(content).decode()
-                return base64.b64decode(base64_data)
+        return await get_img_from_url(imgurl)
     else:
         raise HTTPError(415)
 
@@ -883,9 +894,11 @@ class DdddSlideHandler(BaseHandler):
             if DdddOCRServer:
                 imgtarget = self.get_argument("imgtarget", "")
                 imgbg = self.get_argument("imgbg", "")
+                simple_target = bool(strtobool(self.get_argument("simple_target", "False")))
+                comparison = bool(strtobool(self.get_argument("comparison", "False")))
                 imgtarget = await get_img(imgtarget, "")
                 imgbg = await get_img(imgbg, "")
-                Rtv[u"Result"] = DdddOCRServer.slide_match(imgtarget, imgbg)
+                Rtv[u"Result"] = DdddOCRServer.slide_match(imgtarget, imgbg, comparison=comparison, simple_target=simple_target)
                 Rtv[u"状态"] = "OK"
             else:
                 raise HTTPError(406)
@@ -905,13 +918,17 @@ class DdddSlideHandler(BaseHandler):
                     body_dict = json.loads(self.request.body)
                     imgtarget = body_dict.get("imgtarget", "")
                     imgbg = body_dict.get("imgbg", "")
+                    simple_target = bool(strtobool(body_dict.get("simple_target", "False")))
+                    comparison = bool(strtobool(body_dict.get("comparison", "False")))
                 else:
                     imgtarget = self.get_argument("imgtarget", "")
                     imgbg = self.get_argument("imgbg", "")
+                    simple_target = bool(strtobool(self.get_argument("simple_target", "False")))
+                    comparison = bool(strtobool(self.get_argument("comparison", "False")))
 
                 imgtarget = await get_img(imgtarget, "")
                 imgbg = await get_img(imgbg, "")
-                Rtv[u"Result"] = DdddOCRServer.slide_match(imgtarget, imgbg)
+                Rtv[u"Result"] = DdddOCRServer.slide_match(imgtarget, imgbg, comparison=comparison, simple_target=simple_target)
                 Rtv[u"状态"] = "OK"
             else:
                 raise HTTPError(406)
