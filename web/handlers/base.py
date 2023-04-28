@@ -13,7 +13,7 @@ from tornado.web import HTTPError
 
 import config
 from db import DB
-from libs import utils
+from libs import utils, fetcher
 from libs.log import Log
 
 logger_Web_Handler = Log('qiandao.Web.Handler').getlogger()
@@ -23,6 +23,7 @@ __ALL__ = ['HTTPError', 'BaseHandler', 'BaseWebSocket', 'BaseUIModule', 'logger_
 class BaseHandler(tornado.web.RequestHandler):
     application_export = set(('db', 'fetcher'))
     db:DB
+    fetcher: fetcher.Fetcher
     # db = DB()
     def __getattr__(self, key):
         if key in self.application_export:
