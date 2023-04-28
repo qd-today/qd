@@ -538,8 +538,35 @@ class UserDBHandler(BaseHandler):
                     if ('recoverytplsbtn' in envs):
                         if ('recfile' in self.request.files):
                             envs['recfile'] = self.request.files['recfile'][0]['body']
-                            if envs['recfile'][:6] == 'SQLite':
-                                raise Exception(u"抱歉，暂不支持通过本页面还原SQLite3数据库文件！(╥╯^╰╥)")
+                            if envs['recfile'][:6] == b'SQLite':
+                                db_dir = os.path.dirname(config.sqlite3.path)
+                                db_restore = os.path.join(db_dir, 'database_restore.db')
+                                with open(db_restore, 'wb') as f:
+                                    f.write(envs['recfile'])
+                                db_backup = os.path.join(db_dir, 'database_backup.db')
+                                db_now = os.path.join(db_dir, 'database.db')
+                                # 先备份 database.db 到 database_backup.db
+                                conn_src = sqlite3.connect(db_now, check_same_thread=False)
+                                conn_target = sqlite3.connect(db_backup, check_same_thread=False)
+                                def progress(status, remaining, total):
+                                    logger_Web_Handler.info(f'Sqlite_Backup: Copied {total-remaining} of {total} pages...')
+                                conn_src.backup(conn_target,progress=progress)
+                                conn_target.commit()
+                                conn_src.close()
+                                conn_target.close()
+                                
+                                # 再还原 database_restore.db 到 database.db
+                                conn_src = sqlite3.connect(db_restore, check_same_thread=False)
+                                conn_target = sqlite3.connect(db_now, check_same_thread=False)
+                                def progress(status, remaining, total):
+                                    logger_Web_Handler.info(f'Sqlite_Restore: Copied {total-remaining} of {total} pages...')
+                                conn_src.backup(conn_target,progress=progress)
+                                conn_target.commit()
+                                conn_src.close()
+                                conn_target.close()
+                                await self.render('utils_run_result.html', log=u"恢复完成, 请务必重启QD程序或容器!!!\r\nPS: 原始 database.db 文件已备份为 database_backup.db 文件!!!\r\n如还原失败, 请手动恢复 database_backup.db 文件!!!", title=u'设置成功', flg='success')
+                                # raise Exception(u"抱歉，暂不支持通过本页面还原SQLite3数据库文件！(╥╯^╰╥)")
+                                return
                             else:
                                 try:
                                     tpls = json.loads(envs['recfile'])['tpls']

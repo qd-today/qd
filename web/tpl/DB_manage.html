@@ -44,6 +44,22 @@
           env.append("adminmail", $('#adminmail')[0].value);
           env.append("recoverytplsbtn", "");
           env.append("recfile", fileObj);
+          // 判断文件类型
+          var fileName = fileObj.name;
+          var suffixIndex = fileName.lastIndexOf(".");
+          var suffix = fileName.substring(suffixIndex + 1).toUpperCase();
+          if (suffix == 'DB'){
+            var r = confirm("请确认用于恢复的文件为SQLite数据库文件, 是否继续?");
+            if (r == false) {
+              $('#recoverytpls').button('reset');
+              return false;
+            }
+            var r = confirm("恢复SQLite数据库将覆盖原始数据库, 是否覆盖?");
+            if (r == false) {
+              $('#recoverytpls').button('reset');
+              return false;
+            }
+          }
           var $this = $('#recoverytpls')
           $this.button('loading');
           $.ajax("/user/{{ userid }}/database", {
