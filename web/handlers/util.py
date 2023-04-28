@@ -936,7 +936,7 @@ class DdddSlideHandler(BaseHandler):
             Rtv[u"状态"] = str(e)
 
         self.set_header('Content-Type', 'application/json; charset=UTF-8')
-        self.write(json.dumps(Rtv, ensure_ascii=False, indent=4))
+        self.write(json.dumps(Rtv, ensure_ascii=False, indent=None))
         return
 
 

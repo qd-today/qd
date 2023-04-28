@@ -693,6 +693,50 @@ define (require, exports, module) ->
         ]
       })
 
+    $scope.add_dddd_SLIDE_request = () ->
+      $scope.insert_request(1, {
+        checked: true,
+        pageref: $scope.entry.pageref,
+        recommend: true,
+        comment: '滑块识别',
+        request: {
+          method: 'POST',
+          url: [api_host, '/util/dddd/slide'].join(''),
+          headers: [{
+              "name": "Content-Type",
+              "value": "application/json",
+              "checked": true
+            }],
+          cookies: [],
+          postData: {
+            text: "{\"imgtarget\":\"\",\"imgbg\":\"\",\"comparison\":\"False\",\"simple_target\":\"False\"}"
+          }
+        },
+        response: {},
+        success_asserts: [
+          {
+            re: "200",
+            from: "status"
+          },
+          {
+            re: "\"状态\": \"OK\"",
+            from: "content"
+          }
+        ],
+        extract_variables: [
+          {
+            name: '',
+            re: '(\\d+, \\d+)',
+            from: 'content'
+          },
+          {
+            name: '',
+            re: '/(\\d+, \\d+)/g',
+            from: 'content'
+          }
+        ]
+      })
+
     $scope.copy_request = () ->
       if not $scope.entry
         $scope.alert "can't find position to paste request"
