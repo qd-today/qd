@@ -601,7 +601,7 @@ class Fetcher(object):
         while stmt_stack:
             yield stmt_stack.pop()
 
-    async def do_fetch(self, tpl, env, proxies=config.proxies, request_limit=1000):
+    async def do_fetch(self, tpl, env, proxies=config.proxies, request_limit=1000, tpl_length=0):
         """
         do a fetch of hole tpl
         """
@@ -610,13 +610,18 @@ class Fetcher(object):
         else:
             proxy = {}
 
+        if tpl_length == 0 and len(tpl) > 0:
+            tpl_length = len(tpl)
+            for i, entry in enumerate(tpl):
+                entry['idx'] = i+1
+
         for i, block in enumerate(self.parse(tpl)):
             if request_limit <= 0:
                 raise Exception('request limit')
             elif block['type'] == 'for':
                 for each in env['variables'].get(block['from'], []):
                     env['variables'][block['target']] = each
-                    env = await self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit)
+                    env = await self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
             elif block['type'] == 'if':
                 try:
                     condition = safe_eval(block['condition'],env['variables'])
@@ -628,9 +633,9 @@ class Fetcher(object):
                     else:
                         raise e
                 if condition:
-                    await self.do_fetch(block['true'], env, proxies=[proxy], request_limit=request_limit)
+                    await self.do_fetch(block['true'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
                 else:
-                    await self.do_fetch(block['false'], env, proxies=[proxy], request_limit=request_limit)
+                    await self.do_fetch(block['false'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
             elif block['type'] == 'request':
                 entry = block['entry']
                 try:
@@ -645,8 +650,8 @@ class Fetcher(object):
                     if config.debug:
                         logger_Fetcher.exception(e)
                     raise Exception('Failed at %d/%d request, \\r\\nError: %r, \\r\\nRequest URL: %s' % (
-                        i+1, len(tpl), e, entry['request']['url']))
+                        entry['idx'], tpl_length, e, entry['request']['url']))
                 if not result['success']:
                     raise Exception('Failed at %d/%d request, \\r\\n%s, \\r\\nRequest URL: %s' % (
-                        i+1, len(tpl), result['msg'], entry['request']['url']))
+                        entry['idx'], tpl_length, result['msg'], entry['request']['url']))
         return env
