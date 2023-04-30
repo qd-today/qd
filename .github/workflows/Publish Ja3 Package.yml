@@ -36,5 +36,4 @@ jobs:
         file: ./Dockerfile.ja3
         platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
         push: true
-        tags: |
-        ghcr.io/qiandao-today/qiandao:ja3-latest
+        tags: ghcr.io/qiandao-today/qiandao:ja3-latest
