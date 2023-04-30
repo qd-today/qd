@@ -3,6 +3,8 @@
 #
 # Copyright © 2016 Binux <roy@binux.me>
 import asyncio
+import json
+import os
 import platform
 import sys
 
@@ -56,7 +58,9 @@ if __name__ == "__main__":
         from tornado.httpserver import HTTPServer
 
         from web.app import Application
-        http_server = HTTPServer(Application(database), xheaders=True)
+        default_version = json.load(open(os.path.join(os.path.dirname(__file__), 'version.json'),'r', encoding='utf-8'))['version']
+        App= Application(database, default_version)
+        http_server = HTTPServer(App, xheaders=True)
         http_server.bind(port, config.bind)
         if config.multiprocess:
             http_server.start(num_processes=0)
@@ -65,7 +69,7 @@ if __name__ == "__main__":
 
         from tornado.ioloop import IOLoop, PeriodicCallback
 
-        from worker import BatchWorker, QueueWorker
+        from worker import BatchWorker, HolidayWorker, QueueWorker
         io_loop = IOLoop.instance()
         try:
             if config.worker_method.upper() == 'QUEUE':
@@ -76,6 +80,8 @@ if __name__ == "__main__":
                 PeriodicCallback(worker, config.check_task_loop).start()
             else:
                 raise Exception('worker_method must be Queue or Batch, please check config!')
+            holiday = HolidayWorker(App, default_version)
+            io_loop.add_callback(holiday)
         except Exception as e:
             logger.exception('worker start error!')
             raise KeyboardInterrupt()
