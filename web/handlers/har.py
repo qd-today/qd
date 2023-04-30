@@ -17,7 +17,7 @@ from jinja2 import Environment, meta
 from jinja2.nodes import Const, Filter, Getattr, List, Name, Tuple
 from tornado import gen, httpclient
 
-from libs import utils, json_typing
+from libs import json_typing, utils
 from libs.fetcher import Fetcher
 from libs.parse_url import parse_url
 
@@ -121,8 +121,7 @@ class HARTest(BaseHandler):
                 }
                 ret = await self.fetcher.fetch(data, proxy=proxy)
             else:
-                await self.fetcher.fetch(data)
-
+                ret = await self.fetcher.fetch(data)
 
             result = {
                     'success': ret['success'],
