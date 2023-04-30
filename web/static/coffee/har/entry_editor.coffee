@@ -89,7 +89,7 @@ define (require, exports, module) ->
         return
       if not $scope.entry?
         return
-      if $scope.entry.request.url.substring(0, 2) == "{{" || $scope.entry.request.url.substring(0, 2) == "{%"
+      if $scope.entry.request.url.substring(0, 2) == "{%"
         return
       url = utils.url_parse($scope.entry.request.url)
       if url? && url.path.indexOf('%7B%7B') > -1
