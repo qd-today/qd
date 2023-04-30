@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20230430] - 2023.04.30 更新
+
+### Features
+
+1. 我的模板中增加类似公共模板的备注说明 Feat qiandao-today/qiandao#366
+2. 添加滑块识别验证码支持 Feat qiandao-today/qiandao#397
+3. 支持网页恢复Sqlite数据库
+4. 添加节假日庆祝信息
+
+### Changed
+
+1. 优化工具箱-记事本前端逻辑 Feat a76yyyy/qiandao#30
+2. 修改网页端框架标题
+
+### Fixed
+
+1. 修复报错日志顺序异常 Fix qiandao-today/qiandao#391
+2. Mandatory smtp authentication. Fix qiandao-today/qiandao##394
+3. 修复网页显示时区与系统时区不一致 Fix qiandao-today/qiandao#396
+
 ## [20230228] - 2023.02.28 更新
 
 ### Features
