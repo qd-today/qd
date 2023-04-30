@@ -93,12 +93,12 @@
               
           </td>
           <td style="text-align:center;color: #cacaca;"><a style="color:#518cb9;" data-method="Get" href="/task/{{ task.id }}/log/del/Success" data-confirm="是否要删除任务执行成功日志?" title="成功计次">{{ task.success_count }}</a> / <a style="color:#c15454;" data-method="Get" href="/task/{{ task.id }}/log/del/Fail" data-confirm="是否要删除任务执行失败日志?" title="失败计次">{{ task.failed_count }}</a></td>
-          <td><span data-toggle="popover" data-content="{{ format_date(task.last_success,-8*60,True,False,True) if task.last_success else '从未' }}">{{ format_date(task.last_success) if task.last_success else '从未' }}</span></td>
+          <td><span data-toggle="popover" data-content="{{ format_date(task.last_success) if task.last_success else '从未' }}">{{ format_date(task.last_success) if task.last_success else '从未' }}</span></td>
 
           <td style="text-align:center">{{ my_status(task) }}</td>
           <!-- <td>{{ task.msg }}</td> -->
       
-          <td><span data-toggle="popover" data-content="{{ format_date(task.next,-8*60,True,False,True) if task.next else '从未' }}">{{ format_date(task.next) if task.next else '从未' }}</span></td>
+          <td><span data-toggle="popover" data-content="{{ format_date(task.next) if task.next else '从未' }}">{{ format_date(task.next) if task.next else '从未' }}</span></td>
 
           <td style="text-align:center">
             <div class="btn-group btn-group-xs" role="group">
@@ -170,12 +170,12 @@
             {% if tpl.fork %}<span>[fork]</span>{% endif %}-<kbd>{{ tpl.siteurl }}</kbd>
           </td>
 
-          <td><span data-toggle="popover" data-content="{{ format_date(tpl.ctime,-8*60,True,False,True)}}">{{ format_date(tpl.ctime) }}</span></td>         
-          <td><span data-toggle="popover" data-content="{{ format_date(tpl.mtime,-8*60,True,False,True)}}">{{ format_date(tpl.mtime) }}</span></td>
+          <td><span data-toggle="popover" data-content="{{ format_date(tpl.ctime)}}">{{ format_date(tpl.ctime) }}</span></td>         
+          <td><span data-toggle="popover" data-content="{{ format_date(tpl.mtime)}}">{{ format_date(tpl.mtime) }}</span></td>
       
           <td>
             {% if tpl.last_success %}
-            <span class="last_success" data-toggle="popover" data-content="{{ format_date(tpl.last_success,-8*60,True,False,True)}} ">{{ format_date(tpl.last_success) }}</span>
+            <span class="last_success" data-toggle="popover" data-content="{{ format_date(tpl.last_success)}} ">{{ format_date(tpl.last_success) }}</span>
             {% else %}
             从未
             {% endif %}

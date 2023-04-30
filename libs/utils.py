@@ -6,11 +6,13 @@
 # Created on 2014-08-07 22:00:27
 
 import base64
+import datetime
 import hashlib
 import ipaddress
 import re
 import socket
 import struct
+import time
 import urllib
 import uuid
 
@@ -239,11 +241,8 @@ def method_cache(fn):
 
     return wrapper
 
-import datetime
-
-
 #full_format=True，的时候是具体时间，full_format=False就是几秒钟几分钟几小时时间格式----此处为模糊时间格式模式
-def format_date(date, gmt_offset=-8*60, relative=True, shorter=False, full_format=True):
+def format_date(date, gmt_offset=time.timezone/60, relative=True, shorter=False, full_format=True):
     """Formats the given date (which should be GMT).
 
     By default, we return a relative time (e.g., "2 minutes ago"). You
