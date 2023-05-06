@@ -1,19 +1,18 @@
-import os
-import json
-import pkgutil
 import importlib
+import json
+import os
+import pkgutil
 import typing
-from typing import Iterable, Callable
-import dataclasses
-from dataclasses import dataclass
-from functools import partial
 from collections import defaultdict
+from dataclasses import dataclass
+from html import escape
+from typing import Callable, Iterable
 
 from tornado.web import HTTPError
 
-from ..base import BaseHandler
 from libs.safe_eval import safe_eval
 
+from ..base import BaseHandler, logger_Web_Handler
 
 URL_PREFIX = "/v1/"
 
@@ -21,10 +20,12 @@ BaseType = typing.Union[str, int, float, bool, None]
 
 
 class ApiError(HTTPError):
-    def __init__(self, status_code: int, reason: str, *args, **kwargs):
+    def __init__(self, status_code: int, reason: str, log_message :str | None = None, *args, **kwargs):
         # 对于 HTTPError，log_message 是打印到控制台的内容，reason 是返回给用户的内容
         # 我们希望 API 的用户可以直接从 Web 界面看到错误信息，所以将 log_message 和 reason 设置为相同的内容
-        super().__init__(status_code, reason, reason=reason, *args, **kwargs)
+        if log_message is None:
+            log_message = reason
+        super().__init__(status_code, log_message=log_message, reason=reason, *args, **kwargs)
 
 
 @dataclass()
@@ -213,7 +214,7 @@ class ApiBase(BaseHandler, metaclass=ApiMetaclass):
             if len(data) == 1:
                 # 如果只有一个键值对，直接返回值
                 # 不递归处理，默认 API 不会返回过于复杂的类型
-                self.write(tuple(data.values())[0])
+                self.write(str(tuple(data.values())[0]))
             else:
                 # 如果有多个键值对，返回 JSON
                 self.api_write_json(data)
@@ -230,10 +231,14 @@ class ApiBase(BaseHandler, metaclass=ApiMetaclass):
             # 其他类型转换为 JSON
             self.api_write_json(data)
 
-    def api_write_json(self, data: dict[str, typing.Any], ensure_ascii=False, indent=4):
+    def api_write_json(self, data: dict[str, typing.Any], ensure_ascii=False, indent=4, escape_html=False, escape_quote=True):
         """将 json 数据写入响应"""
         self.set_header("Content-Type", "application/json; charset=UTF-8")
-        self.write(json.dumps(data, ensure_ascii=ensure_ascii, indent=indent))
+        if escape_html:
+            data = escape(json.dumps(data, ensure_ascii=ensure_ascii, indent=indent), quote=escape_quote)
+        else:
+            data = json.dumps(data, ensure_ascii=ensure_ascii, indent=indent).replace('</', '<\\/')
+        self.write(data)
 
 
 def api_wrap(

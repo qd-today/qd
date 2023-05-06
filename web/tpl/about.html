@@ -50,7 +50,7 @@
       <tr>
         <td rowspan="{{ rowspan }}">{{ api.api_name }}</td>
         <td rowspan="{{ rowspan }}" class="showbut" id="api_url{{i}}">
-          <a href="{{ api.api_url }}" target="_blank" rel="nofollow">api:/{{ api.api_url }}</a>
+          <a href="{{ api.api_url }}" target="_blank" rel="nofollow noopener noreferrer">api:/{{ api.api_url }}</a>
           <button class="btn hljs-button" data-clipboard-target="#api_url{{i}}">复制</button>
         </td>
         <td rowspan="{{ rowspan }}">{{ api.api_description | safe }}</td>
@@ -79,7 +79,7 @@
           {% endif %}
 
           <td rowspan="{{ 1 if args == 0 else args }}" class="showbut autowrap" id="api_exam{{i}}">
-            <a href="{{ method['example'] }}" target="_blank" rel="nofollow">api:/{{ method['example'] }}</a>
+            <a href="{{ method['example'] }}" target="_blank" rel="nofollow  noopener noreferrer">api:/{{ method['example'] }}</a>
             <button class="btn hljs-button" data-clipboard-target="#api_exam{{i}}">复制</button>
           <td>
           </tr>

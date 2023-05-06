@@ -1,11 +1,13 @@
 import json
 import traceback
 import typing
+from html import escape
 
 import config
 
-from . import ApiBase, Argument, MultiArgument, BodyArgument, api_wrap, ApiError
-
+from ..base import logger_Web_Handler
+from . import (ApiBase, ApiError, Argument, BodyArgument, MultiArgument,
+               api_wrap)
 
 # API 插件设计准则：
 # - 路径为 /api/name（旧版保持原先的 /util/name）
@@ -42,7 +44,7 @@ from . import ApiBase, Argument, MultiArgument, BodyArgument, api_wrap, ApiError
 # 最简单的 API 示例
 class Echo1(ApiBase):
     api_name = "回声"
-    api_description = "输出 = 输入"  # 支持 HTML 标签，比如 <br/>
+    api_description = "输出 = 输入"  # 不支持 HTML 标签，比如 <br/>
     api_url = "echo1"  # 框架会自动添加前缀 /api/
 
     @api_wrap(
@@ -50,7 +52,7 @@ class Echo1(ApiBase):
         example={"text": "hello world"},
     )
     async def get(self, text: str):
-        return text
+        return escape(text)
 
     post = get
 
@@ -66,7 +68,7 @@ class Echo2(ApiBase):
         example={"text": "hello world"},
     )
     async def get(self, text: str):
-        return text
+        return escape(text)
 
     # 不提供 example 的示例
     @api_wrap(
@@ -75,7 +77,7 @@ class Echo2(ApiBase):
         ),
     )
     async def post(self, text: bytes):
-        return text
+        return escape(text)
 
 
 # __filter__ 和 直接设置 example_display 的示例
@@ -174,8 +176,6 @@ class Error(ApiBase):
             try:
                 eee = 9 / 0
             except ZeroDivisionError as e:
-                if config.traceback_print:
-                    traceback.print_exc()  # 根据全局设置决定是否在控制台打印完整报错信息
                 raise ApiError(500, str(e))  # 还是返回 500，但是前端有报错原因，控制台打印简短信息
         else:
             raise ApiError(code, reason)
@@ -235,7 +235,7 @@ class Echo0(ApiBase):
     async def get(self):
         # 使用原生 tornado API，详细参考 tornado 文档
         text = self.get_argument("text", "")
-        self.write(text)
+        self.write(escape(text))
 
     # 此处的声明只用于生成前端文档
     get.api = {
@@ -246,4 +246,4 @@ class Echo0(ApiBase):
     post = get
 
 
-handlers = (Echo1, Echo2, Echon, Concat, Sum, Example, Json, Echo0)
+handlers = (Echon, Concat, Sum, Example, Json)

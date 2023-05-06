@@ -5,9 +5,8 @@
 #         http://binux.me
 # Created on 2012-12-15 16:15:50
 
-import os
-import sys
 import importlib
+import os
 import pkgutil
 
 from . import base
