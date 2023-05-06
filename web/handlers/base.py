@@ -5,6 +5,10 @@
 #         http://binux.me
 # Created on 2012-12-15 16:16:38
 
+import json
+import traceback
+import typing
+
 import jinja2
 import tornado.web
 import tornado.websocket
@@ -109,6 +113,37 @@ class BaseHandler(tornado.web.RequestHandler):
             self.evil(+5)
             raise HTTPError(401)
         return obj
+    
+    def write_error(self, status_code: int, **kwargs: typing.Any) -> None:
+        """Override to implement custom error pages.
+
+        ``write_error`` may call `write`, `render`, `set_header`, etc
+        to produce output as usual.
+
+        If this error was caused by an uncaught exception (including
+        HTTPError), an ``exc_info`` triple will be available as
+        ``kwargs["exc_info"]``.  Note that this exception may not be
+        the "current" exception for purposes of methods like
+        ``sys.exc_info()`` or ``traceback.format_exc``.
+        """
+        self.set_header("Content-Type", "application/json; charset=UTF-8")
+        trace = traceback.format_exception(*kwargs["exc_info"])
+        if self.settings.get("serve_traceback") and "exc_info" in kwargs:
+            # in debug mode, try to send a traceback
+            # self.set_header("Content-Type", "text/plain; charset=UTF-8")
+            # for line in traceback.format_exception(*kwargs["exc_info"]):
+            #     self.write(line)
+            
+            data = json.dumps({"code": status_code, "message": self._reason, "data": trace}, ensure_ascii=False, indent=4)
+        else:
+            self.set_header("Content-Type", "application/json; charset=UTF-8")
+            data = json.dumps({"code": status_code, "message": self._reason, "data": ""}, ensure_ascii=False, indent=4)
+        if config.traceback_print:
+            traceback.print_exception(*kwargs["exc_info"])
+        if len(kwargs["exc_info"]) > 1:
+            logger_Web_Handler.debug(str(kwargs["exc_info"][1]))
+        self.write(data)
+        self.finish()
 
 class BaseWebSocket(tornado.websocket.WebSocketHandler):
     pass
