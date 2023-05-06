@@ -15,7 +15,7 @@ from ..base import BaseHandler
 from libs.safe_eval import safe_eval
 
 
-URL_PREFIX = "/api/"
+URL_PREFIX = "/v1/"
 
 BaseType = typing.Union[str, int, float, bool, None]
 
