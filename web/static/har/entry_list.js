@@ -329,7 +329,7 @@
           result.html(res.data).show();
           return btn.button('reset');
         }, function(res) {
-          result.html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(res.data);
+          result.html('<h1 class="alert alert-danger text-center">运行失败</h1><div class="well"></div>').show().find('div').text(res.data);
           return btn.button('reset');
         });
       };

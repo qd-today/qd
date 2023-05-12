@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block body %}
-{{ utils.header(current_user) }}
+{{ utils.header(current_user, title="公共模板", sup=False) }}
 
 <section class="tpl">
   <div class="container">
@@ -98,7 +98,7 @@
       <thead>
         <tr>
           <th style="text-align:center" title="所属仓库">仓库</th>
-          <th style="text-align:center" title="需签到的网站">网站</th>
+          <th style="text-align:center" title="目标网站">网站</th>
           <th style="text-align:center" title="模板作者">作者</th>
           <th style="text-align:center" title="修改日期">修改日期</th>
           <th style="text-align:center" title="备注和修改日志">备注/日志</th>

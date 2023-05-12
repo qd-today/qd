@@ -150,7 +150,7 @@ class TaskEditHandler(TaskNewHandler):
 
         proxy = task['init_env']['_proxy'] if '_proxy' in task['init_env'] else ''
 
-        await self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=init_env, proxy=proxy, retry_count=task['retry_count'], retry_interval=task['retry_interval'], default_retry_count=config.task_max_retry_count)
+        await self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=init_env, proxy=proxy, retry_count=task['retry_count'], retry_interval=task['retry_interval'], default_retry_count=config.task_max_retry_count, task_title="修改任务")
 
 class TaskRunHandler(BaseHandler):
     @tornado.web.authenticated
@@ -194,7 +194,7 @@ class TaskRunHandler(BaseHandler):
             except Exception as e:
                 logger_Web_Handler.error('taskid:%d tplid:%d failed! %.4fs \r\n%s', task['id'], task['tplid'], time.time()-start_ts, str(e).replace('\\r\\n','\r\n'))
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
+                title = u"QD任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
                 logtmp = u"{0} \\r\\n日志：{1}".format(t, e)
 
                 await self.db.tasklog.add(task['id'], success=False, msg=str(e), sql_session=sql_session)
@@ -204,7 +204,7 @@ class TaskRunHandler(BaseHandler):
                         last_failed_count=task['last_failed_count']+1,
                         sql_session=sql_session
                         )
-                await self.finish('<h1 class="alert alert-danger text-center">签到失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+                await self.finish('<h1 class="alert alert-danger text-center">运行失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
 
                 await pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
                 return
@@ -230,12 +230,12 @@ class TaskRunHandler(BaseHandler):
                     sql_session=sql_session)
             
             t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
+            title = u"QD任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
             logtmp = new_env['variables'].get('__log__')
             logtmp = u"{0} \\r\\n日志：{1}".format(t, logtmp)
 
             await self.db.tpl.incr_success(tpl['id'],sql_session=sql_session)
-            await self.finish('<h1 class="alert alert-success text-center">签到成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+            await self.finish('<h1 class="alert alert-success text-center">运行成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
             
             await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
             logDay = int((await self.db.site.get(1, fields=('logDay',),sql_session=sql_session))['logDay'])

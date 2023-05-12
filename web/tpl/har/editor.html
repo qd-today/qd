@@ -25,7 +25,7 @@
   <div class="row" ng-controller="EntryList">
     <div class="col-md-3" id="editor-switch">
       <a class="h1-index" href="/">
-        <h1 class="text-center">签到<sup>{{ version }}</sup></h1>
+        <h1 class="text-center" title="点击跳转至首页">模板编辑</h1>
       </a>
 {% raw %}
       
@@ -91,15 +91,17 @@
     <div class="col-md-9" id="entries">
       <div ng-switch="(har.log.entries | filter: {checked: true}).length">
         <div class="alert alert-info" role="alert" ng-switch-when="0">
-          请分析定位 <strong>签到</strong> 请求，在请求前打勾，如果推荐的请求中没有，请在右侧筛选
+          请分析定位 <strong>目标</strong> HTTP请求，在请求前打勾，如果推荐的请求中没有，请在
+          <a href="javascript:void(0);" ng-click='filter.recommend=undefined;filter.checked=undefined'>所有请求</a>
+          中筛选
         </div>
         <div class="alert alert-info" role="alert" ng-switch-when="1">
           您可以再次点击
           <a href="javascript:void(0);" ng-click="recommend();filter.recommend=true;filter.checked=undefined">推荐关联请求</a>
-          ，帮助定位 <strong>登录</strong> 请求，点击 URL 编辑请求，为其加入用户名、密码变量
+          ，帮助定位 <strong>目标</strong> HTTP请求，点击 URL 编辑请求，变量编辑参考<a href="/about/" target="_blank" rel="noopener noreferrer">常用API/过滤器</a>
         </div>
         <div class="alert alert-info" role="alert" ng-switch-default>
-          完成登录请求定位后，请<strong>依次</strong>点击每个
+          完成 <strong>目标</strong> HTTP请求定位后，请<strong>依次</strong>点击每个
           <a href="javascript:void(0);" ng-click="filter.recommend=undefined;filter.checked=true">已选择请求</a>
           ，切换到 <strong>测试</strong> 面板，对请求进行测试。
         </div>

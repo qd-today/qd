@@ -10,9 +10,9 @@
 {% block body %}
 <div class="container">
   <form method="POST">
-    <h2 class="text-center">私有签到框架<sup>{{ version }}</sup></h2>
+    <h2 class="text-center">QD框架<sup>{{ version }}</sup></h2>
 	<hr>
-    {% block reg %}<p class="alert alert-info">注册签到 (欢迎注册私有签到服务)</p>{% endblock %}
+    {% block reg %}<p class="alert alert-info">欢迎注册私有QD平台</p>{% endblock %}
     <div class="form-group {{ 'has-error' if email_error }}">
       <label class="control-label" for="email">Email 地址</label>
       <input type="email" class="form-control" name="email" id="email" value="{{ email }}" placeholder="请输入 email 地址">

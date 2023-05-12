@@ -5295,7 +5295,7 @@ a.list-group-item:hover,a.list-group-item:focus {
 	color: #fff;
 	background-color: #428bca;
 	border-color: #428bca;
-	/* 修改-编辑签到页面渐变-background-image:linear-gradient(to bottom,#337ab7 0,#2b669a 100%) */
+	/* 修改-编辑QD页面渐变-background-image:linear-gradient(to bottom,#337ab7 0,#2b669a 100%) */
 }
 
 .list-group-item.active .list-group-item-heading,.list-group-item.active:hover .list-group-item-heading,.list-group-item.active:focus .list-group-item-heading,.list-group-item.active .list-group-item-heading>small,.list-group-item.active:hover .list-group-item-heading>small,.list-group-item.active:focus .list-group-item-heading>small,.list-group-item.active .list-group-item-heading>.small,.list-group-item.active:hover .list-group-item-heading>.small,.list-group-item.active:focus .list-group-item-heading>.small {

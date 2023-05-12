@@ -94,15 +94,15 @@
     <table class="table table-hover">
       <thead>
         <tr>
-          <th title="签到网站平台名称">任务名称</th>
-          <th style="text-align:center" title="签到成功/失败次数">任务推送开关</th>
+          <th title="定时任务目标网站名称">任务名称</th>
+          <th style="text-align:center" title="定时任务成功/失败推送开关">任务推送开关</th>
         </tr>
       </thead>
       <tbody>
         {% for task in tasks | sort(reverse=True, attribute="ctime") %}
         <tr>
           <td>
-            {% if task.disabled %}<span title="任务处于禁用状态,使用 (立即执行) 成功签到一次,即可解除." style="color:#ff7600;border-left:5px solid #ff7600;padding-left:5px;">[禁用]</span>{% endif %}
+            {% if task.disabled %}<span title="任务处于禁用状态,使用 (立即执行) 成功运行一次,即可解除." style="color:#ff7600;border-left:5px solid #ff7600;padding-left:5px;">[禁用]</span>{% endif %}
             {{ utils.tplname(task.tpl) if task.tpl else "[已删除]" }}
   
             {% if task.note %}
@@ -153,7 +153,7 @@
           $('#run-result').html(data).show()
         })
         .fail(function(jxhr) {
-          $('#run-result').html('<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
+          $('#run-result').html('<h1 class="alert alert-danger text-center">运行失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);
         })
         .always(function() {
           $this.button('reset');

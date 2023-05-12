@@ -18,7 +18,7 @@ def my_status(task):
     if task['last_failed'] and task['last_failed'] > task['last_success']:
         return u'失败'
     if task['success_count'] == 0 and task['failed_count'] == 0 and task['next'] and (task['next'] - time.time() < 60):
-        return u'正在准备为您签到'
+        return u'正在准备执行任务'
     return u'正常'
 
 class MyHandler(BaseHandler):

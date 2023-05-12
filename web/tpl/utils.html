@@ -1,10 +1,12 @@
-{% macro header(current_user=True) %}
+{% macro header(current_user=True, title="QD框架", sup=True, about=True) %}
 <header>
   <div class="container">
-    <h2 class="text-center">私有签到框架<sup>{{ version }}</sup></h2>
+    <h2 class="text-center">{{ title }}{% if sup %}<sup>{{ version }}</sup>{% endif %}</h2>
     <div class="buttons">
       <a href="/" class="btn btn-default pull-left">首页</a>
+      {% if about %}
       <a href="/about/" class="btn btn-default pull-left">常用API/过滤器</a>
+      {% endif %}
       {% if current_user %}
       <a href="/logout" class="btn btn-default pull-right">登出</a>
       {% else %}
