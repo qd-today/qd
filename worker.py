@@ -50,7 +50,7 @@ class BaseWorker(object):
                         push_batch = json.loads(user['push_batch'])
                         if user['status'] == "Enable" and push_batch["sw"] and isinstance(push_batch['time'],(float,int)) and time.time() >= push_batch['time']:
                             logger_Worker.debug('User %d check push_batch task, waiting...' % userid)
-                            title = u"定期签到日志推送"
+                            title = u"QD任务日志定期推送"
                             delta = push_batch.get("delta", 86400)
                             logtemp = "{}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(push_batch['time'])))
                             tmpdict = {}
@@ -70,11 +70,11 @@ class BaseWorker(object):
                                     if tmp0:
                                         tmplist.append("\\r\\n-----任务{0}-{1}-----{2}\\r\\n".format(len(tmplist)+1, task['note'], tmp0))
                                     else:
-                                        tmplist.append("\\r\\n-----任务{0}-{1}-----\\r\\n记录期间未执行签到，请检查任务! \\r\\n".format(len(tmplist)+1, task['note']))
+                                        tmplist.append("\\r\\n-----任务{0}-{1}-----\\r\\n记录期间未执行定时任务，请检查任务! \\r\\n".format(len(tmplist)+1, task['note']))
                                     tmpdict[task['tplid']] = tmplist
                                     
                             for tmpkey in tmpdict:
-                                tmp = "\\r\\n\\r\\n=====签到: {0}=====".format((await self.db.tpl.get(tmpkey, fields=('sitename',), sql_session=sql_session))['sitename'])
+                                tmp = "\\r\\n\\r\\n=====QD: {0}=====".format((await self.db.tpl.get(tmpkey, fields=('sitename',), sql_session=sql_session))['sitename'])
                                 tmp += ''.join(tmpdict[tmpkey])
                                 logtemp += tmp
                             push_batch["time"] = push_batch['time'] + delta
@@ -227,7 +227,7 @@ class BaseWorker(object):
                 await self.db.tpl.incr_success(tpl['id'], sql_session=sql_session)
 
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
+                title = u"QD定时任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
                 logtemp = new_env['variables'].get('__log__')
                 logtemp = u"{0} \\r\\n日志：{1}".format(t, logtemp)
                 await pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
@@ -243,7 +243,7 @@ class BaseWorker(object):
                 next_time_delta = self.failed_count_to_time(task['last_failed_count'], task['retry_count'], task['retry_interval'], tpl['interval'])
                             
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
+                title = u"QD定时任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
                 content = u"{0} \\r\\n日志：{1}".format(t, str(e))
                 disabled = False
                 if next_time_delta:

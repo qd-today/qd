@@ -41,14 +41,14 @@ redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))                       # �
 # 日志及推送设置
 traceback_print = bool(strtobool(os.getenv('TRACEBACK_PRINT', 'True' if debug else 'False')))    # 是否启用在控制台日志中打印Exception的TraceBack信息
 push_pic = os.getenv('PUSH_PIC_URL', 'https://gitee.com/a76yyyy/qiandao/raw/master/web/static/img/push_pic.png')    # 日志推送默认图片地址
-push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送签到任务日志, 默认为 True
-push_batch_delta = int(os.getenv('PUSH_BATCH_DELTA', 60))                   # 执行 PUSH_BATCH 的时间间隔, 单位为秒, 默认为 60s, 非全局推动签到任务日志间隔
+push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送任务日志, 默认为 True
+push_batch_delta = int(os.getenv('PUSH_BATCH_DELTA', 60))                   # 执行 PUSH_BATCH 的时间间隔, 单位为秒, 默认为 60s, 非全局推动QD任务日志间隔
 
 class mysql(object):
     host = mysql_url.hostname or 'localhost'                                # 访问MySQL的Hostname
     port = mysql_url.port or '3306'                                         # MySQL的端口Port
-    database = mysql_url.path[1:] or 'qiandao'                              # 签到框架的数据库名
-    user = mysql_url.username or 'qiandao'                                  # 拥有访问MySQL签到框架数据库权限的用户名
+    database = mysql_url.path[1:] or 'qiandao'                              # QD框架的数据库名
+    user = mysql_url.username or 'qiandao'                                  # 拥有访问MySQL内QD框架数据库权限的用户名
     passwd = mysql_url.password or None                                     # 用户名对应的密码
     auth_plugin = parse_qs(mysql_url.query).get('auth_plugin',[''])[0]      # auth_plugin, 默认为空, 可修改为'mysql_native_password','caching_sha2_password'
 

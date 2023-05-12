@@ -330,7 +330,7 @@ class pusher(object):
                                         "title": title,
                                         "digest": log.replace("\\r\\n", "\n"),
                                         "content": log.replace("\\r\\n", "<br>"),
-                                        "author": "私有签到框架",
+                                        "author": "QD框架",
                                         "content_source_url": config.domain,
                                         "thumb_media_id": media_id
                                     }
