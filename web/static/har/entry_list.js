@@ -203,8 +203,10 @@
             base.sitename = first_entry && utils.get_domain(first_entry.request.url).split('.')[0];
           }
           parsed_url = first_entry && utils.url_parse(first_entry.request.url);
-          if ((base1 = $scope.setting).siteurl == null) {
-            base1.siteurl = parsed_url.protocol === 'https:' && `${parsed_url.protocol}//${parsed_url.host}` || parsed_url.host;
+          if (parsed_url) {
+            if ((base1 = $scope.setting).siteurl == null) {
+              base1.siteurl = parsed_url.protocol === 'https:' && `${parsed_url.protocol}//${parsed_url.host}` || parsed_url.host;
+            }
           }
           if (HARNOTE !== "") {
             if ((base2 = $scope.setting).note == null) {

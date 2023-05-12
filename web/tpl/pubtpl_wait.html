@@ -64,9 +64,7 @@
                             count(finish);
                             $.ajax('/subscribe/{{ userid }}/updating/', {
                                 type: 'POST',
-                                beforeSend: function (R) {
-                                  R.setRequestHeader('Connection', 'Keep-Alive');
-                                }
+                                timeout: 300000,
                             })
                                 .done(function (data) {
                                     finish = true;
