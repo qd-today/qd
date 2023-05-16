@@ -214,7 +214,7 @@
         }
         result = [];
         try {
-          ref4 = utils.querystring_parse(entry.request.postData.text);
+          ref4 = utils.querystring_parse_with_variables(entry.request.postData.text);
           for (key in ref4) {
             value = ref4[key];
             result.push({

@@ -7,7 +7,8 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "docs:serve": "vitepress serve docs"
+    "docs:serve": "vitepress serve docs",
+    "webpack": "cd static/components & webpack --config webpack.config.js"
   },
   "repository": {
     "type": "git",
@@ -24,9 +25,9 @@
   "homepage": "https://github.com/qiandao-today/qiandao#readme",
   "dependencies": {
     "curl2har": "^0.0.21",
-    "querystring": "^0.2.1",
+    "qs": "^6.11.2",
     "tough-cookie": "^4.1.2",
-    "url": "^0.11.0"
+    "url": "github:a76yyyy/node-url#master"
   },
   "engines": {
     "node": ">= 0.10.0"
@@ -51,7 +52,7 @@
     "tslib": "^2.5.0",
     "typescript": "^4.9.5",
     "util": "^0.12.5",
-    "vite": "^4.3.5",
+    "vite": "^4.3.6",
     "vitepress": "1.0.0-alpha.46",
     "vitepress-plugin-search": "1.0.4-alpha.19",
     "vue": "^3.3.2",

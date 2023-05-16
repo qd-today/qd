@@ -34,7 +34,7 @@ define (require) ->
     querystring_parse: node_querystring.parse
     querystring_unparse: node_querystring.stringify
     querystring_unparse_with_variables: (obj) ->
-      query = node_querystring.stringify(obj)
+      query = node_querystring.stringify(obj, { indices: false })
 
       replace_list = {}
       for key, value of obj
@@ -50,7 +50,7 @@ define (require) ->
             replace_list[encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
           else
             replace_list[encodeURIComponent(m[0])] = m[0]
-      if node_querystring.stringify(replace_list)
+      if node_querystring.stringify(replace_list, { indices: false })
           console.log('The replace_list is', replace_list)
       for key, value of replace_list
         query = query.replace(new RegExp(RegExp.escape(key), 'g'), value)

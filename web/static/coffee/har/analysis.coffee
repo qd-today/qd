@@ -122,7 +122,7 @@ define (require, exports, module) ->
         continue
       result = []
       try
-        for key, value of utils.querystring_parse(entry.request.postData.text)
+        for key, value of utils.querystring_parse_with_variables(entry.request.postData.text)
           result.push({ name: key, value: value })
         entry.request.postData.params = result
       catch error

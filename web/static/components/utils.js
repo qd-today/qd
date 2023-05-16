@@ -47,7 +47,9 @@
       querystring_unparse: node_querystring.stringify,
       querystring_unparse_with_variables: function(obj) {
         var key, m, query, re, replace_list, value;
-        query = node_querystring.stringify(obj);
+        query = node_querystring.stringify(obj, {
+          indices: false
+        });
         replace_list = {};
         for (key in obj) {
           value = obj[key];
