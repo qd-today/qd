@@ -10,7 +10,8 @@ ADD ssh/qd_fetch.pub /root/.ssh/id_rsa.pub
 WORKDIR /usr/src/app
 
 # QD && Pip install modules
-RUN apk update && apk add --update --no-cache openssh-client && \
+RUN sed -i 's/mirrors.ustc.edu.cn/dl-cdn.alpinelinux.org/g' /etc/apk/repositories && \
+    apk update && apk add --update --no-cache openssh-client && \
     chmod 600 /root/.ssh/id_rsa && \
     ssh-keyscan gitee.com > /root/.ssh/known_hosts && \
     let num=$RANDOM%100+10 && \
@@ -55,6 +56,7 @@ RUN apk update && apk add --update --no-cache openssh-client && \
     sed -i '/yarl/d' requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \
     apk del .build_deps && \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
     rm -rf /var/cache/apk/* && \
     rm -rf /usr/share/man/* 
 
