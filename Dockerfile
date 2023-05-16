@@ -10,7 +10,7 @@ ADD ssh/qd_fetch.pub /root/.ssh/id_rsa.pub
 WORKDIR /usr/src/app
 
 # QD && Pip install modules
-RUN apk add --update --no-cache openssh-client && \
+RUN apk update && apk add --update --no-cache openssh-client && \
     chmod 600 /root/.ssh/id_rsa && \
     ssh-keyscan gitee.com > /root/.ssh/known_hosts && \
     let num=$RANDOM%100+10 && \
