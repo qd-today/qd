@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
         from tornado.ioloop import IOLoop, PeriodicCallback
 
-        from worker import BatchWorker, HolidayWorker, QueueWorker
+        from worker import BatchWorker, QueueWorker
         io_loop = IOLoop.instance()
         try:
             if config.worker_method.upper() == 'QUEUE':
@@ -80,8 +80,6 @@ if __name__ == "__main__":
                 PeriodicCallback(worker, config.check_task_loop).start()
             else:
                 raise Exception('worker_method must be Queue or Batch, please check config!')
-            holiday = HolidayWorker(App, default_version)
-            io_loop.add_callback(holiday)
         except Exception as e:
             logger.exception('worker start error!')
             raise KeyboardInterrupt()

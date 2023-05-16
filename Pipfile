@@ -25,7 +25,6 @@ aiosqlite = "*"
 cryptography = "*"
 aiohttp = "*"
 sqlalchemy = {version = "<2.0", extras = ["asyncio"]}
-chinesecalendar = "*"
 
 [dev-packages]
 opencv-python-headless = "*"

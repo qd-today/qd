@@ -13,14 +13,13 @@ aiosignal==1.3.1; python_version >= '3.7'
 aiosqlite==0.19.0
 async-timeout==4.0.2; python_full_version <= '3.11.2'
 attrs==23.1.0; python_version >= '3.7'
-certifi==2022.12.7; python_version >= '3.6'
+certifi==2023.5.7; python_version >= '3.6'
 cffi==1.15.1
 charset-normalizer==3.1.0
-chinesecalendar==1.8.0
 colorama==0.4.6; sys_platform == 'win32'
 croniter==1.3.14
 cryptography==40.0.2
-faker==18.6.0
+faker==18.7.0
 frozenlist==1.3.3; python_version >= '3.7'
 greenlet==2.0.2; python_version >= '3' and platform_machine == 'aarch64' or (platform_machine == 'ppc64le' or (platform_machine == 'x86_64' or (platform_machine == 'amd64' or (platform_machine == 'AMD64' or (platform_machine == 'win32' or platform_machine == 'WIN32')))))
 idna==3.4; python_version >= '3.5'
@@ -36,13 +35,13 @@ pymysql==1.0.3; python_version >= '3.7'
 pysocks==1.7.1
 python-dateutil==2.8.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 pytz==2023.3
-redis==4.5.4
-requests==2.29.0
+redis==4.5.5
+requests==2.30.0
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-sqlalchemy[asyncio]==1.4.47
+sqlalchemy[asyncio]==1.4.48
 tornado==6.3.1
 u-msgpack-python==2.7.2
-urllib3==1.26.15; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
+urllib3==2.0.2; python_version >= '3.7'
 yarl==1.9.2; python_version >= '3.7'
 # ddddocr==1.4.7
 # opencv-python-headless==4.7.0.68

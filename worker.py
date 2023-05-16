@@ -13,14 +13,12 @@ import traceback
 import pytz
 import tornado.ioloop
 import tornado.log
-from chinese_calendar import get_holiday_detail
 from tornado import gen
 
 import config
 from db import DB
 from libs.fetcher import Fetcher
 from libs.funcs import cal, pusher
-from libs.holiday import ChineseHoliday
 from libs.log import Log
 from libs.parse_url import parse_url
 from web.app import Application
@@ -410,35 +408,3 @@ if __name__ == '__main__':
         raise Exception('Worker_method must be Queue or Batch')
 
     io_loop.start()
-
-class HolidayWorker(ChineseHoliday):
-    def __init__(self, App:Application, default_version, tz='Asia/Shanghai', ):
-        super().__init__()
-        self.App = App
-        self.tz = pytz.timezone(tz)
-        self.default_version = default_version
-        
-    async def __call__(self):
-        logger_Worker.info('HolidayWorker start...')
-        while True:
-            try:
-                await self.update_holiday()
-                # 计算下一次更新时间: 每天凌晨0点(上海时区)
-                delta = (datetime.datetime.now(tz=self.tz) + datetime.timedelta(days=1)).replace(hour=0, minute=0, second=1, microsecond=0) - datetime.datetime.now(tz=self.tz)
-                await asyncio.sleep(delta.total_seconds())
-            except Exception as e:
-                logger_Worker.error('HolidayWorker failed! %s', str(e))
-                await asyncio.sleep(60)
-    
-    async def update_holiday(self):
-        logger_Worker.info('HolidayWorker updating...')
-        try:
-            _is_holiday,data = get_holiday_detail(datetime.datetime.now(tz=self.tz).date())
-            if _is_holiday and data:
-                chinese_holiday = self.get_chinese_from_english(data)
-                self.App.update_version(chinese_holiday + '快乐')
-            else:
-                self.App.update_version(self.default_version)
-            logger_Worker.info('HolidayWorker update success!')
-        except Exception as e:
-            logger_Worker.error('HolidayWorker update failed! %s', str(e))

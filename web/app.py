@@ -51,9 +51,3 @@ class Application(tornado.web.Application):
             'version': self.version,
             })
         self.jinja_env.filters.update(ui_methods)
-        
-    def update_version(self, version):
-        self.version = version
-        self.jinja_env.globals.update({
-            'version': self.version,
-        })
