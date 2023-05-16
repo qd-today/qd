@@ -14,7 +14,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     name: Publish Latest Package job
-    if: startsWith(github.repository, 'qiandao-today/qiandao') # 仓库名
+    if: startsWith(github.repository, 'qd-today/qd') # 仓库名
 
     steps:
     - name: Checkout
@@ -36,4 +36,4 @@ jobs:
         file: ./Dockerfile
         platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
         push: true
-        tags: ghcr.io/qiandao-today/qiandao:latest
+        tags: ghcr.io/qd-today/qd:latest

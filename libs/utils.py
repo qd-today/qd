@@ -28,7 +28,7 @@ from libs.mcrypto import aes_decrypt, aes_encrypt, passlib_or_crypt
 
 from .log import Log
 
-logger_Util = Log('qiandao.Http.Util').getlogger()
+logger_Util = Log('QD.Http.Util').getlogger()
 def ip2int(addr):
     try:
         return struct.unpack("!I", socket.inet_aton(addr))[0]

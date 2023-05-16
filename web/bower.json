@@ -1,13 +1,13 @@
 {
-  "name": "qiandao_for_python3",
+  "name": "qd_for_python3",
   "version": "1.0.3",
   "authors": [
     "(a76yyyy <admin@a76yyyy.cn>",
     "AragonSnow",
     "binux <roy@binux.me>)"
   ],
-  "description": "qiandao",
-  "homepage": "https://github.com/qiandao-today/qiandao",
+  "description": "QD",
+  "homepage": "https://github.com/qd-today/qd",
   "private": true,
   "ignore": [
     "**/.*",
@@ -44,7 +44,11 @@
   "main": "",
   "license": "MIT",
   "keywords": [
-    "qiandao"
+    "QD",
+    "QD-TODAY",
+    "har",
+    "http",
+    "web"
   ],
   "exportsOverride": {
     "blueimp-md5": {

@@ -13,7 +13,7 @@ import pytz
 
 from libs.log import Log
 
-logger_Web_Util = Log('qiandao.Web.Util').getlogger()
+logger_Web_Util = Log('QD.Web.Util').getlogger()
 try:
     import ddddocr
 except ImportError as e:

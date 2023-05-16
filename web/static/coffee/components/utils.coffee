@@ -143,7 +143,7 @@ define (require) ->
         log: {
           creator: {
             name: 'binux'
-            version: 'qiandao'
+            version: 'QD'
           },
           entries: ({
             comment: en.comment
@@ -195,7 +195,7 @@ define (require) ->
         log: {
           creator: {
             name: 'curl'
-            version: 'qiandao'
+            version: 'QD'
           },
           entries: ({
             comment: ''

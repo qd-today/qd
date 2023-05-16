@@ -14,7 +14,7 @@ from tornado.ioloop import IOLoop
 from libs.fetcher import Fetcher
 from libs.log import Log
 
-logger_QD = Log('qiandao').getlogger()
+logger_QD = Log('QD').getlogger()
 
 def usage():
     print("{} tpl.har [--key=value] [env.json]".format(sys.argv[0]))
@@ -70,6 +70,6 @@ if __name__ == '__main__':
     try:
         result = result.result()
     except Exception as e:
-        print('qiandao failed!', e)
+        print('QD failed!', e)
     else:
-        print('qiandao success!', result.get('variables', {}).get('__log__', '').replace('\\r\\n','\r\n'))
+        print('QD success!', result.get('variables', {}).get('__log__', '').replace('\\r\\n','\r\n'))

@@ -60,9 +60,9 @@ db_type = os.getenv('DB_TYPE', 'sqlite3')                                   # �
 
 # SQLAlchmey配置
 class sqlalchemy(object):
-    logging_name = os.getenv('QIANDAO_SQL_LOGGING_NAME', 'qiandao.sql')     # SQLAlchmey日志名称
+    logging_name = os.getenv('QIANDAO_SQL_LOGGING_NAME', 'QD.sql')     # SQLAlchmey日志名称
     logging_level = os.getenv('QIANDAO_SQL_LOGGING_LEVEL', 'WARNING')       # SQLAlchmey日志级别
-    pool_logging_name = os.getenv('QIANDAO_SQL_POOL_LOGGING_NAME', 'qiandao.sql.pool')                  # 连接池日志名称
+    pool_logging_name = os.getenv('QIANDAO_SQL_POOL_LOGGING_NAME', 'QD.sql.pool')                  # 连接池日志名称
     pool_logging_level = os.getenv('QIANDAO_SQL_POOL_LOGGING_LEVEL', 'WARNING')                         # 连接池日志级别
     pool_size = int(os.getenv('QIANDAO_SQL_POOL_SIZE', '10'))               # 连接池大小
     max_overflow = int(os.getenv('QIANDAO_SQL_MAX_OVERFLOW', '50'))         # 连接池连接数量超过 pool_size 时, 最大连接数

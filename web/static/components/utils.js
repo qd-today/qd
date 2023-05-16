@@ -201,7 +201,7 @@
           log: {
             creator: {
               name: 'binux',
-              version: 'qiandao'
+              version: 'QD'
             },
             entries: (function() {
               var j, len, ref, ref1, ref2, results;
@@ -288,7 +288,7 @@
           log: {
             creator: {
               name: 'curl',
-              version: 'qiandao'
+              version: 'QD'
             },
             entries: (function() {
               var j, len, results;

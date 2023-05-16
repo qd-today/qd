@@ -23,7 +23,7 @@ from libs.log import Log
 from libs.parse_url import parse_url
 from web.app import Application
 
-logger_Worker = Log('qiandao.Worker').getlogger()
+logger_Worker = Log('QD.Worker').getlogger()
 
 class BaseWorker(object):
     def __init__(self, db=DB()):

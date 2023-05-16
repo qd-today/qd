@@ -3,13 +3,13 @@ FROM a76yyyy/pycurl:latest
 
 # 维护者信息
 LABEL maintainer "a76yyyy <q981331502@163.com>"
-LABEL org.opencontainers.image.source=https://github.com/qiandao-today/qiandao
+LABEL org.opencontainers.image.source=https://github.com/qd-today/qd
 
-ADD ssh/qiandao_fetch /root/.ssh/id_rsa
-ADD ssh/qiandao_fetch.pub /root/.ssh/id_rsa.pub
+ADD ssh/qd_fetch /root/.ssh/id_rsa
+ADD ssh/qd_fetch.pub /root/.ssh/id_rsa.pub
 WORKDIR /usr/src/app
 
-# Qiandao && Pip install modules
+# QD && Pip install modules
 RUN apk add --update --no-cache openssh-client && \
     chmod 600 /root/.ssh/id_rsa && \
     ssh-keyscan gitee.com > /root/.ssh/known_hosts && \

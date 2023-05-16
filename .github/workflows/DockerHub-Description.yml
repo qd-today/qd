@@ -8,7 +8,7 @@ on:
       - .github/workflows/DockerHub-Description.yml
 jobs:
   dockerHubDescription:
-    if: startsWith(github.repository, 'qiandao-today/qiandao')
+    if: startsWith(github.repository, 'qd-today/qd')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2

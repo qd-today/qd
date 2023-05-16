@@ -13,10 +13,10 @@ from tornado.web import HTTPError
 
 import config
 from db import DB
-from libs import utils, fetcher
+from libs import fetcher, utils
 from libs.log import Log
 
-logger_Web_Handler = Log('qiandao.Web.Handler').getlogger()
+logger_Web_Handler = Log('QD.Web.Handler').getlogger()
 
 __ALL__ = ['HTTPError', 'BaseHandler', 'BaseWebSocket', 'BaseUIModule', 'logger_Web_Handler', ]
 

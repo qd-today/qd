@@ -14,18 +14,18 @@ docker cp database.db container_name:/usr/src/app/config/
 ## 如何在 Docker 中配置邮箱服务器?
 
 ``` sh
-docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码  --env DOMAIN=域名 a76yyyy/qiandao
+docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码  --env DOMAIN=域名 a76yyyy/qiandao
 ```
 
 ## 如何在 Docker 中使用 MySQL?
 
 ``` sh
-docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@hostname:port/数据库名 a76yyyy/qiandao
+docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@hostname:port/数据库名 a76yyyy/qiandao
 ```
 
 ## 如何自己搭建 Docker 镜像?
 
-请参考此镜像的构建文件 [Dockerfile](https://github.com/qiandao-today/qiandao/blob/master/Dockerfile)。
+请参考此镜像的构建文件 [Dockerfile](https://github.com/qd-today/qd/blob/master/Dockerfile)。
 
 ## 如何查看当前框架支持的 API 和 Jinja2 模板变量?
 
@@ -33,7 +33,7 @@ docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/co
 
 ## 如何提交 bug 问题?
 
-请在遇到问题后开启 `Debug` 模式，然后将详细的错误日志提交至 [Issue](https://github.com/qiandao-today/qiandao/issues)。
+请在遇到问题后开启 `Debug` 模式，然后将详细的错误日志提交至 [Issue](https://github.com/qd-today/qd/issues)。
 
 ## QD 模板一般需要哪些请求?
 
@@ -56,7 +56,7 @@ docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/co
 QD 使用 `redis` 作为限流工具，如果没有安装 `redis` 服务，框架会提示以下警告信息。
 
 ``` sh
-[W xxxxxx xx:xx:xx qiandao.RedisDB redisdb:28] Connect Redis falied: Error 10061 connecting to localhost:6379. 由于目标计算机积极拒绝，无法连接。
+[W xxxxxx xx:xx:xx QD.RedisDB redisdb:28] Connect Redis falied: Error 10061 connecting to localhost:6379. 由于目标计算机积极拒绝，无法连接。
 ```
 
 然而，`redis` 在框架中并不是必须的，如果你不需要使用 `限流` 功能，可以忽略该警告信息。
@@ -68,7 +68,7 @@ QD 使用 `redis` 作为限流工具，如果没有安装 `redis` 服务，框�
 QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycurl` 模块，框架会提示以下警告信息。
 
 ``` sh
-[W xxxxxx xx:xx:xx qiandao.Http.Fetcher fetcher:34] Import PyCurl module falied: No module named 'pycurl'
+[W xxxxxx xx:xx:xx QD.Http.Fetcher fetcher:34] Import PyCurl module falied: No module named 'pycurl'
 ```
 
 然而，`pycurl` 在框架中并不是必须的，如果你不需要使用 `Proxy` 功能，可以忽略该警告信息。

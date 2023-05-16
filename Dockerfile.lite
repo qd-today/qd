@@ -5,13 +5,13 @@ FROM a76yyyy/pycurl:lite-latest
 
 # 维护者信息
 LABEL maintainer "a76yyyy <q981331502@163.com>"
-LABEL org.opencontainers.image.source=https://github.com/qiandao-today/qiandao
+LABEL org.opencontainers.image.source=https://github.com/qd-today/qd
 
-ADD ssh/qiandao_fetch /root/.ssh/id_rsa
-ADD ssh/qiandao_fetch.pub /root/.ssh/id_rsa.pub
+ADD ssh/qd_fetch /root/.ssh/id_rsa
+ADD ssh/qd_fetch.pub /root/.ssh/id_rsa.pub
 WORKDIR /usr/src/app
 
-# Qiandao & Pip install modules
+# QD & Pip install modules
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
     # ln -s /usr/bin/python3 /usr/bin/python && \
     apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist py3-multidict py3-charset-normalizer py3-aiohttp py3-typing-extensions py3-yarl && \

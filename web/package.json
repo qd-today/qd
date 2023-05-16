@@ -12,17 +12,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/qiandao-today/qiandao.git"
+    "url": "git+https://github.com/qd-today/qd.git"
   },
   "keywords": [
-    "qiandao"
+    "QD",
+    "QD-TODAY",
+    "har",
+    "http",
+    "web"
   ],
   "author": "a76yyyy",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/qiandao-today/qiandao/issues"
+    "url": "https://github.com/qd-today/qd/issues"
   },
-  "homepage": "https://github.com/qiandao-today/qiandao#readme",
+  "homepage": "https://github.com/qd-today/qd#readme",
   "dependencies": {
     "curl2har": "^0.0.21",
     "qs": "^6.11.2",

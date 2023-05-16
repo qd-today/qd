@@ -26,7 +26,7 @@ from libs import cookie_utils, utils
 from .log import Log
 from .safe_eval import safe_eval
 
-logger_Fetcher = Log('qiandao.Http.Fetcher').getlogger()
+logger_Fetcher = Log('QD.Http.Fetcher').getlogger()
 if config.use_pycurl:
     try:
         import pycurl
@@ -452,7 +452,7 @@ class Fetcher(object):
                 log = dict(
                     creator = dict(
                         name = 'binux',
-                        version = 'qiandao'
+                        version = 'QD'
                         ),
                     entries = entries,
                     pages = [],

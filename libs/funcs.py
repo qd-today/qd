@@ -19,7 +19,7 @@ from libs import utils
 
 from .log import Log
 
-logger_Funcs = Log('qiandao.Http.Funcs').getlogger()
+logger_Funcs = Log('QD.Http.Funcs').getlogger()
 class pusher(object):
     def __init__(self,db=DB(),sql_session=None):
         self.db = db
@@ -150,7 +150,7 @@ class pusher(object):
                         link = u'https://{0}bot{1}/sendMessage'.format(tgHost,token)
                 picurl = config.push_pic if pic == '' else pic
                 content = content.replace('\\r\\n','</pre>\n<pre>')
-                d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QianDao提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
+                d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QD提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
                 if proxy:
                     async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
                         async with session.post(link, json=d, verify_ssl=False, proxy=proxy, timeout=config.request_timeout) as res:
@@ -176,7 +176,7 @@ class pusher(object):
                 link = u"https://oapi.dingtalk.com/robot/send?access_token={0}".format(dingding_token)
                 picurl = config.push_pic if pic == '' else pic
                 content = content.replace('\\r\\n','\n\n > ')
-                d = {"msgtype": "markdown", "markdown": {"title": title, "text": "![QianDao](" + picurl + ")\n " + "#### " + title + "\n > " + content}}
+                d = {"msgtype": "markdown", "markdown": {"title": title, "text": "![QD](" + picurl + ")\n " + "#### " + title + "\n > " + content}}
                 async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
                     async with session.post(link, json=d, verify_ssl=False, timeout=config.request_timeout) as res:
                         r = await self.judge_res(res)

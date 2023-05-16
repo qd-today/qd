@@ -2,7 +2,7 @@
 #
 # FILE: update.sh
 #
-# DESCRIPTION: Update QianDao for Python3 
+# DESCRIPTION: Update QD for Python3 
 #
 # NOTES: This requires GNU getopt.
 #        I do not issue any guarantee that this will work for you!
@@ -11,7 +11,7 @@
 #
 # LICENSE: MIT
 #
-# ORGANIZATION: qiandao-today (https://github.com/qiandao-today)
+# ORGANIZATION: qd-today (https://github.com/qd-today)
 #
 # CREATED: 2021-10-28 20:00:00
 #
@@ -36,7 +36,7 @@ usage() {
     cat << EOT
 
 Usage :  ${__ScriptName} [OPTION] ...
-  Update QianDao for Python3 from given options.
+  Update QD for Python3 from given options.
 
 Options:
   -h, --help                    Display help message
@@ -58,7 +58,7 @@ Example:
   2) Use long options:
     $ sh $__ScriptName --update
 
-Report issues to https://github.com/qiandao-today/qiandao
+Report issues to https://github.com/qd-today/qd
 
 EOT
 }   # ----------  end of function usage  ----------
@@ -71,9 +71,9 @@ update() {
         wget https://gitee.com/a76yyyy/qiandao/raw/$remoteversion/requirements.txt -O /usr/src/app/requirements.txt && \
         [[ -z "$(cat /etc/issue | grep -E "Alpine|alpine")" ]] && { \
             pip install -r requirements.txt && \
-            echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+            echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
             echo "pip3 install ddddocr" && \
-            echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+            echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
             echo "pip3 install pycurl" ;\
         } || { \
             if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') == 1 ];then
@@ -84,7 +84,7 @@ update() {
             fi
             apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist py3-multidict py3-charset-normalizer py3-aiohttp py3-typing-extensions py3-yarl && \
             if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
-                echo "Info: Qiandao-Lite will not install ddddocr related components. "
+                echo "Info: QD-Lite will not install ddddocr related components. "
             else
                 [[ $(getconf LONG_BIT) = "32" ]] && \
                     echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. " || \
@@ -143,9 +143,9 @@ force_update() {
     wget https://gitee.com/a76yyyy/qiandao/raw/master/requirements.txt -O /usr/src/app/requirements.txt && \
     [[ -z "$(cat /etc/issue | grep -E "Alpine|alpine")" ]] && { \
         pip install -r requirements.txt && \
-        echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
         echo "pip3 install ddddocr" && \
-        echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
         echo "pip3 install pycurl" ;\
     } || { \
         if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') == 1 ];then
@@ -156,7 +156,7 @@ force_update() {
         fi
         apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist py3-multidict py3-charset-normalizer py3-aiohttp py3-typing-extensions py3-yarl && \
         if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
-            echo "Info: Qiandao-Lite will not install ddddocr related components. "
+            echo "Info: QD-Lite will not install ddddocr related components. "
         else
             [[ $(getconf LONG_BIT) = "32" ]] && \
                 echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. " || \
@@ -210,9 +210,9 @@ update_version() {
     wget https://gitee.com/a76yyyy/qiandao/raw/$1/requirements.txt -O /usr/src/app/requirements.txt && \
     [[ -z "$(cat /etc/issue | grep -E "Alpine|alpine")" ]] && { \
         pip install -r requirements.txt && \
-        echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
         echo "pip3 install ddddocr" && \
-        echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启qiandao); " && \
+        echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
         echo "pip3 install pycurl" ;\
     } || { \
         if [ $(echo $localversion | awk '$1>20211228 {print 0} $1<=20211228 {print 1}') == 1 ];then
@@ -223,7 +223,7 @@ update_version() {
         fi
         apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist py3-multidict py3-charset-normalizer py3-aiohttp py3-typing-extensions py3-yarl && \
         if [ $(printenv QIANDAO_LITE) ] && [ "$QIANDAO_LITE" = "True" ];then
-            echo "Info: Qiandao-Lite will not install ddddocr related components. "
+            echo "Info: QD-Lite will not install ddddocr related components. "
         else
             [[ $(getconf LONG_BIT) = "32" ]] && \
                 echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. " || \

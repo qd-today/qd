@@ -17,7 +17,7 @@ from libs.fetcher import Fetcher
 from libs.log import Log
 from web.handlers import handlers, ui_methods, ui_modules
 
-logger_Web = Log('qiandao.Web').getlogger()
+logger_Web = Log('QD.Web').getlogger()
 class Application(tornado.web.Application):
     def __init__(self, db=DB(), default_version=None):
         settings = dict(

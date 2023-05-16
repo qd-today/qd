@@ -11,7 +11,7 @@ import config
 from libs.log import Log
 from libs.utils import is_lan
 
-logger_RedisDB = Log('qiandao.RedisDB').getlogger()
+logger_RedisDB = Log('QD.RedisDB').getlogger()
 class RedisDB(object):
     def __init__(self, host=config.redis.host, port=config.redis.port, password=config.redis.passwd, db=config.redis.db, evil=config.evil):
         try:

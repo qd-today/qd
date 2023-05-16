@@ -8,6 +8,6 @@ const pkg = require('vitepress/package.json')
 export default defineConfig({
     title: 'QD',
     locales: locales.locales,
-    base: '/qiandao/',
-    head: [['link', { rel: 'icon', href: '/qiandao/favicon.ico' }],],
+    base: '/qd/',
+    head: [['link', { rel: 'icon', href: '/qd/favicon.ico' }],],
 })

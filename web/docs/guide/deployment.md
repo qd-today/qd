@@ -16,9 +16,9 @@ Docker Container Deployment is the easiest way to deploy QD.
 
 ``` sh
 # Create and switch to the QD directory.
-mkdir -p $(pwd)/qiandao/config && cd $(pwd)/qiandao
+mkdir -p $(pwd)/qd/config && cd $(pwd)/qd
 # Download docker-compose.yml
-wget https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/docker-compose.yml
+wget https://fastly.jsdelivr.net/gh/qd-today/qd@master/docker-compose.yml
 # Modify the configuration environment variables according to the requirements and configuration description
 vi ./docker-compose.yml
 # Execute Docker Compose command
@@ -34,14 +34,14 @@ docker-compose up -d
 #### 2. Docker Run
 
 ``` sh
-docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config a76yyyy/qiandao
+docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config a76yyyy/qiandao
 ```
 
 Try this command if you cannot connect to the external network inside the container:
 
 ``` sh
 # Create container using Host network mode, port: 8923
-docker run -d --name qiandao --env PORT=8923 --net=host -v $(pwd)/qiandao/config:/usr/src/app/config a76yyyy/qiandao
+docker run -d --name qd --env PORT=8923 --net=host -v $(pwd)/qd/config:/usr/src/app/config a76yyyy/qiandao
 ```
 
 > Please note that after creating a container with this command, please change the api request of `http://localhost/` form in the template to `api://` or `http://localhost:8923/` manually in order to complete the related API request properly.
@@ -110,10 +110,10 @@ python ./chrole.py your@email.address admin
 |DB_TYPE|No|sqlite3|Set to 'mysql' when MySQL is required|
 |JAWSDB_MARIA_URL|No|''|When you need to use MySQL, <br> set to `mysql://username:password@hostname:port/database_name?auth_plugin=`|
 |QIANDAO_SQL_ECHO|No|False|Whether to enable the log output of SQLAlchmey, the default is False, <br>When set to True, the SQL statement will be output on the console, <br>allow to set to debug to enable debug mode|
-|QIANDAO_SQL_LOGGING_NAME|No|qiandao.sql_engine|SQLAlchmey log name, default is 'qiandao.sql_engine'|
+|QIANDAO_SQL_LOGGING_NAME|No|QD.sql_engine|SQLAlchmey log name, default is 'QD.sql_engine'|
 |QIANDAO_SQL_LOGGING_LEVEL|No|Warning|SQLAlchmey log level, default is 'Warning'|
 |QIANDAO_SQL_ECHO_POOL|No|True|Whether to enable SQLAlchmey's connection pool log output, the default is True, <br>allow setting to debug to enable debug mode|
-|QIANDAO_SQL_LOGGING_POOL_NAME|No|qiandao.sql_pool|SQLAlchmey connection pool log name, the default is 'qiandao.sql_pool'|
+|QIANDAO_SQL_LOGGING_POOL_NAME|No|QD.sql_pool|SQLAlchmey connection pool log name, the default is 'QD.sql_pool'|
 |QIANDAO_SQL_LOGGING_POOL_LEVEL|No|Warning|SQLAlchmey connection pool log level, default is 'Warning'|
 |QIANDAO_SQL_POOL_SIZE|No|10|SQLAlchmey connection pool size, default is 10|
 |QIANDAO_SQL_MAX_OVERFLOW|No|50|SQLAlchmey connection pool maximum overflow, the default is 50|
@@ -126,14 +126,14 @@ python ./chrole.py your@email.address admin
 |QIANDAO_EVIL|No|500|(Only when the Redis connection is enabled)<br>Score = number of operation failures (such as login, verification, test, etc.) * corresponding penalty points<br>When the score reaches the upper limit of evil, it will be automatically banned until the next hour cycle|
 |EVIL_PASS_LAN_IP|No|True|Whether to turn off the evil restriction of local private IP address users and Localhost_API requests|
 |TRACEBACK_PRINT|No|False|Whether to enable to print Exception's TraceBack information in the console log|
-|PUSH_PIC_URL|No|[push_pic.png](https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)|The default is [push_pic.png](https ://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/web/static/img/push_pic.png)|
-|PUSH_BATCH_SW|No|True|Whether to allow periodic push of Qiandao task logs, the default is True|
+|PUSH_PIC_URL|No|[push_pic.png](https://fastly.jsdelivr.net/gh/qd-today/qd@master/web/static/img/push_pic.png)|The default is [push_pic.png](https ://fastly.jsdelivr.net/gh/qd-today/qd@master/web/static/img/push_pic.png)|
+|PUSH_BATCH_SW|No|True|Whether to allow periodic push of QD task logs, the default is True|
 |MAIL_SMTP|No|""|Email SMTP server|
 |MAIL_PORT|No|""|Email SMTP server port|
 |MAIL_USER|No|""|Email username|
 |MAIL_PASSWORD|No|""|Email password|
 |MAIL_FROM|No|MAIL_USER|The Email used when sending, the default is the same as MAIL_USER|
-|MAIL_DOMAIN|No|mail.qiandao.today|Email domain name, useless, use DOMAIN|
+|MAIL_DOMAIN|No|mail.qd.today|Email domain name, useless, use DOMAIN|
 |PROXIES|No|""|Global proxy domain name list, separated by "\|"|
 |PROXY_DIRECT_MODE|No|""|Global proxy blacklist mode, not enabled by default <br>"url" is URL matching mode; "regexp" is regular expression matching mode|
 |PROXY_DIRECT|No|""|Global proxy blacklist matching rules|
@@ -142,10 +142,10 @@ python ./chrole.py your@email.address admin
 |DNS_SERVER|No|""|Use specified DNS for resolution via Curl (only supports Pycurl environment), <br>such as 8.8.8.8|
 |CURL_ENCODING|No|True|Whether to allow to use Curl for Encoding operation|
 |CURL_CONTENT_LENGTH|No|True|Whether to allow Curl to use custom Content-Length request in Headers|
-|NOT_RETRY_CODE|No|[See configuration for details](https://github.com/qiandao-today/qiandao/blob/master/config.py)...|[See configuration for details](https://github.com/qiandao-today/qiandao/blob/master/config.py)...|
-|EMPTY_RETRY|No|True|[See configuration for details](https://github.com/qiandao-today/qiandao/blob/master/config.py)...|
+|NOT_RETRY_CODE|No|[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|
+|EMPTY_RETRY|No|True|[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|
 |USER0ISADMIN|No|True|The first registered user is an administrator, False to close|
 |EXTRA_ONNX_NAME|No|""|Customize the ONNX file name in the config directory<br>(do not fill in the ".onnx" suffix)<br>Separate multiple onnx file names with "\|"|
 |EXTRA_CHARSETS_NAME|No|""|Custom ONNX in the config directory corresponds to the custom charsets.json file name<br>(do not fill in the ".json" suffix)<br>Multiple json file names are separated by "\|"|
 
-> For details, please refer to [config.py](https://github.com/qiandao-today/qiandao/blob/master/config.py)
+> For details, please refer to [config.py](https://github.com/qd-today/qd/blob/master/config.py)

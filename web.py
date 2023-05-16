@@ -16,7 +16,7 @@ from web.app import Application
 
 if __name__ == "__main__":
     # init logging
-    logger_Web = Log("qiandao.Web").getlogger()
+    logger_Web = Log('QD.Web').getlogger()
 
     if not config.debug:
         import logging

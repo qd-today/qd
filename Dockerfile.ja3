@@ -1,18 +1,18 @@
 # 基础镜像
 # 集成 curl-impersonate 解决 ja3 指纹被识别为 curl 的问题 
-# https://github.com/qiandao-today/qiandao/issues/289
+# https://github.com/qd-today/qd/issues/289
 # 不支持 http3 和 Quic 连接, 如需相关功能请使用 latest 版本
 FROM a76yyyy/pycurl:ja3-latest
 
 # 维护者信息
 LABEL maintainer "a76yyyy <q981331502@163.com>"
-LABEL org.opencontainers.image.source=https://github.com/qiandao-today/qiandao
+LABEL org.opencontainers.image.source=https://github.com/qd-today/qd
 
-ADD ssh/qiandao_fetch /root/.ssh/id_rsa
-ADD ssh/qiandao_fetch.pub /root/.ssh/id_rsa.pub
+ADD ssh/qd_fetch /root/.ssh/id_rsa
+ADD ssh/qd_fetch.pub /root/.ssh/id_rsa.pub
 WORKDIR /usr/src/app
 
-# Qiandao && Pip install modules
+# QD && Pip install modules
 RUN apk add --update --no-cache openssh-client && \
     chmod 600 /root/.ssh/id_rsa && \
     ssh-keyscan gitee.com > /root/.ssh/known_hosts && \

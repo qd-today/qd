@@ -20,14 +20,14 @@ if __name__ == "__main__":
         importlib.reload(sys)
     # init logging
     logger = Log().getlogger()
-    logger_Qiandao = Log('qiandao.Run').getlogger()
+    logger_QD = Log('QD.Run').getlogger()
 
     if config.debug:
         import logging
         channel = logging.StreamHandler(sys.stderr)
         channel.setFormatter(tornado.log.LogFormatter())
         channel.setLevel(logging.WARNING)
-        logger_Qiandao.addHandler(channel)
+        logger_QD.addHandler(channel)
 
     if not config.accesslog:
         tornado.log.access_log.disabled = True
@@ -84,13 +84,13 @@ if __name__ == "__main__":
             logger.exception('worker start error!')
             raise KeyboardInterrupt()
 
-        logger_Qiandao.info("Http Server started on %s:%s", config.bind, port)
+        logger_QD.info("Http Server started on %s:%s", config.bind, port)
         io_loop.start()
     except KeyboardInterrupt :
-        logger_Qiandao.info("Http Server is being manually interrupted... ")
+        logger_QD.info("Http Server is being manually interrupted... ")
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         run = asyncio.ensure_future(engine.dispose() , loop=loop)
         loop.run_until_complete(run)
-        logger_Qiandao.info("Http Server is ended. ")
+        logger_QD.info("Http Server is ended. ")
 

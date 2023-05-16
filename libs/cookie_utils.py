@@ -21,7 +21,7 @@ import config
 
 from .log import Log
 
-logger_CookieJar = Log('qiandao.Http.CookieJar').getlogger()
+logger_CookieJar = Log('QD.Http.CookieJar').getlogger()
 def _debug(*args):
     if not config.debug:
         return

@@ -15,7 +15,7 @@ from db import DB, Site, Task, Tpl, User
 from libs import mcrypto as crypto
 from libs.log import Log
 
-logger_DB_converter = Log('qiandao.DB.Converter').getlogger()
+logger_DB_converter = Log('QD.DB.Converter').getlogger()
 
 class DBconverter():
     def __init__(self, path=config.sqlite3.path):
@@ -275,7 +275,7 @@ class DBconverter():
                 raise Exception("for table site, new row will be created")
         except Exception as e:
             logger_DB_converter.debug(e)
-            insert = dict(regEn = 1, repos='{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}')
+            insert = dict(regEn = 1, repos='{"repos":[{"reponame":"default","repourl":"https://github.com/qd-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}')
             await self.db.site._insert(Site(**insert))
             
         try:
@@ -566,15 +566,15 @@ class DBconverter():
         except Exception as e:
             logger_DB_converter.debug(e)
             if config.db_type == 'sqlite3':
-                await exec_shell('''ALTER TABLE `site` ADD  `repos` TEXT NOT NULL DEFAULT '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' ''')
+                await exec_shell('''ALTER TABLE `site` ADD  `repos` TEXT NOT NULL DEFAULT '{"repos":[{"reponame":"default","repourl":"https://github.com/qd-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' ''')
             else:
                 await exec_shell('''ALTER TABLE `site` ADD  `repos` TEXT ''')
-                await exec_shell('''UPDATE `site` SET `repos` = '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' WHERE `site`.`id` = 1 ''')
+                await exec_shell('''UPDATE `site` SET `repos` = '{"repos":[{"reponame":"default","repourl":"https://github.com/qd-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' WHERE `site`.`id` = 1 ''')
                
         try:
             tmp = (await self.db.site.get("1", fields=('repos',)))['repos']
             if tmp == None or tmp == '':
-                 await exec_shell('''UPDATE `site` SET `repos` = '{"repos":[{"reponame":"default","repourl":"https://github.com/qiandao-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' WHERE `site`.`id` = 1 ''')
+                 await exec_shell('''UPDATE `site` SET `repos` = '{"repos":[{"reponame":"default","repourl":"https://github.com/qd-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' WHERE `site`.`id` = 1 ''')
         except Exception as e:
             logger_DB_converter.debug(e)
 
