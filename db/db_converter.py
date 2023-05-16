@@ -570,13 +570,33 @@ class DBconverter():
             else:
                 await exec_shell('''ALTER TABLE `site` ADD  `repos` TEXT ''')
                 await exec_shell('''UPDATE `site` SET `repos` = '{"repos":[{"reponame":"default","repourl":"https://github.com/qd-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' WHERE `site`.`id` = 1 ''')
-               
+
         try:
             tmp = (await self.db.site.get("1", fields=('repos',)))['repos']
             if tmp == None or tmp == '':
                  await exec_shell('''UPDATE `site` SET `repos` = '{"repos":[{"reponame":"default","repourl":"https://github.com/qd-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}' WHERE `site`.`id` = 1 ''')
         except Exception as e:
             logger_DB_converter.debug(e)
+
+        try:
+            repo = await self.db.site.get("1", fields=('repos',))
+            if isinstance(repo, dict) and repo.get('repos') and isinstance(repo['repos'], str) and repo['repos'].find('qiandao-today/templates') > 0:
+                async with self.db.transaction() as sql_session:
+                    repos = json.loads(repo['repos'])
+                    tmp = repos['repos']
+                    result = []
+                    for _, j  in enumerate(tmp):
+                        if j['repourl'].find('qiandao-today/templates') > 0:
+                            j['repourl'] = j['repourl'].replace("qiandao-today/templates", "qd-today/templates")
+                            pubtpls = await self.db.pubtpl.list(reponame=j['reponame'], fields=('id',),sql_session=sql_session)
+                            for pubtpl in pubtpls:
+                                await self.db.pubtpl.delete(pubtpl['id'],sql_session=sql_session)
+                        result.append(j)
+                
+                    await self.db.site.mod(1, repos=repo['repos'].replace("qiandao-today/templates", "qd-today/templates"), sql_session=sql_session)
+        except Exception as e:
+            logger_DB_converter.debug(e)
+            pass
 
         try:
             await self.db.pubtpl.list(limit=1, fields=('commenturl',))
