@@ -21,9 +21,11 @@ class DBconverter():
     def __init__(self, path=config.sqlite3.path):
         self.path = path
             
-    async def ConvertNewType(self, db=DB(), path=config.sqlite3.path):
-        
-        self.db = db
+    async def ConvertNewType(self, db:DB=None, path=config.sqlite3.path):
+        if db:
+            self.db = db
+        else:
+            self.db = DB()
         exec_shell = self.db._execute
             
         if config.db_type == 'sqlite3':

@@ -11,6 +11,7 @@ from tornado.httpserver import HTTPServer
 from tornado.ioloop import IOLoop
 
 import config
+from db import DB
 from libs.log import Log
 from web.app import Application
 
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     else:
         port = config.port
 
-    http_server = HTTPServer(Application(), xheaders=True)
+    http_server = HTTPServer(Application(DB()), xheaders=True)
     http_server.bind(port, config.bind)
     http_server.start()
 

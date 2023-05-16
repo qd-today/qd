@@ -49,7 +49,7 @@ if __name__ == "__main__":
         from db import DB
         from db.basedb import engine
         database = DB()
-        converter = db_converter.DBconverter()
+        converter = db_converter.DBconverter(database)
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         run = asyncio.ensure_future(converter.ConvertNewType(database) , loop=loop)

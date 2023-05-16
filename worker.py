@@ -21,12 +21,11 @@ from libs.fetcher import Fetcher
 from libs.funcs import cal, pusher
 from libs.log import Log
 from libs.parse_url import parse_url
-from web.app import Application
 
 logger_Worker = Log('QD.Worker').getlogger()
 
 class BaseWorker(object):
-    def __init__(self, db=DB()):
+    def __init__(self, db:DB):
         self.running = False
         self.db = db
         self.fetcher = Fetcher()
@@ -271,7 +270,7 @@ class BaseWorker(object):
         return True
 
 class QueueWorker(BaseWorker):
-    def __init__(self, db=DB()):
+    def __init__(self, db:DB):
         logger_Worker.info('Queue Worker start...')
         self.queue = asyncio.Queue(maxsize=config.queue_num)
         self.task_lock = {}
@@ -342,7 +341,7 @@ class QueueWorker(BaseWorker):
 # 旧版本批量任务定时执行
 # 建议仅当新版 Queue 生产者消费者定时执行功能失效时使用
 class BatchWorker(BaseWorker):
-    def __init__(self, db=DB()):
+    def __init__(self, db:DB):
         logger_Worker.info('Batch Worker start...')
         super().__init__(db)
         
@@ -395,13 +394,14 @@ class BatchWorker(BaseWorker):
         return (success, failed)
 
 if __name__ == '__main__':
+    from db import DB
     tornado.log.enable_pretty_logging()
     io_loop = tornado.ioloop.IOLoop.instance()
     if config.worker_method.upper() == 'QUEUE':
-        worker = QueueWorker()
+        worker = QueueWorker(DB())
         io_loop.add_callback(worker)
     elif config.worker_method.upper() == 'BATCH':
-        worker = BatchWorker()
+        worker = BatchWorker(DB())
         tornado.ioloop.PeriodicCallback(worker, config.check_task_loop).start()
         # worker()
     else:

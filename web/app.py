@@ -19,7 +19,7 @@ from web.handlers import handlers, ui_methods, ui_modules
 
 logger_Web = Log('QD.Web').getlogger()
 class Application(tornado.web.Application):
-    def __init__(self, db=DB(), default_version=None):
+    def __init__(self, db:DB, default_version=None):
         settings = dict(
                 template_path = os.path.join(os.path.dirname(__file__), "tpl"),
                 static_path = os.path.join(os.path.dirname(__file__), "static"),

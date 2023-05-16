@@ -17,7 +17,7 @@ logger_Web_Util = Log('QD.Web.Util').getlogger()
 try:
     import ddddocr
 except ImportError as e:
-    logger_Web_Util.warning('Import DdddOCR module falied: %s', e)
+    logger_Web_Util.warning('Import DdddOCR module falied: \"%s\". \nTips: This warning message is only for prompting, it will not affect running of QD framework.', e)
     ddddocr = None
 import base64
 

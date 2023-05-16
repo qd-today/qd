@@ -21,7 +21,7 @@ from .log import Log
 
 logger_Funcs = Log('QD.Http.Funcs').getlogger()
 class pusher(object):
-    def __init__(self,db=DB(),sql_session=None):
+    def __init__(self,db:DB,sql_session=None):
         self.db = db
         self.sql_session = sql_session
     

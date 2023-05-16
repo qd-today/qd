@@ -144,7 +144,7 @@ class UserRegPush(BaseHandler):
 
         else:
             try:
-                f = pusher()
+                f = pusher(self.db)
                 t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
 
                 if (barkurl != ""):
@@ -682,7 +682,7 @@ class custom_pusher_Handler(BaseHandler):
             envs = {}
             for k, _  in self.request.body_arguments.items():
                 envs[k] = self.get_body_argument(k)
-            req = pusher()
+            req = pusher(self.db)
             log = ''
             now = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             tmp = await req.cus_pusher_send(envs ,u'推送测试', now)
