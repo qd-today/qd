@@ -64,6 +64,7 @@
   <script src="{{ static_url('components/jquery.tablesorter/dist/js/jquery.tablesorter.widgets.min.js') }}"></script>
   <script src="{{ static_url('components/blueimp-md5/js/md5.js') }}"></script>
   <script src="{{ static_url('components/clipboard/dist/clipboard.min.js') }}"></script>
+  <script src="{{ static_url('components/lunar-javascript/lunar.js') }}"></script>
   {% endblock %}
 
   {% import "utils.html" as utils %}
@@ -89,6 +90,23 @@
       console.error('Action:', e.action);
       console.error('Trigger:', e.trigger);
     });
+  </script>
+  <script>
+    function get_holiday_or_version(version) {
+      if (version === '' || version === undefined || version === null) {
+        return version
+      }
+      var d = Solar.fromDate(new Date())
+      holiday = HolidayUtil.getHoliday(d.toYmd())
+      if (holiday) {
+        if (holiday.isWork()) {
+          return version
+        }
+        return holiday.getName() + '快乐'
+      } else {
+        return version
+      }
+    }
   </script>
   {% block body %}{% endblock %}
   {% block foot %}

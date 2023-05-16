@@ -1,7 +1,15 @@
+{% macro qd_title(title="QD框架", sup=True) %}
+<h2 class="text-center">{{ title }}<sup id="qd_header_sup">{% if sup %}{{ version }}{% endif %}</sup></h2>
+<script>
+  var qd_header_sup = document.getElementById('qd_header_sup')
+  qd_header_sup.innerHTML = get_holiday_or_version(qd_header_sup.innerHTML)
+</script>
+{% endmacro %}
+
 {% macro header(current_user=True, title="QD框架", sup=True, about=True) %}
 <header>
   <div class="container">
-    <h2 class="text-center">{{ title }}{% if sup %}<sup>{{ version }}</sup>{% endif %}</h2>
+    {{ qd_title(title, sup) }}
     <div class="buttons">
       <a href="/" class="btn btn-default pull-left">首页</a>
       {% if about %}

@@ -38,7 +38,8 @@
     "jquery.tablesorter": "^2.31.3",
     "Font-Awesome": "^6.4.0",
     "clipboard": "^2.0.11",
-    "draggable-polyfill": "XboxYan/draggable-polyfill"
+    "draggable-polyfill": "XboxYan/draggable-polyfill",
+    "lunar-javascript":"6tail/lunar-javascript"
   },
   "main": "",
   "license": "MIT",
@@ -89,6 +90,9 @@
     },
     "draggable-polyfill": {
       "lib": "lib/draggable-polyfill.js"
+    },
+    "lunar-javascript": {
+      "": "lunar.js"
     }
   }
 }

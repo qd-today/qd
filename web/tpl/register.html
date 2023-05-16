@@ -10,7 +10,7 @@
 {% block body %}
 <div class="container">
   <form method="POST">
-    <h2 class="text-center">QD框架<sup>{{ version }}</sup></h2>
+    {{ utils.qd_title() }}
 	<hr>
     {% block reg %}<p class="alert alert-info">欢迎注册私有QD平台</p>{% endblock %}
     <div class="form-group {{ 'has-error' if email_error }}">
