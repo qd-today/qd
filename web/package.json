@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/qiandao-today/qiandao#readme",
   "dependencies": {
-    "curl2har": "^0.0.18",
+    "curl2har": "^0.0.21",
     "querystring": "^0.2.1",
     "tough-cookie": "^4.1.2",
     "url": "^0.11.0"
@@ -32,11 +32,11 @@
     "node": ">= 0.10.0"
   },
   "devDependencies": {
-    "@algolia/client-search": "^4.14.3",
+    "@algolia/client-search": "^4.17.0",
     "bower": "^1.8.14",
     "coffeescript": "^2.7.0",
     "flexsearch": "^0.7.31",
-    "grunt": "^1.5.3",
+    "grunt": "^1.6.1",
     "grunt-bower-task": "^0.6.2",
     "grunt-contrib-clean": "^2.0.1",
     "grunt-contrib-concat": "^2.1.0",
@@ -46,15 +46,16 @@
     "markdown-it": "^13.0.1",
     "process": "^0.11.10",
     "segment": "^0.1.3",
+    "terser-webpack-plugin": "^5.3.8",
     "ts-loader": "^9.4.2",
-    "tslib": "^2.4.1",
-    "typescript": "^4.9.4",
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.5",
     "util": "^0.12.5",
-    "vite": "^4.1.1",
+    "vite": "^4.3.5",
     "vitepress": "1.0.0-alpha.46",
     "vitepress-plugin-search": "1.0.4-alpha.19",
-    "vue": "^3.2.47",
-    "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.1"
+    "vue": "^3.3.2",
+    "webpack": "^5.82.1",
+    "webpack-cli": "^5.1.1"
   }
 }
