@@ -67,7 +67,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                 repos = json.loads((await self.db.site.get(1, fields=('repos',), sql_session=sql_session))['repos'])
                 if proxies:
                     proxy = random.choice(proxies)
-                    if proxy.get("href"):
+                    if proxy and proxy.get("href"):
                         proxy = proxy["href"]
                     else:
                         proxy = None
