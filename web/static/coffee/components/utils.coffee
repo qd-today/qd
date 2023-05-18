@@ -14,6 +14,11 @@ define (require) ->
   querystring = node_querystring
   curl2har = node_curl2har
 
+  fix_encodeURIComponent = (obj) ->
+      return encodeURIComponent(obj).replace(/[!'()*]/g, (c) ->
+        return '%' + c.charCodeAt(0).toString(16).toUpperCase()
+      )
+
   exports = {
     cookie_parse: (cookie_string) ->
       cookie = {}
@@ -41,15 +46,15 @@ define (require) ->
         re = /{{\s*([\w]+)[^}]*?\s*}}/g
         while m = re.exec(key)
           if m[0].slice(-12) != '|urlencode}}'
-            replace_list[encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
+            replace_list[fix_encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
           else
-            replace_list[encodeURIComponent(m[0])] = m[0]
+            replace_list[fix_encodeURIComponent(m[0])] = m[0]
         re = /{{\s*([\w]+)[^}]*?\s*}}/g
         while m = re.exec(value)
           if m[0].slice(-12) != '|urlencode}}'
-            replace_list[encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
+            replace_list[fix_encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
           else
-            replace_list[encodeURIComponent(m[0])] = m[0]
+            replace_list[fix_encodeURIComponent(m[0])] = m[0]
       if node_querystring.stringify(replace_list, { indices: false })
           console.log('The replace_list is', replace_list)
       for key, value of replace_list

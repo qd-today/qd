@@ -5,7 +5,7 @@
   //         http://binux.me
   // Created on 2014-08-03 07:42:45
   define(function(require) {
-    var curl2har, exports, querystring, tough, url;
+    var curl2har, exports, fix_encodeURIComponent, querystring, tough, url;
     require('/static/components/node_components');
     RegExp.escape = function(s) {
       return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -14,6 +14,11 @@
     tough = node_tough;
     querystring = node_querystring;
     curl2har = node_curl2har;
+    fix_encodeURIComponent = function(obj) {
+      return encodeURIComponent(obj).replace(/[!'()*]/g, function(c) {
+        return '%' + c.charCodeAt(0).toString(16).toUpperCase();
+      });
+    };
     exports = {
       cookie_parse: function(cookie_string) {
         var cookie, each, index, j, key, len, ref, value;
@@ -56,21 +61,23 @@
           re = /{{\s*([\w]+)[^}]*?\s*}}/g;
           while (m = re.exec(key)) {
             if (m[0].slice(-12) !== '|urlencode}}') {
-              replace_list[encodeURIComponent(m[0])] = m[0].slice(0, -2) + '|urlencode}}';
+              replace_list[fix_encodeURIComponent(m[0])] = m[0].slice(0, -2) + '|urlencode}}';
             } else {
-              replace_list[encodeURIComponent(m[0])] = m[0];
+              replace_list[fix_encodeURIComponent(m[0])] = m[0];
             }
           }
           re = /{{\s*([\w]+)[^}]*?\s*}}/g;
           while (m = re.exec(value)) {
             if (m[0].slice(-12) !== '|urlencode}}') {
-              replace_list[encodeURIComponent(m[0])] = m[0].slice(0, -2) + '|urlencode}}';
+              replace_list[fix_encodeURIComponent(m[0])] = m[0].slice(0, -2) + '|urlencode}}';
             } else {
-              replace_list[encodeURIComponent(m[0])] = m[0];
+              replace_list[fix_encodeURIComponent(m[0])] = m[0];
             }
           }
         }
-        if (node_querystring.stringify(replace_list)) {
+        if (node_querystring.stringify(replace_list, {
+          indices: false
+        })) {
           console.log('The replace_list is', replace_list);
         }
         for (key in replace_list) {
