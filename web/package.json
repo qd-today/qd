@@ -58,7 +58,7 @@
     "util": "^0.12.5",
     "vite": "^4.3.6",
     "vitepress": "1.0.0-alpha.46",
-    "vitepress-plugin-search": "1.0.4-alpha.19",
+    "vitepress-plugin-search": "1.0.4-alpha.20",
     "vue": "^3.3.2",
     "webpack": "^5.82.1",
     "webpack-cli": "^5.1.1"

@@ -79,8 +79,8 @@ devDependencies:
     specifier: 1.0.0-alpha.46
     version: 1.0.0-alpha.46(@algolia/client-search@4.17.0)
   vitepress-plugin-search:
-    specifier: 1.0.4-alpha.19
-    version: 1.0.4-alpha.19(flexsearch@0.7.31)(vitepress@1.0.0-alpha.46)(vue@3.3.2)
+    specifier: 1.0.4-alpha.20
+    version: 1.0.4-alpha.20(flexsearch@0.7.31)(vitepress@1.0.0-alpha.46)(vue@3.3.2)
   vue:
     specifier: ^3.3.2
     version: 3.3.2
@@ -3160,17 +3160,18 @@ packages:
       fsevents: 2.3.2
     dev: true
 
-  /vitepress-plugin-search@1.0.4-alpha.19(flexsearch@0.7.31)(vitepress@1.0.0-alpha.46)(vue@3.3.2):
-    resolution: {integrity: sha512-WFOPn5dStyMINd+rVjNxbEmGa7U+qGHLxLnda56EG+ATil1i0yOauGhJEh5LPMvuCUVIA9tInJnFXklOBb39dA==}
+  /vitepress-plugin-search@1.0.4-alpha.20(flexsearch@0.7.31)(vitepress@1.0.0-alpha.46)(vue@3.3.2):
+    resolution: {integrity: sha512-zG+ev9pw1Mg7htABlFCNXb8XwnKN+qfTKw+vU0Ers6RIrABx+45EAAFBoaL1mEpl1FRFn1o/dQ7F4b8GP6HdGQ==}
     engines: {node: ^14.13.1 || ^16.7.0 || >=18}
     peerDependencies:
       flexsearch: ^0.7.31
-      vitepress: ^1.0.0-alpha.13
+      vitepress: ^1.0.0-alpha.65
       vue: '3'
     dependencies:
       '@types/flexsearch': 0.7.3
       '@types/markdown-it': 12.2.3
       flexsearch: 0.7.31
+      glob-to-regexp: 0.4.1
       markdown-it: 13.0.1
       vitepress: 1.0.0-alpha.46(@algolia/client-search@4.17.0)
       vue: 3.3.2
