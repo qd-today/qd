@@ -67,8 +67,12 @@ class SubscribeUpdatingHandler(BaseHandler):
                 repos = json.loads((await self.db.site.get(1, fields=('repos',), sql_session=sql_session))['repos'])
                 if proxies:
                     proxy = random.choice(proxies)
+                    if proxy.get("href"):
+                        proxy = proxy["href"]
+                    else:
+                        proxy = None
                 else:
-                    proxy = {}
+                    proxy = None
                 # 如果上次更新时间大于1天则更新模板仓库
                 if (int(time.time()) - int(repos['lastupdate']) > 24 * 3600):
                     for repo in repos['repos']:
@@ -82,7 +86,7 @@ class SubscribeUpdatingHandler(BaseHandler):
 
                         hfile_link = url + '/tpls_history.json'
                         async with aiohttp.ClientSession(conn_timeout=config.connect_timeout*5) as session:
-                            async with session.get(hfile_link, verify_ssl=False, timeout=config.request_timeout) as res:
+                            async with session.get(hfile_link, verify_ssl=False, timeout=config.request_timeout, proxy=proxy) as res:
                                 if res.status == 200:
                                     hfile = await res.json(content_type="")
                                     logger_Web_Handler.info('200 Get repo {repo} history file success!'.format(repo=repo['reponame']))
@@ -100,7 +104,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                                             if (int(tpl[0]['version']) < int(har['version'])):
                                                 if (har['content'] == ''):
                                                     har_url = "{0}/{1}".format(url, quote(har['filename']))
-                                                    async with session.get(har_url, verify_ssl=False, timeout=config.request_timeout) as har_res:
+                                                    async with session.get(har_url, verify_ssl=False, timeout=config.request_timeout, proxy=proxy) as har_res:
                                                         if har_res.status == 200:
                                                             har['content'] = base64.b64encode(await har_res.read()).decode()
                                                         else:
@@ -113,7 +117,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                                         else:
                                             if (har['content'] == ''):
                                                 har_url = "{0}/{1}".format(url, quote(har['filename']))
-                                                async with session.get(har_url, verify_ssl=False, timeout=config.request_timeout) as har_res:
+                                                async with session.get(har_url, verify_ssl=False, timeout=config.request_timeout, proxy=proxy) as har_res:
                                                     if har_res.status == 200:
                                                         har['content'] = base64.b64encode(await har_res.read()).decode()
                                                     else:
