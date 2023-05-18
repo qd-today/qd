@@ -434,9 +434,9 @@ class DBconverter():
                 import aiosqlite
                 conn = await aiosqlite.connect(f"{config.sqlite3.path}")
                 conn.text_factory = bytes
-                cursor = await conn.execute('SELECT id, password, userkey FROM user')
+                cursor = await conn.execute('SELECT id, password, userkey, password_md5 FROM user')
                 for row in await cursor.fetchall():
-                    result = await self.db._update(update(User).where(User.id == row[0]).values(password=row[1],userkey=row[2]))
+                    result = await self.db._update(update(User).where(User.id == row[0]).values(password=row[1],userkey=row[2],password_md5=row[3]))
                 await cursor.close()
                     
                 cursor = await conn.execute('SELECT id, init_env, env, session FROM task')
