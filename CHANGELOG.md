@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20230518] - 2023.05.18 更新
+
+### Features
+
+1. 框架更名为 QD
+
+### Changed
+
+1. Update frontend js components
+2. 节假日信息更改为前端脚本判断(Add lunar.js)
+3. Replace querystring[deprecated] with qs
+4. Update Dockerfile
+
+### Fixed
+
+1. Fix running multi DB instances
+2. Fix password_md5 convert error
+3. Fix encodeURIComponent error
+4. Fix 更新公共模板时 Proxies 配置无效 Fix qd-today/qd#412
+
 ## [20230430] - 2023.04.30 更新
 
 ### Features
