@@ -98,7 +98,10 @@ define (require, exports, module) ->
       url.path = url.path.replace('https:///', 'https://')
       query = utils.list2dict($scope.entry.request.queryString)
       query = utils.querystring_unparse_with_variables(query)
-      url.search = "?#{query}" if query
+      if query
+        url.search = "?#{query}"
+      else
+        url.search = ""
       url = utils.url_unparse(url)
 
       if not changing and url != $scope.entry.request.url

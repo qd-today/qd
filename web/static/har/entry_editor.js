@@ -125,6 +125,8 @@
         query = utils.querystring_unparse_with_variables(query);
         if (query) {
           url.search = `?${query}`;
+        } else {
+          url.search = "";
         }
         url = utils.url_unparse(url);
         if (!changing && url !== $scope.entry.request.url) {

@@ -151,7 +151,10 @@ define (require, exports, module) ->
           changed = true
       if changed
         query = utils.querystring_unparse_with_variables(url.query)
-        url.search = "?#{query}" if query
+        if query
+          url.search = "?#{query}"
+        else
+          url.search = ""
       entry.request.url = utils.url_unparse(url)
       entry.request.queryString = utils.dict2list(url.query)
 

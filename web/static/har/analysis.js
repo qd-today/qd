@@ -266,6 +266,8 @@
           query = utils.querystring_unparse_with_variables(url.query);
           if (query) {
             url.search = `?${query}`;
+          } else {
+            url.search = "";
           }
         }
         entry.request.url = utils.url_unparse(url);
