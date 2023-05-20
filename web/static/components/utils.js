@@ -48,6 +48,20 @@
       },
       url_parse: node_url.parse,
       url_unparse: node_url.format,
+      path_unparse_with_variables: function(path) {
+        var _path, key, m, re, replace_list, value;
+        _path = decodeURIComponent(path);
+        replace_list = {};
+        re = /{{\s*([\w]+)[^}]*?\s*}}/g;
+        while (m = re.exec(_path)) {
+          replace_list[fix_encodeURIComponent(m[0])] = m[0];
+        }
+        for (key in replace_list) {
+          value = replace_list[key];
+          path = path.replace(new RegExp(RegExp.escape(key), 'g'), value);
+        }
+        return path;
+      },
       querystring_parse: node_querystring.parse,
       querystring_unparse: node_querystring.stringify,
       querystring_unparse_with_variables: function(obj) {
