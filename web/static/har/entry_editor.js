@@ -134,8 +134,11 @@
       }), true);
       // sync params with text
       $scope.$watch('entry.request.postData.params', (function() {
-        var obj, ref, ref1;
+        var obj, ref, ref1, ref2, ref3;
         if (((ref = $scope.entry) != null ? (ref1 = ref.request) != null ? ref1.postData : void 0 : void 0) == null) {
+          return;
+        }
+        if (!(((ref2 = $scope.entry.request.postData) != null ? (ref3 = ref2.mimeType) != null ? ref3.toLowerCase().indexOf("application/x-www-form-urlencoded") : void 0 : void 0) === 0)) {
           return;
         }
         obj = utils.list2dict($scope.entry.request.postData.params);

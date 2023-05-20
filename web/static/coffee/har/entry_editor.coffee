@@ -108,7 +108,9 @@ define (require, exports, module) ->
 
     # sync params with text
     $scope.$watch('entry.request.postData.params', (() ->
-      if not $scope.entry?.request?.postData?
+      if not $scope.entry?.request?.postData? 
+        return
+      if not ($scope.entry.request.postData?.mimeType?.toLowerCase().indexOf("application/x-www-form-urlencoded") == 0)
         return
       obj = utils.list2dict($scope.entry.request.postData.params)
       $scope.entry.request.postData.text = utils.querystring_unparse_with_variables(obj)
