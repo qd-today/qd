@@ -71,7 +71,7 @@ define (require, exports, module) ->
         return
       if not $scope.entry?
         return
-      if $scope.entry.request.url.substring(0, 2) == "{{" || $scope.entry.request.url.substring(0, 2) == "{%"
+      if $scope.entry.request.url.substring(0, 2) == "{%"
         return
       try
         queryString = utils.dict2list(utils.querystring_parse_with_variables(utils.url_parse($scope.entry.request.url).query))

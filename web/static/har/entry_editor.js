@@ -88,7 +88,7 @@
         if ($scope.entry == null) {
           return;
         }
-        if ($scope.entry.request.url.substring(0, 2) === "{{" || $scope.entry.request.url.substring(0, 2) === "{%") {
+        if ($scope.entry.request.url.substring(0, 2) === "{%") {
           return;
         }
         try {
