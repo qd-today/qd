@@ -19,6 +19,8 @@ from . import ApiBase, ApiError, Argument, BodyArgument, MultiArgument, api_wrap
 #   - 建议使用 `raise ApiError(status_code, reason)` 设置异常代码和原因
 # - 允许 URL 传参（url?key=value）和 POST form 传参，不允许 /delay/value 形式传参（即不允许在 URL 中使用正则），
 # - 参数尽量使用简单类型，参数的初始化函数尽量使用内置函数，使用 safe_eval 代替 eval，避免使用 safe_eval
+# - 普通参数类型默认为 str，multi 参数类型默认为 list[str]，
+#   Body 参数默认为 bytes|str，框架会尝试根据 Content-Type 进行解码，但不保证一定成功，所以建议在 init 中手动检查类型
 # - 所有的 key 都使用 ASCII 字符，而不是中英文混用
 
 

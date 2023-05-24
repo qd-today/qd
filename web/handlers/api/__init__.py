@@ -141,11 +141,15 @@ class BodyArgument(ArgumentBase):
     """从 request.body 初始化，比如 POST JSON 情形
     初始化函数原型为 init(bytes) -> self.type"""
 
-    init: Callable[[bytes], typing.Any] = None  # type: ignore
+    init: Callable[[bytes | str], typing.Any] = None  # type: ignore
     """参数初始化函数，初始化规则如下：
     如果用户未提供且 self.type Callable，则使用 self.type；
     如果用户未提供且 self.type 不是 Callable，则使用 lambda x: x。
-    该初始化函数原型为 init(bytes) -> self.type"""
+    该初始化函数原型为 init(bytes) -> self.type
+    
+    request.body 默认是 bytes 类型，框架会尝试根据 Content-Type 进行解码，
+    但不保证一定能解码成功，所以建议手动判断一下参数类型。
+    """
 
     def __post_init__(self):
         self.default = ""
@@ -153,8 +157,25 @@ class BodyArgument(ArgumentBase):
 
         return super().__post_init__()
 
+    def try_decode(self, api: "ApiBase") -> str | bytes:
+        type = api.request.headers.get("Content-Type", "").lower()
+        if "charset=" not in type:
+            charset = "utf-8"
+        else:
+            start = type.index("charset=") + len("charset=")
+            try:
+                end = type.index(";", start)
+            except ValueError:
+                end = -1
+            charset = type[start:end]
+
+        try:
+            return api.request.body.decode(charset)
+        except UnicodeDecodeError:
+            return api.request.body
+
     def get_value(self, api: "ApiBase"):
-        return self.init(api.request.body)
+        return self.init(self.try_decode(api))
 
 
 class ApiMetaclass(type):
