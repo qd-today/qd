@@ -194,15 +194,9 @@ define (require, exports, module) ->
 
         if exports.variables_in_entry(entry).length > 0
           entry.recommend = true
-        else if domain != utils.get_domain(entry.request.url)
+        else if domain != utils.get_domain(entry.request.url) || entry.response?.status in [304, 0]
           entry.recommend = false
-        else if entry.response?.status in [304, 0]
-          entry.recommend = false
-        else if entry.response?.status // 100 == 3
-          entry.recommend = true
-        else if entry.response?.cookies?.length > 0
-          entry.recommend = true
-        else if entry.request.method == 'POST'
+        else if entry.response?.status // 100 == 3 || entry.response.cookies?.length > 0 || entry.request.method == 'POST'
           entry.recommend = true
         else
           entry.recommend = false

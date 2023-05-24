@@ -318,7 +318,7 @@
         }
       },
       recommend_default: function(har) {
-        var domain, entry, j, len, ref, ref1, ref2, ref3, ref4, ref5;
+        var domain, entry, j, len, ref, ref1, ref2, ref3, ref4;
         domain = null;
         ref = har.log.entries;
         for (j = 0, len = ref.length; j < len; j++) {
@@ -328,15 +328,9 @@
           }
           if (exports.variables_in_entry(entry).length > 0) {
             entry.recommend = true;
-          } else if (domain !== utils.get_domain(entry.request.url)) {
+          } else if (domain !== utils.get_domain(entry.request.url) || ((ref1 = (ref2 = entry.response) != null ? ref2.status : void 0) === 304 || ref1 === 0)) {
             entry.recommend = false;
-          } else if ((ref1 = (ref2 = entry.response) != null ? ref2.status : void 0) === 304 || ref1 === 0) {
-            entry.recommend = false;
-          } else if (Math.floor(((ref3 = entry.response) != null ? ref3.status : void 0) / 100) === 3) {
-            entry.recommend = true;
-          } else if (((ref4 = entry.response) != null ? (ref5 = ref4.cookies) != null ? ref5.length : void 0 : void 0) > 0) {
-            entry.recommend = true;
-          } else if (entry.request.method === 'POST') {
+          } else if (Math.floor(((ref3 = entry.response) != null ? ref3.status : void 0) / 100) === 3 || ((ref4 = entry.response.cookies) != null ? ref4.length : void 0) > 0 || entry.request.method === 'POST') {
             entry.recommend = true;
           } else {
             entry.recommend = false;
