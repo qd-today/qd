@@ -1,6 +1,6 @@
 # 基础镜像
-# 去除了 OCR 相关功能, 其他与 latest 版本保持一致. 
-# 适用于硬盘空间不大于 600M 的 Docker 构建. 
+# 去除了 OCR 相关功能, 其他与 latest 版本保持一致.
+# 适用于硬盘空间不大于 600M 的 Docker 构建.
 FROM a76yyyy/pycurl:lite-latest
 
 # 维护者信息
@@ -51,7 +51,7 @@ RUN sed -i 's/mirrors.ustc.edu.cn/dl-cdn.alpinelinux.org/g' /etc/apk/repositorie
     apk del .build_deps && \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
     rm -rf /var/cache/apk/* && \
-    rm -rf /usr/share/man/* 
+    rm -rf /usr/share/man/*
 
 ENV PORT=80
 EXPOSE $PORT/tcp

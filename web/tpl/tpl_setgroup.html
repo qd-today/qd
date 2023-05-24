@@ -7,7 +7,7 @@
     {% for group in _groups %}
     <div class="checkbox">
       <label>
-        <input type="checkbox" name="{{ group.encode('UTF-8') }}"  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
+        <input type="checkbox" name="{{ group.encode('UTF-8') }}"  {% if group == groupNow %}  checked="" {% endif %}> {{ group }}
       </label>
     </div>
     {% endfor %}
@@ -33,12 +33,12 @@
                 var fanxiBox = $("#oneCheck input:checkbox");
                 fanxiBox.click(function () {
                    if(this.checked || this.checked=='checked'){
-    
+
                        fanxiBox.removeAttr("checked");
                        $(this).prop("checked", true);
                      }
                 });
-             });   
+             });
     </script>
 
   {{ utils.task_new_scripts() }}

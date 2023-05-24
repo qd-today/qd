@@ -41,7 +41,7 @@
         })
         .done(function(data) {
          $('#run-result').html(data).show()
-        
+
         })
         .fail(function(jxhr) {
           $('#run-result').html('<h1 class="alert alert-danger text-center">设置失败</h1><div class="well"></div>').show().find('div').text(jxhr.responseText);

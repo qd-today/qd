@@ -63,11 +63,11 @@
       </thead>
       {% for group in taskgroups | sort(reverse=True) %}
       <tbody name="{{group}} tbody">
-           
+
         <tr>
           <th colspan="6" title="{{group}} taskgroup"  style="background-color:rgb(215,237,251);text-align: center;">
             <input type="checkbox"  title="全选/反选" name="{{group}} checkbox" style="float:left" onclick="allTaskgroupChecked(this)">
-            <text>{{group}} 分组</text> 
+            <text>{{group}} 分组</text>
             <button style="float:right;padding: 1px 6px;"  title="隐藏/显示" name="{{group}} taskgroup" onclick="taskGroup.toggle(this)" class="dropup">
               <span class="caret"></span>
             </button>
@@ -90,14 +90,14 @@
               {% else %} {{ task.note }} {% endif %}
               </code>
               {% endif %}
-              
+
           </td>
           <td style="text-align:center;color: #cacaca;"><a style="color:#518cb9;" data-method="Get" href="/task/{{ task.id }}/log/del/Success" data-confirm="是否要删除任务执行成功日志?" title="成功计次">{{ task.success_count }}</a> / <a style="color:#c15454;" data-method="Get" href="/task/{{ task.id }}/log/del/Fail" data-confirm="是否要删除任务执行失败日志?" title="失败计次">{{ task.failed_count }}</a></td>
           <td><span data-toggle="popover" data-content="{{ format_date(task.last_success) if task.last_success else '从未' }}">{{ format_date(task.last_success) if task.last_success else '从未' }}</span></td>
 
           <td style="text-align:center">{{ my_status(task) }}</td>
           <!-- <td>{{ task.msg }}</td> -->
-      
+
           <td><span data-toggle="popover" data-content="{{ format_date(task.next) if task.next else '从未' }}">{{ format_date(task.next) if task.next else '从未' }}</span></td>
 
           <td style="text-align:center">
@@ -114,14 +114,14 @@
               <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/task/{{ task.id }}/group" title="将任务分组">分组</button>
             </div>
           </td>
-          
+
         </tr>
         {% endif %}
         {% endfor %}
-      
-      </tbody>   
+
+      </tbody>
       {% endfor %}
-      
+
     </table>
     <div class="text-right">
       <a href="/tpls/public" class="btn btn-default">所有公开模板</a>
@@ -166,13 +166,13 @@
             </a>
             {% endif %}
             {{ utils.tplname(tpl) }}
-    
+
             {% if tpl.fork %}<span>[fork]</span>{% endif %}-<kbd>{{ tpl.siteurl }}</kbd>
           </td>
 
-          <td><span data-toggle="popover" data-content="{{ format_date(tpl.ctime)}}">{{ format_date(tpl.ctime) }}</span></td>         
+          <td><span data-toggle="popover" data-content="{{ format_date(tpl.ctime)}}">{{ format_date(tpl.ctime) }}</span></td>
           <td><span data-toggle="popover" data-content="{{ format_date(tpl.mtime)}}">{{ format_date(tpl.mtime) }}</span></td>
-      
+
           <td>
             {% if tpl.last_success %}
             <span class="last_success" data-toggle="popover" data-content="{{ format_date(tpl.last_success)}} ">{{ format_date(tpl.last_success) }}</span>
@@ -194,12 +194,12 @@
               <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/tpl/{{ tpl.id }}/group" title="将模板分组">分组</button>
             </div>
           </td>
-        
+
         {% endif %}
         {% endfor %}
       </tbody>
       {% endfor %}
-      
+
     </table>
     <div class="text-right">
       <a href="/pushs" class="btn btn-default">我的发布请求</a>
@@ -218,7 +218,7 @@
 <script>
   function checkboxOnclick(checkbox){
     var tasknodes = document.getElementsByClassName(checkbox.name);
-    for (i = 0; i < tasknodes.length; i++) { 
+    for (i = 0; i < tasknodes.length; i++) {
       if (checkbox.checked == true){
         $(tasknodes[i]).hide();
       }else{
@@ -232,13 +232,13 @@
 <script>
   /**
    * 全选/反选
-   * 
+   *
    **/
   function allTaskgroupChecked(checkbox){
     var tmp = checkbox.name
     var tasknodes = document.querySelectorAll('input[class="'+tmp+'"]');
     if (tasknodes.length > 0){
-        for (i = 0; i < tasknodes.length; i++) { 
+        for (i = 0; i < tasknodes.length; i++) {
           if(checkbox.checked){
             tasknodes[i].checked = true
           }
@@ -247,7 +247,7 @@
           }
           taskNode.toggle(tasknodes[i], true)
         }
-    } 
+    }
   }
 
 </script>
@@ -312,7 +312,7 @@
   /**
    *  修改全选按钮样式
    *  在taskNode.init()之前加载
-   * 
+   *
    **/
    function setTaskGroupChecked(className){
     let _eles = document.getElementsByName(className)
@@ -354,7 +354,7 @@
 <script>
   /**
    * 创建一个用于控制group隐藏显示的对象
-   * 
+   *
    * storage_HiddenGroupsName: 存储在localStorage中的隐藏Groups变量的名
    **/
   function createGroupObj(storage_HiddenGroupsName) {
@@ -408,7 +408,7 @@
         // bool: true时显示，false时隐藏
         let tasknodes = document.getElementsByClassName(groupName);
         if (tasknodes.length > 0){
-          for (i = 0; i < tasknodes.length; i++) { 
+          for (i = 0; i < tasknodes.length; i++) {
             $(tasknodes[i]).toggle(bool);
           }
         }
@@ -426,7 +426,7 @@
             _hiddenButton.className = _hiddenButton.className.replaceAll('dropup','')
           }
         }
-  
+
       }
     }
   }

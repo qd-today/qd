@@ -31,7 +31,7 @@ class HAREditor(BaseHandler):
         reponame = self.get_argument("reponame", tplurl[1])
 
         if (reponame != '') and (harname != ''):
-            tpl = await self.db.pubtpl.list(filename = harname, 
+            tpl = await self.db.pubtpl.list(filename = harname,
                                       reponame = reponame,
                                       fields=('id', 'name', 'content', 'comments'))
             if (len(tpl) > 0):
@@ -49,7 +49,7 @@ class HAREditor(BaseHandler):
     async def post(self, id):
         user = self.current_user
         taskid = self.get_query_argument('taskid', '')
-        
+
         async with self.db.transaction() as sql_session:
             tpl = self.check_permission(
                     await self.db.tpl.get(id, fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note', 'interval', 'har', 'variables', 'lock', 'init_env'), sql_session=sql_session))

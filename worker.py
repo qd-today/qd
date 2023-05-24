@@ -29,7 +29,7 @@ class BaseWorker(object):
         self.running = False
         self.db = db
         self.fetcher = Fetcher()
-    
+
     async def ClearLog(self, taskid, sql_session=None):
         logDay = int((await self.db.site.get(1, fields=('logDay',), sql_session=sql_session))['logDay'])
         for log in await self.db.tasklog.list(taskid = taskid, fields=('id', 'ctime'), sql_session=sql_session):
@@ -69,7 +69,7 @@ class BaseWorker(object):
                                     else:
                                         tmplist.append("\\r\\n-----任务{0}-{1}-----\\r\\n记录期间未执行定时任务，请检查任务! \\r\\n".format(len(tmplist)+1, task['note']))
                                     tmpdict[task['tplid']] = tmplist
-                                    
+
                             for tmpkey in tmpdict:
                                 tmp = "\\r\\n\\r\\n=====QD: {0}=====".format((await self.db.tpl.get(tmpkey, fields=('sitename',), sql_session=sql_session))['sitename'])
                                 tmp += ''.join(tmpdict[tmpkey])
@@ -151,7 +151,7 @@ class BaseWorker(object):
             logtime = json.loads(user['logtime'])
             pushsw = json.loads(task['pushsw'])
 
-            if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0 
+            if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0
 
             if task['disabled']:
                 await self.db.tasklog.add(task['id'], False, msg='task disabled.', sql_session=sql_session)
@@ -238,7 +238,7 @@ class BaseWorker(object):
                 if config.traceback_print:
                     traceback.print_exc()
                 next_time_delta = self.failed_count_to_time(task['last_failed_count'], task['retry_count'], task['retry_interval'], tpl['interval'])
-                            
+
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 title = u"QD定时任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
                 content = u"{0} \\r\\n日志：{1}".format(t, str(e))
@@ -279,7 +279,7 @@ class QueueWorker(BaseWorker):
         super().__init__(db)
 
     async def __call__(self):
-        
+
         asyncio.create_task(self.producer())
         for i in range(config.queue_num):
             asyncio.create_task(self.runner(i))
@@ -344,7 +344,7 @@ class BatchWorker(BaseWorker):
     def __init__(self, db:DB):
         logger_Worker.info('Batch Worker start...')
         super().__init__(db)
-        
+
     def __call__(self):
         # self.running = tornado.ioloop.IOLoop.current().spawn_callback(self.run)
         # if self.running:
@@ -361,7 +361,7 @@ class BatchWorker(BaseWorker):
                 logger_Worker.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
             return
         self.running.add_done_callback(done)
-        
+
     async def run(self):
         running = []
         success = 0

@@ -10,9 +10,9 @@ import sqlite3
 
 class DBnew():
     def __init__(self, path):
-        self.path = path        
-                
-    def new(self, userid, maindb):        
+        self.path = path
+
+    def new(self, userid, maindb):
         try:
             conn = sqlite3.connect(self.path)
             c = conn.cursor()
@@ -129,7 +129,7 @@ class DBnew():
                 );
                 ''' )
 
-            # 获取数据库信息            
+            # 获取数据库信息
             userid = int(userid)
             user = maindb.db.user.get(id=userid, fields=('id', 'email', 'email_verified', 'password', 'password_md5', 'userkey', 'nickname', 'role', 'ctime', 'mtime', 'atime', 'cip',
                                       'mip', 'aip', 'skey', 'barkurl', 'wxpusher', 'noticeflg', 'logtime', 'status', 'notepad', 'diypusher', 'qywx_token', 'tg_token', 'dingding_token', 'qywx_webhook', 'push_batch'))
@@ -140,7 +140,7 @@ class DBnew():
                     tpls.append(tpl)
             tasks = []
             tasklogs = []
-            for task in maindb.db.task.list(userid, fields=('id', 'tplid', 'userid', 'note', 'disabled', 'init_env', 'env', 'session', 'retry_count', 'retry_interval', 'last_success', 'success_count', 
+            for task in maindb.db.task.list(userid, fields=('id', 'tplid', 'userid', 'note', 'disabled', 'init_env', 'env', 'session', 'retry_count', 'retry_interval', 'last_success', 'success_count',
                                                         'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'mtime', 'ontimeflg', 'ontime',  '_groups', 'pushsw', 'newontime'), limit=None):
                 if task['userid'] == userid:
                     tasks.append(task)
@@ -150,7 +150,7 @@ class DBnew():
             c.close()
             conn.close()
 
-             
+
         except Exception as e:
             raise Exception("backup database error")
         print("OK")

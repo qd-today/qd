@@ -28,7 +28,7 @@
         <h1 class="text-center" title="点击跳转至首页">模板编辑</h1>
       </a>
 {% raw %}
-      
+
       <!--checked switch-->
       <div class="list-group">
         <a ng-class="{active: !filter.checked && !filter.recommend}" class="list-group-item" href="javascript:void(0);" ng-click='filter.recommend=undefined;filter.checked=undefined'>
@@ -262,7 +262,7 @@
         </div>
       </div>
       <!-- /.save modal -->
-      
+
     </div>
 {% endraw %}
 {% include "har/entry_editor.html" %}
@@ -283,7 +283,7 @@
           <div class="alert alert-info" role="alert" ng-if="local_har">
             您有一个正在编辑的 HAR 文件（{{ local_har }}），是否打开？
             <a href="javascript:void(0);" ng-click="load_local_har()">[ 打开 ]</a> /
-            <a href="javascript:void(0);" ng-click="delete_local()">[ 删除 ]</a> 
+            <a href="javascript:void(0);" ng-click="delete_local()">[ 删除 ]</a>
           </div>
           <div class="form-horizontal" role="form">
             <div class="form-group">
@@ -394,7 +394,7 @@
       window.global_har.har.log.entries.splice(EndIndex, 0, tmp);
       window.global_har.har.log.entries.splice(startIndex+1, 1);
     }
-    
+
 
     resortEntryList();
     sortRequest($('#sortBtn')[0]);

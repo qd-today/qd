@@ -165,9 +165,9 @@ Nothing right now.
 > 源码部署更新方式如下, 如**更新后发生错误请重新拉取容器!**
 
  ``` bash
-   # 先cd到源码所在目录, 执行命令后重启进程 
+   # 先cd到源码所在目录, 执行命令后重启进程
    wget https://fastly.jsdelivr.net/gh/qd-today/qd@master/update.sh -O ./update.sh && \
-   sh ./update.sh 
+   sh ./update.sh
    ```
 
 ## [20220208] - 2022.02.08 更新
@@ -327,20 +327,20 @@ Nothing right now.
 
    ```python
    # 以下为全局代理域名列表相关设置
-   # proxies为全局代理域名列表, 默认为空[], 表示不启用全局代理; 
-   # 代理格式应为'scheme://username:password@host:port',例如:proxies = ['http://admin:admin@127.0.0.1:8923','https://proxy.com:8888']; 
-   # 任务级代理请在新建或修改任务时添加,任务级代理优先级大于全局代理; 
-   proxies = os.getenv('PROXIES', '').split('|')               # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct 
-   proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '')      # 默认为空, 可选输入:'url'为网址匹配模式;'regexp'为正则表达式匹配模式;''空则不启用全局代理黑名单 
-   # proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'url')进入网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求, 以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port 
-   # 例如: proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost'); 
-   # proxy_direct_mode= os.getenv('PROXY_DIRECT_MODE', 'regexp')进入正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求; 
+   # proxies为全局代理域名列表, 默认为空[], 表示不启用全局代理;
+   # 代理格式应为'scheme://username:password@host:port',例如:proxies = ['http://admin:admin@127.0.0.1:8923','https://proxy.com:8888'];
+   # 任务级代理请在新建或修改任务时添加,任务级代理优先级大于全局代理;
+   proxies = os.getenv('PROXIES', '').split('|')               # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct
+   proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '')      # 默认为空, 可选输入:'url'为网址匹配模式;'regexp'为正则表达式匹配模式;''空则不启用全局代理黑名单
+   # proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'url')进入网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求, 以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port
+   # 例如: proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost');
+   # proxy_direct_mode= os.getenv('PROXY_DIRECT_MODE', 'regexp')进入正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求;
    # 启用regexp模式后自动采用以下默认匹配正则表达式, 如无特别需求请勿修改
    proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
                   ([a-z][a-z0-9+\-.]*://)?                                                        # Scheme
                   (0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])                                # Domain/Hostname/IPv4/IPv6
                   (:[0-9]+)? """                                                                  # :Port
-                  ) 
+                  )
    ```
 
 ## [20210908] - 2021.09.08 更新
@@ -393,7 +393,7 @@ Nothing right now.
 
    ```bash
    # 如需使用Proxy功能请安装PyCurl
-   # Windows源码运行, 请执行 pip install pycurl==7.43.0.5 
+   # Windows源码运行, 请执行 pip install pycurl==7.43.0.5
    pip install pycurl # pip3 install pycurl
    # 如因curl导致500或599错误, 请卸载PyCurl或修改环境变量USE_PYCURL为False
    # pip uninstall pycurl

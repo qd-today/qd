@@ -9,7 +9,7 @@
     {% endif %}
   </div>
 
-  {% if adminflg %}      
+  {% if adminflg %}
   <div id="userlist">
     <table id="user_table" class="table table-hover tablesorter">
       <thead>
@@ -27,7 +27,7 @@
         <tr>
           <td>
             <label>
-              <input type="checkbox"  name="{{user.id}}" class="userlist-chkbox"> 
+              <input type="checkbox"  name="{{user.id}}" class="userlist-chkbox">
             </label>
           </td>
           <td>{{ user.email }}{% if user.role == 'admin' %}<br>[管理员]{% endif %}</td>
@@ -90,7 +90,7 @@
         env["adminpwd"] = md5($('#adminpwd')[0].value);
         env["adminmail"] = $('#adminmail')[0].value;
         env[this.name] = ''
-        
+
         var $this = $(this);
         $this.button('loading');
         $.ajax("/user/{{ userid }}/manage", {
@@ -107,7 +107,7 @@
         .always(function() {
           $this.button('reset');
         });
-  
+
         return false;
       });
     })
@@ -149,7 +149,7 @@
         headerTemplate: '{content} {icon}', // needed to add icon for jui theme
         widgets: ['uitheme']
       });
-      
+
     })
   </script>
 

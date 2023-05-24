@@ -1,5 +1,5 @@
 # 基础镜像
-# 集成 curl-impersonate 解决 ja3 指纹被识别为 curl 的问题 
+# 集成 curl-impersonate 解决 ja3 指纹被识别为 curl 的问题
 # https://github.com/qd-today/qd/issues/289
 # 不支持 http3 和 Quic 连接, 如需相关功能请使用 latest 版本
 FROM a76yyyy/pycurl:ja3-latest

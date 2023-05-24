@@ -49,7 +49,7 @@ class SiteManagerHandler(BaseHandler):
                             await self.db.site.mod(1, regEn=1, sql_session=sql_session)
                             if (await self.db.site.get(1, fields=('regEn',), sql_session=sql_session))['regEn'] != 1:
                                 raise Exception(u"开启注册失败")
-                        
+
                         if ("site.MustVerifyEmailEn" in envs):
                             if (user['email_verified'] != 0):
                                 await self.db.site.mod(1, MustVerifyEmailEn=1, sql_session=sql_session)
@@ -62,7 +62,7 @@ class SiteManagerHandler(BaseHandler):
                             await self.db.site.mod(1, MustVerifyEmailEn=0, sql_session=sql_session)
                             if (await self.db.site.get(1, fields=('MustVerifyEmailEn',), sql_session=sql_session))['MustVerifyEmailEn'] != 0:
                                 raise Exception(u"关闭 强制邮箱验证 失败")
-                            
+
                         if ("site.logDay" in envs):
                             tmp = int(envs["site.logDay"][0])
                             if tmp != (await self.db.site.get(1, fields=('logDay',), sql_session=sql_session))['logDay']:
@@ -81,7 +81,7 @@ class SiteManagerHandler(BaseHandler):
             await self.render('tpl_run_failed.html', log=str(e))
             logger_Web_Handler.error('UserID: %s modify Manage_Board failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
-            
+
         self.redirect('/my/')
         return
 
@@ -106,7 +106,7 @@ class SiteManagerHandler(BaseHandler):
         """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True))
 
         return
-     
+
 handlers = [
         ('/site/(\d+)/manage', SiteManagerHandler),
         ]

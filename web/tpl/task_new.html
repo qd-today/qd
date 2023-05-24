@@ -97,7 +97,7 @@
   </div>
 
   {% endif %}
-  
+
   {% if not task and current_user %}
   <div class="checkbox">
     <label>
@@ -109,7 +109,7 @@
     {% for group in _groups %}
     <div class="checkbox">
       <label>
-        <input type="checkbox" name="group-select-{{ group.encode('utf-8') }}"  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
+        <input type="checkbox" name="group-select-{{ group.encode('utf-8') }}"  {% if group == groupNow %}  checked="" {% endif %}> {{ group }}
       </label>
     </div>
     {% endfor %}
@@ -183,7 +183,7 @@
                       $(this).prop("checked", true);
                     }
                 });
-            });   
+            });
   </script>
 
   {{ utils.task_new_scripts() }}

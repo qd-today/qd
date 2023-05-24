@@ -93,7 +93,7 @@ class Fetcher(object):
         url = request['url']
         if str(url).startswith('api://'):
             url = str(url).replace('api:/', local_host, 1)
-        
+
         headers = dict((e['name'], e['value']) for e in request['headers'])
         cookies = dict((e['name'], e['value']) for e in request['cookies'])
         data = request.get('data')
@@ -291,7 +291,7 @@ class Fetcher(object):
                         content[0] = utils.decode(response.body)
                 if ('content-type' in response.headers):
                     if 'image' in response.headers.get('content-type'):
-                        return base64.b64encode(response.body).decode('utf8') 
+                        return base64.b64encode(response.body).decode('utf8')
                 return content[0]
             elif _from == 'status':
                 return '%s' % response.code
@@ -313,7 +313,7 @@ class Fetcher(object):
                     logger_Fetcher.error('Run rule failed: %s', str(e))
             else:
                 return ''
-            
+
         session=env['session']
         if isinstance(session, cookie_utils.CookieSession):
             _cookies = session
@@ -329,7 +329,7 @@ class Fetcher(object):
             except Exception as e:
                 log_error = 'The error occurred when rendering template {}: {} \\r\\n {}'.format(key,obj[key],repr(e))
                 raise httpclient.HTTPError(500,log_error)
-        
+
 
         for r in rule.get('success_asserts') or '':
             _render(r, 're')
@@ -341,7 +341,7 @@ class Fetcher(object):
         else:
             if rule.get('success_asserts'):
                 success = False
-                
+
 
         for r in rule.get('failed_asserts') or '':
             _render(r, 're')
@@ -510,8 +510,8 @@ class Fetcher(object):
         """
         obj = {
           request: {
-            method: 
-            url: 
+            method:
+            url:
             headers: [{name: , value: }, ]
             cookies: [{name: , value: }, ]
             data:

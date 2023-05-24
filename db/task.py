@@ -86,7 +86,7 @@ class Task(BaseDB,AlchemyMixin):
             _fields = (getattr(Task, field) for field in fields)
 
         smtm = select(_fields).where(Task.id == id)
-        
+
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
             return self.to_dict(result,fields)
@@ -101,13 +101,13 @@ class Task(BaseDB,AlchemyMixin):
         smtm = select(_fields)
         if userid is not None:
             smtm = smtm.where(Task.userid == userid)
-        
+
         if scan and scan_time is not None:
             smtm = smtm.where(Task.next <= scan_time)
-        
+
         for key, value in kwargs.items():
             smtm = smtm.where(getattr(Task, key) == value)
-            
+
         if limit:
             smtm = smtm.limit(limit)
 
@@ -115,7 +115,7 @@ class Task(BaseDB,AlchemyMixin):
         if to_dict and result is not None:
             return [self.to_dict(row,fields) for row in result]
         return result
-    
+
     def delete(self, id, sql_session=None):
         return self._delete(delete(Task).where(Task.id == id), sql_session=sql_session)
 

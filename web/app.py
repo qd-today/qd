@@ -30,7 +30,7 @@ class Application(tornado.web.Application):
                 cookie_secret = config.cookie_secret,
                 login_url = '/login',
                 )
-        
+
         super(Application, self).__init__(handlers, **settings)
 
         self.jinja_env = jinja2.Environment(

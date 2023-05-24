@@ -39,9 +39,9 @@
       } else {
         $('#run-result').html("<h1 class=\"alert alert-danger text-center\">设置失败</h1><div><pre>密码不一致</pre></div>").show();
         return
-      } 
+      }
 
-      $.ajax("/user/{{ userid }}/setnewpwd", 
+      $.ajax("/user/{{ userid }}/setnewpwd",
              {type: 'POST',
               data: data,})
         .done(function(data) {

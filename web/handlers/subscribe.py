@@ -93,10 +93,10 @@ class SubscribeUpdatingHandler(BaseHandler):
                                     for har in hfile['har'].values():
                                         for k, v in repo.items():
                                             har[k] = v
-                                        tpl = await self.db.pubtpl.list(name = har['name'], 
+                                        tpl = await self.db.pubtpl.list(name = har['name'],
                                                                 reponame=har['reponame'],
-                                                                repourl=har['repourl'], 
-                                                                repobranch=har['repobranch'], 
+                                                                repourl=har['repourl'],
+                                                                repobranch=har['repobranch'],
                                                                 fields=('id', 'name', 'version'),
                                                                 sql_session=sql_session)
 
@@ -126,18 +126,18 @@ class SubscribeUpdatingHandler(BaseHandler):
                                                         continue
                                             await self.db.pubtpl.add(har, sql_session=sql_session)
                                             logger_Web_Handler.info('Add {repo} public template {name} success!'.format(repo=repo['reponame'], name=har['name']))
-                                        
+
                                 else:
                                     logger_Web_Handler.error('Get repo {repo} history file failed! Reason: {link} open error!'.format(repo=repo['reponame'], link=hfile_link))
                                     msg += '打开链接错误{link}\r\n'.format(link=hfile_link)
-                
+
             if msg:
                 raise Exception(msg)
             success = True
         except Exception as e:
             if config.traceback_print:
                 traceback.print_exc()
-                
+
             msg = str(e).replace('\\r\\n','\r\n')
             if msg.endswith('\r\n'):
                 msg = msg[:-2]
@@ -148,7 +148,7 @@ class SubscribeUpdatingHandler(BaseHandler):
                 repos = json.loads((await self.db.site.get(1, fields=('repos',), sql_session=sql_session))['repos'])
                 repos["lastupdate"] = int(time.time())
                 await self.db.site.mod(1, repos=json.dumps(repos, ensure_ascii=False, indent=4), sql_session=sql_session)
-            
+
             if success:
                 self.write(json.dumps({'code': 0, 'msg': '更新成功, 请刷新页面查看'}))
             else:
@@ -166,7 +166,7 @@ class SubscribeRefreshHandler(BaseHandler):
             op = self.get_argument('op', '')
             if (op == ''):
                 raise Exception('op参数为空')
-            
+
             async with self.db.transaction() as sql_session:
                 if (user['id'] == int(userid)) and (user['role'] == u'admin'):
                     repos = json.loads((await self.db.site.get(1, fields=('repos',), sql_session=sql_session))['repos'])
@@ -184,7 +184,7 @@ class SubscribeRefreshHandler(BaseHandler):
             logger_Web_Handler.error('UserID: %s refresh Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
 
-        self.redirect('/subscribe/{0}/'.format(userid) ) 
+        self.redirect('/subscribe/{0}/'.format(userid) )
         return
 
 class Subscrib_signup_repos_Handler(BaseHandler):
@@ -290,7 +290,7 @@ class unsubscribe_repos_Handler(BaseHandler):
             await self.render('utils_run_result.html', log=str(e), title=u'打开失败', flg='danger')
             logger_Web_Handler.error('UserID: %s browse UnSubscribe_Repos failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
-    
+
     @tornado.web.authenticated
     async def post(self, userid):
         try:

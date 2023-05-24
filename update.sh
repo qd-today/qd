@@ -2,7 +2,7 @@
 #
 # FILE: update.sh
 #
-# DESCRIPTION: Update QD for Python3 
+# DESCRIPTION: Update QD for Python3
 #
 # NOTES: This requires GNU getopt.
 #        I do not issue any guarantee that this will work for you!
@@ -71,15 +71,15 @@ update_out_alpine() {
     echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
     echo "pip3 install ddddocr" && \
     echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
-    echo "pip3 install pycurl" 
+    echo "pip3 install pycurl"
 }
 
 update_in_alpine() {
     # 当前版本号低于 20211228 时, 使用国内源并提示 DDDDOCR API 不可用
     if [ "$(echo "${localversion}" | awk '$1>20211228 {print 0} $1<=20211228 {print 1}')" == 1 ];then
-        echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories 
-        echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories 
-        apk del .python-rundeps  
+        echo "https://mirrors.ustc.edu.cn/alpine/edge/main" > /etc/apk/repositories
+        echo "https://mirrors.ustc.edu.cn/alpine/edge/community" >> /etc/apk/repositories
+        apk del .python-rundeps
         echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
     fi
     # 安装Python3及框架依赖
@@ -90,9 +90,9 @@ update_in_alpine() {
         echo "Info: QD-Lite will not install ddddocr related components. "
     else
         if [ "$(getconf LONG_BIT)" = "32" ];then
-            echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. " 
+            echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. "
         else
-            apk add --no-cache py3-opencv py3-pillow 
+            apk add --no-cache py3-opencv py3-pillow
         fi
     fi && \
     # 安装编译依赖
@@ -101,21 +101,21 @@ update_in_alpine() {
     # 判断是否存在python3
     if [ -x "/usr/bin/python3" ];then
         # 创建软链接
-        ln -sf /usr/bin/python3 /usr/bin/python 
+        ln -sf /usr/bin/python3 /usr/bin/python
         ln -sf /usr/bin/python3 /usr/local/bin/python
         # pypi 换源
         sed -i 's/pypi.org/mirrors.cloud.tencent.com\/pypi/g' requirements.txt
         sed -i 's/pypi.tuna.tsinghua.edu.cn/mirrors.cloud.tencent.com\/pypi/g' requirements.txt
         # 删除Alpine已有的依赖包
-        sed -i '/ddddocr/d' requirements.txt 
-        sed -i '/packaging/d' requirements.txt 
-        sed -i '/wrapt/d' requirements.txt 
-        sed -i '/pycryptodome/d' requirements.txt 
-        sed -i '/tornado/d' requirements.txt 
-        sed -i '/MarkupSafe/d' requirements.txt 
-        sed -i '/pillow/d' requirements.txt 
-        sed -i '/opencv/d' requirements.txt 
-        sed -i '/numpy/d' requirements.txt 
+        sed -i '/ddddocr/d' requirements.txt
+        sed -i '/packaging/d' requirements.txt
+        sed -i '/wrapt/d' requirements.txt
+        sed -i '/pycryptodome/d' requirements.txt
+        sed -i '/tornado/d' requirements.txt
+        sed -i '/MarkupSafe/d' requirements.txt
+        sed -i '/pillow/d' requirements.txt
+        sed -i '/opencv/d' requirements.txt
+        sed -i '/numpy/d' requirements.txt
         sed -i '/greenlet/d' requirements.txt
         sed -i '/urllib3/d' requirements.txt
         sed -i '/cryptography/d' requirements.txt
@@ -131,8 +131,8 @@ update_in_alpine() {
     fi && \
     pip install --no-cache-dir -r requirements.txt && \
     pip install --no-cache-dir --compile --upgrade pycurl && \
-    apk del .build_deps 
-    rm -rf /var/cache/apk/* 
+    apk del .build_deps
+    rm -rf /var/cache/apk/*
     rm -rf /usr/share/man/*
 }
 
@@ -144,8 +144,8 @@ echo_auto_reload() {
 
 update_version() {
     wget https://gitee.com/a76yyyy/qiandao/raw/"${remoteversion}"/requirements.txt -O /usr/src/app/requirements.txt && \
-    if grep -q -E "Alpine|alpine" /etc/issue 
-    then 
+    if grep -q -E "Alpine|alpine" /etc/issue
+    then
         update_in_alpine
     else
         update_out_alpine

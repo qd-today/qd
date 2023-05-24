@@ -131,7 +131,7 @@ class User(BaseDB,AlchemyMixin):
 
         if 'password' in kwargs:
             kwargs['password'] = await self.encrypt(id, crypto.password_hash(kwargs['password']), sql_session=sql_session)
-            
+
         if 'token' in kwargs:
             kwargs['token'] = await self.encrypt(id, crypto.password_hash(kwargs['token']), sql_session=sql_session)
 
@@ -183,7 +183,7 @@ class User(BaseDB,AlchemyMixin):
             smtm = select(_fields).where(User.email == email)
         else:
             raise self.UserDBException('get user need id or email')
-        
+
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
             return self.to_dict(result,fields)
@@ -194,12 +194,12 @@ class User(BaseDB,AlchemyMixin):
             _fields = User
         else:
             _fields = (getattr(User, field) for field in fields)
-        
+
         smtm = select(_fields)
-        
+
         for key, value in kwargs.items():
             smtm = smtm.where(getattr(User, key) == value)
-            
+
         if limit:
             smtm = smtm.limit(limit)
 
@@ -227,16 +227,16 @@ if __name__ == '__main__':
         user2 = await user.get(email='admin2@localhost',fields=('id',))
         print('user1: ', user1)
         print('user2: ', user2)
-        
+
         user1_list = await user.list(email='admin1@localhost')
         user2_list = await user.list(email='admin2@localhost',fields=('id','email','password'))
         print('user1_list: ', user1_list)
         print('user2_list: ', user2_list)
-        
+
         await user.mod(user1['id'], password='admin1')
         user1 = await user.get(email='admin1@localhost')
         print('user1 after mod : ', user1)
-        
+
         await user.delete(user1['id'])
         await user.delete(user2['id'])
         return
