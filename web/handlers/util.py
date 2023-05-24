@@ -712,29 +712,30 @@ class toolbox_notepad_list_Handler(BaseHandler):
 class DdddOCRServer(object):
 
     def __init__(self):
-        self.oldocr = ddddocr.DdddOcr(old=True, show_ad=False)
-        self.ocr = ddddocr.DdddOcr(show_ad=False)
-        self.det = ddddocr.DdddOcr(det=True, show_ad=False)
-        self.slide = ddddocr.DdddOcr(det=False, ocr=False, show_ad=False)
-        self.extra = {}
-        if len(config.extra_onnx_name) == len(
-                config.extra_charsets_name
-        ) and config.extra_onnx_name[0] and config.extra_charsets_name[0]:
-            for i in range(len(config.extra_onnx_name)):
-                self.extra[config.extra_onnx_name[i]] = ddddocr.DdddOcr(
-                    show_ad=False,
-                    import_onnx_path=os.path.join(
-                        os.path.abspath(
-                            os.path.dirname(
-                                os.path.dirname(os.path.dirname(__file__)))),
-                        "config", f"{config.extra_onnx_name[i]}.onnx"),
-                    charsets_path=os.path.join(
-                        os.path.abspath(
-                            os.path.dirname(
-                                os.path.dirname(os.path.dirname(__file__)))),
-                        "config", f"{config.extra_charsets_name[i]}.json"))
-                logger_Web_Util.info(
-                    f"成功加载自定义Onnx模型: {config.extra_onnx_name[i]}.onnx")
+        if ddddocr is not None and ddddocr.hasattr("DdddOcr"):
+            self.oldocr = ddddocr.DdddOcr(old=True, show_ad=False)
+            self.ocr = ddddocr.DdddOcr(show_ad=False)
+            self.det = ddddocr.DdddOcr(det=True, show_ad=False)
+            self.slide = ddddocr.DdddOcr(det=False, ocr=False, show_ad=False)
+            self.extra = {}
+            if len(config.extra_onnx_name) == len(
+                    config.extra_charsets_name
+            ) and config.extra_onnx_name[0] and config.extra_charsets_name[0]:
+                for i in range(len(config.extra_onnx_name)):
+                    self.extra[config.extra_onnx_name[i]] = ddddocr.DdddOcr(
+                        show_ad=False,
+                        import_onnx_path=os.path.join(
+                            os.path.abspath(
+                                os.path.dirname(
+                                    os.path.dirname(os.path.dirname(__file__)))),
+                            "config", f"{config.extra_onnx_name[i]}.onnx"),
+                        charsets_path=os.path.join(
+                            os.path.abspath(
+                                os.path.dirname(
+                                    os.path.dirname(os.path.dirname(__file__)))),
+                            "config", f"{config.extra_charsets_name[i]}.json"))
+                    logger_Web_Util.info(
+                        f"成功加载自定义Onnx模型: {config.extra_onnx_name[i]}.onnx")
 
     def classification(self, img: bytes, old=False, extra_onnx_name=""):
         if extra_onnx_name:

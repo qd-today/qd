@@ -51,6 +51,7 @@ define (require, exports, module) ->
         .html('再次点击前往安装GetCookie插件')
       return
   )
+  # deepcode ignore InsufficientPostmessageValidation: the event.origin is checked
   window.addEventListener("message", (ev) ->
     if event.origin != window.location.origin
       return

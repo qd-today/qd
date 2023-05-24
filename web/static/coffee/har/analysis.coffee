@@ -44,7 +44,9 @@ define (require, exports, module) ->
         when mt.indexOf('javascript') != -1 then 'javascript'
         when mt in ['text/html', ] then 'document'
         when mt in ['text/css', 'application/x-pointplus', ] then 'style'
+        # deepcode ignore DuplicateCaseBody: order is important
         when mt.indexOf('application') == 0 then 'media'
+        # deepcode ignore DuplicateCaseBody: order is important
         else 'other'
     return har
 

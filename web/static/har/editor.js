@@ -53,6 +53,7 @@
         }
       }
     });
+    // deepcode ignore InsufficientPostmessageValidation: the event.origin is checked
     window.addEventListener("message", function(ev) {
       var cookie, cookie_str, key, value;
       if (event.origin !== window.location.origin) {

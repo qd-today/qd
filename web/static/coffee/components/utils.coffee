@@ -104,22 +104,21 @@ define (require) ->
       timestamp = 0
       timeout = 0
 
-      later = () ->
-        last = (new Date().getTime()) - timestamp
-
-        if 0 < last < wait
-          timeout = setTimeout(later, wait - last)
-        else
-          timeout = null
-          if not immediate
-            result = func.apply(context, args)
-            if not timeout
-              context = args = null
-
       return () ->
         context = this
         args = arguments
         timestamp = (new Date().getTime())
+        later = () ->
+          last = (new Date().getTime()) - timestamp
+
+          if 0 < last < wait
+            timeout = setTimeout(later, wait - last)
+          else
+            timeout = null
+            if not immediate
+              result = func.apply(context, args)
+              if not timeout
+                context = args = null
         callNow = immediate and not timeout
         if not timeout
           timeout = setTimeout(later, wait)
@@ -200,7 +199,7 @@ define (require) ->
           version: '1.2'
         }
       }
-    
+
     curl2har: (curl) ->
       if curl?.length? == 0
         console.error("Curl 命令为空")

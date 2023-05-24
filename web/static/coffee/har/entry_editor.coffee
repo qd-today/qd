@@ -111,7 +111,7 @@ define (require, exports, module) ->
 
     # sync params with text
     $scope.$watch('entry.request.postData.params', (() ->
-      if not $scope.entry?.request?.postData? 
+      if not $scope.entry?.request?.postData?
         return
       if not ($scope.entry.request.postData?.mimeType?.toLowerCase().indexOf("application/x-www-form-urlencoded") == 0)
         return
@@ -226,7 +226,7 @@ define (require, exports, module) ->
         response: {}
         success_asserts: []
       })
-    
+
     $scope.add_if_else = () ->
       $scope.insert_request(1, {
         checked: true
@@ -886,7 +886,6 @@ define (require, exports, module) ->
             return if m[1] then m[1] else m[0]
             # return m[1]
           return null
-        NProgress.inc()
       NProgress.inc()
 
 ## eof

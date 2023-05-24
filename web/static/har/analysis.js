@@ -85,9 +85,11 @@
               return 'document';
             case mt !== 'text/css' && mt !== 'application/x-pointplus':
               return 'style';
+            // deepcode ignore DuplicateCaseBody: order is important
             case mt.indexOf('application') !== 0:
               return 'media';
             default:
+              // deepcode ignore DuplicateCaseBody: order is important
               return 'other';
           }
         })();

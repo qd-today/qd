@@ -144,29 +144,29 @@
         return exports.get_public_suffix(exports.url_parse(url).hostname);
       },
       debounce: function(func, wait, immediate) {
-        var later, timeout, timestamp;
+        var timeout, timestamp;
         timestamp = 0;
         timeout = 0;
-        later = function() {
-          var args, context, last, result;
-          last = (new Date().getTime()) - timestamp;
-          if ((0 < last && last < wait)) {
-            return timeout = setTimeout(later, wait - last);
-          } else {
-            timeout = null;
-            if (!immediate) {
-              result = func.apply(context, args);
-              if (!timeout) {
-                return context = args = null;
-              }
-            }
-          }
-        };
         return function() {
-          var args, callNow, context, result;
+          var args, callNow, context, later, result;
           context = this;
           args = arguments;
           timestamp = new Date().getTime();
+          later = function() {
+            var last, result;
+            last = (new Date().getTime()) - timestamp;
+            if ((0 < last && last < wait)) {
+              return timeout = setTimeout(later, wait - last);
+            } else {
+              timeout = null;
+              if (!immediate) {
+                result = func.apply(context, args);
+                if (!timeout) {
+                  return context = args = null;
+                }
+              }
+            }
+          };
           callNow = immediate && !timeout;
           if (!timeout) {
             timeout = setTimeout(later, wait);

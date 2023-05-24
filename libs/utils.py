@@ -40,7 +40,7 @@ def ip2varbinary(addr:str, version:int):
         return socket.inet_aton(addr)
     if version == 6:
         return socket.inet_pton(socket.AF_INET6,addr)
- 
+
 def is_lan(ip):
     try:
         return ipaddress.ip_address(ip.strip()).is_private
@@ -180,7 +180,7 @@ def urlMatchWithLimit(url):
         r"$",
         re.UNICODE | re.IGNORECASE
     )
-    
+
     match = reobj.search(url)
     if match:
         return match.group()
@@ -193,7 +193,7 @@ def domainMatch(domain):
         r'+[A-Za-z0-9][A-Za-z0-9-_]{0,61}'  # First 61 characters of the gTLD
         r'[A-Za-z]$'  # Last character of the gTLD
     )
-    
+
     match = reobj.search(domain)
     if match:
         return match.group()
@@ -388,8 +388,19 @@ async def _send_mail(to, subject, text=None, subtype='html'):
     msg['To'] = to
     try:
         logger_Util.info('send mail to {}'.format(to))
-        s = config.mail_ssl and smtplib.SMTP_SSL(config.mail_smtp) or smtplib.SMTP(config.mail_smtp)
-        s.connect(config.mail_smtp)
+        if config.mail_port:
+            if config.mail_ssl or config.mail_port in [465,587]:
+                s = smtplib.SMTP_SSL(config.mail_smtp, config.mail_port)
+            else:
+                s = smtplib.SMTP(config.mail_smtp, config.mail_port)
+            s.connect(config.mail_smtp, config.mail_port)
+        else:
+            if config.mail_ssl:
+                s = smtplib.SMTP_SSL(config.mail_smtp)
+            else:
+                s = smtplib.SMTP(config.mail_smtp)
+            s.connect(config.mail_smtp)
+        # s = config.mail_ssl and smtplib.SMTP_SSL(config.mail_smtp) or smtplib.SMTP(config.mail_smtp)
         if config.mail_user:
             s.login(config.mail_user, config.mail_password)
         s.sendmail(config.mail_from, to, msg.as_string())
@@ -424,7 +435,7 @@ def find_encoding(content, headers=None):
     # content is unicode
     if isinstance(content, str):
         return 'utf-8'
-    
+
     encoding = None
 
     # Try charset from content-type
@@ -436,7 +447,7 @@ def find_encoding(content, headers=None):
     # Fallback to auto-detected encoding.
     if not encoding and charset_normalizer is not None:
         encoding = charset_normalizer.detect(content)['encoding']
-    
+
     # Try charset from content
     if not encoding:
         try:
@@ -456,7 +467,7 @@ def decode(content, headers=None):
     encoding = find_encoding(content, headers)
     if encoding == 'unicode':
         return content
-    
+
     try:
         return content.decode(encoding, 'replace')
     except Exception as e:
@@ -520,8 +531,6 @@ def randomize_list(mylist, seed=None):
     except Exception:
         raise
     return mylist
-
-import datetime
 
 
 def get_date_time(date=True, time=True, time_difference=0):
@@ -634,9 +643,6 @@ def regex_escape(value, re_type='python'):
         raise Exception('Regex type (%s) not yet implemented' % re_type)
     else:
         raise Exception('Invalid regex type (%s)' % re_type)
-
-import time
-
 
 def timestamp(type='int'):
     if type=='float':

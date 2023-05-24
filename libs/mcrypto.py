@@ -33,10 +33,10 @@ def password_hash(word, salt=None, iterations=config.pbkdf2_iterations):
 def aes_encrypt(word, key=config.aes_key, iv=None, output='base64', padding=True, padding_style='pkcs7', mode=AES.MODE_CBC, no_packb=False):
     if iv is None:
         iv = Crypto_random.read(16)
-        
+
     if not no_packb:
         word = umsgpack.packb(word)
-        
+
     if padding:
         word = pad(word,AES.block_size,padding_style)
 
@@ -44,7 +44,7 @@ def aes_encrypt(word, key=config.aes_key, iv=None, output='base64', padding=True
         aes = AES.new(key, mode)
     else:
         aes = AES.new(key, mode, iv)
-    
+
     ciphertext = aes.encrypt(word)
     if no_packb:
         output = output.lower()
@@ -58,7 +58,7 @@ def aes_encrypt(word, key=config.aes_key, iv=None, output='base64', padding=True
 def aes_decrypt(word, key=config.aes_key, iv=None, input='base64', padding=True, padding_style='pkcs7', mode=AES.MODE_CBC, no_packb=False):
     if iv is None and not no_packb:
         word, iv = umsgpack.unpackb(word)
-    
+
     if no_packb:
         input = input.lower()
         if input == 'base64':
@@ -115,7 +115,7 @@ try:
     HAS_CRYPT = True
 except Exception as e:
     CRYPT_E = e
-    
+
 
 def random_password(length=DEFAULT_PASSWORD_LENGTH, chars=DEFAULT_PASSWORD_CHARS, seed=None):
     '''Return a random password string of length containing only chars
@@ -180,9 +180,7 @@ class CryptHash(BaseHash):
         ret = salt or random_salt(salt_size)
         if re.search(r'[^./0-9A-Za-z]', ret):
             raise Exception("invalid characters in salt")
-        if self.algo_data.salt_exact and len(ret) != self.algo_data.salt_size:
-            raise Exception("invalid salt size")
-        elif not self.algo_data.salt_exact and len(ret) > self.algo_data.salt_size:
+        if (self.algo_data.salt_exact and len(ret) != self.algo_data.salt_size) or (not self.algo_data.salt_exact and len(ret) > self.algo_data.salt_size):
             raise Exception("invalid salt size")
         return ret
 
@@ -229,7 +227,7 @@ class CryptHash(BaseHash):
             )
 
         return result
-    
+
 class PasslibHash(BaseHash):
     def __init__(self, algorithm):
         super(PasslibHash, self).__init__(algorithm)
@@ -316,7 +314,7 @@ class PasslibHash(BaseHash):
         # we need to traceback and then block such algorithms because it may
         # impact calling code.
         return to_text(result, errors='strict')
-    
+
 def passlib_or_crypt(secret, algorithm, salt=None, salt_size=None, rounds=None, ident=None):
     if PASSLIB_AVAILABLE:
         return PasslibHash(algorithm).hash(secret, salt=salt, salt_size=salt_size, rounds=rounds, ident=ident)

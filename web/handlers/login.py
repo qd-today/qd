@@ -31,7 +31,7 @@ class LoginHandler(BaseHandler):
             self.redirect('/my/')
             return
         regFlg = False if (await self.db.site.get(1, fields=('regEn',)))['regEn'] == 0 else True
-        
+
         return await self.render('login.html', regFlg=regFlg)
 
     async def post(self):
@@ -58,7 +58,7 @@ class LoginHandler(BaseHandler):
                 if not user:
                     await self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
                     return
-                
+
                 if (siteconfig['MustVerifyEmailEn'] != 0) and (user['email_verified'] == 0):
                     await self.render('login.html', password_error=u'未验证邮箱，请点击注册重新验证邮箱', email=email, regFlg=regFlg)
                     return
@@ -71,7 +71,7 @@ class LoginHandler(BaseHandler):
                     setcookie['secure'] = True
                 self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
                 await self.db.user.mod(user['id'], atime=time.time(), aip=self.ip2varbinary, sql_session=sql_session)
-                
+
                 # 如果用户MD5不一致就更新MD5
                 user = await self.db.user.get(email=email, fields=('id', 'password', 'password_md5'), sql_session=sql_session)
                 hash = MD5.new()
@@ -83,7 +83,7 @@ class LoginHandler(BaseHandler):
                 self.evil(+5)
                 await self.render('login.html', password_error=u'不存在此邮箱或密码错误', email=email, regFlg=regFlg)
                 return
-                
+
         if user:
             self.redirect('/my/')
 
@@ -109,7 +109,7 @@ class RegisterHandler(BaseHandler):
             MustVerifyEmailEn = siteconfig['MustVerifyEmailEn']
             email = self.get_argument('email')
             password = self.get_argument('password')
-            
+
             if not email:
                 await self.render('register.html', email_error=u'请输入邮箱', regFlg=regFlg)
                 return
@@ -121,7 +121,7 @@ class RegisterHandler(BaseHandler):
                 return
 
             user = await self.db.user.get(email = email, fields=('id', 'email', 'email_verified', 'nickname', 'role'), sql_session=sql_session)
-            if (user == None):
+            if user is None:
                 if (regEn == 1):
                     self.evil(+5)
                     try:
@@ -252,12 +252,12 @@ class PasswordResetHandler(BaseHandler):
                 logger_Web_Handler.info('password reset: userid=%(id)s email=%(email)s', user)
                 await self.send_mail(user)
 
-            return 
+            return
         else:
             password = self.get_argument('password')
             if len(password) < 6:
                 return await self.render('password_reset.html', password_error=u'密码需要大于6位')
-            
+
             async with self.db.transaction() as sql_session:
                 try:
                     verified_code = base64.b64decode(code)

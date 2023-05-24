@@ -990,7 +990,6 @@
             // return m[1]
             return null;
           }
-          return NProgress.inc();
         };
         return NProgress.inc();
       };
