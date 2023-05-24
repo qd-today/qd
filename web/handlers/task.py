@@ -22,7 +22,7 @@ from libs.parse_url import parse_url
 from .base import *
 
 
-class TaskNewHandler(BaseHandler):    
+class TaskNewHandler(BaseHandler):
     async def get(self):
         user = self.current_user
         tplid = self.get_argument('tplid', None)
@@ -57,7 +57,7 @@ class TaskNewHandler(BaseHandler):
                     temp = task['_groups']
                     if (temp not  in _groups):
                         _groups.append(temp)
-            
+
             await self.render('task_new.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, task={}, _groups=_groups, init_env=init_env, default_retry_count=config.task_max_retry_count)
         else:
             await self.render('utils_run_result.html', log=u'请先添加模板！', title=u'设置失败', flg='danger')
@@ -92,7 +92,7 @@ class TaskNewHandler(BaseHandler):
 
             if ('New_group' in envs):
                 New_group = envs['New_group'][0].strip()
-                
+
                 if New_group != "" :
                     target_group = New_group
                 else:
@@ -119,7 +119,7 @@ class TaskNewHandler(BaseHandler):
                 init_env.update(env)
                 init_env = await self.db.user.encrypt(user['id'], init_env, sql_session=sql_session)
                 await self.db.task.mod(taskid, init_env=init_env, env=None, session=None, note=note, sql_session=sql_session)
-            
+
             if 'New_group' in envs:
                 await self.db.task.mod(taskid, _groups=target_group, sql_session=sql_session)
 
@@ -172,7 +172,7 @@ class TaskRunHandler(BaseHandler):
                     variables = await self.db.user.decrypt(task['userid'], task['init_env'], sql_session=sql_session),
                     session = [],
                     )
-            
+
             pushsw = json.loads(task['pushsw'])
             newontime = json.loads(task['newontime'])
             pushertool = pusher(self.db, sql_session=sql_session)
@@ -219,7 +219,7 @@ class TaskRunHandler(BaseHandler):
                 nextTime = caltool.calNextTs(newontime)['ts']
             else:
                 nextTime = time.time() + (tpl['interval'] if tpl['interval'] else 24 * 60 * 60)
-                
+
             await self.db.task.mod(task['id'],
                     disabled = False,
                     last_success = time.time(),
@@ -228,7 +228,7 @@ class TaskRunHandler(BaseHandler):
                     mtime = time.time(),
                     next = nextTime,
                     sql_session=sql_session)
-            
+
             t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             title = u"QD任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
             logtmp = new_env['variables'].get('__log__')
@@ -236,7 +236,7 @@ class TaskRunHandler(BaseHandler):
 
             await self.db.tpl.incr_success(tpl['id'],sql_session=sql_session)
             await self.finish('<h1 class="alert alert-success text-center">运行成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
-            
+
             await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
             logDay = int((await self.db.site.get(1, fields=('logDay',),sql_session=sql_session))['logDay'])
             for log in await self.db.tasklog.list(taskid = taskid, fields=('id', 'ctime'), sql_session=sql_session):
@@ -303,7 +303,7 @@ class TaskLogDelHandler(BaseHandler):
         day = 365
         if ('day' in body_arguments):
             day = int(json.loads(body_arguments['day'][0]))
-        
+
         async with self.db.transaction() as sql_session:
             tasklog = await self.db.tasklog.list(taskid = taskid, fields=('id', 'success', 'ctime', 'msg'), sql_session=sql_session)
             for log in tasklog:
@@ -330,8 +330,7 @@ class TaskLogSuccessDelHandler(BaseHandler):
                         sql_session=sql_session
                         )
 
-        referer = self.request.headers.get('referer', '/my/')
-        self.redirect(referer)
+        self.redirect('/my/')
         return
 
 class TaskLogFailDelHandler(BaseHandler):
@@ -350,8 +349,7 @@ class TaskLogFailDelHandler(BaseHandler):
                         sql_session=sql_session
                         )
 
-        referer = self.request.headers.get('referer', '/my/')
-        self.redirect(referer)
+        self.redirect('/my/')
         return
 
 class TaskDelHandler(BaseHandler):
@@ -364,9 +362,8 @@ class TaskDelHandler(BaseHandler):
             for log in logs:
                 await self.db.tasklog.delete(log['id'], sql_session=sql_session)
             await self.db.task.delete(task['id'], sql_session=sql_session)
-            
-        referer = self.request.headers.get('referer', '/my/')
-        self.redirect(referer)
+
+        self.redirect('/my/')
 
 class TaskDisableHandler(BaseHandler):
     @tornado.web.authenticated
@@ -376,17 +373,16 @@ class TaskDisableHandler(BaseHandler):
             task = self.check_permission(await self.db.task.get(taskid, fields=('id', 'userid', ),sql_session=sql_session), 'w')
             logs = await self.db.tasklog.list(taskid = taskid, fields=('id',),sql_session=sql_session)
             await self.db.task.mod(task['id'], disabled=1, sql_session=sql_session)
-            
-        referer = self.request.headers.get('referer', '/my/')
-        self.redirect(referer)
-        
+
+        self.redirect('/my/')
+
 class TaskSetTimeHandler(TaskNewHandler):
     @tornado.web.authenticated
     async def get(self, taskid):
         user = self.current_user
         task = self.check_permission(await self.db.task.get(taskid, fields=('id', 'userid',
             'tplid', 'disabled', 'note', 'ontime', 'ontimeflg', 'newontime')), 'w')
-        
+
         newontime = json.loads(task['newontime'])
         ontime = newontime
         if ('mode' not in newontime):
@@ -396,7 +392,7 @@ class TaskSetTimeHandler(TaskNewHandler):
         today_date = time.strftime("%Y-%m-%d",time.localtime())
 
         await self.render('task_setTime.html', task=task, ontime=ontime, today_date=today_date)
-    
+
     @tornado.web.authenticated
     async def post(self, taskid):
         log = u'设置成功'
@@ -409,7 +405,7 @@ class TaskSetTimeHandler(TaskNewHandler):
                     envs[env] = True if envs[env][0] == u'true' else False
                 else:
                     envs[env] = u'{0}'.format(envs[env][0])
-            
+
             async with self.db.transaction() as sql_session:
                 if (envs['sw']):
                     c = cal()
@@ -441,11 +437,11 @@ class TaskSetTimeHandler(TaskNewHandler):
 
         await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
         return
-        
+
 class TaskGroupHandler(TaskNewHandler):
     @tornado.web.authenticated
     async def get(self, taskid):
-        user = self.current_user      
+        user = self.current_user
         groupNow = (await self.db.task.get(taskid, fields=('_groups',)))['_groups']
         _groups = []
         for task in await self.db.task.list(user['id'], fields=('_groups',), limit=None):
@@ -456,14 +452,14 @@ class TaskGroupHandler(TaskNewHandler):
                 _groups.append(temp)
 
         await self.render('task_setgroup.html', taskid=taskid, _groups=_groups, groupNow=groupNow)
-    
+
     @tornado.web.authenticated
-    async def post(self, taskid):        
+    async def post(self, taskid):
         envs = {}
         for key in self.request.body_arguments:
             envs[key] = self.get_body_arguments(key)
         New_group = envs['New_group'][0].strip()
-        
+
         if New_group != "" :
             target_group = New_group
         else:
@@ -473,11 +469,11 @@ class TaskGroupHandler(TaskNewHandler):
                     break
                 else:
                     target_group = 'None'
-            
+
         await self.db.task.mod(taskid, _groups=target_group)
 
         self.redirect('/my/')
-        
+
 class TasksDelHandler(BaseHandler):
     @tornado.web.authenticated
     async def post(self, userid):
@@ -503,7 +499,7 @@ class TasksDelHandler(BaseHandler):
                         New_group = u'None'
                     for taskid in taskids:
                         await self.db.task.mod(taskid, groups=New_group, sql_session=sql_session)
-                    
+
             await self.finish('<h1 class="alert alert-success text-center">操作成功</h1>')
         except Exception as e:
             if config.traceback_print:
@@ -515,11 +511,11 @@ class TasksDelHandler(BaseHandler):
 class GetGroupHandler(TaskNewHandler):
     @tornado.web.authenticated
     async def get(self, taskid):
-        user = self.current_user      
+        user = self.current_user
         _groups = {}
         for task in await self.db.task.list(user['id'], fields=('_groups',), limit=None):
             _groups[task['_groups']] = ""
-        
+
         self.write(json.dumps(_groups, ensure_ascii=False, indent=4))
         return
 
@@ -527,7 +523,7 @@ handlers = [
         ('/task/new', TaskNewHandler),
         ('/task/(\d+)/edit', TaskEditHandler),
         ('/task/(\d+)/settime', TaskSetTimeHandler),
-        ('/task/(\d+)/del', TaskDelHandler), 
+        ('/task/(\d+)/del', TaskDelHandler),
         ('/task/(\d+)/disable', TaskDisableHandler),
         ('/task/(\d+)/log', TaskLogHandler),
         ('/task/(\d+)/log/total/(\d+)', TotalLogHandler),
@@ -536,6 +532,6 @@ handlers = [
         ('/task/(\d+)/log/del/Fail', TaskLogFailDelHandler),
         ('/task/(\d+)/run', TaskRunHandler),
         ('/task/(\d+)/group', TaskGroupHandler),
-        ('/tasks/(\d+)', TasksDelHandler), 
-        ('/getgroups/(\d+)', GetGroupHandler), 
+        ('/tasks/(\d+)', TasksDelHandler),
+        ('/getgroups/(\d+)', GetGroupHandler),
         ]

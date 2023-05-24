@@ -60,7 +60,6 @@ class TPLPushHandler(BaseHandler):
                     to_tplid=to_tplid, to_userid=to_userid, msg=msg, sql_session=sql_session)
             await self.db.tpl.mod(tpl['id'], lock=True, sql_session=sql_session)
 
-        #referer = self.request.headers.get('referer', '/my/')
         self.redirect('/pushs')
 
 class TPLVarHandler(BaseHandler):
@@ -82,8 +81,8 @@ class TPLDelHandler(BaseHandler):
         async with self.db.transaction() as sql_session:
             tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid'),sql_session=sql_session), 'w')
             await self.db.tpl.delete(tplid,sql_session=sql_session)
-        referer = self.request.headers.get('referer', '/my/')
-        self.redirect(referer)
+
+        self.redirect('/my/')
 
 class TPLRunHandler(BaseHandler):
     async def post(self, tplid):
@@ -175,14 +174,14 @@ class TPLGroupHandler(BaseHandler):
                 _groups.append(temp)
 
         await self.render('tpl_setgroup.html', tplid=tplid, _groups=_groups, groupNow=groupNow)
-    
+
     @tornado.web.authenticated
     async def post(self, tplid):
         envs = {}
         for key in self.request.body_arguments:
             envs[key] = self.get_body_arguments(key)
         New_group = envs['New_group'][0].strip()
-        
+
         if New_group != "" :
             target_group = New_group
         else:
@@ -192,9 +191,9 @@ class TPLGroupHandler(BaseHandler):
                     break
                 else:
                     target_group = 'None'
-            
+
         await self.db.tpl.mod(tplid, _groups=target_group)
-   
+
         self.redirect('/my/')
 
 handlers = [
