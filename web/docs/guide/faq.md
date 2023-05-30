@@ -96,3 +96,9 @@ The above request will send a `HelloWorld` message to the chat with ID `22222222
 Therefore, the final result looks like:
 
 `1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA;222222222;tg.mydomain.com`
+
+## Subscribe updating page prompts undefined error
+
+> The subscribe updating web page prompts an error code of undefined, or the console shows WebSocket connection failed but does not show the reason for the error
+
+Please check if the "reverse proxy" configuration is correct, refer to [Nginx reverse proxy WebSocket service connection error](https://blog.csdn.net/tiven_/article/details/126126442)

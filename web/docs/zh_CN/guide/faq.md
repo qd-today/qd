@@ -89,10 +89,16 @@ QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycur
 
 上面这个请求将会向`222222222`这个聊天发送一条`HelloWorld`消息。那么在注册TgBot作为推送方式时：
 
-- `TG_TOKEN` 应当填写bot的ID以及对应的key的组合，但是不包括`bot`，即申请TgBot时BotFather提供的token：`1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA` 
+- `TG_TOKEN` 应当填写bot的ID以及对应的key的组合，但是不包括`bot`，即申请TgBot时BotFather提供的token：`1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`
 - `TG_USERID` 应当填写telegram API中的`chat_id`字段，即 `222222222`
 - `TG_HOST` 填`tg.mydomain.com`，也可以带上`http://`或者`https://`前缀
 
 因此最终填写形式形如：
 
 `1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA;222222222;tg.mydomain.com`
+
+## 公共模板更新页面提示错误代码为 undefined
+
+> 公共模板更新页面提示错误代码为 undefined, 或者控制台显示 WebSocket 连接 failed 但不显示错误原因
+
+请检查反向代理相关配置是否正确, 参考 [Nginx反向代理WebSocket服务连接报错](https://blog.csdn.net/tiven_/article/details/126126442)
