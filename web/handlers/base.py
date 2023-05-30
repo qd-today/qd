@@ -5,6 +5,8 @@
 #         http://binux.me
 # Created on 2012-12-15 16:16:38
 
+from typing import Optional
+
 import jinja2
 import tornado.web
 import tornado.websocket
@@ -20,11 +22,9 @@ logger_Web_Handler = Log('QD.Web.Handler').getlogger()
 
 __ALL__ = ['HTTPError', 'BaseHandler', 'BaseWebSocket', 'BaseUIModule', 'logger_Web_Handler', ]
 
-class BaseHandler(tornado.web.RequestHandler):
-    application_export = set(('db', 'fetcher'))
+class _BaseHandler(tornado.web.RequestHandler):
+    application_export: set[str] = set(('db', ))
     db:DB
-    fetcher: fetcher.Fetcher
-    # db = DB()
     def __getattr__(self, key):
         if key in self.application_export:
             return getattr(self.application, key)
@@ -33,8 +33,8 @@ class BaseHandler(tornado.web.RequestHandler):
     def render_string(self, template_name, **kwargs):
         try:
             template = self.application.jinja_env.get_template(template_name)
-        except jinja2.TemplateNotFound:
-            raise
+        except jinja2.TemplateNotFound as e:
+            raise e
 
         namespace = dict(
                 static_url=self.static_url,
@@ -50,16 +50,6 @@ class BaseHandler(tornado.web.RequestHandler):
         namespace.update(kwargs)
 
         return template.render(namespace)
-
-    def prepare(self):
-        if config.debug:
-            return
-        user = self.current_user
-        userid = None
-        if user:
-            userid = user['id']
-        if self.db.redis.is_evil(self.ip, userid):
-            raise HTTPError(403)
 
     def evil(self, incr=1):
         user = self.current_user
@@ -102,6 +92,20 @@ class BaseHandler(tornado.web.RequestHandler):
             return True
         return False
 
+class BaseHandler(_BaseHandler):
+    application_export = set(('db', 'fetcher'))
+    fetcher: fetcher.Fetcher
+
+    def prepare(self):
+        if config.debug:
+            return
+        user = self.current_user
+        userid = None
+        if user:
+            userid = user['id']
+        if self.db.redis.is_evil(self.ip, userid):
+            raise HTTPError(403)
+
     def check_permission(self, obj, mode='r'):
         if not obj:
             self.evil(+1)
@@ -111,8 +115,46 @@ class BaseHandler(tornado.web.RequestHandler):
             raise HTTPError(401)
         return obj
 
-class BaseWebSocket(tornado.websocket.WebSocketHandler):
-    pass
+class BaseWebSocketHandler(_BaseHandler,tornado.websocket.WebSocketHandler):
+    def prepare(self):
+        if config.debug:
+            return
+        user = self.current_user
+        userid = None
+        if user:
+            userid = user['id']
+        if self.db.redis.is_evil(self.ip, userid):
+            self.set_status(403)
+            self.finish('Forbidden: iP or userid arrived at the limit of evil')
+
+    def check_permission(self, obj, mode='r'):
+        if not obj:
+            self.evil(+1)
+            self.set_status(404)
+            self.finish('Not Found')
+            raise HTTPError(404)
+        if not self.permission(obj, mode):
+            self.evil(+5)
+            self.set_status(401)
+            self.finish('Unauthorized')
+            raise HTTPError(401)
+        return obj
+
+    def get_compression_options(self):
+        return {}
+
+    @property
+    def ping_interval(self) -> float | None:
+        return config.websocket.ping_interval
+
+    @property
+    def ping_timeout(self) -> float | None:
+        return config.websocket.ping_timeout
+
+    @property
+    def max_message_size(self) -> int | None:
+        return config.websocket.max_message_size
+
 
 class BaseUIModule(tornado.web.UIModule):
     pass

@@ -44,6 +44,16 @@ push_pic = os.getenv('PUSH_PIC_URL', 'https://gitee.com/a76yyyy/qiandao/raw/mast
 push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送任务日志, 默认为 True
 push_batch_delta = int(os.getenv('PUSH_BATCH_DELTA', 60))                   # 执行 PUSH_BATCH 的时间间隔, 单位为秒, 默认为 60s, 非全局推动QD任务日志间隔
 
+
+# WebSocket 设置
+class websocket(object):
+    ping_interval = int(os.getenv('PING_INTERVAL', 10))                     # WebSocket ping间隔, 单位为秒, 默认为 10s
+    ping_timeout = int(os.getenv('PING_TIMEOUT', 30))                       # WebSocket ping超时时间, 单位为秒, 默认为 30s
+    max_message_size = int(os.getenv('MAX_MESSAGE_SIZE', 10*1024*1024))     # WebSocket 单次接收最大消息大小, 默认为 10MB
+    max_queue_size = int(os.getenv('MAX_QUEUE_SIZE', 100))                  # WebSocket 最大消息队列大小, 默认为 100
+    max_connections_subscribe = int(os.getenv('MAX_CONNECTIONS_SUBSCRIBE', 30))    # WebSocket 公共模板更新页面最大连接数, 默认为 30
+
+# 数据库连接参数, 可选
 class mysql(object):
     host = mysql_url.hostname or 'localhost'                                # 访问MySQL的Hostname
     port = mysql_url.port or '3306'                                         # MySQL的端口Port
