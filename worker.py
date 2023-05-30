@@ -144,27 +144,19 @@ class BaseWorker(object):
     async def do(self, task):
         async with self.db.transaction() as sql_session:
             user = await self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname', 'logtime'), sql_session=sql_session)
-            tpl = await self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl', 'interval', 'last_success'), sql_session=sql_session)
-            newontime = json.loads(task["newontime"])
-            pushtool = pusher(self.db, sql_session=sql_session)
-            caltool = cal()
-            logtime = json.loads(user['logtime'])
-            pushsw = json.loads(task['pushsw'])
-
-            if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0
-
-            if task['disabled']:
-                await self.db.tasklog.add(task['id'], False, msg='task disabled.', sql_session=sql_session)
-                await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
-                return False
-
             if not user:
                 await self.db.tasklog.add(task['id'], False, msg='no such user, disabled.', sql_session=sql_session)
                 await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
                 return False
 
+            tpl = await self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl', 'interval', 'last_success'), sql_session=sql_session)
             if not tpl:
                 await self.db.tasklog.add(task['id'], False, msg='tpl missing, task disabled.', sql_session=sql_session)
+                await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
+                return False
+
+            if task['disabled']:
+                await self.db.tasklog.add(task['id'], False, msg='task disabled.', sql_session=sql_session)
                 await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
                 return False
 
@@ -172,6 +164,15 @@ class BaseWorker(object):
                 await self.db.tasklog.add(task['id'], False, msg='no permission error, task disabled.', sql_session=sql_session)
                 await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
                 return False
+
+            newontime = json.loads(task["newontime"])
+            pushtool = pusher(self.db, sql_session=sql_session)
+            caltool = cal()
+            logtime = json.loads(user['logtime'])
+            pushsw = json.loads(task['pushsw'])
+
+            if 'ErrTolerateCnt' not in logtime:
+                logtime['ErrTolerateCnt'] = 0
 
             start = time.perf_counter()
             try:
