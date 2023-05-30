@@ -92,7 +92,12 @@
                               }
                             };
                             ws.onclose = function (evt) {
-                                if (evt.code == 1000) {
+                                if (evt.code == 1005 && evt.reason == "") {
+                                    update_error_msg("错误代码：" + evt.code + ", <br>错误原因：服务器主动断开连接<br>1s 后尝试重新连接...");
+                                    setTimeout(function () {
+                                        update_req();
+                                    }, 1000);
+                                } else if (evt.code == 1000) {
                                     $("#update_loading").html("更新公共模板成功, 正在跳转, 请稍候......").show();
                                     setTimeout(function () {
                                         window.location.href = "/subscribe/{{ userid }}/";
@@ -111,7 +116,10 @@
                             ws.onerror = function (evt) {
                                 $("#update_loading").html("更新公共模板失败, 请稍后刷新重试, 请勿连续刷新！").show();
                                 if (evt.code == 1005 && evt.reason == "") {
-                                  update_error_msg("错误代码：" + evt.code + ", <br>错误原因：服务器主动断开连接");
+                                  update_error_msg("错误代码：" + evt.code + ", <br>错误原因：服务器主动断开连接<br>1s 后尝试重新连接...");
+                                  setTimeout(function () {
+                                      update_req();
+                                  }, 1000);
                                 } else if (evt.code == 1006 && evt.reason == "") {
                                   update_error_msg("错误代码：" + evt.code + ", <br>错误原因：服务器主动断开连接");
                                 } else if (evt.code == 1006 && evt.reason != "") {
