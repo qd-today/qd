@@ -712,7 +712,7 @@ class toolbox_notepad_list_Handler(BaseHandler):
 class DdddOCRServer(object):
 
     def __init__(self):
-        if ddddocr is not None and ddddocr.hasattr("DdddOcr"):
+        if ddddocr is not None and hasattr(ddddocr,"DdddOcr"):
             self.oldocr = ddddocr.DdddOcr(old=True, show_ad=False)
             self.ocr = ddddocr.DdddOcr(show_ad=False)
             self.det = ddddocr.DdddOcr(det=True, show_ad=False)
