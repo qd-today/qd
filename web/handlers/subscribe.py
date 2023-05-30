@@ -78,7 +78,19 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
                     for repo in repos['repos']:
                         await self.send_global_message({'code': 1000, 'message': '-----开始更新 {repo} 模板仓库-----'.format(repo=repo['reponame'])})
                         if repo['repoacc']:
-                            url = '{0}@{1}'.format(repo['repourl'].replace('https://github.com/', 'https://cdn.jsdelivr.net/gh/'), repo['repobranch'])
+                            if config.subscribe_accelerate_url == 'jsdelivr_cdn':
+                                url = '{0}@{1}'.format(repo['repourl'].replace('https://github.com/', 'https://cdn.jsdelivr.net/gh/'), repo['repobranch'])
+                            elif config.subscribe_accelerate_url == 'jsdelivr_fastly':
+                                url = '{0}@{1}'.format(repo['repourl'].replace('https://github.com/', 'https://fastly.jsdelivr.net/gh/'), repo['repobranch'])
+                            elif config.subscribe_accelerate_url == 'ghproxy':
+                                url = '{0}/{1}'.format(repo['repourl'].replace('https://github.com/', 'https://ghproxy.com/https://raw.githubusercontent.com/'), repo['repobranch'])
+                            elif config.subscribe_accelerate_url == 'fastgit':
+                                url = '{0}/{1}'.format(repo['repourl'].replace('https://github.com/', 'https://raw.fastgit.org/'), repo['repobranch'])
+                            else:
+                                if config.subscribe_accelerate_url.endswith('/'):
+                                    url = '{0}/{1}'.format(repo['repourl'].replace('https://github.com/', config.subscribe_accelerate_url), repo['repobranch'])
+                                else:
+                                    url = '{0}/{1}'.format(repo['repourl'].replace('https://github.com', config.subscribe_accelerate_url), repo['repobranch'])
                         else:
                             if (repo['repourl'].find('https://github.com/') > -1):
                                 url = '{0}/{1}'.format(repo['repourl'].replace('https://github.com/', 'https://raw.githubusercontent.com/'), repo['repobranch'])

@@ -53,6 +53,12 @@ class websocket(object):
     max_queue_size = int(os.getenv('MAX_QUEUE_SIZE', 100))                  # WebSocket 最大消息队列大小, 默认为 100
     max_connections_subscribe = int(os.getenv('MAX_CONNECTIONS_SUBSCRIBE', 30))    # WebSocket 公共模板更新页面最大连接数, 默认为 30
 
+# 订阅加速方式或地址, 用于加速公共模板更新, 仅适用于 GitHub.
+# 可选 jsdelivr_cdn/jsdelivr_fastly/ghproxy/fastgit/自定义地址, 默认为: cdn_jsdelivr.
+# 自定义地址示例为: https://ghproxy.com/https://raw.githubusercontent.com/ 或 https://raw.fastgit.org/
+# 以直接替换 https://raw.githubusercontent.com/ 源文件地址.
+subscribe_accelerate_url = os.getenv('SUBSCRIBE_ACCELERATE_URL', 'jsdelivr_cdn')
+
 # 数据库连接参数, 可选
 class mysql(object):
     host = mysql_url.hostname or 'localhost'                                # 访问MySQL的Hostname
