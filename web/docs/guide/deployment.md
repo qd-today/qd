@@ -25,7 +25,7 @@ vi ./docker-compose.yml
 docker-compose up -d
 ```
 
-> See [Configuration](#configuration-environment-variables) below for configuration description  
+> See [Configuration](#configuration-environment-variables) below for configuration description
 >
 > If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`a76yyyy/qiandao:lite-latest`** image, **this image only removes OCR related functions, other than the mainline version to keep consistent**.
 >
@@ -147,5 +147,11 @@ python ./chrole.py your@email.address admin
 |USER0ISADMIN|No|True|The first registered user is an administrator, False to close|
 |EXTRA_ONNX_NAME|No|""|Customize the ONNX file name in the config directory<br>(do not fill in the ".onnx" suffix)<br>Separate multiple onnx file names with "\|"|
 |EXTRA_CHARSETS_NAME|No|""|Custom ONNX in the config directory corresponds to the custom charsets.json file name<br>(do not fill in the ".json" suffix)<br>Multiple json file names are separated by "\|"|
+|WS_PING_INTERVAL|No|5|WebSocket ping interval, the default is 5 seconds|
+|WS_PING_TIMEOUT|No|30|WebSocket ping timeout, the default is 30 seconds|
+|WS_MAX_MESSAGE_SIZE|No|10485760|WebSocket maximum message size, the default is 10485760 bytes|
+|WS_MAX_QUEUE_SIZE|No|100|WebSocket maximum queue size, the default is 100|
+|WS_MAX_CONNECTIONS_SUBSCRIBE|No|30|WebSocket subscribe page maximum number of connections, the default is 30|
+|SUBSCRIBE_ACCELERATE_URL|No|jsdelivr_cdn|Subscribe page acceleration URL, the default is jsdelivr_cdn, <br>[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|
 
 > For details, please refer to [config.py](https://github.com/qd-today/qd/blob/master/config.py)

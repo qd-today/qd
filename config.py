@@ -44,14 +44,13 @@ push_pic = os.getenv('PUSH_PIC_URL', 'https://gitee.com/a76yyyy/qiandao/raw/mast
 push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送任务日志, 默认为 True
 push_batch_delta = int(os.getenv('PUSH_BATCH_DELTA', 60))                   # 执行 PUSH_BATCH 的时间间隔, 单位为秒, 默认为 60s, 非全局推动QD任务日志间隔
 
-
 # WebSocket 设置
 class websocket(object):
-    ping_interval = int(os.getenv('PING_INTERVAL', 5))                     # WebSocket ping间隔, 单位为秒, 默认为 5s
-    ping_timeout = int(os.getenv('PING_TIMEOUT', 30))                       # WebSocket ping超时时间, 单位为秒, 默认为 30s
-    max_message_size = int(os.getenv('MAX_MESSAGE_SIZE', 10*1024*1024))     # WebSocket 单次接收最大消息大小, 默认为 10MB
-    max_queue_size = int(os.getenv('MAX_QUEUE_SIZE', 100))                  # WebSocket 最大消息队列大小, 默认为 100
-    max_connections_subscribe = int(os.getenv('MAX_CONNECTIONS_SUBSCRIBE', 30))    # WebSocket 公共模板更新页面最大连接数, 默认为 30
+    ping_interval = int(os.getenv('WS_PING_INTERVAL', 5))                     # WebSocket ping间隔, 单位为秒, 默认为 5s
+    ping_timeout = int(os.getenv('WS_PING_TIMEOUT', 30))                       # WebSocket ping超时时间, 单位为秒, 默认为 30s
+    max_message_size = int(os.getenv('WS_MAX_MESSAGE_SIZE', 10*1024*1024))     # WebSocket 单次接收最大消息大小, 默认为 10MB
+    max_queue_size = int(os.getenv('WS_MAX_QUEUE_SIZE', 100))                  # WebSocket 最大消息队列大小, 默认为 100
+    max_connections_subscribe = int(os.getenv('WS_MAX_CONNECTIONS_SUBSCRIBE', 30))    # WebSocket 公共模板更新页面最大连接数, 默认为 30
 
 # 订阅加速方式或地址, 用于加速公共模板更新, 仅适用于 GitHub.
 # 可选 jsdelivr_cdn/jsdelivr_fastly/ghproxy/fastgit/自定义地址, 默认为: cdn_jsdelivr.

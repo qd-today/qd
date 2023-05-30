@@ -36,6 +36,12 @@ services:
       # - PUSH_PIC_URL=https://fastly.jsdelivr.net/gh/qd-today/qd@master/web/static/img/push_pic.png
       # - PUSH_BATCH_SW=True
       # - PUSH_BATCH_DELTA=60
+      # - WS_PING_INTERVAL=5
+      # - WS_PING_TIMEOUT=30
+      # - WS_MAX_MESSAGE_SIZE=10485760
+      # - WS_MAX_QUEUE_SIZE=100
+      # - WS_MAX_CONNECTIONS_SUBSCRIBE=30
+      # - SUBSCRIBE_ACCELERATE_URL=jsdelivr_cdn
       # - DB_TYPE=sqlite3
       # - QIANDAO_SQL_LOGGING_NAME=qiandao.sql
       # - QIANDAO_SQL_LOGGING_LEVEL=WARNING

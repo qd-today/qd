@@ -37,7 +37,7 @@ docker-compose up -d
 docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config a76yyyy/qiandao
 ```
 
-容器内部无法连通外部网络时尝试该命令:  
+容器内部无法连通外部网络时尝试该命令:
 
 ``` sh
 # 使用 Host 网络模式创建容器, 端口号: 8923
@@ -147,5 +147,11 @@ EMPTY_RETRY|否|True|[详见配置](https://github.com/qd-today/qd/blob/master/c
 USER0ISADMIN|否|True|第一个注册用户为管理员，False关闭
 EXTRA_ONNX_NAME|否|""|config目录下自定义ONNX文件名<br>(不填 ".onnx" 后缀)<br>多个onnx文件名用"\|"分隔
 EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.json文件名<br>(不填 ".json" 后缀)<br>多个json文件名用"\|"分隔
+WS_PING_INTERVAL|No|5|WebSocket ping间隔, 单位为秒, 默认为 5s
+WS_PING_TIMEOUT|No|30|WebSocket ping超时时间, 单位为秒, 默认为 30s
+WS_MAX_MESSAGE_SIZE|No|10485760|WebSocket 单次接收最大消息大小, 默认为 10MB
+WS_MAX_QUEUE_SIZE|No|100|WebSocket 最大消息队列大小, 默认为 100
+WS_MAX_CONNECTIONS_SUBSCRIBE|No|30|WebSocket 公共模板更新页面最大连接数, 默认为 30
+SUBSCRIBE_ACCELERATE_URL|No|jsdelivr_cdn|订阅加速方式或地址, 用于加速公共模板更新, 仅适用于 GitHub. <br>[详见配置](https://github.com/qd-today/qd/blob/master/config.py)...
 
 > 详细信息请查阅[config.py](https://github.com/qd-today/qd/blob/master/config.py)
