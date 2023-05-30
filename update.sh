@@ -23,7 +23,7 @@ cd "${_dir}" || exit
 # Treat unset variables as an error
 set -o nounset
 
-__ScriptVersion="2023.05.18"
+__ScriptVersion="2023.05.31"
 __ScriptName="update.sh"
 source_branch="master"
 
@@ -104,7 +104,6 @@ update_in_alpine() {
         ln -sf /usr/bin/python3 /usr/bin/python
         ln -sf /usr/bin/python3 /usr/local/bin/python
         # pypi 换源
-        sed -i 's/pypi.org/mirrors.cloud.tencent.com\/pypi/g' requirements.txt
         sed -i 's/pypi.tuna.tsinghua.edu.cn/mirrors.cloud.tencent.com\/pypi/g' requirements.txt
         # 删除Alpine已有的依赖包
         sed -i '/ddddocr/d' requirements.txt
