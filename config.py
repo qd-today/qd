@@ -47,7 +47,7 @@ push_batch_delta = int(os.getenv('PUSH_BATCH_DELTA', 60))                   # �
 
 # WebSocket 设置
 class websocket(object):
-    ping_interval = int(os.getenv('PING_INTERVAL', 10))                     # WebSocket ping间隔, 单位为秒, 默认为 10s
+    ping_interval = int(os.getenv('PING_INTERVAL', 5))                     # WebSocket ping间隔, 单位为秒, 默认为 5s
     ping_timeout = int(os.getenv('PING_TIMEOUT', 30))                       # WebSocket ping超时时间, 单位为秒, 默认为 30s
     max_message_size = int(os.getenv('MAX_MESSAGE_SIZE', 10*1024*1024))     # WebSocket 单次接收最大消息大小, 默认为 10MB
     max_queue_size = int(os.getenv('MAX_QUEUE_SIZE', 100))                  # WebSocket 最大消息队列大小, 默认为 100

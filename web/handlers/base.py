@@ -143,18 +143,5 @@ class BaseWebSocketHandler(_BaseHandler,tornado.websocket.WebSocketHandler):
     def get_compression_options(self):
         return {}
 
-    @property
-    def ping_interval(self) -> float | None:
-        return config.websocket.ping_interval
-
-    @property
-    def ping_timeout(self) -> float | None:
-        return config.websocket.ping_timeout
-
-    @property
-    def max_message_size(self) -> int | None:
-        return config.websocket.max_message_size
-
-
 class BaseUIModule(tornado.web.UIModule):
     pass

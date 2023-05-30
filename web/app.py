@@ -29,6 +29,9 @@ class Application(tornado.web.Application):
 
                 cookie_secret = config.cookie_secret,
                 login_url = '/login',
+                websocket_ping_interval = config.websocket.ping_interval,
+                websocket_ping_timeout = config.websocket.ping_timeout,
+                websocket_max_message_size = config.websocket.max_message_size,
                 )
 
         super(Application, self).__init__(handlers, **settings)
