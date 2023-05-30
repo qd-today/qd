@@ -55,9 +55,11 @@ class SubscribeHandler(BaseHandler):
 class SubscribeUpdatingHandler(BaseWebSocketHandler):
     users:Dict[int, BaseWebSocketHandler] = {}
     updating = False
+    updating_start_time = 0
 
     async def update(self, userid):
         SubscribeUpdatingHandler.updating = True
+        SubscribeUpdatingHandler.updating_start_time = int(time.time())
         success = False
         fail_count = 0
         try:
@@ -168,6 +170,7 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
                 traceback.print_exc()
 
         SubscribeUpdatingHandler.updating = False
+        SubscribeUpdatingHandler.updating_start_time = 0
         SubscribeUpdatingHandler.users = {}
 
     def on_message(self, message):
@@ -202,6 +205,7 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
         if user['id'] != int(userid):
             self.close(1008, 'Forbidden: userid not match with cookie, please check your cookie or login again')
             return
+
         # 判断用户是否为管理员
         adminflg = False
         if (user['id'] == int(userid)) and (user['role'] == u'admin'):
@@ -213,7 +217,8 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
 
         # 判断用户是否已经在列表中
         if len(SubscribeUpdatingHandler.users) == 0:
-            SubscribeUpdatingHandler.updating = False
+            if SubscribeUpdatingHandler.updating and (int(time.time()) - SubscribeUpdatingHandler.updating_start_time > 60):
+                SubscribeUpdatingHandler.updating = False
         elif userid in SubscribeUpdatingHandler.users:
             SubscribeUpdatingHandler.users[userid].close(1001, 'Another client login, close this connection')
             SubscribeUpdatingHandler.users.pop(userid)
