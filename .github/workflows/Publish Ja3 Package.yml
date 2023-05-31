@@ -1,5 +1,6 @@
 name: Publish Ja3 Package
 on:
+  workflow_dispatch: {}
   push:
     paths-ignore:
       - 'docs/**'

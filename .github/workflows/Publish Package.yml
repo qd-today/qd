@@ -1,7 +1,8 @@
 name: Publish Latest Package
-on: 
+on:
+  workflow_dispatch: {}
   push:
-    paths-ignore: 
+    paths-ignore:
       - 'docs/**'
       - '.github/**'
       - '**.md'
