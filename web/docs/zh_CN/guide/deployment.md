@@ -8,7 +8,7 @@ Docker 容器部署是部署 QD 的最简单方式。
 
 ### 容器
 
-**DockerHub 网址**：[https://hub.docker.com/r/a76yyyy/qiandao](https://hub.docker.com/r/a76yyyy/qiandao)
+**DockerHub 网址**：[https://hub.docker.com/r/qdtoday/qd](https://hub.docker.com/r/qdtoday/qd)
 
 ### 部署方法
 
@@ -27,21 +27,21 @@ docker-compose up -d
 
 > 配置描述见下文 [Configuration](#配置环境变量)
 >
-> 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`a76yyyy/qiandao:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 其他与主线版本保持一致**。
+> 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`qdtoday/qd:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 其他与主线版本保持一致**。
 >
 > **请勿使用 阿里云镜像源 拉取 Docker 容器, 会导致无法拉取最新镜像**
 
 #### 2. Docker 运行
 
 ``` sh
-docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config a76yyyy/qiandao
+docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config qdtoday/qd
 ```
 
 容器内部无法连通外部网络时尝试该命令:
 
 ``` sh
 # 使用 Host 网络模式创建容器, 端口号: 8923
-docker run -d --name qd --env PORT=8923 --net=host -v $(pwd)/qd/config:/usr/src/app/config a76yyyy/qiandao
+docker run -d --name qd --env PORT=8923 --net=host -v $(pwd)/qd/config:/usr/src/app/config qdtoday/qd
 ```
 
 > 注意: 使用该命令创建容器后, 请将模板里 `http://localhost/` 形式的 api 请求, 手动改成 `api://` 或 `http://localhost:8923/` 后, 才能正常完成相关API请求。

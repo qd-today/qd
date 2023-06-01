@@ -8,7 +8,7 @@ Docker Container Deployment is the easiest way to deploy QD.
 
 ### Container
 
-**DockerHub URL** : [https://hub.docker.com/r/a76yyyy/qiandao](https://hub.docker.com/r/a76yyyy/qiandao)
+**DockerHub URL** : [https://hub.docker.com/r/qdtoday/qd](https://hub.docker.com/r/qdtoday/qd)
 
 ### Deploy Method
 
@@ -27,21 +27,21 @@ docker-compose up -d
 
 > See [Configuration](#configuration-environment-variables) below for configuration description
 >
-> If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`a76yyyy/qiandao:lite-latest`** image, **this image only removes OCR related functions, other than the mainline version to keep consistent**.
+> If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`qdtoday/qd:lite-latest`** image, **this image only removes OCR related functions, other than the mainline version to keep consistent**.
 >
 > **Please don't use AliCloud image source to pull Docker container, it will not pull the latest image.**
 
 #### 2. Docker Run
 
 ``` sh
-docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config a76yyyy/qiandao
+docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config qdtoday/qd
 ```
 
 Try this command if you cannot connect to the external network inside the container:
 
 ``` sh
 # Create container using Host network mode, port: 8923
-docker run -d --name qd --env PORT=8923 --net=host -v $(pwd)/qd/config:/usr/src/app/config a76yyyy/qiandao
+docker run -d --name qd --env PORT=8923 --net=host -v $(pwd)/qd/config:/usr/src/app/config qdtoday/qd
 ```
 
 > Please note that after creating a container with this command, please change the api request of `http://localhost/` form in the template to `api://` or `http://localhost:8923/` manually in order to complete the related API request properly.

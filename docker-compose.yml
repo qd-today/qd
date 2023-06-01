@@ -2,8 +2,9 @@ version: "3"
 
 services:
   qd:
-    image: a76yyyy/qiandao:latest
-    # image: a76yyyy/qiandao:lite-latest
+    image: qdtoday/qd:latest
+    # image: qdtoday/qd:lite-latest # 精简版
+    # image: qdtoday/qd:dev # 开发版
     container_name: qd
     depends_on:
       - redis

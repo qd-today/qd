@@ -14,13 +14,13 @@ docker cp database.db container_name:/usr/src/app/config/
 ## how to configure the email server in Docker?
 
 ``` sh
-docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --env MAIL_SMTP=$STMP_Server_ --env MAIL_PORT=$Mailbox_server_port --env MAIL_USER=$Username --env MAIL_PASSWORD=$Password --env DOMAIN=$Domain a76yyyy/qiandao
+docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --env MAIL_SMTP=$STMP_Server_ --env MAIL_PORT=$Mailbox_server_port --env MAIL_USER=$Username --env MAIL_PASSWORD=$Password --env DOMAIN=$Domain qdtoday/qd
 ```
 
 ## how to use MySQL in Docker?
 
 ``` sh
-docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://$username:$password@$hostname:$port/$database_name?auth_plugin= a76yyyy/qiandao
+docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://$username:$password@$hostname:$port/$database_name?auth_plugin= qdtoday/qd
 ```
 
 ## how to build a Docker image by myself?

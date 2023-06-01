@@ -38,18 +38,18 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 [last-commit-url]: https://github.com/qd-today/qd/
 [commit-activity-image]: https://img.shields.io/github/commit-activity/m/qd-today/qd
 [commit-activity-url]: https://github.com/qd-today/qd/
-[docker-version-image]: https://img.shields.io/docker/v/a76yyyy/qiandao?style=flat
-[docker-version-url]: https://hub.docker.com/r/a76yyyy/qiandao/tags?page=1&ordering=last_updated
-[docker-pulls-image]: https://img.shields.io/docker/pulls/a76yyyy/qiandao?style=flat
-[docker-pulls-url]: https://hub.docker.com/r/a76yyyy/qiandao
-[docker-stars-image]: https://img.shields.io/docker/stars/a76yyyy/qiandao?style=flat
-[docker-stars-url]: https://hub.docker.com/r/a76yyyy/qiandao
-[docker-image-size-image]: https://img.shields.io/docker/image-size/a76yyyy/qiandao?style=flat
-[docker-image-size-url]: https://hub.docker.com/r/a76yyyy/qiandao
+[docker-version-image]: https://img.shields.io/docker/v/qdtoday/qd?style=flat
+[docker-version-url]: https://hub.docker.com/r/qdtoday/qd/tags?page=1&ordering=last_updated
+[docker-pulls-image]: https://img.shields.io/docker/pulls/qdtoday/qd?style=flat
+[docker-pulls-url]: https://hub.docker.com/r/qdtoday/qd
+[docker-stars-image]: https://img.shields.io/docker/stars/qdtoday/qd?style=flat
+[docker-stars-url]: https://hub.docker.com/r/qdtoday/qd
+[docker-image-size-image]: https://img.shields.io/docker/image-size/qdtoday/qd?style=flat
+[docker-image-size-url]: https://hub.docker.com/r/qdtoday/qd
 [repo-size-image]: https://img.shields.io/github/repo-size/qd-today/qd
 [python-version-image]: https://img.shields.io/github/pipenv/locked/python-version/qd-today/qd
-[workflow-image]: https://github.com/qd-today/qd/actions/workflows/Build%20Image.yml/badge.svg
-[workflow-url]: https://github.com/qd-today/qd/actions/workflows/Build%20Image.yml
+[workflow-image]: https://github.com/qd-today/qd/actions/workflows/Publish%20Package.yml/badge.svg
+[workflow-url]: https://github.com/qd-today/qd/actions/workflows/Publish%20Package.yml
 
 </div>
 
