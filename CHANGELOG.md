@@ -8,6 +8,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20230601] - 2023.06.01 更新
+
+### Features
+
+1. 添加 WebSocket 支持
+2. 公共模板更新前端使用 WebSocket 推送更新进度
+
+> **Tips: 反代用户需要进行 WebSocket 相关反代配置的设置或修改**
+
+### Changed
+
+1. 允许用户设置公共模板加速方式
+2. update requirements packages
+3. 前端 Query String Parameters 为空时自动修正 Request Url
+4. 优化 Code quality
+
+### Fixed
+
+1. Fix 前端 RequestURL 自动将变量进行编码
+2. Fix RequestUrl 丢失 QueryString 的 bug
+3. Fix Request Payload 内容丢失的bug
+4. Fix typo
+
 ## [20230518] - 2023.05.18 更新
 
 ### Features
