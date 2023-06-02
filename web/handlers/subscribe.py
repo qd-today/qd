@@ -111,6 +111,7 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
                                 else:
                                     logger_Web_Handler.error('Get repo {repo} history file failed! Reason: {link} open error!'.format(repo=repo['reponame'], link=hfile_link))
                                     await self.send_global_message({'code': 0, 'message': 'tpls_history.json 文件获取失败, 原因: 打开链接 {link} 出错!'.format(link=hfile_link)})
+                                    await self.send_global_message({'code': 0, 'message': 'HTTP 代码: {code}, 错误信息: {reason}'.format(code=res.status, reason=res.reason if res.reason else 'Unknown')})
                                     fail_count += 1
                                     continue
                             for har in hfile['har'].values():
@@ -134,6 +135,7 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
                                                 else:
                                                     logger_Web_Handler.error('Update {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['reponame'], name=har['name'], link=har_url))
                                                     await self.send_global_message({'code': 0, 'message': '模板: {name} 更新失败, 原因: 打开链接 {link} 出错!'.format(name=har['name'], link=har_url)})
+                                                    await self.send_global_message({'code': 0, 'message': 'HTTP 代码: {code}, 错误信息: {reason}'.format(code=har_res.status, reason=har_res.reason if har_res.reason else 'Unknown')})
                                                     fail_count += 1
                                                     continue
                                         har['update'] = True
@@ -150,6 +152,7 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
                                             else:
                                                 logger_Web_Handler.error('Add {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['reponame'], name=har['name'], link=har_url))
                                                 await self.send_global_message({'code': 0, 'message': '模板: {name} 添加失败, 原因: 打开链接 {link} 出错!'.format(name=har['name'], link=har_url)})
+                                                await self.send_global_message({'code': 0, 'message': 'HTTP 代码: {code}, 错误信息: {reason}'.format(code=har_res.status, reason=har_res.reason if har_res.reason else 'Unknown')})
                                                 fail_count += 1
                                                 continue
                                     await self.db.pubtpl.add(har, sql_session=sql_session)
@@ -177,11 +180,11 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
 
             if success:
                 if fail_count == 0:
-                    await self.close_all(1000, '更新成功, 请刷新页面查看.')
+                    await self.close_all(1000, 'Update success, please refresh your browser.')
                 else:
-                    await self.close_all(1006, '更新完成, 但有{0}个模板或文件更新失败.'.format(fail_count))
+                    await self.close_all(4001, 'Update success, but {0} templates update failed.'.format(fail_count))
             else:
-                await self.close_all(1006, '更新失败, 请检查失败原因!')
+                await self.close_all(4006, 'Update failed, please check failure reason.')
         except Exception as e:
             if config.traceback_print:
                 traceback.print_exc()
@@ -215,12 +218,12 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
         user = self.current_user
         # 判断用户是否已经登录
         if not user:
-            self.close(1008, 'Forbidden: user not login or cookie expired')
+            self.close(4403, 'Forbidden: user not login or cookie expired')
             return
 
         # 判断是否为当前用户
         if user['id'] != int(userid):
-            self.close(1008, 'Forbidden: userid not match with cookie, please check your cookie or login again')
+            self.close(4403, 'Forbidden: userid not match with cookie, please check your cookie or login again')
             return
 
         # 判断用户是否为管理员
@@ -229,7 +232,7 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
             adminflg = True
 
         if not adminflg and len(SubscribeUpdatingHandler.users) >= config.websocket.max_connections_subscribe:
-            self.close(1008, 'Too many connections, please wait for a moment')
+            self.close(4429, 'Too many connections, please wait for a moment')
             return
 
         # 判断用户是否已经在列表中
@@ -261,6 +264,10 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
         SubscribeUpdatingHandler.users = {}
 
 class SubscribeRefreshHandler(BaseHandler):
+    @tornado.web.authenticated
+    async def get(self, userid):
+        await self.post(userid)
+
     @tornado.web.authenticated
     async def post(self, userid):
         try:
