@@ -99,57 +99,62 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
                         await self.send_global_message({'code': 1000, 'message': '仓库地址: {url}'.format(url=url)})
 
                         hfile_link = url + '/tpls_history.json'
-                        async with aiohttp.ClientSession(conn_timeout=config.connect_timeout*5) as session:
+                        hfile= {'har': {}}
+                        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=config.connect_timeout*10, connect=config.connect_timeout*5)) as session:
+                            await asyncio.sleep(0.001)
                             async with session.get(hfile_link, verify_ssl=False, timeout=config.request_timeout, proxy=proxy) as res:
                                 if res.status == 200:
                                     hfile = await res.json(content_type="")
                                     logger_Web_Handler.info('200 Get repo {repo} history file success!'.format(repo=repo['reponame']))
                                     await self.send_global_message({'code': 1000, 'message': 'tpls_history.json 文件获取成功'})
-                                    for har in hfile['har'].values():
-                                        for k, v in repo.items():
-                                            har[k] = v
-                                        tpl = await self.db.pubtpl.list(name = har['name'],
-                                                                reponame=har['reponame'],
-                                                                repourl=har['repourl'],
-                                                                repobranch=har['repobranch'],
-                                                                fields=('id', 'name', 'version'),
-                                                                sql_session=sql_session)
-
-                                        if (len(tpl) > 0):
-                                            if (int(tpl[0]['version']) < int(har['version'])):
-                                                if (har['content'] == ''):
-                                                    har_url = "{0}/{1}".format(url, quote(har['filename']))
-                                                    async with session.get(har_url, verify_ssl=False, timeout=config.request_timeout, proxy=proxy) as har_res:
-                                                        if har_res.status == 200:
-                                                            har['content'] = base64.b64encode(await har_res.read()).decode()
-                                                        else:
-                                                            logger_Web_Handler.error('Update {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['reponame'], name=har['name'], link=har_url))
-                                                            await self.send_global_message({'code': 0, 'message': '模板: {name} 更新失败, 原因: 打开链接 {link} 出错!'.format(name=har['name'], link=har_url)})
-                                                            fail_count += 1
-                                                            continue
-                                                har['update'] = True
-                                                await self.db.pubtpl.mod(tpl[0]['id'], **har, sql_session=sql_session)
-                                                logger_Web_Handler.info('Update {repo} public template {name} success!'.format(repo=repo['reponame'], name=har['name']))
-                                                await self.send_global_message({'code': 1000, 'message': '模板: {name} 更新成功'.format(name=har['name'])})
-                                        else:
-                                            if (har['content'] == ''):
-                                                har_url = "{0}/{1}".format(url, quote(har['filename']))
-                                                async with session.get(har_url, verify_ssl=False, timeout=config.request_timeout, proxy=proxy) as har_res:
-                                                    if har_res.status == 200:
-                                                        har['content'] = base64.b64encode(await har_res.read()).decode()
-                                                    else:
-                                                        logger_Web_Handler.error('Add {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['reponame'], name=har['name'], link=har_url))
-                                                        await self.send_global_message({'code': 0, 'message': '模板: {name} 添加失败, 原因: 打开链接 {link} 出错!'.format(name=har['name'], link=har_url)})
-                                                        fail_count += 1
-                                                        continue
-                                            await self.db.pubtpl.add(har, sql_session=sql_session)
-                                            logger_Web_Handler.info('Add {repo} public template {name} success!'.format(repo=repo['reponame'], name=har['name']))
-                                            await self.send_global_message({'code': 1000, 'message': '模板: {name} 添加成功'.format(name=har['name'])})
 
                                 else:
                                     logger_Web_Handler.error('Get repo {repo} history file failed! Reason: {link} open error!'.format(repo=repo['reponame'], link=hfile_link))
                                     await self.send_global_message({'code': 0, 'message': 'tpls_history.json 文件获取失败, 原因: 打开链接 {link} 出错!'.format(link=hfile_link)})
                                     fail_count += 1
+                                    continue
+                            for har in hfile['har'].values():
+                                for k, v in repo.items():
+                                    har[k] = v
+                                tpl = await self.db.pubtpl.list(name = har['name'],
+                                                        reponame=har['reponame'],
+                                                        repourl=har['repourl'],
+                                                        repobranch=har['repobranch'],
+                                                        fields=('id', 'name', 'version'),
+                                                        sql_session=sql_session)
+
+                                if (len(tpl) > 0):
+                                    if (int(tpl[0]['version']) < int(har['version'])):
+                                        if (har['content'] == ''):
+                                            har_url = "{0}/{1}".format(url, quote(har['filename']))
+                                            await asyncio.sleep(0.001)
+                                            async with session.get(har_url, verify_ssl=False, timeout=config.request_timeout, proxy=proxy) as har_res:
+                                                if har_res.status == 200:
+                                                    har['content'] = base64.b64encode(await har_res.read()).decode()
+                                                else:
+                                                    logger_Web_Handler.error('Update {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['reponame'], name=har['name'], link=har_url))
+                                                    await self.send_global_message({'code': 0, 'message': '模板: {name} 更新失败, 原因: 打开链接 {link} 出错!'.format(name=har['name'], link=har_url)})
+                                                    fail_count += 1
+                                                    continue
+                                        har['update'] = True
+                                        await self.db.pubtpl.mod(tpl[0]['id'], **har, sql_session=sql_session)
+                                        logger_Web_Handler.info('Update {repo} public template {name} success!'.format(repo=repo['reponame'], name=har['name']))
+                                        await self.send_global_message({'code': 1000, 'message': '模板: {name} 更新成功'.format(name=har['name'])})
+                                else:
+                                    if (har['content'] == ''):
+                                        har_url = "{0}/{1}".format(url, quote(har['filename']))
+                                        await asyncio.sleep(0.001)
+                                        async with session.get(har_url, verify_ssl=False, timeout=config.request_timeout, proxy=proxy) as har_res:
+                                            if har_res.status == 200:
+                                                har['content'] = base64.b64encode(await har_res.read()).decode()
+                                            else:
+                                                logger_Web_Handler.error('Add {repo} public template {name} failed! Reason: {link} open error!'.format(repo=repo['reponame'], name=har['name'], link=har_url))
+                                                await self.send_global_message({'code': 0, 'message': '模板: {name} 添加失败, 原因: 打开链接 {link} 出错!'.format(name=har['name'], link=har_url)})
+                                                fail_count += 1
+                                                continue
+                                    await self.db.pubtpl.add(har, sql_session=sql_session)
+                                    logger_Web_Handler.info('Add {repo} public template {name} success!'.format(repo=repo['reponame'], name=har['name']))
+                                    await self.send_global_message({'code': 1000, 'message': '模板: {name} 添加成功'.format(name=har['name'])})
                         await self.send_global_message({'code': 1000, 'message': '-----更新 {repo} 模板仓库结束-----'.format(repo=repo['reponame'])})
             success = True
         except Exception as e:
