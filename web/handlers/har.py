@@ -20,6 +20,7 @@ from tornado import gen, httpclient
 from libs import json_typing, utils
 from libs.fetcher import Fetcher
 from libs.parse_url import parse_url
+from libs.safe_eval import safe_eval
 
 from .base import *
 
@@ -97,8 +98,22 @@ class HARTest(BaseHandler):
             tmp = {'env':data['env'],'rule':data['rule']}
             tmp['request'] = {'method': 'GET', 'url': 'api://util/unicode?content=', 'headers': [], 'cookies': []}
             req, rule, env = self.fetcher.build_request(tmp)
-            e = httpclient.HTTPError(405, "循环或条件控制语句不支持在单条请求中测试")
-            response = httpclient.HTTPResponse(request=req,code=e.code,reason=e.message,buffer=BytesIO(str(e).encode()))
+            if IF_START:
+                try:
+                    condition = safe_eval(IF_START.group(1),env['variables'])
+                except NameError:
+                    condition = False
+                except ValueError as e:
+                    if len(str(e)) > 20 and str(e)[:20] == "<class 'NameError'>:":
+                        condition = False
+                    else:
+                        raise e
+                condition = 'result: true' if condition else 'result: false'
+                condition += ', 此页面仅用于显示判断结果, 禁止在此页面提取变量'
+                response = httpclient.HTTPResponse(request=req,code=200,reason='OK',buffer=BytesIO(str(condition).encode()))
+            else:
+                e = httpclient.HTTPError(405, "循环或结束等控制语句不支持在单条请求中测试")
+                response = httpclient.HTTPResponse(request=req,code=e.code,reason=e.message,buffer=BytesIO(str(e).encode()))
             env['session'].extract_cookies_to_jar(response.request, response)
             success, _ = self.fetcher.run_rule(response, rule, env)
             result = {
