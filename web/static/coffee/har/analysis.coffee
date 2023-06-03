@@ -9,7 +9,9 @@ window.jinja_globals = [
     'b64encode', 'to_uuid', 'md5', 'sha1', 'password_hash', 'hash',
     'aes_encrypt', 'aes_decrypt', 'regex_replace', 'regex_escape',
     'regex_search', 'regex_findall', 'ternary', 'random', 'shuffle',
-    'mandatory', 'type_debug', 'dict', 'lipsum', 'range'
+    'mandatory', 'type_debug', 'dict', 'lipsum', 'range',
+    'loop_length', 'loop_first', 'loop_last', 'loop_index', 'loop_index0',
+    'loop_depth', 'loop_depth0', 'loop_revindex', 'loop_revindex0',
 ]
 jinja_globals = window.jinja_globals
 
