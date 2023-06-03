@@ -98,7 +98,22 @@ class HARTest(BaseHandler):
             tmp = {'env':data['env'],'rule':data['rule']}
             tmp['request'] = {'method': 'GET', 'url': 'api://util/unicode?content=', 'headers': [], 'cookies': []}
             req, rule, env = self.fetcher.build_request(tmp)
-            if IF_START:
+            if FOR_START:
+                _target = FOR_START.group(1)
+                _from_var = FOR_START.group(2)
+                _from = env['variables'].get(_from_var, [])
+                env['variables']['loop_index0'] = str(env['variables'].get('loop_index0', 0))
+                env['variables']['loop_index'] = str(env['variables'].get('loop_index', 1))
+                env['variables']['loop_first'] = str(env['variables'].get('loop_first', True))
+                env['variables']['loop_last'] = str(env['variables'].get('loop_last', False))
+                env['variables']['loop_length'] = str(env['variables'].get('loop_length', len(_from)))
+                env['variables']['loop_revindex0'] = str(env['variables'].get('loop_revindex0', len(_from)-1))
+                env['variables']['loop_revindex'] = str(env['variables'].get('loop_revindex', len(_from)))
+                if not isinstance(_from, list):
+                    raise Exception('for循环只支持列表类型及变量')
+                res = '循环内赋值变量: %s, 循环列表变量: %s, 循环次数: %s, \r\n循环列表内容: %s.\r\n此页面仅用于显示循环信息, 禁止在此页面提取变量' % (_target, _from_var, len(_from), _from)
+                response = httpclient.HTTPResponse(request=req,code=200,reason='OK',buffer=BytesIO(str(res).encode()))
+            elif IF_START:
                 try:
                     condition = safe_eval(IF_START.group(1),env['variables'])
                 except NameError:
@@ -108,7 +123,7 @@ class HARTest(BaseHandler):
                         condition = False
                     else:
                         raise e
-                condition = 'result: true' if condition else 'result: false'
+                condition = '判断结果: true' if condition else '判断结果: false'
                 condition += ', 此页面仅用于显示判断结果, 禁止在此页面提取变量'
                 response = httpclient.HTTPResponse(request=req,code=200,reason='OK',buffer=BytesIO(str(condition).encode()))
             else:
