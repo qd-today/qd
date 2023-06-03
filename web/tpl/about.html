@@ -482,6 +482,20 @@
       </tr>
 
       <tr>
+        <td>{% for value in range(start, stop, step) %}</td>
+        <td>开始一个基于 range 的 for 循环, <br>range() 为 Python 函数<br>start: 开始值, 默认为 0 <br>stop: 结束值, 默认为 0 <br>step: 步长, 默认为 1<br>value: 循环中的值, 可不预先定义</td>
+        <td>\</td>
+        <td class="autowrap">\</td>
+      </tr>
+
+      <tr>
+        <td>{% for value in list(variable) %}</td>
+        <td>开始一个基于 list 的 for 循环, <br>list() 为 Python 函数<br>variable: 要转换为列表的变量<br>value: 列表中的元素, 可不预先定义</td>
+        <td>\</td>
+        <td class="autowrap">\</td>
+      </tr>
+
+      <tr>
         <td>{{ loop_length }}</td>
         <td>当前循环的长度, <br>结果为字符串形式</td>
         <td>\</td>

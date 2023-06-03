@@ -14,6 +14,7 @@ import urllib
 import urllib.parse as urlparse
 from datetime import datetime
 from io import BytesIO
+from typing import Iterable
 
 from jinja2.sandbox import SandboxedEnvironment as Environment
 from tornado import gen, httpclient, simple_httpclient
@@ -543,7 +544,7 @@ class Fetcher(object):
             'msg': msg,
             }
 
-    FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}')
+    FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}')
     IF_START = re.compile('{%\s*if\s+(.+)\s*%}')
     ELSE_START = re.compile('{%\s*else\s*%}')
     PARSE_END = re.compile('{%\s*end(for|if)\s*%}')
@@ -620,12 +621,17 @@ class Fetcher(object):
                 raise Exception('request limit')
             elif block['type'] == 'for':
                 support_enum = False
-                _from = env['variables'].get(block['from'], [])
+                _from_var = block['from']
+                _from = env['variables'].get(_from_var, [])
                 try:
-                    enumerate(_from)
+                    if isinstance(_from_var, str) and _from_var.startswith('list(') or _from_var.startswith('range('):
+                        _from = safe_eval(_from_var, env['variables'])
+                    if not isinstance(_from, Iterable):
+                        raise Exception('for循环只支持可迭代类型及变量')
                     support_enum = True
-                except:
-                    pass
+                except Exception as e:
+                    if config.debug:
+                        logger_Fetcher.exception(e)
                 if support_enum:
                     env['variables']['loop_length'] = str(len(_from))
                     env['variables']['loop_depth'] = str(int(env['variables'].get('loop_depth', '0')) + 1)

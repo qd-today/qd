@@ -11,6 +11,7 @@ import json
 import re
 import time
 from io import BytesIO
+from typing import Iterable
 
 import umsgpack
 from jinja2 import Environment, meta
@@ -90,7 +91,7 @@ class HARTest(BaseHandler):
         except Exception as e:
             logger_Web_Handler.debug('HARTest Replace error: %s' % e)
         data: json_typing.HARTest = json.loads(self.request.body)
-        FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}').match(data['request']['url'])
+        FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}').match(data['request']['url'])
         IF_START = re.compile('{%\s*if\s+(.+)\s*%}').match(data['request']['url'])
         ELSE_START = re.compile('{%\s*else\s*%}').match(data['request']['url'])
         PARSE_END = re.compile('{%\s*end(for|if)\s*%}').match(data['request']['url'])
@@ -102,6 +103,13 @@ class HARTest(BaseHandler):
                 _target = FOR_START.group(1)
                 _from_var = FOR_START.group(2)
                 _from = env['variables'].get(_from_var, [])
+                try:
+                    if _from_var.startswith('list(') or _from_var.startswith('range('):
+                        _from = safe_eval(_from_var, env['variables'])
+                    if not isinstance(_from, Iterable):
+                        raise Exception('for循环只支持可迭代类型及变量')
+                except Exception as e:
+                    raise e
                 env['variables']['loop_index0'] = str(env['variables'].get('loop_index0', 0))
                 env['variables']['loop_index'] = str(env['variables'].get('loop_index', 1))
                 env['variables']['loop_first'] = str(env['variables'].get('loop_first', True))
@@ -109,9 +117,7 @@ class HARTest(BaseHandler):
                 env['variables']['loop_length'] = str(env['variables'].get('loop_length', len(_from)))
                 env['variables']['loop_revindex0'] = str(env['variables'].get('loop_revindex0', len(_from)-1))
                 env['variables']['loop_revindex'] = str(env['variables'].get('loop_revindex', len(_from)))
-                if not isinstance(_from, list):
-                    raise Exception('for循环只支持列表类型及变量')
-                res = '循环内赋值变量: %s, 循环列表变量: %s, 循环次数: %s, \r\n循环列表内容: %s.\r\n此页面仅用于显示循环信息, 禁止在此页面提取变量' % (_target, _from_var, len(_from), _from)
+                res = '循环内赋值变量: %s, 循环列表变量: %s, 循环次数: %s, \r\n循环列表内容: %s.\r\n此页面仅用于显示循环信息, 禁止在此页面提取变量' % (_target, _from_var, len(_from), str(list(_from)))
                 response = httpclient.HTTPResponse(request=req,code=200,reason='OK',buffer=BytesIO(str(res).encode()))
             elif IF_START:
                 try:
@@ -170,6 +176,7 @@ class HARSave(BaseHandler):
     def get_variables(env, tpl):
         variables = set()
         extracted = set(utils.jinja_globals.keys())
+        loop_extracted = set(('loop_index0', 'loop_index', 'loop_first', 'loop_last', 'loop_length', 'loop_revindex0', 'loop_revindex', 'loop_depth', 'loop_depth0'))
         for entry in tpl:
             req = entry['request']
             rule = entry['rule']
@@ -194,7 +201,7 @@ class HARSave(BaseHandler):
                 _get(cookie, 'name')
                 _get(cookie, 'value')
 
-            variables.update(var - extracted)
+            variables.update(var - extracted - loop_extracted)
             extracted.update(set(x['name'] for x in rule.get('extract_variables', [])))
         return variables
 
