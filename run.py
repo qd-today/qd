@@ -2,19 +2,27 @@
 # vim:fenc=utf-8
 #
 # Copyright © 2016 Binux <roy@binux.me>
+
 import asyncio
 import json
+import logging
 import os
 import platform
 import sys
 
 import tornado.log
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop, PeriodicCallback
 
 import config
-from db import db_converter
+from db import DB, db_converter
+from db.basedb import engine
 from libs.log import Log
+from web.app import Application
+from worker import BatchWorker, QueueWorker
 
-if __name__ == "__main__":
+
+def start_server():
     if sys.getdefaultencoding() != 'utf-8':
         import importlib
         importlib.reload(sys)
@@ -23,7 +31,6 @@ if __name__ == "__main__":
     logger_QD = Log('QD.Run').getlogger()
 
     if config.debug:
-        import logging
         channel = logging.StreamHandler(sys.stderr)
         channel.setFormatter(tornado.log.LogFormatter())
         channel.setLevel(logging.WARNING)
@@ -46,8 +53,6 @@ if __name__ == "__main__":
         config.autoreload = False
 
     try:
-        from db import DB
-        from db.basedb import engine
         database = DB()
         converter = db_converter.DBconverter(database)
         loop = asyncio.new_event_loop()
@@ -55,9 +60,6 @@ if __name__ == "__main__":
         run = asyncio.ensure_future(converter.ConvertNewType(database) , loop=loop)
         loop.run_until_complete(run)
 
-        from tornado.httpserver import HTTPServer
-
-        from web.app import Application
         default_version = json.load(open(os.path.join(os.path.dirname(__file__), 'version.json'),'r', encoding='utf-8'))['version']
         App= Application(database, default_version)
         http_server = HTTPServer(App, xheaders=True)
@@ -67,9 +69,6 @@ if __name__ == "__main__":
         else:
             http_server.start()
 
-        from tornado.ioloop import IOLoop, PeriodicCallback
-
-        from worker import BatchWorker, QueueWorker
         io_loop = IOLoop.instance()
         try:
             if config.worker_method.upper() == 'QUEUE':
@@ -94,3 +93,6 @@ if __name__ == "__main__":
         loop.run_until_complete(run)
         logger_QD.info("Http Server is ended. ")
 
+
+if __name__ == "__main__":
+    start_server()

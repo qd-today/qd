@@ -5,14 +5,16 @@
 #         http://binux.me
 # Created on 2014-08-18 12:17:21
 
-import functools
+import asyncio
 import json
 import sys
 
-from tornado.ioloop import IOLoop
+import config
 
+config.display_import_warning = False
 from libs.fetcher import Fetcher
 from libs.log import Log
+from run import start_server
 
 logger_QD = Log('QD').getlogger()
 
@@ -51,7 +53,7 @@ if __name__ == '__main__':
         except Exception as e:
             logger_QD.error(e)
             usage()
-    if 'variables' not in env or not isinstance(env['variables'], dict)\
+    if 'variables' not in env or not isinstance(env['variables'], dict) \
             or 'session' not in env:
         env = {
                 'variables': env,
@@ -59,19 +61,53 @@ if __name__ == '__main__':
                 }
     env['variables'].update(variables)
 
-    # do fetch
-    ioloop = IOLoop.instance()
-    def ioloop_stop(x):
-        ioloop.stop()
+    # 判断 端口 是否被占用
+    import re
+    import socket
+    def check_port(port):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.connect(('127.0.0.1', port))
+            s.shutdown(2)
+            logger_QD.debug('Port %s is used' % port)
+            return False
+        except:
+            logger_QD.debug('Port %s is available' % port)
+            return True
+    manual_start = check_port(config.port)
+    if manual_start:
+        logger_QD.info('QD service is not running on port %s' % config.port)
+        logger_QD.info('QD service will be started on port %s' % config.port)
+        # 创建新进程, 以执行 run 中的 main 异步函数
+        import multiprocessing
+        p = multiprocessing.Process(target=start_server)
+        p.start()
+        # 循环检测端口是否被占用, 如果被占用, 则继续下一步
+        while True:
+            if not check_port(config.port):
+                break
+            else:
+                import time
+                time.sleep(1)
+    else:
+        logger_QD.info('QD service is running on port %s' % config.port)
 
-    fetcher = Fetcher()
-    result = fetcher.do_fetch(tpl, env)
-    ioloop.add_future(result, ioloop_stop)
-    ioloop.start()
+    # do fetch
+    ioloop = asyncio.new_event_loop()
+    asyncio.set_event_loop(ioloop)
+    result:asyncio.Task = asyncio.ensure_future(Fetcher().do_fetch(tpl, env), loop=ioloop)
+    logger_QD.info('QD start to do fetch: %s' % tpl_file)
+    ioloop.run_until_complete(result)
+    ioloop.stop()
 
     try:
         result = result.result()
     except Exception as e:
         print('QD failed!', e)
     else:
-        print('QD success!', result.get('variables', {}).get('__log__', '').replace('\\r\\n','\r\n'))
+        print('QD success! Results:\n', result.get('variables', {}).get('__log__', '').replace('\\r\\n','\r\n'))
+
+    if manual_start:
+        p.terminate()
+        p.join()
+        logger_QD.info('QD service is ended. ')
