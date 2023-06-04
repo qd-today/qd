@@ -6,16 +6,14 @@
 # Created on 2012-09-12 22:39:57
 # form requests&tornado
 
-try:
-    from collections import MutableMapping as DictMixin
-except ImportError:
-    from collections.abc import MutableMapping as DictMixin
-
 import http.cookiejar as cookielib
-from urllib.parse import urlparse
+import time
+from http.cookiejar import (_warn_unhandled_exception, parse_ns_headers,
+                            split_header_words)
 
-from requests.cookies import MockRequest, create_cookie, remove_cookie_by_name
-from tornado import httpclient, httputil
+from requests.cookies import (MockRequest, MockResponse, RequestsCookieJar,
+                              get_cookie_header)
+from tornado import httpclient
 
 import config
 
@@ -25,7 +23,8 @@ logger_CookieJar = Log('QD.Http.CookieJar').getlogger()
 def _debug(*args):
     if not config.debug:
         return
-    return logger_CookieJar.debug(*args)
+    return logger_CookieJar.debug(*args, stacklevel=2)
+cookielib._debug = _debug
 
 def dump_cookie(cookie):
     result = {}
@@ -35,31 +34,16 @@ def dump_cookie(cookie):
     result['rest'] = cookie._rest
     return result
 
-class MockResponse(object):
-    """Wraps a `tornado.httputil.HTTPHeaders` to mimic a `urllib.addinfourl`.
-    ...what? Basically, expose the parsed HTTP headers from the server response
-    the way `cookielib` expects to see them.
-    """
 
-    def __init__(self, headers):
-        """Make a MockResponse for `cookielib` to read.
-        :param headers: a httplib.HTTPMessage or analogous carrying the headers
-        """
-        self._headers = headers
-
-    def info(self):
-        return self._headers
-
-    def getheaders(self, name):
-        self._headers.get_list(name)
-
-class CookieSession(cookielib.CookieJar, DictMixin):
-    def extract_cookies_to_jar(self, request, response):
+class CookieSession(RequestsCookieJar):
+    def extract_cookies_to_jar(self,
+                               request: httpclient.HTTPRequest,
+                               response: httpclient.HTTPResponse):
         """Extract the cookies from the response into a CookieJar.
 
         :param jar: cookielib.CookieJar (not necessarily a RequestsCookieJar)
         :param request: our own requests.Request object
-        :param response: urllib3.HTTPResponse object
+        :param response: tornado.httpclient.HTTPResponse object
         """
         # if not (hasattr(response, '_original_response') and
         #         response._original_response):
@@ -75,22 +59,7 @@ class CookieSession(cookielib.CookieJar, DictMixin):
         res = MockResponse(headers)
         self.extract_cookies(res, req)
 
-    def extract_cookies(self, response, request):
-        """Extract cookies from response, where allowable given the request."""
-        _debug("extract_cookies: %s", response.info())
-        self._cookies_lock.acquire()
-        try:
-            for cookie in self.make_cookies(response, request):
-                if self._policy.set_ok(cookie, request):
-                    _debug(" setting cookie: %s", cookie)
-                    self.set_cookie(cookie)
-        finally:
-            self._cookies_lock.release()
-
     def make_cookies(self, response, request):
-        import time
-        from http.cookiejar import (_warn_unhandled_exception,
-                                    parse_ns_headers, split_header_words)
         """Return sequence of Cookie objects extracted from response object."""
         # get cookie-attributes for RFC 2965 and Netscape protocols
         headers = response.info()
@@ -145,15 +114,9 @@ class CookieSession(cookielib.CookieJar, DictMixin):
 
         return cookies
 
-    def get_cookie_header(self, request):
-        """Produce an appropriate Cookie header string to be sent with `request`, or None."""
-        r = MockRequest(request)
-        self.add_cookie_header(r)
-        return r.get_new_headers().get('Cookie')
-
     def from_json(self, data):
         for cookie in data:
-            self.set_cookie(create_cookie(**cookie))
+            self.set(**cookie)
 
     def to_json(self):
         result = []
@@ -169,38 +132,11 @@ class CookieSession(cookielib.CookieJar, DictMixin):
                 return cookie.value
         raise KeyError(name)
 
-    def __setitem__(self, name, value):
-        if value is None:
-            remove_cookie_by_name(self, name)
-        else:
-            self.set_cookie(create_cookie(name, value))
-
-    def __delitem__(self, name):
-        remove_cookie_by_name(self, name)
-
-    def keys(self):
-        result = []
-        for cookie in cookielib.CookieJar.__iter__(self):
-            result.append(cookie.name)
-        return result
-
     def to_dict(self):
         result = {}
         for key in self.keys():
             result[key] = self.get(key)
         return result
 
-class CookieTracker:
-    def __init__(self):
-        self.headers = httputil.HTTPHeaders()
-
-    def get_header_callback(self):
-        _self = self
-        def header_callback(header):
-            header = header.strip()
-            if header.starswith("HTTP/"):
-                return
-            if not header:
-                return
-            _self.headers.parse_line(header)
-        return header_callback
+    def get_cookie_header(self, req):
+        return get_cookie_header(self, req)

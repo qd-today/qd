@@ -15,7 +15,7 @@ def my_status(task):
         return u'停止'
     if task['last_failed_count']:
         return u'已失败%d次，重试中...' % task['last_failed_count']
-    if task['last_failed'] and task['last_failed'] > task['last_success']:
+    if (task['last_failed'] or 0) > (task['last_success'] or 0):
         return u'失败'
     if task['success_count'] == 0 and task['failed_count'] == 0 and task['next'] and (task['next'] - time.time() < 60):
         return u'正在准备执行任务'
