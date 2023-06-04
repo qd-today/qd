@@ -45,11 +45,11 @@
       cookie_input = angular.element($this.parent().find('input'));
       if ($('body').attr('get-cookie') !== 'true') {
         // $this.html('没有插件，详情F12')
-        // console.log('如需要插件请访问https://github.com/ckx000/get-cookies/下载并手动安装插件')
+        // console.log('如需要插件请访问 https://github.com/qd-today/get-cookies/ 下载并手动安装插件')
         if ($this.attr('getmod') === 1) {
-          $this.attr('href', 'https://github.com/ckx000/get-cookies/').attr('target', '_blank').html('安装后请刷新');
+          $this.attr('href', 'https://github.com/qd-today/get-cookies/').attr('target', '_blank').html('安装插件后请刷新');
         } else {
-          $this.attr('getmod', 1).html('再次点击前往安装GetCookie插件');
+          $this.attr('getmod', 1).html('再次点击前往安装 Get-Cookies 插件');
         }
       }
     });
@@ -66,7 +66,7 @@
         cookie_str += key + '=' + value + '; ';
       }
       if (cookie_str === '') {
-        console.log('没有获得cookie，您是否已经登录？');
+        console.log('没有获得cookie, 您是否已经登录?');
         return;
       }
       if (cookie_input != null) {
