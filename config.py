@@ -20,6 +20,7 @@ queue_num = int(os.getenv('QUEUE_NUM', 50))                                 # �
 worker_method = str(os.getenv('WORKER_METHOD','Queue')).upper()             # 任务定时执行方式, 默认为 Queue, 可选 Queue 或 Batch, Batch 模式为旧版定时任务执行方式, 性能较弱, 建议仅当定时执行失效时使用
 https = bool(strtobool(os.getenv('ENABLE_HTTPS', 'False')))                 # 发送的邮件链接启用HTTPS, 非框架自身HTTPS开关, 需要HTTPS请使用外部反向代理
 accesslog = bool(strtobool(os.getenv('ACCESS_LOG', 'True')))                # 是否输出Access Log
+display_import_warning = bool(strtobool(os.getenv('DISPLAY_IMPORT_WARNING', 'True')))    # 是否显示导入模组失败或 Redis 连接失败的警告
 
 # 发送邮件及微信推送内链接域名, 如果是通过IP+端口Port方式请正确输入`IP:Port`
 domain = os.getenv('DOMAIN', 'qiandao.today')                               # 指定域名, 建议修改, 不然邮件重置密码之类的功能无效

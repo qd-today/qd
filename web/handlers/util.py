@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import base64
 import datetime
 import json
 import os
@@ -9,28 +10,25 @@ import time
 import traceback
 import urllib
 
-import pytz
-
-from libs.log import Log
-
-logger_Web_Util = Log('QD.Web.Util').getlogger()
-try:
-    import ddddocr
-except ImportError as e:
-    logger_Web_Util.warning('Import DdddOCR module falied: \"%s\". \nTips: This warning message is only for prompting, it will not affect running of QD framework.', e)
-    ddddocr = None
-import base64
-
 import aiohttp
+import pytz
 from Crypto import Random
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from tornado import gen
 
 from config import delay_max_timeout, strtobool
+from libs.log import Log
 
 from .base import *
 
+logger_Web_Util = Log('QD.Web.Util').getlogger()
+try:
+    import ddddocr
+except ImportError as e:
+    if config.display_import_warning:
+        logger_Web_Util.warning('Import DdddOCR module falied: \"%s\". \nTips: This warning message is only for prompting, it will not affect running of QD framework.', e)
+    ddddocr = None
 
 def request_parse(req_data):
     '''解析请求数据并以json形式返回'''

@@ -32,7 +32,8 @@ if config.use_pycurl:
     try:
         import pycurl
     except ImportError as e:
-        logger_Fetcher.warning('Import PyCurl module falied: \"%s\". \nTips: This warning message is only for prompting, it will not affect running of QD framework.',e)
+        if config.display_import_warning:
+            logger_Fetcher.warning('Import PyCurl module falied: \"%s\". \nTips: This warning message is only for prompting, it will not affect running of QD framework.',e)
         pycurl = None
 else:
     pycurl = None
