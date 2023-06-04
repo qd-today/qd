@@ -1,0 +1,1 @@
+import{_ as s,o as a,c as e,V as o}from"./chunks/framework.40f7bea3.js";const u=JSON.parse('{"title":"Update","description":"","frontmatter":{},"headers":[],"relativePath":"guide/update.md","filePath":"guide/update.md"}'),t={name:"guide/update.md"},n=o("",10),p=[n];function l(c,r,d,i,y,C){return a(),e("div",null,p)}const m=s(t,[["render",l]]);export{u as __pageData,m as default};
