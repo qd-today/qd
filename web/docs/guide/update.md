@@ -12,6 +12,14 @@
    sh ./update.sh
    ```
 
+## Docker Compose Deployment Update
+
+   ``` sh
+   # First cd to the directory of docker-compose.yml, execute the command and restart the container
+   docker compose pull && \
+   docker compose up -d
+   ```
+
 ## Docker Container Deployment Update
 
    ``` sh
@@ -24,6 +32,7 @@
 
    ``` sh
    # First cd to the root directory of code, execute the command and restart the process
+   # docker exec -it "container name" /bin/sh
    wget https://gitee.com/a76yyyy/qiandao/raw/master/update.sh -O ./update.sh && \
    sh ./update.sh -f
    ```

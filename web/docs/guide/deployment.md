@@ -10,6 +10,14 @@ Docker Container Deployment is the easiest way to deploy QD.
 
 **DockerHub URL** : [https://hub.docker.com/r/qdtoday/qd](https://hub.docker.com/r/qdtoday/qd)
 
+> Tag meaning:
+>
+> - `latest`: Latest Release version
+> - `lite-latest`: Latest Release version without OCR related functions
+> - `ja3-latest`: Integrated curl-impersonate to solve the problem that ja3 fingerprint is identified as curl, does not support http3 and Quic connection
+> - `20xxxxxx`: Specify Release version, version number is represented by Release release date
+> - `dev`: Latest development version, synchronized with the latest source code, no stability guarantee
+
 ### Deploy Method
 
 #### 1. Docker Compose (Recommend)

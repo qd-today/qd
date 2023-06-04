@@ -10,6 +10,14 @@ Docker 容器部署是部署 QD 的最简单方式。
 
 **DockerHub 网址**：[https://hub.docker.com/r/qdtoday/qd](https://hub.docker.com/r/qdtoday/qd)
 
+> Tag 含义:
+>
+> - `latest`: 最新 Release 版本
+> - `lite-latest`: 去除 OCR 相关功能的最新 Release 版本
+> - `ja3-latest`: 集成 curl-impersonate 解决 ja3 指纹被识别为 curl 的问题, 不支持 http3 和 Quic 连接
+> - `20xxxxxx`: 指定 Release 版本, 版本号表示为 Release 发布日期
+> - `dev`: 最新开发版, 同步最新源码, 不保证稳定性
+
 ### 部署方法
 
 #### 1. Docker Compose（推荐）
