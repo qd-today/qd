@@ -15,11 +15,11 @@
   </select>
   <div id='ontime_content' {% if ontime.mode == 'ontime' %} style="display: block;" {% else %} style="display: none;" {% endif %}>
     <div name="ontime readme">
-      <label class="control-label">签到起始日期, 定时执行周期为 24 小时：</label>
+      <label class="control-label">定时任务起始日期, 定时执行周期为 24 小时：</label>
     </div>
     <input id="ontime_run_date" type="date" min="{{today_date}}" value="{{today_date}}">
     <div name="ontime readme">
-      <label class="control-label">签到定时任务执行时间：</label>
+      <label class="control-label">定时任务执行时间：</label>
     </div>
     <input type="time" id="ontime_val" value="{{ ontime.time }}" name='ontimevalue', step="1" />
   </div>
@@ -58,7 +58,7 @@
         document.getElementById('cron_content').style.display='none';
         document.getElementById('randtime_content').style.display='none';
       }
-  
+
       return false;
     });
   </script>

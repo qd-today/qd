@@ -5,11 +5,12 @@
 #         http://binux.me
 # Created on 2014-08-09 11:39:25
 
+import base64
 import datetime
 import json
 import time
 
-from tornado import gen
+from tornado import gen, iostream
 
 try:
     import aiofiles
@@ -18,6 +19,7 @@ except:
     aio_import = False
 import os
 import re
+import sqlite3
 import traceback
 
 from Crypto.Hash import MD5
@@ -47,7 +49,7 @@ class UserRegPush(BaseHandler):
     @tornado.web.authenticated
     async def get(self, userid):
         await self.render('user_register_pusher.html', userid=userid)
-    
+
     @tornado.web.authenticated
     async def post(self, userid):
         envs = {}
@@ -66,7 +68,7 @@ class UserRegPush(BaseHandler):
             try:
                 async with self.db.transaction() as sql_session:
                     if (barkurl != ""):
-                        if (barkurl[-1] != '/'): 
+                        if (barkurl[-1] != '/'):
                             barkurl=barkurl+'/'
                         await self.db.user.mod(userid, barkurl = barkurl,sql_session=sql_session)
                         if ((await self.db.user.get(userid, fields=('barkurl',), sql_session=sql_session))["barkurl"] == barkurl):
@@ -84,7 +86,7 @@ class UserRegPush(BaseHandler):
                             log = log+u"注册 S酱 失败\r\n"
                     else:
                         log = log+u"Sendkey 未填写完整\r\n"
-                        
+
                     if  (wxpusher_token != ""):
                         await self.db.user.mod(userid, wxpusher = wxpusher_token, sql_session=sql_session)
                         if ((await self.db.user.get(userid, fields=('wxpusher',), sql_session=sql_session))["wxpusher"] == wxpusher_token):
@@ -120,7 +122,7 @@ class UserRegPush(BaseHandler):
                             log = log+u"注册 DingDing Bot 失败\r\n"
                     else:
                         log = log+u"DingDing Bot 未填写完整\r\n"
-                        
+
                     if (qywx_webhook != ""):
                         await self.db.user.mod(userid, qywx_webhook = qywx_webhook, sql_session=sql_session)
                         if ((await self.db.user.get(userid, fields=('qywx_webhook',), sql_session=sql_session))["qywx_webhook"] == qywx_webhook):
@@ -136,13 +138,13 @@ class UserRegPush(BaseHandler):
                 await self.render('tpl_run_failed.html', log=str(e))
                 logger_Web_Handler.error('UserID: %s register Pusher_info failed! Reason: %s', userid or '-1', str(e))
                 return
-            
+
             await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
             return
 
         else:
             try:
-                f = pusher()
+                f = pusher(self.db)
                 t = datetime.datetime.now().strftime('%y-%m-%d %H:%M:%S')
 
                 if (barkurl != ""):
@@ -171,7 +173,7 @@ class UserRegPush(BaseHandler):
                         log = log+u"WxPusher 推送失败, 失败原因: {}\r\n".format(r)
                 else:
                     log = log+u"WxPusher 未填写完整\r\n"
-                
+
                 if (qywx_token != ""):
                     r = await f.qywx_pusher_send(qywx_token, "正在测试企业微信 Pusher", u"{t} 发送测试".format(t=t))
                     if r == 'True':
@@ -198,7 +200,7 @@ class UserRegPush(BaseHandler):
                         log = log+u"DingDing Bot 推送失败, 失败原因: {}\r\n".format(r)
                 else:
                     log = log+u"DingDing Bot 未填写完整\r\n"
-                    
+
                 if (qywx_webhook != ""):
                     r = await f.qywx_webhook_send(qywx_webhook, "正在测试企业微信 Webhook", u"{t} 发送测试".format(t=t))
                     if r == 'True':
@@ -230,13 +232,13 @@ class UserRegPushSw(BaseHandler):
         push_batch['time']=time.strftime("%H:%M:%S",time.localtime(int(push_batch['time'])))
         temp = temp['noticeflg']
         flg = {}
-        flg['handpush_succ'] = False if ((temp & 0x008) == 0) else True 
-        flg['handpush_fail'] = False if ((temp & 0x004) == 0) else True 
-        flg['autopush_succ'] = False if ((temp & 0x002) == 0) else True 
+        flg['handpush_succ'] = False if ((temp & 0x008) == 0) else True
+        flg['handpush_fail'] = False if ((temp & 0x004) == 0) else True
+        flg['autopush_succ'] = False if ((temp & 0x002) == 0) else True
         flg['autopush_fail'] = False if ((temp & 0x001) == 0) else True
-        
-        flg['barksw']        = False if ((temp & 0x040) == 0) else True 
-        flg['schansw']       = False if ((temp & 0x020) == 0) else True 
+
+        flg['barksw']        = False if ((temp & 0x040) == 0) else True
+        flg['schansw']       = False if ((temp & 0x020) == 0) else True
         flg['wxpushersw']    = False if ((temp & 0x010) == 0) else True
         flg['mailpushersw']  = False if ((temp & 0x080) == 0) else True
         flg['cuspushersw']   = False if ((temp & 0x100) == 0) else True
@@ -248,7 +250,7 @@ class UserRegPushSw(BaseHandler):
         if 'schanEN' not in logtime:logtime['schanEN'] = False
         if 'WXPEn' not in logtime:logtime['WXPEn'] = False
         if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0
-        
+
 
         await self.render('user_register_pushsw.html', userid=userid, flg=flg, tasks=tasks, logtime=logtime, push_batch=push_batch)
 
@@ -269,7 +271,7 @@ class UserRegPushSw(BaseHandler):
                 for key in self.request.body_arguments:
                     envs[key] = self.get_body_arguments(key)
                 env = json.loads(envs['env'][0])
-                
+
                 logtime = json.loads((await self.db.user.get(userid, fields=('logtime',), sql_session=sql_session))['logtime'])
                 if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0
                 if (logtime['ErrTolerateCnt'] != int(env['ErrTolerateCnt'])):
@@ -289,20 +291,20 @@ class UserRegPushSw(BaseHandler):
                     push_batch["delta"] = 86400
                 await self.db.user.mod(userid, push_batch=json.dumps(push_batch), sql_session=sql_session)
 
-                barksw_flg        = 1 if ("barksw" in env) else 0 
-                schansw_flg       = 1 if ("schansw" in env) else 0 
+                barksw_flg        = 1 if ("barksw" in env) else 0
+                schansw_flg       = 1 if ("schansw" in env) else 0
                 wxpushersw_flg    = 1 if ("wxpushersw" in env) else 0
                 mailpushersw_flg  = 1 if ("mailpushersw" in env) else 0
                 cuspushersw_flg  = 1 if ("cuspushersw" in env) else 0
-                qywxpushersw_flg  = 1 if ("qywxpushersw" in env) else 0 
-                tgpushersw_flg  = 1 if ("tgpushersw" in env) else 0 
-                dingdingpushersw_flg  = 1 if ("dingdingpushersw" in env) else 0 
+                qywxpushersw_flg  = 1 if ("qywxpushersw" in env) else 0
+                tgpushersw_flg  = 1 if ("tgpushersw" in env) else 0
+                dingdingpushersw_flg  = 1 if ("dingdingpushersw" in env) else 0
                 qywxwebhooksw_flg  = 1 if ("qywxwebhooksw" in env) else 0
                 handpush_succ_flg = 1 if ("handpush_succ" in env) else 0
                 handpush_fail_flg = 1 if ("handpush_fail" in env) else 0
                 autopush_succ_flg = 1 if ("autopush_succ" in env) else 0
                 autopush_fail_flg = 1 if ("autopush_fail" in env) else 0
-                
+
                 flg = (qywxwebhooksw_flg << 12) \
                     | (dingdingpushersw_flg << 11) \
                     | (tgpushersw_flg << 10) \
@@ -316,19 +318,19 @@ class UserRegPushSw(BaseHandler):
                     | (handpush_fail_flg << 2) \
                     | (autopush_succ_flg << 1) \
                     | (autopush_fail_flg)
-                
-                for e in env:          
+
+                for e in env:
                     temp = re.findall(r"(.+?)pushen", e)
                     if len(temp) > 0:
                         taskid = int(temp[0])
                         for task in tasks:
                             if (taskid == task["id"]):
                                 task['pushsw']["pushen"] = True
-                                
+
                 await self.db.user.mod(userid, noticeflg=flg, sql_session=sql_session)
                 for task in tasks:
                     await self.db.task.mod(task["id"], pushsw=json.dumps(task['pushsw']), sql_session=sql_session)
-                
+
         except Exception as e:
             if config.traceback_print:
                 traceback.print_exc()
@@ -337,7 +339,7 @@ class UserRegPushSw(BaseHandler):
             return
         await self.render('utils_run_result.html', log=u"设置完成", title=u'设置成功', flg='success')
         return
-    
+
 class UserManagerHandler(BaseHandler):
     @tornado.web.authenticated
     async def get(self, userid):
@@ -402,10 +404,10 @@ class UserManagerHandler(BaseHandler):
                                     for tpl in await self.db.tpl.list(fields=('id', 'userid'), limit=None, sql_session=sql_session):
                                         if tpl['userid'] == int(sub_user):
                                             await self.db.tpl.delete(tpl['id'], sql_session=sql_session)
-                                            
+
                                     for notepad in await self.db.notepad.list(fields=('userid','notepadid'), limit=None, userid=sub_user, sql_session=sql_session):
                                         await self.db.notepad.delete(sub_user, notepad['notepadid'], sql_session=sql_session)
-                                    
+
                                     await self.db.user.delete(sub_user, sql_session=sql_session)
                     else:
                         raise Exception(u"账号/密码错误")
@@ -426,10 +428,10 @@ class UserDBHandler(BaseHandler):
         adminflg = False
         user = await self.db.user.get(userid, fields=('role',))
         if user and user['role'] == "admin":
-            adminflg = True 
+            adminflg = True
         await self.render("DB_manage.html", userid=userid, adminflg=adminflg)
         return
-    
+
     @tornado.web.authenticated
     async def post(self, userid):
         try:
@@ -449,23 +451,54 @@ class UserDBHandler(BaseHandler):
                                 raise Exception(u"抱歉，暂不支持通过本页面备份MySQL数据！ﾍ(;´Д｀ﾍ)")
                             filename = config.sqlite3.path
                             savename = "database_{now}.db".format(now=now)
-                            self.set_header ('Content-Type', 'application/octet-stream')
-                            self.set_header ('Content-Disposition', 'attachment; filename='+savename)
                             if not aio_import:
-                                raise Exception(u"更新容器后请先重启容器!") 
-                            async with aiofiles.open(filename, 'rb') as f:
-                                while True:
-                                    data = await f.read(1024)
-                                    if not data:
-                                        break
-                                    self.write(data)
-                                    self.flush()
-                            await self.finish()
+                                raise Exception(u"更新容器后请先重启容器!")
+
+                            conn_src = sqlite3.connect(filename, check_same_thread=False)
+                            conn_target = sqlite3.connect(savename, check_same_thread=False)
+                            def progress(status, remaining, total):
+                                logger_Web_Handler.info(f'Sqlite_Backup: Copied {total-remaining} of {total} pages...')
+                            conn_src.backup(conn_target, progress=progress)
+                            conn_target.commit()
+                            conn_src.close()
+                            conn_target.close()
+                            try:
+                                self.set_header ('Content-Type', 'application/octet-stream; charset=UTF-8')
+                                self.set_header ('Content-Disposition', ('attachment; filename='+savename).encode('utf-8'))
+                                content_length = os.stat(savename).st_size
+                                self.set_header("Content-Length", content_length)
+
+                                async with aiofiles.open(savename, 'rb') as f:
+                                    self.set_header ('Content-Type', 'application/octet-stream')
+                                    self.set_header ('Content-Disposition', ('attachment; filename='+savename).encode('utf-8'))
+
+                                    chunk_size = 1024*1024*1 # 1MB
+                                    while True:
+                                        chunk = await f.read(chunk_size)
+                                        if not chunk:
+                                            break
+                                        try:
+                                            self.write(chunk) # write the chunk to response
+                                            await self.flush() # send the chunk to client
+                                        except iostream.StreamClosedError:
+                                            # this means the client has closed the connection
+                                            # so break the loop
+                                            raise Exception("Stream closed")
+                                        finally:
+                                            # deleting the chunk is very important because
+                                            # if many clients are downloading files at the
+                                            # same time, the chunks in memory will keep
+                                            # increasing and will eat up the RAM
+                                            del chunk
+                                await self.finish()
+                            finally:
+                                await gen.sleep(3)
+                                os.remove(savename)
                         else:
-                            raise Exception(u"管理员才能备份数据库") 
+                            raise Exception(u"管理员才能备份数据库")
                     else:
                         raise Exception(u"账号/密码错误")
-    
+
                 if await self.db.user.challenge_MD5(mail, pwd, sql_session=sql_session) and (user['email'] == mail):
                     if ('backuptplsbtn' in envs):
                         tpls = []
@@ -485,27 +518,56 @@ class UserDBHandler(BaseHandler):
                         backupdata['tasks'] = tasks
                         savename = "{mail}_{now}.json".format(mail = user['email'], now=now)
                         if not aio_import:
-                            raise Exception(u"更新容器后请先重启容器!") 
+                            raise Exception(u"更新容器后请先重启容器!")
                         async with aiofiles.open(savename, 'w', encoding='utf-8') as fp:
                             await fp.write(json.dumps(backupdata, ensure_ascii=False, indent=4 ))
                             fp.close()
-                        self.set_header ('Content-Type', 'application/octet-stream')
-                        self.set_header ('Content-Disposition', 'attachment; filename='+savename)
+                        self.set_header ('Content-Type', 'application/octet-stream; charset=UTF-8')
+                        self.set_header ('Content-Disposition', ('attachment; filename='+savename).encode('utf-8'))
                         async with aiofiles.open(savename, 'rb') as f:
+                            chunk_size = 1024*1024*1 # 1MB
                             while True:
-                                data = await f.read(1024)
+                                data = await f.read(chunk_size)
                                 if not data:
                                     break
                                 self.write(data)
-                                self.flush()
+                                await self.flush()
                         os.remove(savename)
                         await self.finish()
                         return
-                        
+
                     if ('recoverytplsbtn' in envs):
-                        if ('recfile' in envs):
-                            if envs['recfile'][:6] == 'SQLite':
-                                raise Exception(u"抱歉，暂不支持通过本页面还原SQLite3数据库文件！(╥╯^╰╥)")
+                        if ('recfile' in self.request.files):
+                            envs['recfile'] = self.request.files['recfile'][0]['body']
+                            if envs['recfile'][:6] == b'SQLite':
+                                db_dir = os.path.dirname(config.sqlite3.path)
+                                db_restore = os.path.join(db_dir, 'database_restore.db')
+                                with open(db_restore, 'wb') as f:
+                                    f.write(envs['recfile'])
+                                db_backup = os.path.join(db_dir, 'database_backup.db')
+                                db_now = os.path.join(db_dir, 'database.db')
+                                # 先备份 database.db 到 database_backup.db
+                                conn_src = sqlite3.connect(db_now, check_same_thread=False)
+                                conn_target = sqlite3.connect(db_backup, check_same_thread=False)
+                                def progress(status, remaining, total):
+                                    logger_Web_Handler.info(f'Sqlite_Backup: Copied {total-remaining} of {total} pages...')
+                                conn_src.backup(conn_target,progress=progress)
+                                conn_target.commit()
+                                conn_src.close()
+                                conn_target.close()
+
+                                # 再还原 database_restore.db 到 database.db
+                                conn_src = sqlite3.connect(db_restore, check_same_thread=False)
+                                conn_target = sqlite3.connect(db_now, check_same_thread=False)
+                                def progress(status, remaining, total):
+                                    logger_Web_Handler.info(f'Sqlite_Restore: Copied {total-remaining} of {total} pages...')
+                                conn_src.backup(conn_target,progress=progress)
+                                conn_target.commit()
+                                conn_src.close()
+                                conn_target.close()
+                                await self.render('utils_run_result.html', log=u"恢复完成, 请务必重启QD程序或容器!!!\r\nPS: 原始 database.db 文件已备份为 database_backup.db 文件!!!\r\n如还原失败, 请手动恢复 database_backup.db 文件!!!", title=u'设置成功', flg='success')
+                                # raise Exception(u"抱歉，暂不支持通过本页面还原SQLite3数据库文件！(╥╯^╰╥)")
+                                return
                             else:
                                 try:
                                     tpls = json.loads(envs['recfile'])['tpls']
@@ -558,17 +620,19 @@ class UserDBHandler(BaseHandler):
                         else:
                             raise Exception(u"请上传文件")
                 else:
-                    raise Exception(u"账号/密码错误")   
+                    raise Exception(u"账号/密码错误")
         except Exception as e:
             if config.traceback_print:
                 traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
+            self.set_status(400)
+            self.set_header('Error-Message', base64.b64encode(str(e).encode('utf-8')))
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             logger_Web_Handler.error('UserID: %s backup or restore Database failed! Reason: %s', userid or '-1', str(e))
             return
-        return 
-     
+        return
+
 
 class UserPushShowPvar(BaseHandler):
     @tornado.web.authenticated
@@ -590,11 +654,11 @@ class UserPushShowPvar(BaseHandler):
                           tg_token = key['tg_token'],
                           dingding_token = key['dingding_token'],
                           qywx_webhook = key['qywx_webhook'])
-                
+
                 await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')
                 return
             else:
-                raise Exception(u"账号/密码错误")   
+                raise Exception(u"账号/密码错误")
         except Exception as e:
             if config.traceback_print:
                 traceback.print_exc()
@@ -611,14 +675,14 @@ class custom_pusher_Handler(BaseHandler):
         diypusher = json.loads(diypusher) if (diypusher != '') else {'mode':'GET'}
         await self.render('user_register_cus_pusher.html', userid=userid, diypusher=diypusher)
         return
-        
+
     @tornado.web.authenticated
     async def post(self,userid):
         try:
             envs = {}
             for k, _  in self.request.body_arguments.items():
                 envs[k] = self.get_body_argument(k)
-            req = pusher()
+            req = pusher(self.db)
             log = ''
             now = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
             tmp = await req.cus_pusher_send(envs ,u'推送测试', now)
@@ -627,7 +691,7 @@ class custom_pusher_Handler(BaseHandler):
                     await self.db.user.mod(userid, diypusher=json.dumps(envs))
             else:
                 raise Exception(tmp)
-            
+
             log = u'运行成功，请检查是否收到推送'
         except Exception as e:
             if (str(e).find('get user need id or email') > -1):
@@ -647,7 +711,7 @@ class UserSetNewPWDHandler(BaseHandler):
         email = (await self.db.user.get(userid, fields=('email',)))['email']
         await self.render('user_setnewpwd.html', userid=userid, usermail=email)
         return
-        
+
     @tornado.web.authenticated
     async def post(self,userid):
         try:
@@ -671,7 +735,7 @@ class UserSetNewPWDHandler(BaseHandler):
                         if not (await self.db.user.challenge(envs['usermail'], newPWD, sql_session=sql_session)):
                             raise Exception(u'修改失败')
                     else:
-                        raise Exception(u'密码长度要大于6位')    
+                        raise Exception(u'密码长度要大于6位')
                 else:
                     raise Exception(u'管理员用户名/密码错误')
         except Exception as e:

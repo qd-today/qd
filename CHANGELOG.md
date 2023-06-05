@@ -8,28 +8,91 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20230601] - 2023.06.01 更新
+
+### Features
+
+1. 添加 WebSocket 支持
+2. 公共模板更新前端使用 WebSocket 推送更新进度
+
+> **Tips: 反代用户需要进行 WebSocket 相关反代配置的设置或修改**
+
+### Changed
+
+1. 允许用户设置公共模板加速方式
+2. update requirements packages
+3. 前端 Query String Parameters 为空时自动修正 Request Url
+4. 优化 Code quality
+
+### Fixed
+
+1. Fix 前端 RequestURL 自动将变量进行编码
+2. Fix RequestUrl 丢失 QueryString 的 bug
+3. Fix Request Payload 内容丢失的bug
+4. Fix typo
+
+## [20230518] - 2023.05.18 更新
+
+### Features
+
+1. 框架更名为 QD
+
+### Changed
+
+1. Update frontend js components
+2. 节假日信息更改为前端脚本判断(Add lunar.js)
+3. Replace querystring[deprecated] with qs
+4. Update Dockerfile
+
+### Fixed
+
+1. Fix running multi DB instances
+2. Fix password_md5 convert error
+3. Fix encodeURIComponent error
+4. Fix 更新公共模板时 Proxies 配置无效 Fix qd-today/qd#412
+
+## [20230430] - 2023.04.30 更新
+
+### Features
+
+1. 我的模板中增加类似公共模板的备注说明 Feat qd-today/qd#366
+2. 添加滑块识别验证码支持 Feat qd-today/qd#397
+3. 支持网页恢复Sqlite数据库
+4. 添加节假日庆祝信息
+
+### Changed
+
+1. 优化工具箱-记事本前端逻辑 Feat a76yyyy/qd#30
+2. 修改网页端框架标题
+
+### Fixed
+
+1. 修复报错日志顺序异常 Fix qd-today/qd#391
+2. Mandatory smtp authentication. Fix qd-today/qd##394
+3. 修复网页显示时区与系统时区不一致 Fix qd-today/qd#396
+
 ## [20230228] - 2023.02.28 更新
 
 ### Features
 
-1. 添加企业微信Webhook支持 feat qiandao-today/qiandao#361
-2. 添加 [QD 文档站](https://qiandao-today.github.io/qiandao/)
-3. 新建任务时自动提取模板变量 default 值 feat a76yyyy/qiandao#29
+1. 添加企业微信Webhook支持 feat qd-today/qd#361
+2. 添加 [QD 文档站](https://qd-today.github.io/qd/)
+3. 新建任务时自动提取模板变量 default 值 feat a76yyyy/qd#29
 
 ### Changed
 
-1. 支持在API请求中使用 int(variable) 和 float(variable) 语法 fix qiandao-today/qiandao#374
+1. 支持在API请求中使用 int(variable) 和 float(variable) 语法 fix qd-today/qd#374
 2. 优化公共模板更新页面前端显示逻辑
 
 ### Fixed
 
-1. 修复 config 文件夹不存在导致报错的bug Fix qiandao-today/qiandao#363
+1. 修复 config 文件夹不存在导致报错的bug Fix qd-today/qd#363
 
 ## [20230111] - 2023.01.11 更新
 
 ### Features
 
-1. 支持6位cron定时 feat qiandao-today/qiandao#347
+1. 支持6位cron定时 feat qd-today/qd#347
 2. 成功失败条件支持jinja2格式变量 Support variables for success or fail asserts
 3. Add keep-alive for updating subscribe
 4. Add config "unsafe_eval_timeout"
@@ -42,7 +105,7 @@ Nothing right now.
 
 ### Fixed
 
-1. 修复 if 判断表达式报错 Fix qiandao-today/qiandao#350 from odoo/odoo#101136
+1. 修复 if 判断表达式报错 Fix qd-today/qd#350 from odoo/odoo#101136
 2. 修复 Typo
 3. 其他优化和修复
 
@@ -50,10 +113,10 @@ Nothing right now.
 
 1. 支持退订默认公共模板分支
 2. 添加企业微信代理URL设置支持
-3. 优化公开模板发布逻辑 fix qiandao-today/qiandao#321
+3. 优化公开模板发布逻辑 fix qd-today/qd#321
 4. 更新 openssl 和 ddddocr
 5. 更新 前端组件
-6. 修复 企业微信应用提示 mediaid 失败 fix qiandao-today/qiandao#316
+6. 修复 企业微信应用提示 mediaid 失败 fix qd-today/qd#316
 7. 修复 Typo
 8. 其他优化和修复
 
@@ -73,9 +136,9 @@ Nothing right now.
 
 1. 添加多种 jinja2 过滤器并更新关于页面
 2. 添加 Ja3 Dockerfile
-3. 添加 curlToHAR feature close a76yyyy/qiandao#7
-4. 添加 单账号多记事本 feature close qiandao-today/qiandao#154
-5. 添加 SQLAlchemy ORM feature for qiandao-today/qiandao#253
+3. 添加 curlToHAR feature close a76yyyy/qd#7
+4. 添加 单账号多记事本 feature close qd-today/qd#154
+5. 添加 SQLAlchemy ORM feature for qd-today/qd#253
 6. Debug 日志模式记录 Tornado Client 请求
 7. 优化公共模板更新性能, 仅 har version 更新时增量更新 content
 8. 优化定时任务执行性能, 实现生产者-消费者异步队列模型
@@ -83,24 +146,24 @@ Nothing right now.
 
 ## [20220728] - 2022.07.28 更新
 
-1. 增加 if, else endif 关键字支持 (by [aa889788](https://github.com/qiandao-today/qiandao/commits?author=aa889788))
+1. 增加 if, else endif 关键字支持 (by [aa889788](https://github.com/qd-today/qd/commits?author=aa889788))
 2. 不允许在单条请求中测试循环或条件控制语句
 3. 添加控制语句API请求并修改插入API样式
-4. 修复因空格导致的任务分组选择出错 Fix qiandao-today/qiandao#275
+4. 修复因空格导致的任务分组选择出错 Fix qd-today/qd#275
 5. 其他优化和修复
 
 ## [20220525] - 2022.05.25 更新
 
 1. 修复获取Cookie的Bug
 2. 更新getcookie按钮机制
-3. 修复保存har时Jinja Filter报错 Fix qiandao-today/qiandao#256
+3. 修复保存har时Jinja Filter报错 Fix qd-today/qd#256
 4. 更新 jsdelivr CDN
-5. 修复分组名称以数字开头导致500报错 Fix qiandao-today/qiandao#261
-6. 支持单独删除失败日志 Fix a76yyyy/qiandao#14
+5. 修复分组名称以数字开头导致500报错 Fix qd-today/qd#261
+6. 支持单独删除失败日志 Fix a76yyyy/qd#14
 7. 定时页面显示单个任务是否已经定时
 8. 当config.debug为True时, traceback_print默认为True
 9. 手动执行任务失败后失败计次+1
-10. 工具箱添加总日志显示 feat qiandao-today/qiandao#161
+10. 工具箱添加总日志显示 feat qd-today/qd#161
 
 ## [20220410] - 2022.04.10 更新
 
@@ -115,7 +178,7 @@ Nothing right now.
 1. 更新求模板链接
 2. 允许更多环境变量配置
 3. 修复记事本为空时追加报错的bug
-4. 控制access log的输出 (by [hiCasper](https://github.com/qiandao-today/qiandao/commits?author=hiCasper))
+4. 控制access log的输出 (by [hiCasper](https://github.com/qd-today/qd/commits?author=hiCasper))
 5. 未验证的管理员开启验证邮箱时尝试发送验证邮件
 6. 优化Dockerfile,分离Redis
 7. 添加qiandao-lite相关说明和配置
@@ -125,15 +188,15 @@ Nothing right now.
 > 源码部署更新方式如下, 如**更新后发生错误请重新拉取容器!**
 
  ``` bash
-   # 先cd到源码所在目录, 执行命令后重启进程 
-   wget https://fastly.jsdelivr.net/gh/qiandao-today/qiandao@master/update.sh -O ./update.sh && \
-   sh ./update.sh 
+   # 先cd到源码所在目录, 执行命令后重启进程
+   wget https://fastly.jsdelivr.net/gh/qd-today/qd@master/update.sh -O ./update.sh && \
+   sh ./update.sh
    ```
 
 ## [20220208] - 2022.02.08 更新
 
 1. 63c0074: 修复contenteditable=plaintext-only导致Firefox无法编辑的bug …
-2. mysql可设置auth_plugin fix qiandao-today/qiandao #173
+2. mysql可设置auth_plugin fix qd-today/qd #173
 3. 采用本地方式调用部分js脚本
 4. 使用grunt管理前端脚本和bower
 5. 更新python版本及模块包版本
@@ -151,8 +214,8 @@ Nothing right now.
 3. 添加Faker API函数用于创建伪数据
 4. jinja过滤器优先使用内置random
 5. 兼容 [Python 3.10](https://stackoverflow.com/questions/69381312/in-vs-code-importerror-cannot-import-name-mapping-from-collections/69727802#69727802)
-6. 使用后端判断api接口地址(by [acooler15](https://github.com/qiandao-today/qiandao/pull/168))
-7. 优化并统一网页渲染(by [acooler15](https://github.com/qiandao-today/qiandao/pull/169))
+6. 使用后端判断api接口地址(by [acooler15](https://github.com/qd-today/qd/pull/168))
+7. 优化并统一网页渲染(by [acooler15](https://github.com/qd-today/qd/pull/169))
 8. 支持管理员手动验证用户邮箱
 9. 修复删除模板后无法点击相应任务的删除按钮的bug
 10. 更新源码时自动更新Python模组包
@@ -200,12 +263,12 @@ Nothing right now.
 1. 修复前端无正则匹配显示结果
 2. 修复工具箱-记事本
 3. 更新update.sh以允许自定义更新方式
-4. 加减乘除实现多组数据计算 fix qiandao-today/qiandao#136
-5. 第一个用户默认为管理员，在config.py中设置或修改环境变量USER0ISADMIN (by [AragonSnow](https://github.com/qiandao-today/qiandao/commits?author=AragonSnow))
+4. 加减乘除实现多组数据计算 fix qd-today/qd#136
+5. 第一个用户默认为管理员，在config.py中设置或修改环境变量USER0ISADMIN (by [AragonSnow](https://github.com/qd-today/qd/commits?author=AragonSnow))
 
 ## [20211023] - 2021.10.23 更新
 
-1. CRON添加随机延时 (by [acooler15](https://github.com/qiandao-today/qiandao/commits?author=acooler15))
+1. CRON添加随机延时 (by [acooler15](https://github.com/qd-today/qd/commits?author=acooler15))
 2. 优化签到日志显示信息
 3. 统一日志格式
 4. API请求允许POST
@@ -246,7 +309,7 @@ Nothing right now.
 ## [20210928] - 2021.09.28 更新
 
 1. 更新并优化fetcher脚本
-2. 更新输入提示(by [cxk000](https://github.com/qiandao-today/qiandao/commits?author=ckx000))
+2. 更新输入提示(by [cxk000](https://github.com/qd-today/qd/commits?author=ckx000))
 3. 修复{{unicode(arg)}}不能正常转换unicode的bug
 4. 修复重复添加'|urlencode'的bug
 5. 优化fetcher重试逻辑
@@ -270,7 +333,7 @@ Nothing right now.
 2. 修复unicode转换时不间断空格输出乱码的bug
 3. 修复修改任务分组时分组名为中文导致的乱码bug
 4. 支持socks5代理
-5. 分别构建Pycurl与Qiandao容器
+5. 分别构建 Pycurl 与 QD 容器
 6. 优化登录页面,"我的"首页和"多任务操作"页面(by [acooler15](https://github.com/acooler15/qiandao))
 
 ## [20210910] - 2021.09.10 更新
@@ -287,20 +350,20 @@ Nothing right now.
 
    ```python
    # 以下为全局代理域名列表相关设置
-   # proxies为全局代理域名列表, 默认为空[], 表示不启用全局代理; 
-   # 代理格式应为'scheme://username:password@host:port',例如:proxies = ['http://admin:admin@127.0.0.1:8923','https://proxy.com:8888']; 
-   # 任务级代理请在新建或修改任务时添加,任务级代理优先级大于全局代理; 
-   proxies = os.getenv('PROXIES', '').split('|')               # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct 
-   proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '')      # 默认为空, 可选输入:'url'为网址匹配模式;'regexp'为正则表达式匹配模式;''空则不启用全局代理黑名单 
-   # proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'url')进入网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求, 以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port 
-   # 例如: proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost'); 
-   # proxy_direct_mode= os.getenv('PROXY_DIRECT_MODE', 'regexp')进入正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求; 
+   # proxies为全局代理域名列表, 默认为空[], 表示不启用全局代理;
+   # 代理格式应为'scheme://username:password@host:port',例如:proxies = ['http://admin:admin@127.0.0.1:8923','https://proxy.com:8888'];
+   # 任务级代理请在新建或修改任务时添加,任务级代理优先级大于全局代理;
+   proxies = os.getenv('PROXIES', '').split('|')               # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct
+   proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', '')      # 默认为空, 可选输入:'url'为网址匹配模式;'regexp'为正则表达式匹配模式;''空则不启用全局代理黑名单
+   # proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'url')进入网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求, 以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port
+   # 例如: proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost');
+   # proxy_direct_mode= os.getenv('PROXY_DIRECT_MODE', 'regexp')进入正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求;
    # 启用regexp模式后自动采用以下默认匹配正则表达式, 如无特别需求请勿修改
    proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
                   ([a-z][a-z0-9+\-.]*://)?                                                        # Scheme
                   (0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])                                # Domain/Hostname/IPv4/IPv6
                   (:[0-9]+)? """                                                                  # :Port
-                  ) 
+                  )
    ```
 
 ## [20210908] - 2021.09.08 更新
@@ -353,7 +416,7 @@ Nothing right now.
 
    ```bash
    # 如需使用Proxy功能请安装PyCurl
-   # Windows源码运行, 请执行 pip install pycurl==7.43.0.5 
+   # Windows源码运行, 请执行 pip install pycurl==7.43.0.5
    pip install pycurl # pip3 install pycurl
    # 如因curl导致500或599错误, 请卸载PyCurl或修改环境变量USE_PYCURL为False
    # pip uninstall pycurl
@@ -511,7 +574,7 @@ Nothing right now.
 
 ## [20200910] - 2020.09.10 更新
 
-1. 鉴于github 污染严重, 使用gitee代替作为订阅源, 地址 : [https://gitee.com/qiandao-today/templates](https://gitee.com/qiandao-today/templates)
+1. 鉴于github 污染严重, 使用gitee代替作为订阅源
 2. 首页的检查模板更新取消, 打开公共模板仓库会自动检查更新
 3. 修复邮箱验证, 注册后未验证可以再次点击注册验证
 4. 修改任务时显示前值
@@ -687,7 +750,7 @@ Nothing right now.
 ## [20200518] - 2020.5.18 更新
 
 1. 定时的 "今日是否运行" 修改 为 "今日运行"
-2. 添加模板订阅功能, 仓库地址在[https://github.com/qiandao-today/templates](https://github.com/qiandao-today/templates)
+2. 添加模板订阅功能, 仓库地址在[https://github.com/qd-today/templates](https://github.com/qd-today/templates)
 
    > **Tips:** 主页打开公共模板按钮, 点击订阅后自动导入模板, 需要自己确认保存
 

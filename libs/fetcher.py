@@ -14,6 +14,7 @@ import urllib
 import urllib.parse as urlparse
 from datetime import datetime
 from io import BytesIO
+from typing import Iterable
 
 from jinja2.sandbox import SandboxedEnvironment as Environment
 from tornado import gen, httpclient, simple_httpclient
@@ -26,12 +27,13 @@ from libs import cookie_utils, utils
 from .log import Log
 from .safe_eval import safe_eval
 
-logger_Fetcher = Log('qiandao.Http.Fetcher').getlogger()
+logger_Fetcher = Log('QD.Http.Fetcher').getlogger()
 if config.use_pycurl:
     try:
         import pycurl
     except ImportError as e:
-        logger_Fetcher.warning('Import PyCurl module falied: %s',e)
+        if config.display_import_warning:
+            logger_Fetcher.warning('Import PyCurl module falied: \"%s\". \nTips: This warning message is only for prompting, it will not affect running of QD framework.',e)
         pycurl = None
 else:
     pycurl = None
@@ -93,7 +95,7 @@ class Fetcher(object):
         url = request['url']
         if str(url).startswith('api://'):
             url = str(url).replace('api:/', local_host, 1)
-        
+
         headers = dict((e['name'], e['value']) for e in request['headers'])
         cookies = dict((e['name'], e['value']) for e in request['cookies'])
         data = request.get('data')
@@ -291,7 +293,7 @@ class Fetcher(object):
                         content[0] = utils.decode(response.body)
                 if ('content-type' in response.headers):
                     if 'image' in response.headers.get('content-type'):
-                        return base64.b64encode(response.body).decode('utf8') 
+                        return base64.b64encode(response.body).decode('utf8')
                 return content[0]
             elif _from == 'status':
                 return '%s' % response.code
@@ -313,7 +315,7 @@ class Fetcher(object):
                     logger_Fetcher.error('Run rule failed: %s', str(e))
             else:
                 return ''
-            
+
         session=env['session']
         if isinstance(session, cookie_utils.CookieSession):
             _cookies = session
@@ -329,7 +331,7 @@ class Fetcher(object):
             except Exception as e:
                 log_error = 'The error occurred when rendering template {}: {} \\r\\n {}'.format(key,obj[key],repr(e))
                 raise httpclient.HTTPError(500,log_error)
-        
+
 
         for r in rule.get('success_asserts') or '':
             _render(r, 're')
@@ -341,7 +343,7 @@ class Fetcher(object):
         else:
             if rule.get('success_asserts'):
                 success = False
-                
+
 
         for r in rule.get('failed_asserts') or '':
             _render(r, 're')
@@ -452,7 +454,7 @@ class Fetcher(object):
                 log = dict(
                     creator = dict(
                         name = 'binux',
-                        version = 'qiandao'
+                        version = 'QD'
                         ),
                     entries = entries,
                     pages = [],
@@ -510,8 +512,8 @@ class Fetcher(object):
         """
         obj = {
           request: {
-            method: 
-            url: 
+            method:
+            url:
             headers: [{name: , value: }, ]
             cookies: [{name: , value: }, ]
             data:
@@ -543,7 +545,7 @@ class Fetcher(object):
             'msg': msg,
             }
 
-    FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+)\s*%}')
+    FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}')
     IF_START = re.compile('{%\s*if\s+(.+)\s*%}')
     ELSE_START = re.compile('{%\s*else\s*%}')
     PARSE_END = re.compile('{%\s*end(for|if)\s*%}')
@@ -601,7 +603,7 @@ class Fetcher(object):
         while stmt_stack:
             yield stmt_stack.pop()
 
-    async def do_fetch(self, tpl, env, proxies=config.proxies, request_limit=1000):
+    async def do_fetch(self, tpl, env, proxies=config.proxies, request_limit=1000, tpl_length=0):
         """
         do a fetch of hole tpl
         """
@@ -610,13 +612,54 @@ class Fetcher(object):
         else:
             proxy = {}
 
+        if tpl_length == 0 and len(tpl) > 0:
+            tpl_length = len(tpl)
+            for i, entry in enumerate(tpl):
+                entry['idx'] = i+1
+
         for i, block in enumerate(self.parse(tpl)):
             if request_limit <= 0:
                 raise Exception('request limit')
             elif block['type'] == 'for':
-                for each in env['variables'].get(block['from'], []):
-                    env['variables'][block['target']] = each
-                    env = await self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit)
+                support_enum = False
+                _from_var = block['from']
+                _from = env['variables'].get(_from_var, [])
+                try:
+                    if isinstance(_from_var, str) and _from_var.startswith('list(') or _from_var.startswith('range('):
+                        _from = safe_eval(_from_var, env['variables'])
+                    if not isinstance(_from, Iterable):
+                        raise Exception('for循环只支持可迭代类型及变量')
+                    support_enum = True
+                except Exception as e:
+                    if config.debug:
+                        logger_Fetcher.exception(e)
+                if support_enum:
+                    env['variables']['loop_length'] = str(len(_from))
+                    env['variables']['loop_depth'] = str(int(env['variables'].get('loop_depth', '0')) + 1)
+                    env['variables']['loop_depth0'] = str(int(env['variables'].get('loop_depth0', '-1')) + 1)
+                    for idx, each in enumerate(_from):
+                        env['variables'][block['target']] = each
+                        if idx == 0:
+                            env['variables']['loop_first'] = 'True'
+                            env['variables']['loop_last'] = 'False'
+                        elif idx == len(_from) - 1:
+                            env['variables']['loop_first'] = 'False'
+                            env['variables']['loop_last'] = 'True'
+                        else:
+                            env['variables']['loop_first'] = 'False'
+                            env['variables']['loop_last'] = 'False'
+                        env['variables']['loop_index'] = str(idx + 1)
+                        env['variables']['loop_index0'] = str(idx)
+                        env['variables']['loop_revindex'] = str(len(_from) - idx)
+                        env['variables']['loop_revindex0'] = str(len(_from) - idx - 1)
+                        env = await self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
+                    env['variables']['loop_depth'] = str(int(env['variables'].get('loop_depth', '0')) - 1)
+                    env['variables']['loop_depth0'] = str(int(env['variables'].get('loop_depth0', '-1')) - 1)
+                else:
+                    for each in _from:
+                        env['variables'][block['target']] = each
+                        env = await self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
+
             elif block['type'] == 'if':
                 try:
                     condition = safe_eval(block['condition'],env['variables'])
@@ -628,9 +671,9 @@ class Fetcher(object):
                     else:
                         raise e
                 if condition:
-                    await self.do_fetch(block['true'], env, proxies=[proxy], request_limit=request_limit)
+                    await self.do_fetch(block['true'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
                 else:
-                    await self.do_fetch(block['false'], env, proxies=[proxy], request_limit=request_limit)
+                    await self.do_fetch(block['false'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
             elif block['type'] == 'request':
                 entry = block['entry']
                 try:
@@ -645,8 +688,8 @@ class Fetcher(object):
                     if config.debug:
                         logger_Fetcher.exception(e)
                     raise Exception('Failed at %d/%d request, \\r\\nError: %r, \\r\\nRequest URL: %s' % (
-                        i+1, len(tpl), e, entry['request']['url']))
+                        entry['idx'], tpl_length, e, entry['request']['url']))
                 if not result['success']:
                     raise Exception('Failed at %d/%d request, \\r\\n%s, \\r\\nRequest URL: %s' % (
-                        i+1, len(tpl), result['msg'], entry['request']['url']))
+                        entry['idx'], tpl_length, result['msg'], entry['request']['url']))
         return env

@@ -116,7 +116,7 @@
         }
       };
       $scope.add_local = function() {
-        var e, each, filename, har_file_upload, i, j, k, key, len, len1, len2, new_har, new_har_log_entry, old_har, reader, ref, ref1, ref2, ref3, target_har;
+        var e, each, filename, har_file_upload, i, j, k, key, len, len1, len2, new_har, new_har_log_entry, old_har, reader, ref, ref1, ref2, ref3, ref4, target_har;
         if (($scope.file == null) && (((ref1 = $scope.curl) != null ? ref1.length : void 0) != null) > 0) {
           element.find('button').button('loading');
           old_har = {
@@ -143,7 +143,8 @@
             filename = HARNAME;
           } else if (($scope.file == null) && (((ref2 = $scope.curl) != null ? ref2.length : void 0) != null) > 0) {
             filename = "curl2har";
-          } else {
+          } else if (((ref3 = $scope.file) != null ? ref3.name : void 0) != null) {
+            // deepcode ignore AttrAccessOnNull: filename is not null
             filename = $scope.file.name;
           }
           new_har = {
@@ -168,9 +169,9 @@
                 target_har.env[key] = new_har.env[key];
               }
             }
-            ref3 = new_har.har.log.entries;
-            for (k = 0, len2 = ref3.length; k < len2; k++) {
-              new_har_log_entry = ref3[k];
+            ref4 = new_har.har.log.entries;
+            for (k = 0, len2 = ref4.length; k < len2; k++) {
+              new_har_log_entry = ref4[k];
               target_har.har.log.entries.push(new_har_log_entry);
             }
           } else {
@@ -192,7 +193,7 @@
         reader = new FileReader();
         reader.onload = function(ev) {
           return $scope.$apply(function() {
-            var l, len3, len4, len5, m, n, ref4;
+            var l, len3, len4, len5, m, n, ref5;
             old_har = {
               filename: utils.storage.get('har_filename'),
               har: utils.storage.get('har_har'),
@@ -236,9 +237,9 @@
                   target_har.env[key] = new_har.env[key];
                 }
               }
-              ref4 = new_har.har.log.entries;
-              for (n = 0, len5 = ref4.length; n < len5; n++) {
-                new_har_log_entry = ref4[n];
+              ref5 = new_har.har.log.entries;
+              for (n = 0, len5 = ref5.length; n < len5; n++) {
+                new_har_log_entry = ref5[n];
                 target_har.har.log.entries.push(new_har_log_entry);
               }
             } else {

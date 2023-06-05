@@ -1,13 +1,13 @@
 {
-  "name": "qiandao_for_python3",
+  "name": "qd_for_python3",
   "version": "1.0.3",
   "authors": [
     "(a76yyyy <admin@a76yyyy.cn>",
     "AragonSnow",
     "binux <roy@binux.me>)"
   ],
-  "description": "qiandao",
-  "homepage": "https://github.com/qiandao-today/qiandao",
+  "description": "QD",
+  "homepage": "https://github.com/qd-today/qd",
   "private": true,
   "ignore": [
     "**/.*",
@@ -28,22 +28,27 @@
   ],
   "dependencies": {
     "blueimp-md5": "^2.19.0",
-    "js-base64": "^3.7.2",
+    "js-base64": "^3.7.5",
     "angular": "~1.8.2",
-    "jquery": "~3.6.0",
+    "jquery": "^3.7.0",
     "bootstrap": "=3.2.0",
     "seajs": "=2.3.0",
     "select2": "^4.0.13",
     "nprogress": "^0.2.0",
     "jquery.tablesorter": "^2.31.3",
-    "Font-Awesome": "^4.7.0",
-    "clipboard": "#2.0.10",
-    "draggable-polyfill": "XboxYan/draggable-polyfill"
+    "Font-Awesome": "^6.4.0",
+    "clipboard": "^2.0.11",
+    "draggable-polyfill": "XboxYan/draggable-polyfill",
+    "lunar-javascript":"6tail/lunar-javascript"
   },
   "main": "",
   "license": "MIT",
   "keywords": [
-    "qiandao"
+    "QD",
+    "QD-TODAY",
+    "har",
+    "http",
+    "web"
   ],
   "exportsOverride": {
     "blueimp-md5": {
@@ -89,6 +94,9 @@
     },
     "draggable-polyfill": {
       "lib": "lib/draggable-polyfill.js"
+    },
+    "lunar-javascript": {
+      "": "lunar.js"
     }
   }
 }

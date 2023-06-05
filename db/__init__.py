@@ -33,4 +33,4 @@ class DB(AlchemyMixin):
         self.site = Site()
         self.pubtpl = Pubtpl()
         self.notepad = Notepad()
-        
+

@@ -26,5 +26,5 @@ QD 是 一个 基于 HAR 编辑器和 Tornado 服务端的 HTTP 定时任务自�
 
 ## 讨论
 
-- Github: [问题反馈](https://github.com/qiandao-today/qiandao/issues)
-- Github: [讨论](https://github.com/qiandao-today/qiandao/discussions)
+- Github: [问题反馈](https://github.com/qd-today/qd/issues)
+- Github: [讨论](https://github.com/qd-today/qd/discussions)

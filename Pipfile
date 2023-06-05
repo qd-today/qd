@@ -1,22 +1,30 @@
 [[source]]
-url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+url = "https://mirrors.cloud.tencent.com/pypi/simple/"
+verify_ssl = true
+name = "tencent"
+
+[[source]]
+url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
+
+[pipenv]
+install_search_all_sources = true
 
 [packages]
 tornado = "*"
 charset-normalizer = "*"
-requests = "*"
+requests = {version = "*", index = "pypi"}
 pbkdf2 = "*"
-pycryptodome = "*"
+pycryptodome = {version = "*", index = "pypi"}
 pytz = "*"
-croniter = "*"
+croniter = {version = "*", index = "pypi"}
 Jinja2 = "*"
 redis = "*"
 incremental = "*"
-u-msgpack-python = "*"
+u-msgpack-python = {version = "*", index = "pypi"}
 pysocks = "*"
-faker = "*"
+faker = {version = "*", index = "pypi"}
 colorama = {version = "*", markers="sys_platform == 'win32'"}
 aiofiles = "*"
 passlib = "*"

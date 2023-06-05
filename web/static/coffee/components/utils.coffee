@@ -14,6 +14,11 @@ define (require) ->
   querystring = node_querystring
   curl2har = node_curl2har
 
+  fix_encodeURIComponent = (obj) ->
+      return encodeURIComponent(obj).replace(/[!'()*]/g, (c) ->
+        return '%' + c.charCodeAt(0).toString(16).toUpperCase()
+      )
+
   exports = {
     cookie_parse: (cookie_string) ->
       cookie = {}
@@ -31,26 +36,36 @@ define (require) ->
     url_parse: node_url.parse
     url_unparse: node_url.format
 
+    path_unparse_with_variables: (path) ->
+      _path = decodeURIComponent(path)
+      replace_list = {}
+      re = /{{\s*([\w]+)[^}]*?\s*}}/g
+      while m = re.exec(_path)
+        replace_list[fix_encodeURIComponent(m[0])] = m[0]
+      for key, value of replace_list
+        path = path.replace(new RegExp(RegExp.escape(key), 'g'), value)
+      return path
+
     querystring_parse: node_querystring.parse
     querystring_unparse: node_querystring.stringify
     querystring_unparse_with_variables: (obj) ->
-      query = node_querystring.stringify(obj)
+      query = node_querystring.stringify(obj, { indices: false })
 
       replace_list = {}
       for key, value of obj
         re = /{{\s*([\w]+)[^}]*?\s*}}/g
         while m = re.exec(key)
           if m[0].slice(-12) != '|urlencode}}'
-            replace_list[encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
+            replace_list[fix_encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
           else
-            replace_list[encodeURIComponent(m[0])] = m[0]
+            replace_list[fix_encodeURIComponent(m[0])] = m[0]
         re = /{{\s*([\w]+)[^}]*?\s*}}/g
         while m = re.exec(value)
           if m[0].slice(-12) != '|urlencode}}'
-            replace_list[encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
+            replace_list[fix_encodeURIComponent(m[0])] = m[0][..-3] + '|urlencode}}'
           else
-            replace_list[encodeURIComponent(m[0])] = m[0]
-      if node_querystring.stringify(replace_list)
+            replace_list[fix_encodeURIComponent(m[0])] = m[0]
+      if node_querystring.stringify(replace_list, { indices: false })
           console.log('The replace_list is', replace_list)
       for key, value of replace_list
         query = query.replace(new RegExp(RegExp.escape(key), 'g'), value)
@@ -89,22 +104,21 @@ define (require) ->
       timestamp = 0
       timeout = 0
 
-      later = () ->
-        last = (new Date().getTime()) - timestamp
-
-        if 0 < last < wait
-          timeout = setTimeout(later, wait - last)
-        else
-          timeout = null
-          if not immediate
-            result = func.apply(context, args)
-            if not timeout
-              context = args = null
-
       return () ->
         context = this
         args = arguments
         timestamp = (new Date().getTime())
+        later = () ->
+          last = (new Date().getTime()) - timestamp
+
+          if 0 < last < wait
+            timeout = setTimeout(later, wait - last)
+          else
+            timeout = null
+            if not immediate
+              result = func.apply(context, args)
+              if not timeout
+                context = args = null
         callNow = immediate and not timeout
         if not timeout
           timeout = setTimeout(later, wait)
@@ -143,7 +157,7 @@ define (require) ->
         log: {
           creator: {
             name: 'binux'
-            version: 'qiandao'
+            version: 'QD'
           },
           entries: ({
             comment: en.comment
@@ -185,7 +199,7 @@ define (require) ->
           version: '1.2'
         }
       }
-    
+
     curl2har: (curl) ->
       if curl?.length? == 0
         console.error("Curl 命令为空")
@@ -195,7 +209,7 @@ define (require) ->
         log: {
           creator: {
             name: 'curl'
-            version: 'qiandao'
+            version: 'QD'
           },
           entries: ({
             comment: ''

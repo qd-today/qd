@@ -11,7 +11,7 @@
     <a href="/login" class="btn btn-default">登录</a>
   </div>
   <form>
-    <h2 class="text-center">私有签到框架<sup>{{ version }}</sup></h2>
+    {{ utils.qd_title() }}
     <hr><br>
     <div class="form-group" id="site-select-div">
       <label class="control-label" for="site-select">
@@ -30,8 +30,8 @@
     </div>
 
     <div class="text-right">
-      <a data-load-method="POST" href="/tpl/run" id="run" class="btn btn-default modal_load">立即签到</a>
-      <a href="/register" class="btn btn-primary">创建签到任务</a>
+      <a data-load-method="POST" href="/tpl/run" id="run" class="btn btn-default modal_load">立即执行</a>
+      <a href="/register" class="btn btn-primary">创建任务</a>
     </div>
 
     <script>

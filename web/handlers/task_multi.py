@@ -49,7 +49,7 @@ class TaskMultiOperateHandler(BaseHandler):
 
         await self.render('taskmulti.html', user=user, tasktype=tasktype, _groups=_groups)
         return
-    
+
     @tornado.web.authenticated
     async def post(self, userid):
         user = self.current_user
@@ -107,22 +107,22 @@ class TaskMultiOperateHandler(BaseHandler):
                                         'cron_val': time_env['cron_val'],
                                     }
 
-                                    if (time_env['randtimezone1'] != '') and (time_env['randtimezone1'] != ''):
-                                        settime_env['randsw'] = True 
+                                    if (time_env['randtimezone1'] != ''):
+                                        settime_env['randsw'] = True
                                     # if (time_env['cron_sec'] != ''):
-                                    #     settime_env['cron_sec'] = time_env['cron_sec'] 
+                                    #     settime_env['cron_sec'] = time_env['cron_sec']
                                     if (time_env['ontime_method'] == 'ontime'):
                                         if (time_env['ontime_run_date'] == ''):
                                             settime_env['date'] = time.strftime("%Y-%m-%d", time.localtime())
-                                        if (time_env['ontime_val'] == ''): 
+                                        if (time_env['ontime_val'] == ''):
                                             settime_env['time'] = time.strftime("%H:%M:%S", time.localtime())
                                     if (len(settime_env['time'].split(':')) == 2):
                                         settime_env['time'] = settime_env['time'] + ':00'
 
                                     tmp = c.calNextTs(settime_env)
                                     if (tmp['r'] == 'True'):
-                                        await self.db.task.mod(taskid, disabled = False, 
-                                                                newontime = json.dumps(settime_env), 
+                                        await self.db.task.mod(taskid, disabled = False,
+                                                                newontime = json.dumps(settime_env),
                                                                 next = tmp['ts'],
                                                                 sql_session=sql_session)
                                     else:

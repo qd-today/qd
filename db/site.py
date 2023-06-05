@@ -17,7 +17,7 @@ class Site(BaseDB,AlchemyMixin):
     regEn
     '''
     __tablename__ = 'site'
-    
+
     id = Column(Integer, primary_key=True)
     regEn = Column(INTEGER, nullable=False, server_default=text("'1'"))
     MustVerifyEmailEn = Column(INTEGER, nullable=False, server_default=text("'0'"))
@@ -40,7 +40,7 @@ class Site(BaseDB,AlchemyMixin):
             _fields = (getattr(Site, field) for field in fields)
 
         smtm = select(_fields).where(Site.id == id)
-        
+
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
             return self.to_dict(result,fields)

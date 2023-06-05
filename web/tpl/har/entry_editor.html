@@ -85,12 +85,12 @@
         <details open onclick="return false" ng-if="entry.request.postData.text || entry.request.method === 'POST'">
           <summary title="请求消息体">
             Request Payload
-            <a class="btn btn-info btn-xxs" ng-if="entry.request.postData.params"
+            <a class="btn btn-info btn-xxs" ng-if="entry.request.postData.params && entry.request.postData.mimeType.indexOf('application/x-www-form-urlencoded') >= 0"
               ng-click="entry.request.postData.params.push({name:'', value:''})">ADD</a>
           </summary>
           <pre class="contentedit-wrapper" ng-bind-html="variables_wrapper(entry.request.postData.text)"></pre>
           <textarea contenteditable style="width: 100%" rows="5" onfocus="$(this).height($(this)[0].scrollHeight);" ng-model="entry.request.postData.text" ></textarea>
-          <div ng-if="entry.request.postData.params">
+          <div ng-if="entry.request.postData.params && entry.request.postData.mimeType.indexOf('application/x-www-form-urlencoded') >= 0">
             <div editablelist="entry.request.postData.params"></div>
           </div>
         </details>
@@ -377,6 +377,7 @@
                   <ul class="dropdown-menu">
                     <li ng-click="add_dddd_OCR_request()"><a href="javascript:void(0)">插入OCR识别</a></li>
                     <li ng-click="add_dddd_DET_request()"><a href="javascript:void(0)">插入目标检测</a></li>
+                    <li ng-click="add_dddd_SLIDE_request()"><a href="javascript:void(0)">插入滑块识别</a></li>
                   </ul>
                 </li>
                 <li class="dropdown-submenu">

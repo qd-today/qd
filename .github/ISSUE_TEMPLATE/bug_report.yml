@@ -18,16 +18,16 @@ body:
           required: true
         - label: Latest 我已经使用 最新源码 测试过，问题依旧存在
           required: true
-        - label: Core 这是 QianDao 框架存在的问题，并非我所使用的 QianDao早期版本（如 20210628及之前版号 等）或模板的特定问题
+        - label: Core 这是 QD 框架存在的问题，并非我所使用的 QD 早期版本（如 20210628及之前版号 等）或模板的特定问题
           required: true
         - label: Meaningful 我提交的不是无意义的 催促更新或修复 请求
           required: true
   - type: input
     id: qd_version
     attributes:
-      label: QianDao Version
+      label: QD Version
       description: |
-        QianDao 版本号
+        QD 版本号
       placeholder: "20211228"
     validations:
       required: true
@@ -84,18 +84,18 @@ body:
   - type: textarea
     id: qd_config
     attributes:
-      label: QianDao config
+      label: QD config
       description: |
-        在下方附上 QianDao 脱敏后配置文件 或 创建容器命令及环境变量 的内容.
+        在下方附上 QD 脱敏后配置文件 或 创建容器命令及环境变量 的内容.
       render: shell
     validations:
       required: false
   - type: textarea
     id: qd_log
     attributes:
-      label: QianDao log
+      label: QD log
       description: |
-        在下方附上 QianDao后台报错 的日志.
+        在下方附上 QD 后台报错 的日志.
       render: shell
     validations:
       required: true

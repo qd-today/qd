@@ -17,7 +17,7 @@ import db
 
 def usage():
     print('Usage: python3 %s <email> [role]' % sys.argv[0])
-    print('Example: python3 %s admin@qiandao.today admin' % sys.argv[0])
+    print('Example: python3 %s admin@qd.today admin' % sys.argv[0])
     sys.exit(1)
 
 async def main():

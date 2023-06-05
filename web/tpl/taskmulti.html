@@ -38,14 +38,14 @@
     </select>
     <div id='ontime_content'  style="display: block;">
       <div name="ontime readme">
-        <label class="control-label">签到起始日期, 定时执行周期为 24 小时：</label>
+        <label class="control-label">定时任务起始日期, 定时执行周期为 24 小时：</label>
       </div>
       <input id="ontime_run_date" type="date" min="" value="" required="required">
       <div name="ontime readme">
-        <label class="control-label">签到定时任务执行时间：</label>
+        <label class="control-label">定时任务执行时间：</label>
       </div>
       <input type="time" id="ontime_val" value="" name='ontimevalue', step="1" required="required">
-      
+
     </div>
     <div id='cron_content' style="display: none;">
       <div name="ontime readme">
@@ -73,7 +73,7 @@
         {% for group in _groups %}
         <div class="checkbox">
           <label>
-            <input type="checkbox" name="{{ group }}"  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
+            <input type="checkbox" name="{{ group }}"  {% if group == groupNow %}  checked="" {% endif %}> {{ group }}
           </label>
         </div>
         {% endfor %}
@@ -81,9 +81,9 @@
     </div>
     <div class="form-group">
       <label class="control-label" for="note">设置新分组</label>
-      <!-- MY页面-添加签到-增加提示语 -->
+      <!-- MY页面-增加提示语 -->
       <input type="text" class="form-control" name="New_group" value="" id="New_group" placeholder="尽可能填写15个字符以内">
-      <!-- MY页面-添加签到-增加备注图标 -->
+      <!-- MY页面-增加备注图标 -->
       <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
     </div>
     {% endif %}
@@ -186,7 +186,7 @@ $(function () {
         $(this).prop("checked", true);
       }
   });
-});   
+});
 </script>
 {% endif %}
 

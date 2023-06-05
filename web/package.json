@@ -7,54 +7,54 @@
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
     "docs:preview": "vitepress preview docs",
-    "docs:serve": "vitepress serve docs"
+    "docs:serve": "vitepress serve docs",
+    "webpack": "cd static/components & webpack --config webpack.config.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/qiandao-today/qiandao.git"
+    "url": "git+https://github.com/qd-today/qd.git"
   },
   "keywords": [
-    "qiandao"
+    "QD",
+    "QD-TODAY",
+    "har",
+    "http",
+    "web"
   ],
   "author": "a76yyyy",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/qiandao-today/qiandao/issues"
+    "url": "https://github.com/qd-today/qd/issues"
   },
-  "homepage": "https://github.com/qiandao-today/qiandao#readme",
+  "homepage": "https://github.com/qd-today/qd#readme",
   "dependencies": {
-    "curl2har": "^0.0.18",
-    "querystring": "^0.2.1",
+    "curl2har": "^0.0.21",
+    "qs": "^6.11.2",
     "tough-cookie": "^4.1.2",
-    "url": "^0.11.0"
+    "url": "github:a76yyyy/node-url#master"
   },
   "engines": {
     "node": ">= 0.10.0"
   },
   "devDependencies": {
-    "@algolia/client-search": "^4.14.3",
     "bower": "^1.8.14",
     "coffeescript": "^2.7.0",
-    "flexsearch": "^0.7.31",
-    "grunt": "^1.5.3",
+    "grunt": "^1.6.1",
     "grunt-bower-task": "^0.6.2",
     "grunt-contrib-clean": "^2.0.1",
     "grunt-contrib-concat": "^2.1.0",
     "grunt-contrib-jshint": "^3.2.0",
     "grunt-contrib-uglify": "^5.2.2",
     "grunt-contrib-watch": "^1.1.0",
-    "markdown-it": "^13.0.1",
     "process": "^0.11.10",
-    "segment": "^0.1.3",
-    "ts-loader": "^9.4.2",
-    "tslib": "^2.4.1",
-    "typescript": "^4.9.4",
+    "terser-webpack-plugin": "^5.3.9",
+    "ts-loader": "^9.4.3",
+    "tslib": "^2.5.2",
+    "typescript": "^4.9.5",
     "util": "^0.12.5",
-    "vite": "^4.1.1",
-    "vitepress": "1.0.0-alpha.46",
-    "vitepress-plugin-search": "1.0.4-alpha.19",
-    "vue": "^3.2.47",
-    "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.1"
+    "vitepress": "1.0.0-beta.1",
+    "vue": "^3.3.4",
+    "webpack": "^5.84.1",
+    "webpack-cli": "^5.1.1"
   }
 }

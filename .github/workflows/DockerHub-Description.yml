@@ -8,15 +8,23 @@ on:
       - .github/workflows/DockerHub-Description.yml
 jobs:
   dockerHubDescription:
-    if: startsWith(github.repository, 'qiandao-today/qiandao')
+    if: startsWith(github.repository, 'qd-today/qd')
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
 
-    - name: Docker Hub Description
-      uses: peter-evans/dockerhub-description@v2
+    - name: Docker a76yyyy Hub Description
+      uses: peter-evans/dockerhub-description@v3
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
         repository: a76yyyy/qiandao
+        short-description: ${{ github.event.repository.description }}
+
+    - name: Docker qdtoday Hub Description
+      uses: peter-evans/dockerhub-description@v3
+      with:
+        username: ${{ secrets.QD_DOCKER_USERNAME }}
+        password: ${{ secrets.QD_DOCKER_PASSWORD }}
+        repository: qdtoday/qd
         short-description: ${{ github.event.repository.description }}

@@ -122,13 +122,14 @@ define (require, exports, module) ->
             console.error e
             $scope.alert('错误的 Curl 命令')
             return element.find('button').button('reset')
-          
+
           filename = ""
           if HARPATH != ""
             filename = HARNAME
           else if not $scope.file? && $scope.curl?.length? > 0
             filename = "curl2har"
-          else
+          else if $scope.file?.name?
+            # deepcode ignore AttrAccessOnNull: filename is not null
             filename = $scope.file.name
           new_har = {
                         filename: filename,
@@ -215,7 +216,7 @@ define (require, exports, module) ->
             return element.find('button').button('reset')
           )
         return reader.readAsText($scope.file)
-      
+
       if HARDATA != ""
         element.find('button').button('loading')
         reader = new FileReader()
@@ -255,7 +256,7 @@ define (require, exports, module) ->
               catch error
                 console.error(error)
                 $scope.alert('错误的 HAR 文件')
-                
+
               element.find('button').button('reset')
           reader.readAsText $scope.file
     )

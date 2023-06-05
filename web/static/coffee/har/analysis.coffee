@@ -9,7 +9,9 @@ window.jinja_globals = [
     'b64encode', 'to_uuid', 'md5', 'sha1', 'password_hash', 'hash',
     'aes_encrypt', 'aes_decrypt', 'regex_replace', 'regex_escape',
     'regex_search', 'regex_findall', 'ternary', 'random', 'shuffle',
-    'mandatory', 'type_debug', 'dict', 'lipsum', 'range'
+    'mandatory', 'type_debug', 'dict', 'lipsum', 'range',
+    'loop_length', 'loop_first', 'loop_last', 'loop_index', 'loop_index0',
+    'loop_depth', 'loop_depth0', 'loop_revindex', 'loop_revindex0',
 ]
 jinja_globals = window.jinja_globals
 
@@ -44,7 +46,9 @@ define (require, exports, module) ->
         when mt.indexOf('javascript') != -1 then 'javascript'
         when mt in ['text/html', ] then 'document'
         when mt in ['text/css', 'application/x-pointplus', ] then 'style'
+        # deepcode ignore DuplicateCaseBody: order is important
         when mt.indexOf('application') == 0 then 'media'
+        # deepcode ignore DuplicateCaseBody: order is important
         else 'other'
     return har
 
@@ -122,7 +126,7 @@ define (require, exports, module) ->
         continue
       result = []
       try
-        for key, value of utils.querystring_parse(entry.request.postData.text)
+        for key, value of utils.querystring_parse_with_variables(entry.request.postData.text)
           result.push({ name: key, value: value })
         entry.request.postData.params = result
       catch error
@@ -151,7 +155,10 @@ define (require, exports, module) ->
           changed = true
       if changed
         query = utils.querystring_unparse_with_variables(url.query)
-        url.search = "?#{query}" if query
+        if query
+          url.search = "?#{query}"
+        else
+          url.search = ""
       entry.request.url = utils.url_unparse(url)
       entry.request.queryString = utils.dict2list(url.query)
 
@@ -191,15 +198,9 @@ define (require, exports, module) ->
 
         if exports.variables_in_entry(entry).length > 0
           entry.recommend = true
-        else if domain != utils.get_domain(entry.request.url)
+        else if domain != utils.get_domain(entry.request.url) || entry.response?.status in [304, 0]
           entry.recommend = false
-        else if entry.response?.status in [304, 0]
-          entry.recommend = false
-        else if entry.response?.status // 100 == 3
-          entry.recommend = true
-        else if entry.response?.cookies?.length > 0
-          entry.recommend = true
-        else if entry.request.method == 'POST'
+        else if entry.response?.status // 100 == 3 || entry.response.cookies?.length > 0 || entry.request.method == 'POST'
           entry.recommend = true
         else
           entry.recommend = false

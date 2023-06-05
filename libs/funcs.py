@@ -19,12 +19,12 @@ from libs import utils
 
 from .log import Log
 
-logger_Funcs = Log('qiandao.Http.Funcs').getlogger()
+logger_Funcs = Log('QD.Http.Funcs').getlogger()
 class pusher(object):
-    def __init__(self,db=DB(),sql_session=None):
+    def __init__(self,db:DB,sql_session=None):
         self.db = db
         self.sql_session = sql_session
-    
+
     async def judge_res(self,res:aiohttp.ClientResponse):
         if (res.status == 200):
             return "True"
@@ -40,7 +40,7 @@ class pusher(object):
                 raise Exception('Reason: %s' % res.reason)
             else:
                 raise Exception('status code: %d' % res.status)
-    
+
     async def pusher(self, userid, pushsw, flg, title, content):
         sql_session = self.sql_session
         notice = await self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token', 'qywx_webhook', 'diypusher'), sql_session=sql_session)
@@ -52,8 +52,8 @@ class pusher(object):
             self.barklink =  notice['barkurl']
             pusher =  {}
             pusher["mailpushersw"] = False if (notice['noticeflg'] & 0x80) == 0 else True
-            pusher["barksw"] = False if (notice['noticeflg'] & 0x40) == 0 else True 
-            pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True 
+            pusher["barksw"] = False if (notice['noticeflg'] & 0x40) == 0 else True
+            pusher["schansw"] = False if (notice['noticeflg'] & 0x20) == 0 else True
             pusher["wxpushersw"] = False if (notice['noticeflg'] & 0x10) == 0 else True
             pusher["cuspushersw"] = False if (notice['noticeflg'] & 0x100) == 0 else True
             pusher["qywxpushersw"] = False if (notice['noticeflg'] & 0x200) == 0 else True
@@ -62,19 +62,19 @@ class pusher(object):
             pusher["qywxwebhooksw"] = False if (notice['noticeflg'] & 0x1000) == 0 else True
 
             def nonepush(*args,**kwargs):
-                return 
+                return
 
             if (pushsw['pushen']):
                 send2bark = self.send2bark if (pusher["barksw"]) else nonepush
-                send2s = self.send2s if (pusher["schansw"]) else nonepush 
-                send2wxpusher = self.send2wxpusher if (pusher["wxpushersw"]) else nonepush 
-                sendmail = self.sendmail if (pusher["mailpushersw"]) else nonepush 
-                cus_pusher_send = self.cus_pusher_send if (pusher["cuspushersw"]) else nonepush 
-                qywx_pusher_send = self.qywx_pusher_send if (pusher["qywxpushersw"]) else nonepush 
-                send2tg = self.send2tg if (pusher["tgpushersw"]) else nonepush 
-                send2dingding = self.send2dingding if (pusher["dingdingpushersw"]) else nonepush 
+                send2s = self.send2s if (pusher["schansw"]) else nonepush
+                send2wxpusher = self.send2wxpusher if (pusher["wxpushersw"]) else nonepush
+                sendmail = self.sendmail if (pusher["mailpushersw"]) else nonepush
+                cus_pusher_send = self.cus_pusher_send if (pusher["cuspushersw"]) else nonepush
+                qywx_pusher_send = self.qywx_pusher_send if (pusher["qywxpushersw"]) else nonepush
+                send2tg = self.send2tg if (pusher["tgpushersw"]) else nonepush
+                send2dingding = self.send2dingding if (pusher["dingdingpushersw"]) else nonepush
                 qywx_webhook_send = self.qywx_webhook_send if (pusher["qywxwebhooksw"]) else nonepush
-                
+
                 await gen.convert_yielded([send2bark(notice['barkurl'], title, content),
                                         send2s(notice['skey'], title, content),
                                         send2wxpusher( notice['wxpusher'], title+u"  "+content),
@@ -102,7 +102,7 @@ class pusher(object):
             logger_Funcs.error('Sent to Bark error: %s', e)
             return e
         return r
-        
+
     async def send2s(self, skey, title, content):
         r = 'False'
         if (skey != ""):
@@ -118,8 +118,8 @@ class pusher(object):
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to ServerChan error: %s', e)
                 return e
-        return r 
-    
+        return r
+
     async def send2tg(self, tg_token, title, content):
         r = 'False'
         tmp = tg_token.split(';')
@@ -150,7 +150,7 @@ class pusher(object):
                         link = u'https://{0}bot{1}/sendMessage'.format(tgHost,token)
                 picurl = config.push_pic if pic == '' else pic
                 content = content.replace('\\r\\n','</pre>\n<pre>')
-                d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QianDao提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
+                d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QD提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
                 if proxy:
                     async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
                         async with session.post(link, json=d, verify_ssl=False, proxy=proxy, timeout=config.request_timeout) as res:
@@ -176,7 +176,7 @@ class pusher(object):
                 link = u"https://oapi.dingtalk.com/robot/send?access_token={0}".format(dingding_token)
                 picurl = config.push_pic if pic == '' else pic
                 content = content.replace('\\r\\n','\n\n > ')
-                d = {"msgtype": "markdown", "markdown": {"title": title, "text": "![QianDao](" + picurl + ")\n " + "#### " + title + "\n > " + content}}
+                d = {"msgtype": "markdown", "markdown": {"title": title, "text": "![QD](" + picurl + ")\n " + "#### " + title + "\n > " + content}}
                 async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
                     async with session.post(link, json=d, verify_ssl=False, timeout=config.request_timeout) as res:
                         r = await self.judge_res(res)
@@ -187,13 +187,13 @@ class pusher(object):
                 r = traceback.format_exc()
                 logger_Funcs.error('Sent to DingDing error: %s', e)
                 return e
-        return r   
+        return r
 
     async def send2wxpusher(self, wxpusher, content):
         r = 'False'
         temp = wxpusher.split(";")
         wxpusher_token = temp[0] if (len(temp) >= 2) else ""
-        wxpusher_uid = temp[1] if (len(temp) >= 2) else "" 
+        wxpusher_uid = temp[1] if (len(temp) >= 2) else ""
         if (wxpusher_token != "") and (wxpusher_uid != ""):
             try:
                 link = "http://wxpusher.zjiecode.com/api/send/message"
@@ -219,7 +219,7 @@ class pusher(object):
         else:
             return Exception("参数不完整! ")
 
-        return  r  
+        return  r
 
 
     async def cus_pusher_send(self, diypusher, t, log):
@@ -227,7 +227,7 @@ class pusher(object):
         try:
             log = log.replace('"','\\"').replace('\\\\"','\\"')
             curltmp = diypusher['curl'].format(log=log, t=t)
-            
+
             if (diypusher['headers']):
                 headerstmp = json.loads(diypusher['headers'].replace('{log}', log).replace("{t}", t))
             else:
@@ -330,7 +330,7 @@ class pusher(object):
                                         "title": title,
                                         "digest": log.replace("\\r\\n", "\n"),
                                         "content": log.replace("\\r\\n", "<br>"),
-                                        "author": "私有签到框架",
+                                        "author": "QD框架",
                                         "content_source_url": config.domain,
                                         "thumb_media_id": media_id
                                     }
@@ -357,7 +357,7 @@ class pusher(object):
             logger_Funcs.error('Sent to QYWX Pusher error: %s', e)
             return e
         return r
-    
+
     async def qywx_webhook_send(self, qywx_webhook, title:str, log:str):
         r = 'False'
         try:
@@ -367,7 +367,7 @@ class pusher(object):
                 qywx[u'Webhook'] = tmp[0]
             else:
                 raise Exception(u'企业微信WebHook获取AccessToken失败或参数不完整!')
-            
+
             log = log.replace("\\r\\n", "\n")
 
             msgUrl = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={0}".format(qywx[u'Webhook'])
@@ -395,7 +395,7 @@ class pusher(object):
         if user['email'] and user['email_verified']:
             try:
                 content = content.replace('\\r\\n','\n')
-                await utils.send_mail(to = email, 
+                await utils.send_mail(to = email,
                                 subject = u"在网站{0} {1}".format(config.domain, title),
                                 text = content,
                                 shark=True)
@@ -405,11 +405,11 @@ class pusher(object):
 class cal(object):
     def __init__(self):
         pass
-    
+
     def calNextTs(self, envs):
         r = {"r":"True"}
         try:
-            if (envs['mode'] == 'ontime'): 
+            if (envs['mode'] == 'ontime'):
                 t = '{0} {1}'.format(envs['date'], envs['time'])
             elif (envs['mode'] == 'cron'):
                 cron = croniter.croniter(envs['cron_val'], datetime.datetime.now())
@@ -428,7 +428,7 @@ class cal(object):
             if ('cron_sec' in envs):
                 r_ts = 0 if (envs['cron_sec'] == '') else int(envs['cron_sec'])
                 ts = ts + r_ts
-                
+
             r['ts'] = ts
         except Exception as e:
             r['r'] = e

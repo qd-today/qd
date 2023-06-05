@@ -15,10 +15,10 @@ def my_status(task):
         return u'停止'
     if task['last_failed_count']:
         return u'已失败%d次，重试中...' % task['last_failed_count']
-    if task['last_failed'] and task['last_failed'] > task['last_success']:
+    if (task['last_failed'] or 0) > (task['last_success'] or 0):
         return u'失败'
     if task['success_count'] == 0 and task['failed_count'] == 0 and task['next'] and (task['next'] - time.time() < 60):
-        return u'正在准备为您签到'
+        return u'正在准备执行任务'
     return u'正常'
 
 class MyHandler(BaseHandler):
@@ -52,7 +52,7 @@ class MyHandler(BaseHandler):
                 temp = tpl['_groups']
                 if (temp not  in tplgroups):
                     tplgroups.append(temp)
-                    
+
             await self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=_groups,  tplgroups=tplgroups, adminflg=adminflg)
         else:
             return self.redirect('/login')
@@ -68,7 +68,7 @@ class CheckUpdateHandler(BaseHandler):
             hjson = {}
             for h in await self.db.pubtpl.list(fields=('id', 'filename', 'reponame', 'date', 'update'), sql_session=sql_session):
                 hjson[f'{h["filename"]}|{h["reponame"]}'] = h
-                        
+
             for tpl in tpls:
                 if tpl["tplurl"] in hjson and hjson[tpl["tplurl"]]["update"] and tpl['mtime'] < time.mktime(time.strptime(hjson[tpl["tplurl"]]['date'],"%Y-%m-%d %H:%M:%S")):
                     await self.db.tpl.mod(tpl["id"], updateable=1, sql_session=sql_session)

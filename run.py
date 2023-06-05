@@ -2,30 +2,39 @@
 # vim:fenc=utf-8
 #
 # Copyright © 2016 Binux <roy@binux.me>
+
 import asyncio
+import json
+import logging
+import os
 import platform
 import sys
 
 import tornado.log
+from tornado.httpserver import HTTPServer
+from tornado.ioloop import IOLoop, PeriodicCallback
 
 import config
-from db import db_converter
+from db import DB, db_converter
+from db.basedb import engine
 from libs.log import Log
+from web.app import Application
+from worker import BatchWorker, QueueWorker
 
-if __name__ == "__main__":
+
+def start_server():
     if sys.getdefaultencoding() != 'utf-8':
         import importlib
         importlib.reload(sys)
     # init logging
     logger = Log().getlogger()
-    logger_Qiandao = Log('qiandao.Run').getlogger()
+    logger_QD = Log('QD.Run').getlogger()
 
     if config.debug:
-        import logging
         channel = logging.StreamHandler(sys.stderr)
         channel.setFormatter(tornado.log.LogFormatter())
         channel.setLevel(logging.WARNING)
-        logger_Qiandao.addHandler(channel)
+        logger_QD.addHandler(channel)
 
     if not config.accesslog:
         tornado.log.access_log.disabled = True
@@ -44,28 +53,22 @@ if __name__ == "__main__":
         config.autoreload = False
 
     try:
-        from db import DB
-        from db.basedb import engine
         database = DB()
-        converter = db_converter.DBconverter()
+        converter = db_converter.DBconverter(database)
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         run = asyncio.ensure_future(converter.ConvertNewType(database) , loop=loop)
         loop.run_until_complete(run)
 
-        from tornado.httpserver import HTTPServer
-
-        from web.app import Application
-        http_server = HTTPServer(Application(database), xheaders=True)
+        default_version = json.load(open(os.path.join(os.path.dirname(__file__), 'version.json'),'r', encoding='utf-8'))['version']
+        App= Application(database, default_version)
+        http_server = HTTPServer(App, xheaders=True)
         http_server.bind(port, config.bind)
         if config.multiprocess:
             http_server.start(num_processes=0)
         else:
             http_server.start()
 
-        from tornado.ioloop import IOLoop, PeriodicCallback
-
-        from worker import BatchWorker, QueueWorker
         io_loop = IOLoop.instance()
         try:
             if config.worker_method.upper() == 'QUEUE':
@@ -80,13 +83,16 @@ if __name__ == "__main__":
             logger.exception('worker start error!')
             raise KeyboardInterrupt()
 
-        logger_Qiandao.info("Http Server started on %s:%s", config.bind, port)
+        logger_QD.info("Http Server started on %s:%s", config.bind, port)
         io_loop.start()
     except KeyboardInterrupt :
-        logger_Qiandao.info("Http Server is being manually interrupted... ")
+        logger_QD.info("Http Server is being manually interrupted... ")
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         run = asyncio.ensure_future(engine.dispose() , loop=loop)
         loop.run_until_complete(run)
-        logger_Qiandao.info("Http Server is ended. ")
+        logger_QD.info("Http Server is ended. ")
 
+
+if __name__ == "__main__":
+    start_server()

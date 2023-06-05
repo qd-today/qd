@@ -20,7 +20,7 @@ class Tasklog(BaseDB,AlchemyMixin):
     id, taskid, success, ctime, msg
     '''
     __tablename__ = 'tasklog'
-    
+
     id = Column(Integer, primary_key=True)
     taskid = Column(INTEGER, nullable=False)
     success = Column(TINYINT(1), nullable=False)
@@ -43,12 +43,12 @@ class Tasklog(BaseDB,AlchemyMixin):
             _fields = Tasklog
         else:
             _fields = (getattr(Tasklog, field) for field in fields)
-        
+
         smtm = select(_fields)
-        
+
         for key, value in kwargs.items():
             smtm = smtm.where(getattr(Tasklog, key) == value)
-            
+
         if limit:
             smtm = smtm.limit(limit)
 
@@ -56,6 +56,6 @@ class Tasklog(BaseDB,AlchemyMixin):
         if to_dict and result is not None:
             return [self.to_dict(row,fields) for row in result]
         return result
-    
+
     def delete(self, id, sql_session=None):
         return self._delete(delete(Tasklog).where(Tasklog.id == id), sql_session=sql_session)

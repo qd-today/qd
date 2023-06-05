@@ -120,12 +120,13 @@ venv.bak/
 # backup
 *.bak
 
-# qiandao
+# qd
 database.db
 config.json
 database - 副本.db
 *.db-journal
 qiandao.rar
+qd.rar
 压缩.bat
 .ssh/
 database*.db
@@ -185,3 +186,4 @@ TODOs.md
 cache
 
 alembic.ini
+.hintrc

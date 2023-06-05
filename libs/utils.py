@@ -6,11 +6,13 @@
 # Created on 2014-08-07 22:00:27
 
 import base64
+import datetime
 import hashlib
 import ipaddress
 import re
 import socket
 import struct
+import time
 import urllib
 import uuid
 
@@ -26,7 +28,7 @@ from libs.mcrypto import aes_decrypt, aes_encrypt, passlib_or_crypt
 
 from .log import Log
 
-logger_Util = Log('qiandao.Http.Util').getlogger()
+logger_Util = Log('QD.Http.Util').getlogger()
 def ip2int(addr):
     try:
         return struct.unpack("!I", socket.inet_aton(addr))[0]
@@ -38,7 +40,7 @@ def ip2varbinary(addr:str, version:int):
         return socket.inet_aton(addr)
     if version == 6:
         return socket.inet_pton(socket.AF_INET6,addr)
- 
+
 def is_lan(ip):
     try:
         return ipaddress.ip_address(ip.strip()).is_private
@@ -178,7 +180,7 @@ def urlMatchWithLimit(url):
         r"$",
         re.UNICODE | re.IGNORECASE
     )
-    
+
     match = reobj.search(url)
     if match:
         return match.group()
@@ -191,7 +193,7 @@ def domainMatch(domain):
         r'+[A-Za-z0-9][A-Za-z0-9-_]{0,61}'  # First 61 characters of the gTLD
         r'[A-Za-z]$'  # Last character of the gTLD
     )
-    
+
     match = reobj.search(domain)
     if match:
         return match.group()
@@ -239,11 +241,8 @@ def method_cache(fn):
 
     return wrapper
 
-import datetime
-
-
 #full_format=True，的时候是具体时间，full_format=False就是几秒钟几分钟几小时时间格式----此处为模糊时间格式模式
-def format_date(date, gmt_offset=-8*60, relative=True, shorter=False, full_format=True):
+def format_date(date, gmt_offset=time.timezone/60, relative=True, shorter=False, full_format=True):
     """Formats the given date (which should be GMT).
 
     By default, we return a relative time (e.g., "2 minutes ago"). You
@@ -339,7 +338,7 @@ def to_bool(a):
         return True
     return False
 
-async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"签到提醒 <noreply@{}>".format(config.mail_domain)):
+async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"QD提醒 <noreply@{}>".format(config.mail_domain)):
     if not config.mailgun_key:
         subtype = 'html' if html else 'plain'
         await _send_mail(to, subject, html or text or '', subtype)
@@ -389,9 +388,21 @@ async def _send_mail(to, subject, text=None, subtype='html'):
     msg['To'] = to
     try:
         logger_Util.info('send mail to {}'.format(to))
-        s = config.mail_ssl and smtplib.SMTP_SSL(config.mail_smtp) or smtplib.SMTP(config.mail_smtp)
-        s.connect(config.mail_smtp)
-        s.login(config.mail_user, config.mail_password)
+        if config.mail_port:
+            if config.mail_ssl or config.mail_port in [465,587]:
+                s = smtplib.SMTP_SSL(config.mail_smtp, config.mail_port)
+            else:
+                s = smtplib.SMTP(config.mail_smtp, config.mail_port)
+            s.connect(config.mail_smtp, config.mail_port)
+        else:
+            if config.mail_ssl:
+                s = smtplib.SMTP_SSL(config.mail_smtp)
+            else:
+                s = smtplib.SMTP(config.mail_smtp)
+            s.connect(config.mail_smtp)
+        # s = config.mail_ssl and smtplib.SMTP_SSL(config.mail_smtp) or smtplib.SMTP(config.mail_smtp)
+        if config.mail_user:
+            s.login(config.mail_user, config.mail_password)
         s.sendmail(config.mail_from, to, msg.as_string())
         s.close()
     except Exception as e:
@@ -424,7 +435,7 @@ def find_encoding(content, headers=None):
     # content is unicode
     if isinstance(content, str):
         return 'utf-8'
-    
+
     encoding = None
 
     # Try charset from content-type
@@ -436,7 +447,7 @@ def find_encoding(content, headers=None):
     # Fallback to auto-detected encoding.
     if not encoding and charset_normalizer is not None:
         encoding = charset_normalizer.detect(content)['encoding']
-    
+
     # Try charset from content
     if not encoding:
         try:
@@ -456,7 +467,7 @@ def decode(content, headers=None):
     encoding = find_encoding(content, headers)
     if encoding == 'unicode':
         return content
-    
+
     try:
         return content.decode(encoding, 'replace')
     except Exception as e:
@@ -520,8 +531,6 @@ def randomize_list(mylist, seed=None):
     except Exception:
         raise
     return mylist
-
-import datetime
 
 
 def get_date_time(date=True, time=True, time_difference=0):
@@ -634,9 +643,6 @@ def regex_escape(value, re_type='python'):
         raise Exception('Regex type (%s) not yet implemented' % re_type)
     else:
         raise Exception('Invalid regex type (%s)' % re_type)
-
-import time
-
 
 def timestamp(type='int'):
     if type=='float':

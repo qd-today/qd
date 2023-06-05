@@ -20,7 +20,7 @@ class PushRequest(BaseDB,AlchemyMixin):
     id, from_tplid, from_userid, to_tplid, to_userid, status, msg, ctime, mtime, atime
     '''
     __tablename__ = 'push_request'
-    
+
     id = Column(Integer, primary_key=True)
     from_tplid = Column(INTEGER, nullable=False)
     from_userid = Column(INTEGER, nullable=False)
@@ -71,7 +71,7 @@ class PushRequest(BaseDB,AlchemyMixin):
             _fields = (getattr(PushRequest, field) for field in fields)
 
         smtm = select(_fields).where(PushRequest.id == id)
-        
+
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
             return self.to_dict(result,fields)
@@ -82,12 +82,12 @@ class PushRequest(BaseDB,AlchemyMixin):
             _fields = PushRequest
         else:
             _fields = (getattr(PushRequest, field) for field in fields)
-        
+
         smtm = select(_fields)
-        
+
         for key, value in kwargs.items():
             smtm = smtm.where(getattr(PushRequest, key) == value)
-            
+
         if limit:
             smtm = smtm.limit(limit)
 

@@ -8,18 +8,17 @@
           <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
         <![endif]-->
 
-  <meta name="description" content="{% block desc %}帮你每日签到，每天打卡！{% endblock %}">
-  <meta name="author" content="{% block author %}Qiandao-Today{% endblock %}">
+  <meta name="description" content="{% block desc %}一个HTTP请求定时任务自动执行框架 base on HAR Editor and Tornado Server{% endblock %}">
+  <meta name="author" content="{% block author %}QD-Today{% endblock %}">
   <link rel="icon" type="image/png" href="{{ static_url('img/icon.png') }}">
 
   <meta name="description" content="WEB自动化HAR重放工具" />
-  <meta name="Keywords" content="HAR,WEB,自动化,应用,APP,Windows,Mac,Android,iOS,iPhone,手机,科技,重放,签到,qiandao,https" />
+  <meta name="Keywords" content="HAR,WEB,QD,框架,自动化,应用,APP,Windows,Mac,Android,iOS,iPhone,手机,科技,重放,签到,qiandao,https" />
   <meta name="viewport" content="user-scalable=1">
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="签到框架" />
-  <meta property="og:title" content="签到框架" />
-  <meta property="og:url" content="https://192.168.1.5:59595" />
-  <meta property="og:description" content="WEB自动化" />
+  <meta property="og:site_name" content="QD框架" />
+  <meta property="og:title" content="QD框架" />
+  <meta property="og:description" content="一个HTTP请求定时任务自动执行框架 base on HAR Editor and Tornado Server" />
   <meta property="og:locale" content="zh_CN" />
   <meta property="og:image" content="{{ static_url('img/200.png') }}" />
   <link rel="icon" type="image/png" href="{{ static_url('img/16.png') }}" sizes="16x16" />
@@ -27,7 +26,7 @@
   <link rel="icon" type="image/png" href="{{ static_url('img/96.png') }}" sizes="96x96" />
   <link rel="icon" type="image/png" sizes="128x128" href="{{ static_url('img/128.png') }}" />
   <link rel="icon" type="image/png" sizes="192x192" href="{{ static_url('img/192.png') }}" />
-  <meta name="apple-mobile-web-app-title" content="签到框架" />
+  <meta name="apple-mobile-web-app-title" content="QD框架" />
   <link rel="apple-touch-icon" href="{{ static_url('img/180.png') }}" />
   <link rel="apple-touch-icon" sizes="152x152" href="{{ static_url('img/152.png') }}" />
   <link rel="apple-touch-icon" sizes="180x180" href="{{ static_url('img/180.png') }}" />
@@ -52,18 +51,20 @@
   {% block head %}
   <link href="{{ static_url('components/bootstrap/dist/css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
   <script src="{{ static_url('components/jquery/dist/jquery.min.js') }}"></script>
+  <!-- <script src="https://code.jquery.com/jquery-migrate-3.4.1.min.js"></script> -->
   <link href="{{ static_url('components/select2/dist/css/select2.min.css') }}" rel="stylesheet" />
   <script src="{{ static_url('components/select2/dist/js/select2.full.min.js') }}"></script>
   <script src="{{ static_url('components/bootstrap/dist/js/bootstrap.min.js') }}"></script>
   <link href="{{ static_url('css/base.css') }}" rel="stylesheet" type="text/css">
   <link href="{{ static_url('components/nprogress/nprogress.css') }}" rel='stylesheet' />
   <script src="{{ static_url('components/nprogress/nprogress.js') }}"></script>
-  <link href="{{ static_url('components/Font-Awesome/css/font-awesome.min.css') }}" rel="stylesheet">
+  <link href="{{ static_url('components/Font-Awesome/css/all.min.css') }}" rel="stylesheet">
   <link href="{{ static_url('components/jquery.tablesorter/css/theme.bootstrap_3.css') }}" rel="stylesheet" type="text/css">
   <script src="{{ static_url('components/jquery.tablesorter/dist/js/jquery.tablesorter.min.js') }}"></script>
   <script src="{{ static_url('components/jquery.tablesorter/dist/js/jquery.tablesorter.widgets.min.js') }}"></script>
   <script src="{{ static_url('components/blueimp-md5/js/md5.js') }}"></script>
   <script src="{{ static_url('components/clipboard/dist/clipboard.min.js') }}"></script>
+  <script src="{{ static_url('components/lunar-javascript/lunar.js') }}"></script>
   {% endblock %}
 
   {% import "utils.html" as utils %}
@@ -90,14 +91,31 @@
       console.error('Trigger:', e.trigger);
     });
   </script>
+  <script>
+    function get_holiday_or_version(version) {
+      if (version === '' || version === undefined || version === null) {
+        return version
+      }
+      var d = Solar.fromDate(new Date())
+      holiday = HolidayUtil.getHoliday(d.toYmd())
+      if (holiday) {
+        if (holiday.isWork()) {
+          return version
+        }
+        return holiday.getName() + '快乐'
+      } else {
+        return version
+      }
+    }
+  </script>
   {% block body %}{% endblock %}
   {% block foot %}
   <footer>
     <hr>
     <div class="container">
-      <p class="text-center">源代码: <a href="https://github.com/qiandao-today/qiandao/" target="_blank"
-          style="color: #000000;">qiandao</a>| Powered by <a href="https://github.com/qiandao-today/qiandao/" target="_blank"
-          style="color: #000000;">Qiandao-Today</a> | Theme by <a href="http://www.quchao.net/" target="_blank"
+      <p class="text-center">源代码: <a href="https://github.com/qd-today/qd/" target="_blank"
+          style="color: #000000;">QD</a>| Powered by <a href="https://github.com/qd-today/qd/" target="_blank"
+          style="color: #000000;">QD-Today</a> | Theme by <a href="http://www.quchao.net/" target="_blank"
           style="color: #000000;">Mark</a> © 2021.</p>
     </div>
   </footer>

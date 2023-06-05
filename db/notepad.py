@@ -42,23 +42,23 @@ class Notepad(BaseDB,AlchemyMixin):
             _fields = (getattr(Notepad, field) for field in fields)
 
         smtm = select(_fields).where(Notepad.userid == userid).where(Notepad.notepadid == notepadid)
-        
+
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
             return self.to_dict(result,fields)
         return result
-            
+
     async def list(self, fields=None, limit=1000, to_dict=True, sql_session=None, **kwargs):
         if fields is None:
             _fields = Notepad
         else:
             _fields = (getattr(Notepad, field) for field in fields)
-        
+
         smtm = select(_fields)
-        
+
         for key, value in kwargs.items():
             smtm = smtm.where(getattr(Notepad, key) == value)
-            
+
         if limit:
             smtm = smtm.limit(limit)
 
@@ -66,7 +66,7 @@ class Notepad(BaseDB,AlchemyMixin):
         if to_dict and result is not None:
             return [self.to_dict(row,fields) for row in result]
         return result
-    
+
     def delete(self, userid, notepadid, sql_session=None):
         return self._delete(delete(Notepad).where(Notepad.userid == userid).where(Notepad.notepadid == notepadid), sql_session=sql_session)
 
@@ -90,16 +90,16 @@ if __name__ == '__main__':
         print('notepad1_content: ',notepad1_content)
         print('notepad_list: ',notepad_list)
         print('notepad_list_content: ',notepad_list_content)
-        
+
         await notepad.mod(1,1,content='test1')
         notepad1 = await notepad.get(1,1)
         print('notepad1 after mod : ',notepad1)
-        
+
         await notepad.delete(1,1)
         await notepad.delete(1,2)
         await notepad.delete(2,1)
         await notepad.delete(2,2)
-        return 
+        return
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     task = asyncio.ensure_future(test(), loop=loop)

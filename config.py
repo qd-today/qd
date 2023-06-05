@@ -20,6 +20,7 @@ queue_num = int(os.getenv('QUEUE_NUM', 50))                                 # �
 worker_method = str(os.getenv('WORKER_METHOD','Queue')).upper()             # 任务定时执行方式, 默认为 Queue, 可选 Queue 或 Batch, Batch 模式为旧版定时任务执行方式, 性能较弱, 建议仅当定时执行失效时使用
 https = bool(strtobool(os.getenv('ENABLE_HTTPS', 'False')))                 # 发送的邮件链接启用HTTPS, 非框架自身HTTPS开关, 需要HTTPS请使用外部反向代理
 accesslog = bool(strtobool(os.getenv('ACCESS_LOG', 'True')))                # 是否输出Access Log
+display_import_warning = bool(strtobool(os.getenv('DISPLAY_IMPORT_WARNING', 'True')))    # 是否显示导入模组失败或 Redis 连接失败的警告
 
 # 发送邮件及微信推送内链接域名, 如果是通过IP+端口Port方式请正确输入`IP:Port`
 domain = os.getenv('DOMAIN', 'qiandao.today')                               # 指定域名, 建议修改, 不然邮件重置密码之类的功能无效
@@ -40,15 +41,30 @@ redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))                       # �
 
 # 日志及推送设置
 traceback_print = bool(strtobool(os.getenv('TRACEBACK_PRINT', 'True' if debug else 'False')))    # 是否启用在控制台日志中打印Exception的TraceBack信息
-push_pic = os.getenv('PUSH_PIC_URL', 'https://gitee.com/a76yyyy/qiandao/raw/master/web/static/img/push_pic.png')    # 日志推送默认图片地址
-push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送签到任务日志, 默认为 True
-push_batch_delta = int(os.getenv('PUSH_BATCH_DELTA', 60))                   # 执行 PUSH_BATCH 的时间间隔, 单位为秒, 默认为 60s, 非全局推动签到任务日志间隔
+push_pic = os.getenv('PUSH_PIC_URL', 'https://gitee.com/qd-today/qd/raw/master/web/static/img/push_pic.png')    # 日志推送默认图片地址
+push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送任务日志, 默认为 True
+push_batch_delta = int(os.getenv('PUSH_BATCH_DELTA', 60))                   # 执行 PUSH_BATCH 的时间间隔, 单位为秒, 默认为 60s, 非全局推动QD任务日志间隔
 
+# WebSocket 设置
+class websocket(object):
+    ping_interval = int(os.getenv('WS_PING_INTERVAL', 5))                     # WebSocket ping间隔, 单位为秒, 默认为 5s
+    ping_timeout = int(os.getenv('WS_PING_TIMEOUT', 30))                       # WebSocket ping超时时间, 单位为秒, 默认为 30s
+    max_message_size = int(os.getenv('WS_MAX_MESSAGE_SIZE', 10*1024*1024))     # WebSocket 单次接收最大消息大小, 默认为 10MB
+    max_queue_size = int(os.getenv('WS_MAX_QUEUE_SIZE', 100))                  # WebSocket 最大消息队列大小, 默认为 100
+    max_connections_subscribe = int(os.getenv('WS_MAX_CONNECTIONS_SUBSCRIBE', 30))    # WebSocket 公共模板更新页面最大连接数, 默认为 30
+
+# 订阅加速方式或地址, 用于加速公共模板更新, 仅适用于 GitHub.
+# 可选 jsdelivr_cdn/jsdelivr_fastly/ghproxy/fastgit/自定义地址, 默认为: jsdelivr_cdn.
+# 自定义地址示例为: https://ghproxy.com/https://raw.githubusercontent.com/ 或 https://raw.fastgit.org/
+# 以直接替换 https://raw.githubusercontent.com/ 源文件地址.
+subscribe_accelerate_url = os.getenv('SUBSCRIBE_ACCELERATE_URL', 'jsdelivr_cdn')
+
+# 数据库连接参数, 可选
 class mysql(object):
     host = mysql_url.hostname or 'localhost'                                # 访问MySQL的Hostname
     port = mysql_url.port or '3306'                                         # MySQL的端口Port
-    database = mysql_url.path[1:] or 'qiandao'                              # 签到框架的数据库名
-    user = mysql_url.username or 'qiandao'                                  # 拥有访问MySQL签到框架数据库权限的用户名
+    database = mysql_url.path[1:] or 'qiandao'                              # QD框架的数据库名
+    user = mysql_url.username or 'qiandao'                                  # 拥有访问MySQL内QD框架数据库权限的用户名
     passwd = mysql_url.password or None                                     # 用户名对应的密码
     auth_plugin = parse_qs(mysql_url.query).get('auth_plugin',[''])[0]      # auth_plugin, 默认为空, 可修改为'mysql_native_password','caching_sha2_password'
 
@@ -60,9 +76,9 @@ db_type = os.getenv('DB_TYPE', 'sqlite3')                                   # �
 
 # SQLAlchmey配置
 class sqlalchemy(object):
-    logging_name = os.getenv('QIANDAO_SQL_LOGGING_NAME', 'qiandao.sql')     # SQLAlchmey日志名称
+    logging_name = os.getenv('QIANDAO_SQL_LOGGING_NAME', 'QD.sql')     # SQLAlchmey日志名称
     logging_level = os.getenv('QIANDAO_SQL_LOGGING_LEVEL', 'WARNING')       # SQLAlchmey日志级别
-    pool_logging_name = os.getenv('QIANDAO_SQL_POOL_LOGGING_NAME', 'qiandao.sql.pool')                  # 连接池日志名称
+    pool_logging_name = os.getenv('QIANDAO_SQL_POOL_LOGGING_NAME', 'QD.sql.pool')                  # 连接池日志名称
     pool_logging_level = os.getenv('QIANDAO_SQL_POOL_LOGGING_LEVEL', 'WARNING')                         # 连接池日志级别
     pool_size = int(os.getenv('QIANDAO_SQL_POOL_SIZE', '10'))               # 连接池大小
     max_overflow = int(os.getenv('QIANDAO_SQL_MAX_OVERFLOW', '50'))         # 连接池连接数量超过 pool_size 时, 最大连接数
@@ -93,20 +109,20 @@ delay_max_timeout = float(os.getenv('DELAY_MAX_TIMEOUT', 29.9))             # de
 unsafe_eval_timeout = float(os.getenv('UNSAFE_EVAL_TIMEOUT', 3.0))          # unsafe_eval 最大时间限制
 
 # 以下为全局代理域名列表相关设置
-# proxies为全局代理域名列表, 默认为空[], 表示不启用全局代理; 
-# 代理格式应为'scheme://username:password@host:port',例如:proxies = ['http://admin:admin@127.0.0.1:8923','https://proxy.com:8888']; 
-# 任务级代理请在新建或修改任务时添加,任务级代理优先级大于全局代理; 
-proxies = os.getenv('PROXIES', '').split('|')                               # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct 
-proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'regexp')                # 默认为'regexp'以过滤本地请求, 可选输入:'regexp'为正则表达式匹配模式;'url'为网址匹配模式;''空则不启用全局代理黑名单 
-# proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'url')进入网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求, 以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port 
-# 例如: proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost'); 
-# proxy_direct_mode= os.getenv('PROXY_DIRECT_MODE', 'regexp')进入正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求; 
+# proxies为全局代理域名列表, 默认为空[], 表示不启用全局代理;
+# 代理格式应为'scheme://username:password@host:port',例如:proxies = ['http://admin:admin@127.0.0.1:8923','https://proxy.com:8888'];
+# 任务级代理请在新建或修改任务时添加,任务级代理优先级大于全局代理;
+proxies = os.getenv('PROXIES', '').split('|')                               # 若希望部分地址不走代理, 请修改proxy_direct_mode及proxy_direct
+proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'regexp')                # 默认为'regexp'以过滤本地请求, 可选输入:'regexp'为正则表达式匹配模式;'url'为网址匹配模式;''空则不启用全局代理黑名单
+# proxy_direct_mode = os.getenv('PROXY_DIRECT_MODE', 'url')进入网址完全匹配模式, 在proxy_direct名单的url均不通过代理请求, 以'|'分隔url网址, url格式应为scheme://domain或scheme://domain:port
+# 例如: proxy_direct = os.getenv('PROXY_DIRECT', 'http://127.0.0.1:80|https://localhost');
+# proxy_direct_mode= os.getenv('PROXY_DIRECT_MODE', 'regexp')进入正则表达式匹配模式, 满足正则表达式的网址均不通过代理请求;
 # 启用regexp模式后自动采用以下默认匹配正则表达式, 如无特别需求请勿修改
 proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
                 ([a-z][a-z0-9+\-.]*://)?                                    # Scheme
                 (0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])            # Domain/Hostname/IPv4/IPv6
                 (:[0-9]+)? """                                              # :Port
-                ) 
+                )
 
 new_task_delay = int(os.getenv('NEW_TASK_DELAY', 1))                        # 新建任务后准备时间
 
@@ -127,7 +143,7 @@ mailgun_key = os.getenv('MAILGUN_KEY',"")                                   # �
 
 # google analytics
 ga_key = ""                                                                 # google analytics密钥
-user0isadmin = bool(strtobool(os.getenv('USER0ISADMIN','True'))) 
+user0isadmin = bool(strtobool(os.getenv('USER0ISADMIN','True')))
 
 try:
     from local_config import *  # 修改local_config.py文件的内容不受通过git更新源码的影响
