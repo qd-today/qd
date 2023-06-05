@@ -12,8 +12,7 @@ import time
 import traceback
 from codecs import escape_decode
 
-import pytz
-from tornado import gen
+from tornado.iostream import StreamClosedError
 
 from libs import utils
 from libs.funcs import cal, pusher
@@ -204,7 +203,11 @@ class TaskRunHandler(BaseHandler):
                         last_failed_count=task['last_failed_count']+1,
                         sql_session=sql_session
                         )
-                await self.finish('<h1 class="alert alert-danger text-center">运行失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+                try:
+                    await self.finish('<h1 class="alert alert-danger text-center">运行失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+                except StreamClosedError:
+                    if config.traceback_print:
+                        traceback.print_exc()
 
                 await pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
                 return
@@ -235,7 +238,11 @@ class TaskRunHandler(BaseHandler):
             logtmp = u"{0} \\r\\n日志：{1}".format(t, logtmp)
 
             await self.db.tpl.incr_success(tpl['id'],sql_session=sql_session)
-            await self.finish('<h1 class="alert alert-success text-center">运行成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+            try:
+                await self.finish('<h1 class="alert alert-success text-center">运行成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+            except StreamClosedError:
+                if config.traceback_print:
+                    traceback.print_exc()
 
             await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
             logDay = int((await self.db.site.get(1, fields=('logDay',),sql_session=sql_session))['logDay'])
