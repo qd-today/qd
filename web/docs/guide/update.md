@@ -8,7 +8,7 @@
 
    ``` sh
    # First cd to the directory of source code, execute the command and restart the process
-   wget https://gitee.com/a76yyyy/qiandao/raw/master/update.sh -O ./update.sh && \
+   wget https://gitee.com/qd-today/qd/raw/master/update.sh -O ./update.sh && \
    sh ./update.sh
    ```
 
@@ -24,7 +24,7 @@
 
    ``` sh
    # Enter the container background first, restart the container after executing the command
-   wget https://gitee.com/a76yyyy/qiandao/raw/master/update.sh -O /usr/src/app/update.sh && \
+   wget https://gitee.com/qd-today/qd/raw/master/update.sh -O /usr/src/app/update.sh && \
    sh /usr/src/app/update.sh
    ```
 
@@ -33,6 +33,6 @@
    ``` sh
    # First cd to the root directory of code, execute the command and restart the process
    # docker exec -it "container name" /bin/sh
-   wget https://gitee.com/a76yyyy/qiandao/raw/master/update.sh -O ./update.sh && \
+   wget https://gitee.com/qd-today/qd/raw/master/update.sh -O ./update.sh && \
    sh ./update.sh -f
    ```

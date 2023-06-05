@@ -41,7 +41,7 @@ redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))                       # �
 
 # 日志及推送设置
 traceback_print = bool(strtobool(os.getenv('TRACEBACK_PRINT', 'True' if debug else 'False')))    # 是否启用在控制台日志中打印Exception的TraceBack信息
-push_pic = os.getenv('PUSH_PIC_URL', 'https://gitee.com/a76yyyy/qiandao/raw/master/web/static/img/push_pic.png')    # 日志推送默认图片地址
+push_pic = os.getenv('PUSH_PIC_URL', 'https://gitee.com/qd-today/qd/raw/master/web/static/img/push_pic.png')    # 日志推送默认图片地址
 push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送任务日志, 默认为 True
 push_batch_delta = int(os.getenv('PUSH_BATCH_DELTA', 60))                   # 执行 PUSH_BATCH 的时间间隔, 单位为秒, 默认为 60s, 非全局推动QD任务日志间隔
 

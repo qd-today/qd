@@ -8,7 +8,7 @@
 
 ``` sh
 # 先 cd 到源码所在目录, 执行命令后重启进程
-wget https://gitee.com/a76yyyy/qiandao/raw/master/update.sh -O ./update.sh && \
+wget https://gitee.com/qd-today/qd/raw/master/update.sh -O ./update.sh && \
 sh ./update.sh
 ```
 
@@ -25,7 +25,7 @@ docker compose up -d
 ``` sh
 # 先进入容器后台, 执行命令后重启容器
 # docker exec -it 容器名 /bin/sh
-wget https://gitee.com/a76yyyy/qiandao/raw/master/update.sh -O /usr/src/app/update.sh && \
+wget https://gitee.com/qd-today/qd/raw/master/update.sh -O /usr/src/app/update.sh && \
 sh /usr/src/app/update.sh
 ```
 
@@ -33,6 +33,6 @@ sh /usr/src/app/update.sh
 
 ``` sh
 # 先 cd 到仓库代码根目录, 执行命令后重启进程
-wget https://gitee.com/a76yyyy/qiandao/raw/master/update.sh -O ./update.sh && \
+wget https://gitee.com/qd-today/qd/raw/master/update.sh -O ./update.sh && \
 sh ./update.sh -f
 ```

@@ -23,7 +23,7 @@ cd "${_dir}" || exit
 # Treat unset variables as an error
 set -o nounset
 
-__ScriptVersion="2023.05.31"
+__ScriptVersion="2023.06.05"
 __ScriptName="update.sh"
 source_branch="master"
 
@@ -142,7 +142,7 @@ echo_auto_reload() {
 }
 
 update_version() {
-    wget https://gitee.com/a76yyyy/qiandao/raw/"${remoteversion}"/requirements.txt -O /usr/src/app/requirements.txt && \
+    wget https://gitee.com/qd-today/qd/raw/"${remoteversion}"/requirements.txt -O /usr/src/app/requirements.txt && \
     if grep -q -E "Alpine|alpine" /etc/issue
     then
         update_in_alpine
@@ -215,7 +215,7 @@ update() {
                 fi
             else
                 echo "'$1' is not correct type of tag"
-                echo "For available version tags, see 'https://gitee.com/a76yyyy/qiandao/tags'"
+                echo "For available version tags, see 'https://gitee.com/qd-today/qd/tags'"
             fi
         fi
     else
