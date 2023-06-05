@@ -99,6 +99,34 @@ QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycur
 
 ## 公共模板更新页面提示错误代码为 undefined
 
+- [issue#423](https://github.com/qd-today/qd/issues/423)
+
 > 公共模板更新页面提示错误代码为 undefined, 或者控制台显示 WebSocket 连接 failed 但不显示错误原因
 
 请检查反向代理相关配置是否正确, 参考 [Nginx反向代理WebSocket服务连接报错](https://blog.csdn.net/tiven_/article/details/126126442)
+
+> 参考配置如下:
+>
+> ``` Nginx
+> server {
+>     listen 80;
+>     # 自行修改 server_name
+>     server_name qd.example.com;
+>     location / {
+>         proxy_pass http://ip:port;
+>
+>         # WebSocket 关键配置 开始
+>         proxy_http_version 1.1;
+>         proxy_set_header Upgrade $http_upgrade;
+>         proxy_set_header Connection "upgrade";
+>         # WebSocket 关键配置 结束
+>
+>         # 其他可选配置 开始
+>         proxy_set_header  Host $host;
+>         proxy_set_header  X-Real-IP  $remote_addr;
+>         proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+>         proxy_set_header  X-Forwarded-Proto  $scheme;
+>         # 其他可选配置 结束
+>     }
+> }
+> ```

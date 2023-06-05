@@ -99,6 +99,32 @@ Therefore, the final result looks like:
 
 ## Subscribe updating page prompts undefined error
 
+- [issue#423](https://github.com/qd-today/qd/issues/423)
+
 > The subscribe updating web page prompts an error code of undefined, or the console shows WebSocket connection failed but does not show the reason for the error
 
 Please check if the "reverse proxy" configuration is correct, refer to [Nginx reverse proxy WebSocket service connection error](https://blog.csdn.net/tiven_/article/details/126126442)
+
+> Reference configuration is as follows:
+>
+> ``` Nginx
+> server {
+>     listen 80;
+>     # Modify server_name  by yourself
+>     server_name qd.example.com;
+>     location / {
+>         proxy_pass http://ip:port;
+>
+>         # Set WebSocket Configuration
+>         proxy_http_version 1.1;
+>         proxy_set_header Upgrade $http_upgrade;
+>         proxy_set_header Connection "upgrade";
+>
+>         # Set other optional configuration
+>         proxy_set_header  Host $host;
+>         proxy_set_header  X-Real-IP  $remote_addr;
+>         proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+>         proxy_set_header  X-Forwarded-Proto  $scheme;
+>     }
+> }
+> ```
