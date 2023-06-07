@@ -29,7 +29,7 @@ class _BaseHandler(tornado.web.RequestHandler):
     db:DB
     
     def __init__(self, *args, **kwargs):
-        super(BaseHandler, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.settings['serve_traceback'] = config.traceback_print
     
     def __getattr__(self, key):

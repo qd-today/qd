@@ -15,7 +15,7 @@ from . import base
 def load_modules():
     handlers: list[tuple[str, base.BaseHandler]] = []
     ui_modules: dict[str, base.BaseUIModule] = {}
-    ui_methods: dict[str, base.BaseWebSocket] = {}
+    ui_methods: dict[str, base.BaseWebSocketHandler] = {}
 
     path = os.path.join(os.path.dirname(__file__), "")
     for finder, name, ispkg in pkgutil.iter_modules([path]):
@@ -32,6 +32,6 @@ def load_modules():
 
 handlers: list[tuple[str, base.BaseHandler]]
 ui_modules: dict[str, base.BaseUIModule]
-ui_methods: dict[str, base.BaseWebSocket]
+ui_methods: dict[str, base.BaseWebSocketHandler]
 
 handlers, ui_modules, ui_methods = load_modules()
