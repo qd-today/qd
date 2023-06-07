@@ -145,10 +145,13 @@ class BodyArgument(ArgumentBase):
     """参数初始化函数，初始化规则如下：
     如果用户未提供且 self.type Callable，则使用 self.type；
     如果用户未提供且 self.type 不是 Callable，则使用 lambda x: x。
-    该初始化函数原型为 init(bytes) -> self.type
+    该初始化函数原型为 init(bytes | str) -> self.type
     
-    request.body 默认是 bytes 类型，框架会尝试根据 Content-Type 进行解码，
-    但不保证一定能解码成功，所以建议手动判断一下参数类型。
+    request.body 默认是 bytes 类型，在调用 init 函数前，框架会尝试根据 Content-Type 进行解码：
+        有 charset 则使用 charset 解码，
+        没有 charset 或 Content-Type 则尝试使用 utf-8 解码，
+        application/octet-stream 或 charset=raw 则不会进行尝试解码，
+        尝试解码失败则返回 bytes 类型，成功则返回 str，所以建议手动判断一下参数类型。
     """
 
     def __post_init__(self):
@@ -158,19 +161,19 @@ class BodyArgument(ArgumentBase):
         return super().__post_init__()
 
     def try_decode(self, api: "ApiBase") -> str | bytes:
-        type = api.request.headers.get("Content-Type", "").lower()
-        if "charset=" not in type:
-            charset = "utf-8"
-        else:
-            start = type.index("charset=") + len("charset=")
-            try:
-                end = type.index(";", start)
-            except ValueError:
-                end = -1
-            charset = type[start:end]
+        encoding = "utf-8"
+        if header := api.request.headers.get("Content-Type", ""):
+            content_type, parms = parse_content_type_header(header)
+            if content_type == "application/octet-stream":
+                encoding = "raw"
+            elif "cahrset" in parms:
+                encoding = parms["charset"]
+
+        if encoding == "raw":
+            return api.request.body
 
         try:
-            return api.request.body.decode(charset)
+            return api.request.body.decode(encoding)
         except UnicodeDecodeError:
             return api.request.body
 
@@ -325,6 +328,34 @@ def load_all_api():
     for finder, name, ispkg in pkgutil.iter_modules([path]):
         module = importlib.import_module("." + name, __name__)
         # 注册 API 的工作交给元类做了，定义即注册
+
+
+# requests.utils._parse_content_type_header
+# https://github.com/psf/requests/blob/6e5b15d542a4e85945fd72066bb6cecbc3a82191/requests/utils.py#L513-L535
+# 下划线开头的，还是自己复制一份比较靠谱
+def parse_content_type_header(header):
+    """Returns content type and parameters from given header
+
+    :param header: string
+    :return: tuple containing content type and dictionary of
+         parameters
+    """
+
+    tokens = header.split(";")
+    content_type, params = tokens[0].strip(), tokens[1:]
+    params_dict = {}
+    items_to_strip = "\"' "
+
+    for param in params:
+        param = param.strip()
+        if param:
+            key, value = param, True
+            index_of_equals = param.find("=")
+            if index_of_equals != -1:
+                key = param[:index_of_equals].strip(items_to_strip)
+                value = param[index_of_equals + 1 :].strip(items_to_strip)
+            params_dict[key.lower()] = value
+    return content_type, params_dict
 
 
 # apis 是给 about.py 看的，用于生成前端页面

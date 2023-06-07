@@ -28,6 +28,11 @@ class BaseHandler(tornado.web.RequestHandler):
     application_export = set(('db', 'fetcher'))
     db:DB
     # db = DB()
+    
+    def __init__(self, *args, **kwargs):
+        super(BaseHandler, self).__init__(*args, **kwargs)
+        self.settings['serve_traceback'] = config.traceback_print
+    
     def __getattr__(self, key):
         if key in self.application_export:
             return getattr(self.application, key)
