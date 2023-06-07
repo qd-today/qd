@@ -13,6 +13,7 @@ import socket
 import struct
 import urllib
 import uuid
+import json
 
 import jinja2
 from Crypto.Cipher import AES
@@ -797,6 +798,13 @@ def _aes_decrypt(word:str, key:str, mode='CBC', iv:str=None, input_format='base6
     mode = switch_mode(mode)
     return aes_decrypt(word.encode("utf-8"), key.encode("utf-8"), mode=mode, iv=iv.encode("utf-8"), input=input_format, padding=padding, padding_style=padding_style, no_packb=no_packb)
 
+
+def json_parse(data):
+    return json.loads(data)
+
+def json_stringify(data):
+    return json.dumps(data)
+
 jinja_globals = {
     # types
     'quote_chinese': quote_chinese,
@@ -840,6 +848,9 @@ jinja_globals = {
     # random stuff
     'random': random_fliter,
     'shuffle': randomize_list,
+    # json
+    'json_parse': json_parse,
+    'json_stringify': json_stringify,
     # undefined
     'mandatory': mandatory,
     # debug
