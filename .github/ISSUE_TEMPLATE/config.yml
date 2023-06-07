@@ -2,5 +2,5 @@ blank_issues_enabled: false
 
 contact_links:
   - name: Get help in GitHub Discussions
-    url: https://github.com/qiandao-today/qiandao/discussions
-    about: Have a question? Not sure if your issue affects everyone reproducibly? The quickest way to get help is on Qiandao's GitHub Discussions!
+    url: https://github.com/qd-today/qd/discussions
+    about: Have a question? Not sure if your issue affects everyone reproducibly? The quickest way to get help is on QD's GitHub Discussions!

@@ -7,7 +7,7 @@
     {% for group in _groups %}
     <div class="checkbox">
       <label>
-        <input type="checkbox" name="{{ group.encode('utf-8') }}"  {% if group == groupNow %}  checked="" {% endif %}> {{ group }} 
+        <input type="checkbox" name="{{ group.encode('utf-8') }}"  {% if group == groupNow %}  checked="" {% endif %}> {{ group }}
       </label>
     </div>
     {% endfor %}
@@ -16,9 +16,9 @@
 
   <div class="form-group">
     <label class="control-label" for="note">设置新分组</label>
-	<!-- MY页面-添加签到-增加提示语 -->
+	<!-- MY页面-增加提示语 -->
     <input type="text" class="form-control" name="New_group" value="" id="New_group" placeholder="尽可能填写15个字符以内">
-	<!-- MY页面-添加签到-增加备注图标 -->
+	<!-- MY页面-增加备注图标 -->
 	<span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
   </div>
 
@@ -33,12 +33,12 @@
                 var fanxiBox = $("#oneCheck input:checkbox");
                 fanxiBox.click(function () {
                    if(this.checked || this.checked=='checked'){
-    
+
                        fanxiBox.removeAttr("checked");
                        $(this).prop("checked", true);
                      }
                 });
-             });   
+             });
     </script>
 
   {{ utils.task_new_scripts() }}

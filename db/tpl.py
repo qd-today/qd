@@ -22,7 +22,7 @@ class Tpl(BaseDB,AlchemyMixin):
     id, userid, siteurl, sitename, banner, disabled, public, fork, har, tpl, variables, interval, note, ctime, mtime, atime, last_success
     '''
     __tablename__ = 'tpl'
-    
+
     id = Column(Integer, primary_key=True)
     disabled = Column(TINYINT(1), nullable=False, server_default=text("'0'"))
     public = Column(TINYINT(1), nullable=False, server_default=text("'0'"))
@@ -82,7 +82,7 @@ class Tpl(BaseDB,AlchemyMixin):
             _fields = (getattr(Tpl, field) for field in fields)
 
         smtm = select(_fields).where(Tpl.id == id)
-        
+
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
             return self.to_dict(result,fields)
@@ -92,7 +92,7 @@ class Tpl(BaseDB,AlchemyMixin):
         result = await self._execute(text('UPDATE tpl SET success_count=success_count+1, last_success=:last_success WHERE id=:id').\
             bindparams(id=int(id), last_success=int(time.time())), sql_session=sql_session)
         return result.rowcount
-            
+
     async def incr_failed(self, id, sql_session=None):
         result = await self._execute(text('UPDATE tpl SET failed_count=failed_count+1 WHERE id=:id').\
             bindparams(id=int(id)), sql_session=sql_session)
@@ -103,12 +103,12 @@ class Tpl(BaseDB,AlchemyMixin):
             _fields = Tpl
         else:
             _fields = (getattr(Tpl, field) for field in fields)
-        
+
         smtm = select(_fields)
-        
+
         for key, value in kwargs.items():
             smtm = smtm.where(getattr(Tpl, key) == value)
-            
+
         if limit:
             smtm = smtm.limit(limit)
 

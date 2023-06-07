@@ -14,18 +14,18 @@ docker cp database.db container_name:/usr/src/app/config/
 ## how to configure the email server in Docker?
 
 ``` sh
-docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --env MAIL_SMTP=$STMP_Server_ --env MAIL_PORT=$Mailbox_server_port --env MAIL_USER=$Username --env MAIL_PASSWORD=$Password --env DOMAIN=$Domain a76yyyy/qiandao
+docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --env MAIL_SMTP=$STMP_Server_ --env MAIL_PORT=$Mailbox_server_port --env MAIL_USER=$Username --env MAIL_PASSWORD=$Password --env DOMAIN=$Domain qdtoday/qd
 ```
 
 ## how to use MySQL in Docker?
 
 ``` sh
-docker run -d --name qiandao -p 8923:80 -v $(pwd)/qiandao/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://$username:$password@$hostname:$port/$database_name?auth_plugin= a76yyyy/qiandao
+docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://$username:$password@$hostname:$port/$database_name?auth_plugin= qdtoday/qd
 ```
 
 ## how to build a Docker image by myself?
 
-Please refer to the build file [Dockerfile](https://github.com/qiandao-today/qiandao/blob/master/Dockerfile) of this image.
+Please refer to the build file [Dockerfile](https://github.com/qd-today/qd/blob/master/Dockerfile) of this image.
 
 ## How to view the API and Jinja2 template variables supported by the current framework?
 
@@ -33,7 +33,7 @@ Please access the home page of the framework, and then click the `Common API/Fil
 
 ## how to submit a bug issue?
 
-Please enable `Debug` mode after encountering a problem, and then submit detailed error information to [Issue](https://github.com/qiandao-today/qiandao/issues).
+Please enable `Debug` mode after encountering a problem, and then submit detailed error information to [Issue](https://github.com/qd-today/qd/issues).
 
 ## Which requests are necessary for QD?
 
@@ -56,7 +56,7 @@ If you are still worried, you can build the QD framework by yourself, download t
 QD uses `redis` as a flow limiting tool. If the `redis` service is not installed, the framework will prompt the following warning message.
 
 ``` sh
-[W xxxxxx xx:xx:xx qiandao.RedisDB redisdb:28] Connect Redis falied: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
+[W xxxxxx xx:xx:xx QD.RedisDB redisdb:28] Connect Redis falied: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
 ```
 
 However, `redis` is not required in this framework, if you don't need to use the `flow-limiting` feature, you can ignore the warning message.
@@ -68,7 +68,7 @@ However, `redis` is not required in this framework, if you don't need to use the
 QD uses the `pycurl` module to send HTTP proxy requests. If the `pycurl` module is not installed, the framework will prompt the following warning message:
 
 ``` sh
-[W xxxxxx xx:xx:xx qiandao.Http.Fetcher fetcher:34] Import PyCurl module falied: No module named 'pycurl'
+[W xxxxxx xx:xx:xx QD.Http.Fetcher fetcher:34] Import PyCurl module falied: No module named 'pycurl'
 ```
 
 However, `pycurl` is not required in this framework, if you don't need to use the `proxy` function, you can ignore the warning message.
@@ -96,3 +96,35 @@ The above request will send a `HelloWorld` message to the chat with ID `22222222
 Therefore, the final result looks like:
 
 `1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA;222222222;tg.mydomain.com`
+
+## Subscribe updating page prompts undefined error
+
+- [issue#423](https://github.com/qd-today/qd/issues/423)
+
+> The subscribe updating web page prompts an error code of undefined, or the console shows WebSocket connection failed but does not show the reason for the error
+
+Please check if the "reverse proxy" configuration is correct, refer to [Nginx reverse proxy WebSocket service connection error](https://blog.csdn.net/tiven_/article/details/126126442)
+
+> Reference configuration is as follows:
+>
+> ``` Nginx
+> server {
+>     listen 80;
+>     # Modify server_name  by yourself
+>     server_name qd.example.com;
+>     location / {
+>         proxy_pass http://ip:port;
+>
+>         # Set WebSocket Configuration
+>         proxy_http_version 1.1;
+>         proxy_set_header Upgrade $http_upgrade;
+>         proxy_set_header Connection "upgrade";
+>
+>         # Set other optional configuration
+>         proxy_set_header  Host $host;
+>         proxy_set_header  X-Real-IP  $remote_addr;
+>         proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
+>         proxy_set_header  X-Forwarded-Proto  $scheme;
+>     }
+> }
+> ```

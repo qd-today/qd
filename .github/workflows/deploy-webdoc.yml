@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy:
-    if: startsWith(github.repository, 'qiandao-today/qiandao')
+    if: startsWith(github.repository, 'qd-today/qd')
     runs-on: ubuntu-latest
     defaults:
       run:

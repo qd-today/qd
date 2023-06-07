@@ -49,7 +49,7 @@ class SiteManagerHandler(BaseHandler):
                             await self.db.site.mod(1, regEn=1, sql_session=sql_session)
                             if (await self.db.site.get(1, fields=('regEn',), sql_session=sql_session))['regEn'] != 1:
                                 raise Exception(u"开启注册失败")
-                        
+
                         if ("site.MustVerifyEmailEn" in envs):
                             if (user['email_verified'] != 0):
                                 await self.db.site.mod(1, MustVerifyEmailEn=1, sql_session=sql_session)
@@ -62,7 +62,7 @@ class SiteManagerHandler(BaseHandler):
                             await self.db.site.mod(1, MustVerifyEmailEn=0, sql_session=sql_session)
                             if (await self.db.site.get(1, fields=('MustVerifyEmailEn',), sql_session=sql_session))['MustVerifyEmailEn'] != 0:
                                 raise Exception(u"关闭 强制邮箱验证 失败")
-                            
+
                         if ("site.logDay" in envs):
                             tmp = int(envs["site.logDay"][0])
                             if tmp != (await self.db.site.get(1, fields=('logDay',), sql_session=sql_session))['logDay']:
@@ -81,7 +81,7 @@ class SiteManagerHandler(BaseHandler):
             await self.render('tpl_run_failed.html', log=str(e))
             logger_Web_Handler.error('UserID: %s modify Manage_Board failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
-            
+
         self.redirect('/my/')
         return
 
@@ -90,12 +90,12 @@ class SiteManagerHandler(BaseHandler):
         verified_code = await self.db.user.encrypt(user['id'], verified_code)
         verified_code = await self.db.user.encrypt(0, [user['id'], verified_code])
         verified_code = base64.b64encode(verified_code).decode()
-        await gen.convert_yielded(utils.send_mail(to=user['email'], subject=u"签到平台 验证邮箱", html=u"""
-                <table style="width:99.8%%;height:99.8%%"><tbody><tr><td style=" background:#fafafa url(#) "><div style="border-radius:10px;font-size:13px;color:#555;width:666px;font-family:'Century Gothic','Trebuchet MS','Hiragino Sans GB','微软雅黑','Microsoft Yahei',Tahoma,Helvetica,Arial,SimSun,sans-serif;margin:50px auto;border:1px solid #eee;max-width:100%%;background:#fff repeating-linear-gradient(-45deg,#fff,#fff 1.125rem,transparent 1.125rem,transparent 2.25rem);box-shadow:0 1px 5px rgba(0,0,0,.15)"><div style="width:100%%;background:#49BDAD;color:#fff;border-radius:10px 10px 0 0;background-image:-moz-linear-gradient(0deg,#43c6b8,#ffd1f4);background-image:-webkit-linear-gradient(0deg,#4831ff,#0497ff);height:66px"><p style="font-size:15px;word-break:break-all;padding:23px 32px;margin:0;background-color:hsla(0,0%%,100%%,.4);border-radius:10px 10px 0 0">&nbsp;[签到平台]&nbsp;&nbsp;{http}://{domain}</p></div>
+        await gen.convert_yielded(utils.send_mail(to=user['email'], subject=u"QD平台 验证邮箱", html=u"""
+                <table style="width:99.8%%;height:99.8%%"><tbody><tr><td style=" background:#fafafa url(#) "><div style="border-radius:10px;font-size:13px;color:#555;width:666px;font-family:'Century Gothic','Trebuchet MS','Hiragino Sans GB','微软雅黑','Microsoft Yahei',Tahoma,Helvetica,Arial,SimSun,sans-serif;margin:50px auto;border:1px solid #eee;max-width:100%%;background:#fff repeating-linear-gradient(-45deg,#fff,#fff 1.125rem,transparent 1.125rem,transparent 2.25rem);box-shadow:0 1px 5px rgba(0,0,0,.15)"><div style="width:100%%;background:#49BDAD;color:#fff;border-radius:10px 10px 0 0;background-image:-moz-linear-gradient(0deg,#43c6b8,#ffd1f4);background-image:-webkit-linear-gradient(0deg,#4831ff,#0497ff);height:66px"><p style="font-size:15px;word-break:break-all;padding:23px 32px;margin:0;background-color:hsla(0,0%%,100%%,.4);border-radius:10px 10px 0 0">&nbsp;[QD平台]&nbsp;&nbsp;{http}://{domain}</p></div>
                 <div style="margin:40px auto;width:90%%">
-                    <p>点击以下链接验证邮箱，当您的签到失败的时候，会自动给您发送通知邮件。</p>
+                    <p>点击以下链接验证邮箱，当您的QD失败的时候，会自动给您发送通知邮件。</p>
                     <p style="background:#fafafa repeating-linear-gradient(-45deg,#fff,#fff 1.125rem,transparent 1.125rem,transparent 2.25rem);box-shadow:0 2px 5px rgba(0,0,0,.15);margin:20px 0;padding:15px;border-radius:5px;font-size:14px;color:#555"><a href="{http}://{domain}/verify/{code}">{http}://{domain}/verify/{code}</a></p>
-                    <p>请注意：此邮件由 <a href="{http}://{domain}/verify/{code}" style="color:#12addb" target="_blank">签到平台</a> 自动发送，请勿直接回复。</p>
+                    <p>请注意：此邮件由 <a href="{http}://{domain}/verify/{code}" style="color:#12addb" target="_blank">QD平台</a> 自动发送，请勿直接回复。</p>
                     <p>若此邮件不是您请求的，请忽略并删除！</p>
                 </div>
             </div>
@@ -106,7 +106,7 @@ class SiteManagerHandler(BaseHandler):
         """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True))
 
         return
-     
+
 handlers = [
         ('/site/(\d+)/manage', SiteManagerHandler),
         ]

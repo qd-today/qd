@@ -34,7 +34,7 @@ class Log(object):
             self.logger = logger
         self.logger.setLevel(logger_level)
         self.logger.propagate = False
-        
+
         # 创建一个handler，用于写入日志文件
         self.log_time = time.strftime("%Y_%m_%d")
 
@@ -43,7 +43,7 @@ class Log(object):
         formatter = tornado.log.LogFormatter(fmt=fmt)
 
         self.logger.handlers.clear()
-        
+
         # 创建一个handler，用于输出到控制台
         ch = logging.StreamHandler(sys.stdout)
         ch.setFormatter(formatter)

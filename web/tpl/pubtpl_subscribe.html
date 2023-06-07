@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block body %}
-{{ utils.header(current_user) }}
+{{ utils.header(current_user, title="公共模板", sup=False) }}
 
 <section class="tpl">
   <div id="error-msg"> {% if msg or msg != '' %}<pre>{{msg}}</pre>{% endif %}</div>
@@ -16,8 +16,8 @@
     <h2>
       已注册仓库
       {% if adminflg %}
-        <button type="button" data-load-method="GET" class="btn btn-default modal_load"  href="/subscribe/signup_repos/{{userid}}/" title="注册模板仓库">注册</button>       
-        <button type="button" data-load-method="GET" class="btn btn-default modal_load"  href="/subscribe/unsubscribe_repos/{{userid}}/" title="取消注册此仓库">退订</button>       
+        <button type="button" data-load-method="GET" class="btn btn-default modal_load"  href="/subscribe/signup_repos/{{userid}}/" title="注册模板仓库">注册</button>
+        <button type="button" data-load-method="GET" class="btn btn-default modal_load"  href="/subscribe/unsubscribe_repos/{{userid}}/" title="取消注册此仓库">退订</button>
       {% endif %}
     </h2>
     <table id="register_repo" class="table table-hover tablesorter">
@@ -60,7 +60,7 @@
         <a data-method="POST" class="btn btn-default" href="/subscribe/refresh/{{userid}}/?op=refresh" title="只更新,不清除缓存">强制更新</a>
         <a data-method="POST" class="btn btn-default" href="/subscribe/refresh/{{userid}}/?op=clear" title="有任务重复的时候，请尝试重建缓存">重建缓存</a>
       {% endif %}
-        <button type="button" class="btn btn-default" onclick="window.open('https://github.com/qiandao-today/templates/discussions/171')" title="求模板链接" style="outline: none;">求模板</button>
+        <button type="button" class="btn btn-default" onclick="window.open('https://github.com/qd-today/templates/discussions/171')" title="求模板链接" style="outline: none;">求模板</button>
     </h2>
     <div class="input-group margin-bottom-sm">
       <span class="input-group-addon"><i class="fa fa-search" aria-hidden="true"></i></span>
@@ -72,7 +72,7 @@
         <tr>
           <th style="text-align:center" title="模板操作区">操作</th>
           <th style="text-align:center" title="所属仓库">仓库</th>
-          <th style="text-align:center" title="需签到的网站">网站</th>
+          <th style="text-align:center" title="目标网站">网站</th>
           <th style="text-align:center" title="模板作者">作者</th>
           <th style="text-align:center" title="修改日期">修改日期</th>
           <th style="text-align:center" title="备注和修改日志">备注/日志</th>
@@ -171,7 +171,7 @@
   /**
    *  修改全选按钮样式
    *  在repoNode.init()之前加载
-   * 
+   *
    **/
    function setRepoGroupChecked(className){
     let _eles = document.getElementsByName(className)

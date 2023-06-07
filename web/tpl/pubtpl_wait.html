@@ -10,7 +10,7 @@
 {% endblock %}
 
 {% block body %}
-{{ utils.header(current_user) }}
+{{ utils.header(current_user, title="公共模板", sup=False) }}
 
 <section class="tpl">
   <div class="container">
@@ -23,7 +23,7 @@
           <th style="text-align:center" title="注册的仓库名">仓库名</th>
           <th style="text-align:center" title="注册的仓库连接">链接</th>
           <th style="text-align:center" title="注册的仓库分支">分支</th>
-          <th style="text-align:center" title="是否对仓库使用加速，仅对github有效">加速</th>
+          <th style="text-align:center" title="是否对仓库使用加速, 仅对github有效">加速</th>
         </tr>
       </thead>
       <tbody>
@@ -41,14 +41,14 @@
     </table>
     <h2>
       模板
-      <button type="button" class="btn btn-default" onclick="window.open('https://github.com/qiandao-today/templates/discussions/171')" title="求模板链接" style="outline: none;" rel="noopener noreferrer">求模板</button>
+      <button type="button" class="btn btn-default" onclick="window.open('https://github.com/qd-today/templates/discussions/171')" title="求模板链接" style="outline: none;" rel="noopener noreferrer">求模板</button>
     </h2>
     <table border=0 cellpadding=0 cellspacing=0 width="100%">
         <tr>
             <form name="loading">
                 <td>
-                    <h3 class="text-center" align=center id="update_loading">正在更新公共模板，请稍候.......</h3><br>
-                    <div id="error-msg"></div>
+                    <h3 class="text-center" align=center id="update_loading">正在更新公共模板, 请稍候.......</h3><br>
+                    <div id="error-msg" style="max-height: 150px; overflow: auto;"></div>
                     <script>
                         var bar = 0.0
                         var finish = false;
@@ -56,38 +56,81 @@
                         function count(finish) {
                             if (finish) { NProgress.done(); return; }
                             bar = bar + 0.01;
-                            NProgress.set(bar);
-                            if (bar < 0.99) { setTimeout("count(finish)", 100); }
+                            NProgress.inc();
+                        }
+                        function update_error_msg(msg) {
+                          if ($("#error-msg").hasClass("well")) {
+                            $("#error-msg").append("<br>" + msg);
+                          } else {
+                            $("#error-msg").addClass("well").html(msg);
+                          }
+                          var div = document.getElementById('error-msg');
+                          div.scrollTop = div.scrollHeight;
                         }
                         function update_req() {
                             NProgress.start();
                             count(finish);
-                            $.ajax('/subscribe/{{ userid }}/updating/', {
-                                type: 'POST',
-                                beforeSend: function (R) {
-                                  R.setRequestHeader('Connection', 'Keep-Alive');
+                            function ws_relative_url(s) {
+                              var l = window.location;
+                              return ((l.protocol === "https:") ? "wss://" : "ws://") + l.hostname + (((l.port != 80) && (l.port != 443)) ? ":" + l.port : "") + s;
+                          }
+                            ws = new WebSocket(ws_relative_url("/subscribe/{{ userid }}/updating/"));
+                            if (!ws) {
+                              $("#update_loading").html("当前浏览器不支持WebSocket, 请更换浏览器重试, 请勿连续刷新！").show();
+                              finish = true;
+                              count(finish);
+                              return;
+                            }
+                            ws.onopen = function () {
+                              $("#update_loading").html("正在更新公共模板, 请稍候.......").show();
+                            };
+                            ws.onmessage = function (evt) {
+                              var _json = JSON.parse(evt.data);
+                              if (_json.message != "") {
+                                update_error_msg(_json.message);
+                                count(finish);
+                              }
+                            };
+                            ws.onclose = function (evt) {
+                                if (evt.code == 1005 && evt.reason == "") {
+                                    update_error_msg("错误代码：" + evt.code + ", <br>错误原因：服务器主动断开连接<br>1s 后尝试重新连接...");
+                                    setTimeout(function () {
+                                        update_req();
+                                    }, 1000);
+                                } else if (evt.code == 1000) {
+                                    $("#update_loading").html("更新公共模板成功, 正在跳转, 请稍候......").show();
+                                    setTimeout(function () {
+                                        window.location.href = "/subscribe/{{ userid }}/";
+                                    }, 1000);
+                                } else{
+                                  if (evt.code == 1001) {
+                                    $("#update_loading").html("更新公共模板中断, 请勿重复刷新！").show();
+                                  } else {
+                                    $("#update_loading").html("更新公共模板失败, 请稍后刷新重试, 请勿连续刷新！").show();
+                                  }
+                                  update_error_msg("错误代码：" + evt.code + ", <br>错误原因：" + evt.reason);
                                 }
-                            })
-                                .done(function (data) {
-                                    finish = true;
-                                    count(finish)
-                                    var _json = JSON.parse(data);
-                                    if (_json.code == 0) {
-                                      $('title').text('公共模板更新成功');
-                                      $("#update_loading").html("更新公共模板成功，正在跳转，请稍候......").show();
-                                      setTimeout(function () {
-                                          window.location.href = "/subscribe/{{ userid }}/";
-                                      }, 1000);
-                                    } else {
-                                      $('title').text('公共模板更新失败');
-                                      $("#update_loading").html("更新失败或更新不完整!").show();
-                                      $("#error-msg").addClass("well").html(_json.msg);
-                                    }
-                                })
-                                .fail(function () {
-                                    $("#update_loading").html("更新公共模板失败，请稍后刷新重试，请勿连续刷新！").show();
-                                });
-                            return false;
+                                finish = true;
+                                count(finish)
+                            };
+                            ws.onerror = function (evt) {
+                                $("#update_loading").html("更新公共模板失败, 请稍后刷新重试, 请勿连续刷新！").show();
+                                if (evt.code == 1005 && evt.reason == "") {
+                                  update_error_msg("错误代码：" + evt.code + ", <br>错误原因：服务器主动断开连接<br>1s 后尝试重新连接...");
+                                  setTimeout(function () {
+                                      update_req();
+                                  }, 1000);
+                                } else if (evt.code == 1006 && evt.reason == "") {
+                                  update_error_msg("错误代码：" + evt.code + ", <br>错误原因：服务器主动断开连接");
+                                } else if (evt.code == 1006 && evt.reason != "") {
+                                  update_error_msg("错误代码：" + evt.code + ", <br>错误原因：" + evt.reason);
+                                } else {
+                                  update_error_msg("错误代码：" + evt.code + ", <br>错误原因：" + evt.reason);
+                                }
+                                finish = true;
+                                count(finish)
+                            };
+                            return;
                         }
                     </script>
                 </td>
@@ -98,7 +141,7 @@
       <thead>
         <tr>
           <th style="text-align:center" title="所属仓库">仓库</th>
-          <th style="text-align:center" title="需签到的网站">网站</th>
+          <th style="text-align:center" title="目标网站">网站</th>
           <th style="text-align:center" title="模板作者">作者</th>
           <th style="text-align:center" title="修改日期">修改日期</th>
           <th style="text-align:center" title="备注和修改日志">备注/日志</th>

@@ -4,7 +4,7 @@
   <h2 class="text-center">网站管理</h2>
   <hr>
 
-  {% if adminflg %}      
+  {% if adminflg %}
   <div>
     <label>
       <input type="checkbox"  name="site.regEn" {% if site.regEn %} checked="" {% endif %} > 禁止注册
@@ -17,7 +17,7 @@
   </div>
   <div>
     <label class="control-label" for="note">日志保留天数:</label>
-    <input type="text"  name="site.logDay" value="{{ logDay }}" placeholder="{{ logDay }}" oninput = "value=value.replace(/[^\d]/g,'')"> 
+    <input type="text"  name="site.logDay" value="{{ logDay }}" placeholder="{{ logDay }}" oninput = "value=value.replace(/[^\d]/g,'')">
   </div>
 
   <div class="form-group">

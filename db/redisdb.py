@@ -11,7 +11,7 @@ import config
 from libs.log import Log
 from libs.utils import is_lan
 
-logger_RedisDB = Log('qiandao.RedisDB').getlogger()
+logger_RedisDB = Log('QD.RedisDB').getlogger()
 class RedisDB(object):
     def __init__(self, host=config.redis.host, port=config.redis.port, password=config.redis.passwd, db=config.redis.db, evil=config.evil):
         try:
@@ -25,7 +25,8 @@ class RedisDB(object):
             self.client = redis.StrictRedis(host=host, port=port, password=password, db=db, socket_timeout=3, socket_connect_timeout=3)
             self.client.ping()
         except redis.exceptions.ConnectionError as e:
-            logger_RedisDB.warning('Connect Redis falied: %s',e)
+            if config.display_import_warning:
+                logger_RedisDB.warning('Connect Redis falied: \"%s\". \nTips: This warning message is only for prompting, it will not affect running of QD framework. ',e)
             self.client = None
 
     def evil(self, ip, userid, cnt=None):

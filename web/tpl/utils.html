@@ -1,16 +1,26 @@
-{% macro header(current_user=True) %}
+{% macro qd_title(title="QD框架", sup=True) %}
+<h2 class="text-center">{{ title }}<sup id="qd_header_sup">{% if sup %}{{ version }}{% endif %}</sup></h2>
+<script>
+  var qd_header_sup = document.getElementById('qd_header_sup')
+  qd_header_sup.innerHTML = get_holiday_or_version(qd_header_sup.innerHTML)
+</script>
+{% endmacro %}
+
+{% macro header(current_user=True, title="QD框架", sup=True, about=True) %}
 <header>
   <div class="container">
-    <h2 class="text-center">私有签到框架<sup>{{ version }}</sup></h2>
+    {{ qd_title(title, sup) }}
     <div class="buttons">
       <a href="/" class="btn btn-default pull-left">首页</a>
+      {% if about %}
       <a href="/about/" class="btn btn-default pull-left">常用API/过滤器</a>
+      {% endif %}
       {% if current_user %}
       <a href="/logout" class="btn btn-default pull-right">登出</a>
       {% else %}
       <a href="/register" class="btn btn-default pull-right">注册</a>
       {% endif %}
-      
+
     </div>
   </div>
 </header>
@@ -153,10 +163,10 @@ $(function() {
 
     if ($('body').attr('get-cookie')  != 'true') {
         //$this.html('没有插件，详情F12')
-        //console.log('如需要插件请访问https://github.com/ckx000/get-cookies/下载并手动安装插件');
+        //console.log('如需要插件请访问 https://github.com/qd-today/get-cookies/ 下载并手动安装插件');
         if($this.attr('getmod')==1){
-          $this.attr('href', 'https://github.com/ckx000/get-cookies/').attr('target', '_blank').html('安装后请刷新');
-        }else{$this.attr('getmod',1).html('再次点击前往安装GetCookie插件')}
+          $this.attr('href', 'https://github.com/qd-today/get-cookies/').attr('target', '_blank').html('安装插件后请刷新');
+        }else{$this.attr('getmod',1).html('再次点击前往安装 Get-Cookies 插件')}
     }
   });
   window.addEventListener("message", function(event) {

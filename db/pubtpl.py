@@ -48,23 +48,23 @@ class Pubtpl(BaseDB,AlchemyMixin):
             _fields = (getattr(Pubtpl, field) for field in fields)
 
         smtm = select(_fields).where(Pubtpl.id == id)
-        
+
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
             return self.to_dict(result,fields)
         return result
-            
+
     async def list(self, fields=None, limit=1000, to_dict=True, sql_session=None, **kwargs):
         if fields is None:
             _fields = Pubtpl
         else:
             _fields = (getattr(Pubtpl, field) for field in fields)
-        
+
         smtm = select(_fields)
-        
+
         for key, value in kwargs.items():
             smtm = smtm.where(getattr(Pubtpl, key) == value)
-            
+
         if limit:
             smtm = smtm.limit(limit)
 
@@ -72,6 +72,6 @@ class Pubtpl(BaseDB,AlchemyMixin):
         if to_dict and result is not None:
             return [self.to_dict(row,fields) for row in result]
         return result
-    
+
     def delete(self, id, sql_session=None):
         return self._delete(delete(Pubtpl).where(Pubtpl.id == id), sql_session=sql_session)

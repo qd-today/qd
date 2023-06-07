@@ -43,12 +43,12 @@
         <input type="text" class="form-control" name="pusher_post_data" {% if diypusher.postData and diypusher.mode == 'POST' %} value="{{ diypusher.postData }}" {% endif %} id="pusher_post_data" placeholder="使用json格式(注意使用半角双引号)，如{&quot;a&quot;:&quot;{log}&quot;,&quot;c&quot;:&quot;{t}&quot;}">
       </div>
     {% endif %}
-  
+
     <div class="text-right">
       <button id="test" name="testbtn" data-loading-text="loading..." class="btn btn-default">测试</button>
       <button id="register" name="regbtn" type="submit" data-loading-text="loading..." class="btn btn-primary">提交</button>
     </div>
-  
+
 
   </div>
 <script>

@@ -143,7 +143,8 @@ define (require, exports, module) ->
           $scope.setting ?= {}
           $scope.setting.sitename ?= first_entry and utils.get_domain(first_entry.request.url).split('.')[0]
           parsed_url = first_entry and utils.url_parse(first_entry.request.url)
-          $scope.setting.siteurl ?= parsed_url.protocol == 'https:' and "#{parsed_url.protocol}//#{parsed_url.host}" or parsed_url.host
+          if parsed_url
+            $scope.setting.siteurl ?= parsed_url.protocol == 'https:' and "#{parsed_url.protocol}//#{parsed_url.host}" or parsed_url.host
           if HARNOTE != ""
             $scope.setting.note ?= HARNOTE.replaceAll("&lt;br&gt;", "\r\n")
           return
@@ -229,7 +230,7 @@ define (require, exports, module) ->
           btn.button('reset')
         , (res) ->
           result.html(
-            '<h1 class="alert alert-danger text-center">签到失败</h1><div class="well"></div>'
+            '<h1 class="alert alert-danger text-center">运行失败</h1><div class="well"></div>'
             ).show().find('div').text(res.data)
           btn.button('reset')
         )

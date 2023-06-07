@@ -102,7 +102,7 @@ class PushActionHandler(BaseHandler):
                     raise HTTPError(401)
 
             await getattr(self, action)(pr, sql_session=sql_session)
-            
+
             if action == 'cancel':
                 status = self.db.push_request.CANCEL
             elif pr['status'] == self.db.push_request.PENDING:

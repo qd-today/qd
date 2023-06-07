@@ -3,19 +3,20 @@ FROM a76yyyy/pycurl:latest
 
 # 维护者信息
 LABEL maintainer "a76yyyy <q981331502@163.com>"
-LABEL org.opencontainers.image.source=https://github.com/qiandao-today/qiandao
+LABEL org.opencontainers.image.source=https://github.com/qd-today/qd
 
-ADD ssh/qiandao_fetch /root/.ssh/id_rsa
-ADD ssh/qiandao_fetch.pub /root/.ssh/id_rsa.pub
+ADD ssh/qd_fetch /root/.ssh/id_rsa
+ADD ssh/qd_fetch.pub /root/.ssh/id_rsa.pub
 WORKDIR /usr/src/app
 
-# Qiandao && Pip install modules
-RUN apk add --update --no-cache openssh-client && \
+# QD && Pip install modules
+RUN sed -i 's/mirrors.ustc.edu.cn/dl-cdn.alpinelinux.org/g' /etc/apk/repositories && \
+    apk update && apk add --update --no-cache openssh-client && \
     chmod 600 /root/.ssh/id_rsa && \
     ssh-keyscan gitee.com > /root/.ssh/known_hosts && \
     let num=$RANDOM%100+10 && \
     sleep $num && \
-    git clone --depth 1 git@gitee.com:a76yyyy/qiandao.git /gitclone_tmp && \
+    git clone --depth 1 git@gitee.com:qd-today/qd.git /gitclone_tmp && \
     yes | cp -rf /gitclone_tmp/. /usr/src/app && \
     rm -rf /gitclone_tmp && \
     chmod +x /usr/src/app/update.sh && \
@@ -55,8 +56,9 @@ RUN apk add --update --no-cache openssh-client && \
     sed -i '/yarl/d' requirements.txt && \
     pip install --no-cache-dir -r requirements.txt && \
     apk del .build_deps && \
+    sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
     rm -rf /var/cache/apk/* && \
-    rm -rf /usr/share/man/* 
+    rm -rf /usr/share/man/*
 
 ENV PORT 80
 EXPOSE $PORT/tcp

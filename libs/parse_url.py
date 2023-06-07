@@ -18,4 +18,5 @@ def parse_url(url):
         'port': int(result.group('port')),
         'username': result.group('username'),
         'password': result.group('password'),
+        'href': str(url)
     }

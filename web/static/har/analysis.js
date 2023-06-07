@@ -7,7 +7,7 @@
   var base, base1, jinja_globals,
     indexOf = [].indexOf;
 
-  window.jinja_globals = ['quote_chinese', 'int', 'float', 'bool', 'utf8', 'unicode', 'timestamp', 'date_time', 'is_num', 'add', 'sub', 'multiply', 'divide', 'Faker', 'b64decode', 'b64encode', 'to_uuid', 'md5', 'sha1', 'password_hash', 'hash', 'aes_encrypt', 'aes_decrypt', 'regex_replace', 'regex_escape', 'regex_search', 'regex_findall', 'ternary', 'random', 'shuffle', 'mandatory', 'type_debug', 'dict', 'lipsum', 'range'];
+  window.jinja_globals = ['quote_chinese', 'int', 'float', 'bool', 'utf8', 'unicode', 'timestamp', 'date_time', 'is_num', 'add', 'sub', 'multiply', 'divide', 'Faker', 'b64decode', 'b64encode', 'to_uuid', 'md5', 'sha1', 'password_hash', 'hash', 'aes_encrypt', 'aes_decrypt', 'regex_replace', 'regex_escape', 'regex_search', 'regex_findall', 'ternary', 'random', 'shuffle', 'mandatory', 'type_debug', 'dict', 'lipsum', 'range', 'loop_length', 'loop_first', 'loop_last', 'loop_index', 'loop_index0', 'loop_depth', 'loop_depth0', 'loop_revindex', 'loop_revindex0'];
 
   jinja_globals = window.jinja_globals;
 
@@ -85,9 +85,11 @@
               return 'document';
             case mt !== 'text/css' && mt !== 'application/x-pointplus':
               return 'style';
+            // deepcode ignore DuplicateCaseBody: order is important
             case mt.indexOf('application') !== 0:
               return 'media';
             default:
+              // deepcode ignore DuplicateCaseBody: order is important
               return 'other';
           }
         })();
@@ -214,7 +216,7 @@
         }
         result = [];
         try {
-          ref4 = utils.querystring_parse(entry.request.postData.text);
+          ref4 = utils.querystring_parse_with_variables(entry.request.postData.text);
           for (key in ref4) {
             value = ref4[key];
             result.push({
@@ -266,6 +268,8 @@
           query = utils.querystring_unparse_with_variables(url.query);
           if (query) {
             url.search = `?${query}`;
+          } else {
+            url.search = "";
           }
         }
         entry.request.url = utils.url_unparse(url);
@@ -316,7 +320,7 @@
         }
       },
       recommend_default: function(har) {
-        var domain, entry, j, len, ref, ref1, ref2, ref3, ref4, ref5;
+        var domain, entry, j, len, ref, ref1, ref2, ref3, ref4;
         domain = null;
         ref = har.log.entries;
         for (j = 0, len = ref.length; j < len; j++) {
@@ -326,15 +330,9 @@
           }
           if (exports.variables_in_entry(entry).length > 0) {
             entry.recommend = true;
-          } else if (domain !== utils.get_domain(entry.request.url)) {
+          } else if (domain !== utils.get_domain(entry.request.url) || ((ref1 = (ref2 = entry.response) != null ? ref2.status : void 0) === 304 || ref1 === 0)) {
             entry.recommend = false;
-          } else if ((ref1 = (ref2 = entry.response) != null ? ref2.status : void 0) === 304 || ref1 === 0) {
-            entry.recommend = false;
-          } else if (Math.floor(((ref3 = entry.response) != null ? ref3.status : void 0) / 100) === 3) {
-            entry.recommend = true;
-          } else if (((ref4 = entry.response) != null ? (ref5 = ref4.cookies) != null ? ref5.length : void 0 : void 0) > 0) {
-            entry.recommend = true;
-          } else if (entry.request.method === 'POST') {
+          } else if (Math.floor(((ref3 = entry.response) != null ? ref3.status : void 0) / 100) === 3 || ((ref4 = entry.response.cookies) != null ? ref4.length : void 0) > 0 || entry.request.method === 'POST') {
             entry.recommend = true;
           } else {
             entry.recommend = false;

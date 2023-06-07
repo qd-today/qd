@@ -1,8 +1,8 @@
-<h1 class="alert alert-success text-center">签到成功</h1>
+<h1 class="alert alert-success text-center">运行成功</h1>
 {% if log %}
     <div class="well">
     {% for _log in log.split('\\r\\n') %}
         {{ _log  }}<br>
     {% endfor %}
-    </div> 
+    </div>
 {% endif %}

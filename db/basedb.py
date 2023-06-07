@@ -40,7 +40,7 @@ if config.db_type == 'mysql':
                                 pool_use_lifo = config.sqlalchemy.pool_use_lifo)
 elif config.db_type == 'sqlite3':
     engine_url = f"sqlite+aiosqlite:///{config.sqlite3.path}"
-    engine = create_async_engine(engine_url, 
+    engine = create_async_engine(engine_url,
                                 logging_name = config.sqlalchemy.logging_name,
                                 pool_logging_name = config.sqlalchemy.pool_logging_name,
                                 pool_pre_ping = config.sqlalchemy.pool_pre_ping,
@@ -50,10 +50,10 @@ elif config.db_type == 'sqlite3':
         channel_level=config.sqlalchemy.pool_logging_level).getlogger()
 else:
     raise Exception('db_type must be mysql or sqlite3')
-logger_DB = Log('sqlalchemy', 
+logger_DB = Log('sqlalchemy',
                 logger_level=config.sqlalchemy.logging_level,
                 channel_level=config.sqlalchemy.logging_level).getlogger()
-logger_DB_Engine = Log(engine.engine.logger, 
+logger_DB_Engine = Log(engine.engine.logger,
                 logger_level=config.sqlalchemy.logging_level,
                 channel_level=config.sqlalchemy.logging_level).getlogger()
 if hasattr(engine.pool.logger, 'logger'):
@@ -72,11 +72,12 @@ class AlchemyMixin:
     @property
     def sql_session(self) -> AsyncSession:
         return async_session()
-    
+
     @contextlib.asynccontextmanager
     async def transaction(self, sql_session:AsyncSession=None):
         if sql_session is None:
             async with self.sql_session as sql_session:
+                # deepcode ignore AttributeLoadOnNone: sql_session is not None
                 async with sql_session.begin():
                     yield sql_session
         elif not sql_session.in_transaction():
@@ -84,7 +85,7 @@ class AlchemyMixin:
                 yield sql_session
         else:
             yield sql_session
-        
+
     async def _execute(self, text:Tuple[str,text], sql_session:AsyncSession=None):
         async with self.transaction(sql_session) as sql_session:
             if isinstance(text, str):
@@ -103,7 +104,7 @@ class AlchemyMixin:
                 return result.all()
             else:
                 return result
-    
+
     async def _insert(self, instance, many=False, sql_session:AsyncSession=None):
         async with self.transaction(sql_session) as sql_session:
             if many:
@@ -123,7 +124,7 @@ class AlchemyMixin:
             on_duplicate_key_stmt = insert_stmt.on_duplicate_key_update(**kwargs)
             result: CursorResult = await sql_session.execute(on_duplicate_key_stmt)
             return result.lastrowid
-            
+
     async def _delete(self, stmt: Delete, sql_session:AsyncSession=None):
         async with self.transaction(sql_session) as sql_session:
             result: Result = await sql_session.execute(stmt)

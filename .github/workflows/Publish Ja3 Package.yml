@@ -1,8 +1,8 @@
-
 name: Publish Ja3 Package
-on: 
+on:
+  workflow_dispatch: {}
   push:
-    paths-ignore: 
+    paths-ignore:
       - 'docs/**'
       - '.github/**'
       - '**.md'
@@ -13,21 +13,75 @@ on:
 
 jobs:
   build:
-      runs-on: ubuntu-latest
-      name: Publish Package job
-      
-      steps:
-          - name: Checkout master
-            uses: actions/checkout@master
-          - name: Publish Ja3 Package
-            uses: ilteoood/docker_buildx@master
-            if: startsWith(github.repository, 'qiandao-today/qiandao')
-            with:
-              publish: true
-              imageName: ghcr.io/qiandao-today/qiandao # dockerid/imageName
-              platform: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
-              tag: ja3-latest
-              dockerServer: ghcr.io
-              dockerUser: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
-              dockerPassword: ${{ secrets.GITHUB_TOKEN }} # dockerServer Token
-              dockerFile: Dockerfile.ja3
+    runs-on: ubuntu-latest
+    name: Publish Ja3 Package job
+    if: startsWith(github.repository, 'qd-today/qd') # 仓库名
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
+        password: ${{ secrets.GITHUB_TOKEN }} # dockerServer Token
+    - name: login to qdtoday DockerHub
+      uses: docker/login-action@v2
+      with:
+        registry: docker.io
+        username: ${{ secrets.QD_DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=QD_DOCKER_USERNAME  value=dockerid
+        password: ${{ secrets.QD_DOCKER_PASSWORD }} # dockerServer Token 在setting创建secrets name=QD_DOCKER_PASSWORD  value=dockerToken
+    - name: Publish Ja3 Package
+      uses: docker/build-push-action@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        context: .
+        file: ./Dockerfile.ja3
+        platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
+        push: true
+        tags: ghcr.io/qd-today/qd:ja3-latest,docker.io/qdtoday/qd:ja3-dev
+    - name: Login to a76yyyy DockerHub
+      uses: docker/login-action@v2
+      if: github.ref == 'refs/heads/master'
+      with:
+        registry: docker.io
+        username: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
+        password: ${{ secrets.DOCKER_PASSWORD }} # dockerServer Token 在setting创建secrets name=DOCKER_PASSWORD  value=dockerToken
+    - name: Push image to a76yyyy DockerHub
+      if: github.ref == 'refs/heads/master'
+      run: |
+        docker buildx imagetools create \
+          --tag docker.io/a76yyyy/qiandao:ja3-dev \
+          docker.io/qdtoday/qd:ja3-dev
+    - name: Get version
+      id: get_version
+      if: startsWith(github.ref, 'refs/tags/')
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+    - name: Build Ja3-latest Package
+      uses: docker/build-push-action@v4
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        context: .
+        file: ./Dockerfile.ja3
+        platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
+        push: true
+        tags: docker.io/qdtoday/qd:ja3-latest,docker.io/qdtoday/qd:ja3-${{ steps.get_version.outputs.VERSION }}
+    - name: Login to a76yyyy DockerHub
+      uses: docker/login-action@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        registry: docker.io
+        username: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
+        password: ${{ secrets.DOCKER_PASSWORD }} # dockerServer Token 在setting创建secrets name=DOCKER_PASSWORD  value=dockerToken
+    - name: Push image to a76yyyy DockerHub
+      if: startsWith(github.ref, 'refs/tags/')
+      run: |
+        docker buildx imagetools create \
+          --tag docker.io/a76yyyy/qiandao:ja3-latest \
+          --tag docker.io/a76yyyy/qiandao:ja3-${{ steps.get_version.outputs.VERSION }} \
+          docker.io/qdtoday/qd:ja3-${{ steps.get_version.outputs.VERSION }}

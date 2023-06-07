@@ -71,7 +71,7 @@ define (require, exports, module) ->
         return
       if not $scope.entry?
         return
-      if $scope.entry.request.url.substring(0, 2) == "{{" || $scope.entry.request.url.substring(0, 2) == "{%"
+      if $scope.entry.request.url.substring(0, 2) == "{%"
         return
       try
         queryString = utils.dict2list(utils.querystring_parse_with_variables(utils.url_parse($scope.entry.request.url).query))
@@ -89,18 +89,19 @@ define (require, exports, module) ->
         return
       if not $scope.entry?
         return
-      if $scope.entry.request.url.substring(0, 2) == "{{" || $scope.entry.request.url.substring(0, 2) == "{%"
+      if $scope.entry.request.url.substring(0, 2) == "{%"
         return
       url = utils.url_parse($scope.entry.request.url)
       if url? && url.path.indexOf('%7B%7B') > -1
-        url.path = url.path.replace('%7B%7B', '{{')
-        url.path = url.path.replace('%7D%7D', '}}')
-        url.pathname = url.pathname.replace('%7B%7B', '{{')
-        url.pathname = url.pathname.replace('%7D%7D', '}}')
+        url.path = utils.path_unparse_with_variables(url.path)
+        url.pathname = utils.path_unparse_with_variables(url.pathname)
       url.path = url.path.replace('https:///', 'https://')
       query = utils.list2dict($scope.entry.request.queryString)
       query = utils.querystring_unparse_with_variables(query)
-      url.search = "?#{query}" if query
+      if query
+        url.search = "?#{query}"
+      else
+        url.search = ""
       url = utils.url_unparse(url)
 
       if not changing and url != $scope.entry.request.url
@@ -111,6 +112,8 @@ define (require, exports, module) ->
     # sync params with text
     $scope.$watch('entry.request.postData.params', (() ->
       if not $scope.entry?.request?.postData?
+        return
+      if not ($scope.entry.request.postData?.mimeType?.toLowerCase().indexOf("application/x-www-form-urlencoded") == 0)
         return
       obj = utils.list2dict($scope.entry.request.postData.params)
       $scope.entry.request.postData.text = utils.querystring_unparse_with_variables(obj)
@@ -223,7 +226,7 @@ define (require, exports, module) ->
         response: {}
         success_asserts: []
       })
-    
+
     $scope.add_if_else = () ->
       $scope.insert_request(1, {
         checked: true
@@ -693,6 +696,50 @@ define (require, exports, module) ->
         ]
       })
 
+    $scope.add_dddd_SLIDE_request = () ->
+      $scope.insert_request(1, {
+        checked: true,
+        pageref: $scope.entry.pageref,
+        recommend: true,
+        comment: '滑块识别',
+        request: {
+          method: 'POST',
+          url: [api_host, '/util/dddd/slide'].join(''),
+          headers: [{
+              "name": "Content-Type",
+              "value": "application/json",
+              "checked": true
+            }],
+          cookies: [],
+          postData: {
+            text: "{\"imgtarget\":\"\",\"imgbg\":\"\",\"comparison\":\"False\",\"simple_target\":\"False\"}"
+          }
+        },
+        response: {},
+        success_asserts: [
+          {
+            re: "200",
+            from: "status"
+          },
+          {
+            re: "\"状态\": \"OK\"",
+            from: "content"
+          }
+        ],
+        extract_variables: [
+          {
+            name: '',
+            re: '(\\d+, \\d+)',
+            from: 'content'
+          },
+          {
+            name: '',
+            re: '/(\\d+, \\d+)/g',
+            from: 'content'
+          }
+        ]
+      })
+
     $scope.copy_request = () ->
       if not $scope.entry
         $scope.alert "can't find position to paste request"
@@ -839,7 +886,6 @@ define (require, exports, module) ->
             return if m[1] then m[1] else m[0]
             # return m[1]
           return null
-        NProgress.inc()
       NProgress.inc()
 
 ## eof

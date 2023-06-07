@@ -10,6 +10,7 @@ import json
 import time
 import traceback
 
+import pytz
 import tornado.ioloop
 import tornado.log
 from tornado import gen
@@ -21,14 +22,14 @@ from libs.funcs import cal, pusher
 from libs.log import Log
 from libs.parse_url import parse_url
 
-logger_Worker = Log('qiandao.Worker').getlogger()
+logger_Worker = Log('QD.Worker').getlogger()
 
 class BaseWorker(object):
-    def __init__(self, db=DB()):
+    def __init__(self, db:DB):
         self.running = False
         self.db = db
         self.fetcher = Fetcher()
-    
+
     async def ClearLog(self, taskid, sql_session=None):
         logDay = int((await self.db.site.get(1, fields=('logDay',), sql_session=sql_session))['logDay'])
         for log in await self.db.tasklog.list(taskid = taskid, fields=('id', 'ctime'), sql_session=sql_session):
@@ -46,7 +47,7 @@ class BaseWorker(object):
                         push_batch = json.loads(user['push_batch'])
                         if user['status'] == "Enable" and push_batch["sw"] and isinstance(push_batch['time'],(float,int)) and time.time() >= push_batch['time']:
                             logger_Worker.debug('User %d check push_batch task, waiting...' % userid)
-                            title = u"定期签到日志推送"
+                            title = u"QD任务日志定期推送"
                             delta = push_batch.get("delta", 86400)
                             logtemp = "{}".format(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(push_batch['time'])))
                             tmpdict = {}
@@ -66,11 +67,11 @@ class BaseWorker(object):
                                     if tmp0:
                                         tmplist.append("\\r\\n-----任务{0}-{1}-----{2}\\r\\n".format(len(tmplist)+1, task['note'], tmp0))
                                     else:
-                                        tmplist.append("\\r\\n-----任务{0}-{1}-----\\r\\n记录期间未执行签到，请检查任务! \\r\\n".format(len(tmplist)+1, task['note']))
+                                        tmplist.append("\\r\\n-----任务{0}-{1}-----\\r\\n记录期间未执行定时任务，请检查任务! \\r\\n".format(len(tmplist)+1, task['note']))
                                     tmpdict[task['tplid']] = tmplist
-                                    
+
                             for tmpkey in tmpdict:
-                                tmp = "\\r\\n\\r\\n=====签到: {0}=====".format((await self.db.tpl.get(tmpkey, fields=('sitename',), sql_session=sql_session))['sitename'])
+                                tmp = "\\r\\n\\r\\n=====QD: {0}=====".format((await self.db.tpl.get(tmpkey, fields=('sitename',), sql_session=sql_session))['sitename'])
                                 tmp += ''.join(tmpdict[tmpkey])
                                 logtemp += tmp
                             push_batch["time"] = push_batch['time'] + delta
@@ -143,27 +144,19 @@ class BaseWorker(object):
     async def do(self, task):
         async with self.db.transaction() as sql_session:
             user = await self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname', 'logtime'), sql_session=sql_session)
-            tpl = await self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl', 'interval', 'last_success'), sql_session=sql_session)
-            newontime = json.loads(task["newontime"])
-            pushtool = pusher(self.db, sql_session=sql_session)
-            caltool = cal()
-            logtime = json.loads(user['logtime'])
-            pushsw = json.loads(task['pushsw'])
-
-            if 'ErrTolerateCnt' not in logtime:logtime['ErrTolerateCnt'] = 0 
-
-            if task['disabled']:
-                await self.db.tasklog.add(task['id'], False, msg='task disabled.', sql_session=sql_session)
-                await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
-                return False
-
             if not user:
                 await self.db.tasklog.add(task['id'], False, msg='no such user, disabled.', sql_session=sql_session)
                 await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
                 return False
 
+            tpl = await self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'tpl', 'interval', 'last_success'), sql_session=sql_session)
             if not tpl:
                 await self.db.tasklog.add(task['id'], False, msg='tpl missing, task disabled.', sql_session=sql_session)
+                await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
+                return False
+
+            if task['disabled']:
+                await self.db.tasklog.add(task['id'], False, msg='task disabled.', sql_session=sql_session)
                 await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
                 return False
 
@@ -171,6 +164,15 @@ class BaseWorker(object):
                 await self.db.tasklog.add(task['id'], False, msg='no permission error, task disabled.', sql_session=sql_session)
                 await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
                 return False
+
+            newontime = json.loads(task["newontime"])
+            pushtool = pusher(self.db, sql_session=sql_session)
+            caltool = cal()
+            logtime = json.loads(user['logtime'])
+            pushsw = json.loads(task['pushsw'])
+
+            if 'ErrTolerateCnt' not in logtime:
+                logtime['ErrTolerateCnt'] = 0
 
             start = time.perf_counter()
             try:
@@ -223,7 +225,7 @@ class BaseWorker(object):
                 await self.db.tpl.incr_success(tpl['id'], sql_session=sql_session)
 
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                title = u"签到任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
+                title = u"QD定时任务 {0}-{1} 成功".format(tpl['sitename'], task['note'])
                 logtemp = new_env['variables'].get('__log__')
                 logtemp = u"{0} \\r\\n日志：{1}".format(t, logtemp)
                 await pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
@@ -237,9 +239,9 @@ class BaseWorker(object):
                 if config.traceback_print:
                     traceback.print_exc()
                 next_time_delta = self.failed_count_to_time(task['last_failed_count'], task['retry_count'], task['retry_interval'], tpl['interval'])
-                            
+
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                title = u"签到任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
+                title = u"QD定时任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
                 content = u"{0} \\r\\n日志：{1}".format(t, str(e))
                 disabled = False
                 if next_time_delta:
@@ -269,7 +271,7 @@ class BaseWorker(object):
         return True
 
 class QueueWorker(BaseWorker):
-    def __init__(self, db=DB()):
+    def __init__(self, db:DB):
         logger_Worker.info('Queue Worker start...')
         self.queue = asyncio.Queue(maxsize=config.queue_num)
         self.task_lock = {}
@@ -278,7 +280,7 @@ class QueueWorker(BaseWorker):
         super().__init__(db)
 
     async def __call__(self):
-        
+
         asyncio.create_task(self.producer())
         for i in range(config.queue_num):
             asyncio.create_task(self.runner(i))
@@ -340,10 +342,10 @@ class QueueWorker(BaseWorker):
 # 旧版本批量任务定时执行
 # 建议仅当新版 Queue 生产者消费者定时执行功能失效时使用
 class BatchWorker(BaseWorker):
-    def __init__(self, db=DB()):
+    def __init__(self, db:DB):
         logger_Worker.info('Batch Worker start...')
         super().__init__(db)
-        
+
     def __call__(self):
         # self.running = tornado.ioloop.IOLoop.current().spawn_callback(self.run)
         # if self.running:
@@ -360,7 +362,7 @@ class BatchWorker(BaseWorker):
                 logger_Worker.info('%d task done. %d success, %d failed' % (success+failed, success, failed))
             return
         self.running.add_done_callback(done)
-        
+
     async def run(self):
         running = []
         success = 0
@@ -393,13 +395,14 @@ class BatchWorker(BaseWorker):
         return (success, failed)
 
 if __name__ == '__main__':
+    from db import DB
     tornado.log.enable_pretty_logging()
     io_loop = tornado.ioloop.IOLoop.instance()
     if config.worker_method.upper() == 'QUEUE':
-        worker = QueueWorker()
+        worker = QueueWorker(DB())
         io_loop.add_callback(worker)
     elif config.worker_method.upper() == 'BATCH':
-        worker = BatchWorker()
+        worker = BatchWorker(DB())
         tornado.ioloop.PeriodicCallback(worker, config.check_task_loop).start()
         # worker()
     else:
