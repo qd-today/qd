@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "52dabf8ed035c2c95ba576836a8a8534f38b6392a81c3e3a523ab87f3e8bfd9c"
+            "sha256": "63c6bfcccc85be0e587f9e86c8586598b3d3e946dff0aeef950d03c865643db1"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -957,13 +957,5 @@
             "version": "==1.9.2"
         }
     },
-    "develop": {
-        "pycurl": {
-            "hashes": [
-                "sha256:5730590be0271364a5bddd9e245c9cc0fb710c4cbacbdd95264a3122d23224ca"
-            ],
-            "markers": "sys_platform != 'win32'",
-            "version": "==7.45.2"
-        }
-    }
+    "develop": {}
 }
