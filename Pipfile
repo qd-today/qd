@@ -35,8 +35,7 @@ aiohttp = "*"
 sqlalchemy = {version = "<2.0", extras = ["asyncio"]}
 
 [dev-packages]
-opencv-python-headless = "*"
-ddddocr = "*"
+#ddddocr = "*"
 pycurl = {version = "*", markers="sys_platform != 'win32'"}
 
 [requires]

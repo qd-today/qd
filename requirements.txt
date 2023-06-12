@@ -45,5 +45,4 @@ u-msgpack-python==2.8.0
 urllib3==2.0.2; python_version >= '3.7'
 yarl==1.9.2; python_version >= '3.7'
 # ddddocr==1.4.7
-# opencv-python-headless==4.7.0.68
 # pycurl==7.45.2
