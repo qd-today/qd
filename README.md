@@ -27,7 +27,7 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [HomePage-image]: https://img.shields.io/badge/HomePage-qd--today-brightgreen
-[HomePage-url]: https://qiandao.a76yyyy.cn
+[HomePage-url]: https://qd.a76yyyy.cn
 [Github-image]: https://img.shields.io/static/v1?label=Github&message=qd-today&color=brightgreen
 [Github-url]: https://github.com/qd-today/qd/
 [Gitee-image]: https://img.shields.io/static/v1?label=Gitee&message=a76yyyy&color=brightgreen
