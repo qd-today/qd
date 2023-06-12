@@ -241,7 +241,7 @@ def method_cache(fn):
 
     return wrapper
 
-#full_format=True，的时候是具体时间，full_format=False就是几秒钟几分钟几小时时间格式----此处为模糊时间格式模式
+#full_format=True 的时候是具体时间，full_format=False就是几秒钟几分钟几小时时间格式----此处为模糊时间格式模式
 def format_date(date, gmt_offset=time.timezone/60, relative=True, shorter=False, full_format=True):
     """Formats the given date (which should be GMT).
 

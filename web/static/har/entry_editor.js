@@ -343,12 +343,12 @@
           checked: true,
           pageref: $scope.entry.pageref,
           recommend: true,
-          comment: '返回当前时间戳和时间',
+          comment: '返回对应时间戳和时间',
           request: {
-            method: 'GET',
+            method: 'POST',
             url: [api_host, '/util/timestamp'].join(''),
             postData: {
-              text: ''
+              text: 'ts=&form=&dt='
             },
             headers: [],
             cookies: []

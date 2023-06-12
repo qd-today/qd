@@ -39,14 +39,14 @@
             <a href="/util/timestamp" target="_blank" rel="nofollow">api://util/timestamp</a>
           <button class="btn hljs-button" data-clipboard-target="#api_url1">复制</button>
         </td>
-        <td>ts,form<br></td>
+        <td>ts,form,dt<br></td>
         <td>否</td>
-        <td>默认返回当前时间戳和时间<br>如果参数带时间戳ts, 返回ts所对应时间;<br>如果参数带时间格式form，返回相应格式的本机和北京时间，默认"form=%Y-%m-%d %H:%M:%S"</td>
+        <td>默认返回当前时间戳和时间<br>如果参数带时间戳ts, 返回ts所对应时间;<br>如果参数带时间格式form，返回相应格式的本机和北京时间，默认"form=%Y-%m-%d %H:%M:%S"<br>如果参数带时间字符串 dt, 返回 dt 对应的时间信息, <br>dt 优先级大于 ts, 指定 dt 须同时指定 form</td>
 
           <td id="api_exam1" class="showbut">
             <div class="autowrap">
-              <a href="/util/timestamp?ts=1625068800&form=%Y-%m-%d %H:%M:%S" target="_blank" rel="nofollow">
-          api://util/timestamp?ts=1625068800&form=%Y-%m-%d %H:%M:%S
+              <a href="/util/timestamp?ts=1625068800.123456&form=%Y-%m-%d %H:%M:%S.%f&dt=2000-01-01 00:00:00.000000" target="_blank" rel="nofollow">
+          api://util/timestamp?ts=1625068800.123456&form=%Y-%m-%d %H:%M:%S.%f&dt=2000-01-01 00:00:00.000000
               </a>
             </div>
           <button class="btn hljs-button" data-clipboard-target="#api_exam1">复制</button>
