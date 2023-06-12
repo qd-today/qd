@@ -516,7 +516,7 @@ def safe_eval(expr, globals_dict=None, locals_dict=None, mode="eval", nocopy=Fal
     except ZeroDivisionError:
         raise
     except Exception as e:
-        raise ValueError('%s: "%s" while evaluating\n%r' % (type(e), e, expr))
+        raise ValueError('%s: "%s"' % (type(e), e))
 def test_python_expr(expr, mode="eval"):
     try:
         test_expr(expr, _SAFE_OPCODES, mode=mode)

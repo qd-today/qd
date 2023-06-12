@@ -124,7 +124,9 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
                 (:[0-9]+)? """                                              # :Port
                 )
 
-new_task_delay = int(os.getenv('NEW_TASK_DELAY', 1))                        # 新建任务后准备时间
+new_task_delay = int(os.getenv('NEW_TASK_DELAY', 1))                        # 新建任务后准备时间, 单位为秒, 默认为1秒
+task_while_loop_timeout = int(os.getenv('TASK_WHILE_LOOP_TIMEOUT', 15*60))  # 任务运行中单个 While 循环最大运行时间, 单位为秒, 默认为15分钟
+task_request_limit = int(os.getenv('TASK_REQUEST_LIMIT', 1500))             # 任务运行中单个任务最大请求次数, 默认为 1500 次
 
 # ddddocr设置
 extra_onnx_name = os.getenv('EXTRA_ONNX_NAME', '').split('|')               # config目录下自定义ONNX文件名(不含 ".onnx" 后缀), 多个onnx文件名用"|"分隔

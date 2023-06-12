@@ -180,7 +180,7 @@ class TaskRunHandler(BaseHandler):
             try:
                 url = parse_url(env['variables'].get('_proxy'))
                 if not url:
-                    new_env = await self.fetcher.do_fetch(fetch_tpl, env)
+                    new_env, _ = await self.fetcher.do_fetch(fetch_tpl, env)
                 else:
                     proxy = {
                         'scheme': url['scheme'],
@@ -189,7 +189,7 @@ class TaskRunHandler(BaseHandler):
                         'username': url['username'],
                         'password': url['password']
                     }
-                    new_env = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+                    new_env, _ = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
             except Exception as e:
                 logger_Web_Handler.error('taskid:%d tplid:%d failed! %.4fs \r\n%s', task['id'], task['tplid'], time.time()-start_ts, str(e).replace('\\r\\n','\r\n'))
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')

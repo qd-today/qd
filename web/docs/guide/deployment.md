@@ -145,6 +145,9 @@ python ./chrole.py your@email.address admin
 |PROXIES|No|""|Global proxy domain name list, separated by "\|"|
 |PROXY_DIRECT_MODE|No|""|Global proxy blacklist mode, not enabled by default <br>"url" is URL matching mode; "regexp" is regular expression matching mode|
 |PROXY_DIRECT|No|""|Global proxy blacklist matching rules|
+|NEW_TASK_DELAY|No|1|Preparation time after new task, default is 1 second|
+|TASK_WHILE_LOOP_TIMEOUT|No|900|Maximum runtime of a single While loop during a task run, <br>the default is 15 minutes|
+|TASK_REQUEST_LIMIT|No|1500|Maximum number of requests per task run, <br>the default is 1500|
 |USE_PYCURL|No|True|Whether to enable Pycurl module|
 |ALLOW_RETRY|No|True|When some requests in the Pycurl environment may cause Request errors, <br>automatically modify the conflict settings and resend the request|
 |DNS_SERVER|No|""|Use specified DNS for resolution via Curl (only supports Pycurl environment), <br>such as 8.8.8.8|

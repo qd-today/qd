@@ -92,10 +92,11 @@ class HARTest(BaseHandler):
             logger_Web_Handler.debug('HARTest Replace error: %s' % e)
         data: json_typing.HARTest = json.loads(self.request.body)
         FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}').match(data['request']['url'])
+        WHILE_START = re.compile('{%\s*while\s+([\s\S]*)\s*%}').match(data['request']['url'])
         IF_START = re.compile('{%\s*if\s+(.+)\s*%}').match(data['request']['url'])
         ELSE_START = re.compile('{%\s*else\s*%}').match(data['request']['url'])
         PARSE_END = re.compile('{%\s*end(for|if)\s*%}').match(data['request']['url'])
-        if FOR_START or IF_START or ELSE_START or PARSE_END:
+        if FOR_START or WHILE_START or IF_START or ELSE_START or PARSE_END:
             tmp = {'env':data['env'],'rule':data['rule']}
             tmp['request'] = {'method': 'GET', 'url': 'api://util/unicode?content=', 'headers': [], 'cookies': []}
             req, rule, env = self.fetcher.build_request(tmp)
@@ -119,21 +120,48 @@ class HARTest(BaseHandler):
                 env['variables']['loop_revindex'] = str(env['variables'].get('loop_revindex', len(_from)))
                 res = '循环内赋值变量: %s, 循环列表变量: %s, 循环次数: %s, \r\n循环列表内容: %s.\r\n此页面仅用于显示循环信息, 禁止在此页面提取变量' % (_target, _from_var, len(_from), str(list(_from)))
                 response = httpclient.HTTPResponse(request=req,code=200,reason='OK',buffer=BytesIO(str(res).encode()))
+            elif WHILE_START:
+                try:
+                    env['variables']['loop_index0'] = str(env['variables'].get('loop_index0', 0))
+                    env['variables']['loop_index'] = str(env['variables'].get('loop_index', 1))
+                    condition = safe_eval(WHILE_START.group(1),env['variables'])
+                    condition = 'while 循环判断结果: true' if condition else 'while 循环判断结果: false'
+                    code = 200
+                except NameError:
+                    condition = 'while 循环判断结果: false'
+                    code = 200
+                except ValueError as e:
+                    if len(str(e)) > 20 and str(e)[:20] == "<class 'NameError'>:":
+                        condition = 'while 循环判断结果: false'
+                        code = 200
+                    else:
+                        condition = 'while 循环条件错误: %s\r\n条件表达式: %s' % (str(e).replace("<class 'ValueError'>","ValueError"), WHILE_START.group(1))
+                        code = 500
+                except Exception as e:
+                    condition = 'while循环条件错误: %s\r\n条件表达式: %s' % (str(e), WHILE_START.group(1))
+                    code = 500
+                condition += '\r\n此页面仅用于显示循环判断结果, 禁止在此页面提取变量'
+                response = httpclient.HTTPResponse(request=req,code=code,buffer=BytesIO(str(condition).encode()))
             elif IF_START:
                 try:
                     condition = safe_eval(IF_START.group(1),env['variables'])
+                    condition = '判断结果: true' if condition else '判断结果: false'
+                    code = 200
                 except NameError:
                     condition = False
                 except ValueError as e:
                     if len(str(e)) > 20 and str(e)[:20] == "<class 'NameError'>:":
                         condition = False
                     else:
-                        raise e
-                condition = '判断结果: true' if condition else '判断结果: false'
-                condition += ', 此页面仅用于显示判断结果, 禁止在此页面提取变量'
-                response = httpclient.HTTPResponse(request=req,code=200,reason='OK',buffer=BytesIO(str(condition).encode()))
+                        condition = '判断条件错误: %s\r\n条件表达式: %s' % (str(e).replace("<class 'ValueError'>","ValueError"), IF_START.group(1))
+                        code = 500
+                except Exception as e:
+                    condition = '判断条件错误: %s\r\n条件表达式: %s' % (str(e), IF_START.group(1))
+                    code = 500
+                condition += '\r\n此页面仅用于显示判断结果, 禁止在此页面提取变量'
+                response = httpclient.HTTPResponse(request=req,code=code,buffer=BytesIO(str(condition).encode()))
             else:
-                e = httpclient.HTTPError(405, "循环或结束等控制语句不支持在单条请求中测试")
+                e = httpclient.HTTPError(405, "结束等控制语句不支持在单条请求中测试")
                 response = httpclient.HTTPResponse(request=req,code=e.code,reason=e.message,buffer=BytesIO(str(e).encode()))
             env['session'].extract_cookies_to_jar(response.request, response)
             success, _ = self.fetcher.run_rule(response, rule, env)

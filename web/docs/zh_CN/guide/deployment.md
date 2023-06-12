@@ -145,6 +145,9 @@ MAIL_DOMAIN|否|mail.qd.today|邮箱域名,没啥用, 使用的DOMAIN
 PROXIES|否|""|全局代理域名列表,用"|"分隔
 PROXY_DIRECT_MODE|否|""|全局代理黑名单模式,默认不启用 <br>"url"为网址匹配模式;"regexp"为正则表达式匹配模式
 PROXY_DIRECT|否|""|全局代理黑名单匹配规则
+|NEW_TASK_DELAY|否|1|新建任务后准备时间, 单位为秒, 默认为1秒
+|TASK_WHILE_LOOP_TIMEOUT|否|900|任务运行中单个 While 循环最大运行时间, <br>单位为秒, 默认为 15 分钟
+|TASK_REQUEST_LIMIT|否|1500|任务运行中单个任务最大请求次数, <br>默认为 1500 次
 USE_PYCURL|否|True|是否启用Pycurl模组
 ALLOW_RETRY|否|True|在Pycurl环境下部分请求可能导致Request错误时, <br>自动修改冲突设置并重发请求
 DNS_SERVER|否|""|通过Curl使用指定DNS进行解析(仅支持Pycurl环境), <br>如 8.8.8.8

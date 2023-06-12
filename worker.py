@@ -184,7 +184,7 @@ class BaseWorker(object):
 
                 url = parse_url(env['variables'].get('_proxy'))
                 if not url:
-                    new_env = await self.fetcher.do_fetch(fetch_tpl, env)
+                    new_env, _ = await self.fetcher.do_fetch(fetch_tpl, env)
                 else:
                     proxy = {
                         'scheme': url['scheme'],
@@ -193,7 +193,7 @@ class BaseWorker(object):
                         'username': url['username'],
                         'password': url['password']
                     }
-                    new_env = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+                    new_env, _ = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
 
                 variables = await self.db.user.encrypt(task['userid'], new_env['variables'], sql_session=sql_session)
                 session = await self.db.user.encrypt(task['userid'],

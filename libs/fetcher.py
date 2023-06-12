@@ -9,6 +9,7 @@ import base64
 import json
 import random
 import re
+import time
 import traceback
 import urllib
 import urllib.parse as urlparse
@@ -547,8 +548,9 @@ class Fetcher(object):
 
     FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}')
     IF_START = re.compile('{%\s*if\s+(.+)\s*%}')
+    WHILE_START = re.compile('{%\s*while\s+(.+)\s*%}')
     ELSE_START = re.compile('{%\s*else\s*%}')
-    PARSE_END = re.compile('{%\s*end(for|if)\s*%}')
+    PARSE_END = re.compile('{%\s*end(for|if|while)\s*%}')
 
     def parse(self, tpl):
         stmt_stack = []
@@ -556,7 +558,7 @@ class Fetcher(object):
         def __append(entry):
             if stmt_stack[-1]['type'] == 'if':
                 stmt_stack[-1][stmt_stack[-1]['parse']].append(entry)
-            elif stmt_stack[-1]['type'] == 'for':
+            elif stmt_stack[-1]['type'] == 'for' or stmt_stack[-1]['type'] == 'while':
                 stmt_stack[-1]['body'].append(entry)
 
         for i, entry in enumerate(tpl):
@@ -568,7 +570,16 @@ class Fetcher(object):
                     'type': 'for',
                     'target': m.group(1),
                     'from': m.group(2),
-                    'body': []
+                    'body': [],
+                    'idx': entry['idx'],
+                })
+            elif self.WHILE_START.match(entry['request']['url']):
+                m = self.WHILE_START.match(entry['request']['url'])
+                stmt_stack.append({
+                    'type': 'while',
+                    'condition': m.group(1),
+                    'body': [],
+                    'idx': entry['idx'],
                 })
             elif self.IF_START.match(entry['request']['url']):
                 m = self.IF_START.match(entry['request']['url'])
@@ -577,13 +588,17 @@ class Fetcher(object):
                     'condition': m.group(1),
                     'parse': 'true',
                     'true': [],
-                    'false': []
+                    'false': [],
+                    'idx': entry['idx'],
                 })
             elif self.ELSE_START.match(entry['request']['url']):
                 stmt_stack[-1]['parse'] = 'false'
             elif self.PARSE_END.match(entry['request']['url']):
+                m = self.PARSE_END.match(entry['request']['url'])
                 entry_type = stmt_stack and stmt_stack[-1]['type']
-                if entry_type == 'for' or entry_type == 'if':
+                if entry_type == 'for' or entry_type == 'if' or entry_type == 'while':
+                    if m.group(1) != entry_type:
+                        raise Exception('Failed at %d/%d end tag \\r\\nError: End tag should be "end%s", but "end%s"' % (i+1, len(tpl), stmt_stack[-1]['type'], m.group(1)))
                     entry = stmt_stack.pop()
                     if stmt_stack:
                         __append(entry)
@@ -603,7 +618,7 @@ class Fetcher(object):
         while stmt_stack:
             yield stmt_stack.pop()
 
-    async def do_fetch(self, tpl, env, proxies=config.proxies, request_limit=1000, tpl_length=0):
+    async def do_fetch(self, tpl, env, proxies=config.proxies, request_limit=config.task_request_limit, tpl_length=0):
         """
         do a fetch of hole tpl
         """
@@ -652,14 +667,46 @@ class Fetcher(object):
                         env['variables']['loop_index0'] = str(idx)
                         env['variables']['loop_revindex'] = str(len(_from) - idx)
                         env['variables']['loop_revindex0'] = str(len(_from) - idx - 1)
-                        env = await self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
+                        env, request_limit = await self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
                     env['variables']['loop_depth'] = str(int(env['variables'].get('loop_depth', '0')) - 1)
                     env['variables']['loop_depth0'] = str(int(env['variables'].get('loop_depth0', '-1')) - 1)
                 else:
                     for each in _from:
                         env['variables'][block['target']] = each
-                        env = await self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
-
+                        env, request_limit = await self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
+            elif block['type'] == 'while':
+                start_time = time.perf_counter()
+                env['variables']['loop_depth'] = str(int(env['variables'].get('loop_depth', '0')) + 1)
+                env['variables']['loop_depth0'] = str(int(env['variables'].get('loop_depth0', '-1')) + 1)
+                while_idx = 0
+                while time.perf_counter() - start_time <= config.task_while_loop_timeout:
+                    env['variables']['loop_index'] = str(while_idx + 1)
+                    env['variables']['loop_index0'] = str(while_idx)
+                    try:
+                        condition = safe_eval(block['condition'],env['variables'])
+                    except NameError:
+                        condition = False
+                    except ValueError as e:
+                        if len(str(e)) > 20 and str(e)[:20] == "<class 'NameError'>:":
+                            condition = False
+                        else:
+                            raise Exception('Failed at %d/%d while condition, \\r\\nError: %s, \\r\\nBlock condition: %s' %
+                                (block['idx'], tpl_length, str(e).replace("<class 'ValueError'>","ValueError"), block['condition']))
+                    except Exception as e:
+                        raise Exception('Failed at %d/%d while condition, \\r\\nError: %s, \\r\\nBlock condition: %s' %
+                                (block['idx'], tpl_length, e, block['condition']))
+                    if condition:
+                        env, request_limit = await self.do_fetch(block['body'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
+                    else:
+                        if config.debug:
+                            logger_Fetcher.debug('while loop break, time: %ss', time.perf_counter() - start_time)
+                        break
+                    while_idx += 1
+                else:
+                    raise Exception('Failed at %d/%d while end, \\r\\nError: while loop timeout, time: %ss \\r\\nBlock condition: %s' %
+                                    (block['idx'], tpl_length, time.perf_counter() - start_time , block['condition']))
+                env['variables']['loop_depth'] = str(int(env['variables'].get('loop_depth', '0')) - 1)
+                env['variables']['loop_depth0'] = str(int(env['variables'].get('loop_depth0', '-1')) - 1)
             elif block['type'] == 'if':
                 try:
                     condition = safe_eval(block['condition'],env['variables'])
@@ -669,11 +716,15 @@ class Fetcher(object):
                     if len(str(e)) > 20 and str(e)[:20] == "<class 'NameError'>:":
                         condition = False
                     else:
-                        raise e
+                        raise Exception('Failed at %d/%d if condition, \\r\\nError: %s, \\r\\nBlock condition: %s' %
+                            (block['idx'], tpl_length, str(e).replace("<class 'ValueError'>","ValueError"), block['condition']))
+                except Exception as e:
+                    raise Exception('Failed at %d/%d if condition, \\r\\nError: %s, \\r\\nBlock condition: %s' %
+                                    (block['idx'], tpl_length, e, block['condition']))
                 if condition:
-                    await self.do_fetch(block['true'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
+                    _, request_limit = await self.do_fetch(block['true'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
                 else:
-                    await self.do_fetch(block['false'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
+                    _, request_limit = await self.do_fetch(block['false'], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length)
             elif block['type'] == 'request':
                 entry = block['entry']
                 try:
@@ -692,4 +743,4 @@ class Fetcher(object):
                 if not result['success']:
                     raise Exception('Failed at %d/%d request, \\r\\n%s, \\r\\nRequest URL: %s' % (
                         entry['idx'], tpl_length, result['msg'], entry['request']['url']))
-        return env
+        return env, request_limit

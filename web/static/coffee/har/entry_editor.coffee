@@ -174,7 +174,7 @@ define (require, exports, module) ->
         checked: true
         pageref: $scope.entry.pageref
         recommend: true,
-        comment: '循环开始'
+        comment: 'For 循环开始'
         request: {
           method: 'GET'
           url: '{% for variable in variables %}'
@@ -194,10 +194,48 @@ define (require, exports, module) ->
         checked: true
         pageref: $scope.entry.pageref
         recommend: true,
-        comment: '循环块结束'
+        comment: 'For 循环结束'
         request: {
           method: 'GET'
           url: '{% endfor %}'
+          postData: {
+            text: ''
+          }
+          headers: []
+          cookies: []
+        }
+        response: {}
+        success_asserts: []
+      })
+
+    $scope.add_while_start = () ->
+      $scope.insert_request(1, {
+        checked: true
+        pageref: $scope.entry.pageref
+        recommend: true,
+        comment: 'While 循环开始'
+        request: {
+          method: 'GET'
+          url: '{% while int(loop_index0) < While_Limit and Conditional_Expression %}'
+          postData: {
+            text: ''
+          }
+          headers: []
+          cookies: []
+        }
+        response: {}
+        success_asserts: []
+      })
+
+    $scope.add_while_end = () ->
+      $scope.insert_request(1, {
+        checked: true
+        pageref: $scope.entry.pageref
+        recommend: true,
+        comment: 'While 循环结束'
+        request: {
+          method: 'GET'
+          url: '{% endwhile %}'
           postData: {
             text: ''
           }
