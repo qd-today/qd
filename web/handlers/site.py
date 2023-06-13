@@ -17,6 +17,9 @@ from .base import *
 class SiteManagerHandler(BaseHandler):
     @tornado.web.authenticated
     async def get(self, userid):
+        flg = self.get_argument("flg", '')
+        title = self.get_argument("title", '')
+        log = self.get_argument("log", '')
         adminflg = False
         site = {'regEn': False}
         user = await self.db.user.get(userid, fields=('role',))
@@ -26,7 +29,7 @@ class SiteManagerHandler(BaseHandler):
             site['regEn'] = False if site['regEn'] == 1 else True
             site['MustVerifyEmailEn'] = False if site['MustVerifyEmailEn'] == 0 else True
 
-        await self.render("site_manage.html", userid=userid, adminflg=adminflg, site=site, logDay=site['logDay'])
+        await self.render("site_manage.html", userid=userid, adminflg=adminflg, site=site, logDay=site['logDay'], flg=flg, title=title,log=log)
         return
 
     @tornado.web.authenticated
@@ -80,11 +83,10 @@ class SiteManagerHandler(BaseHandler):
                 traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            await self.render('tpl_run_failed.html', log=str(e))
+            await self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
             logger_Web_Handler.error('UserID: %s modify Manage_Board failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
-
-        self.redirect('/my/')
+        await self.render('utils_run_result.html', title='设置成功', flg='success')
         return
 
     async def send_verify_mail(self, user):

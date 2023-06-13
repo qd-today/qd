@@ -1,23 +1,28 @@
 {% import "utils.html" as utils %}
-<form method="POST" action="/site/{{ userid }}/manage" onsubmit="return check()">
-
+<form method="POST" action="/site/{{ userid }}/manage">
   <h2 class="text-center">网站管理</h2>
   <hr>
+
+  <div id="run-result">
+    {% if flg=='success' or flg=='danger' %}
+      {% include "utils_run_result.html" %}
+    {% endif %}
+  </div>
 
   {% if adminflg %}
   <div>
     <label>
-      <input type="checkbox"  name="site.regEn" {% if site.regEn %} checked="" {% endif %} > 禁止注册
+      <input type="checkbox" id="regEn" name="site.regEn" {% if site.regEn %} checked="" {% endif %} > 禁止注册
     </label>
   </div>
   <div>
     <label>
-      <input type="checkbox"  name="site.MustVerifyEmailEn" {% if site.MustVerifyEmailEn %} checked="" {% endif %} > 必须验证邮箱
+      <input type="checkbox" id="MustVerifyEmailEn" name="site.MustVerifyEmailEn" {% if site.MustVerifyEmailEn %} checked="" {% endif %} > 必须验证邮箱
     </label>
   </div>
   <div>
     <label class="control-label" for="note">日志保留天数:</label>
-    <input type="text"  name="site.logDay" value="{{ logDay }}" placeholder="{{ logDay }}" oninput = "value=value.replace(/[^\d]/g,'')">
+    <input type="text" id="logDay" name="site.logDay" value="{{ logDay }}" placeholder="{{ logDay }}" oninput = "value=value.replace(/[^\d]/g,'')">
   </div>
 
   <div class="form-group">
@@ -27,8 +32,7 @@
     </div>
     <input type="text" class="form-control" name="adminmail" value="" id="adminmail" placeholder="必须输入账号密码验证">
     <label class="control-label" for="note">管理员密码</label>
-    <input type='password' class="form-control" value="" id="adminpwd" placeholder="必须输入账号密码验证">
-    <input type="hidden" id="md5-password" name="adminpwd">
+    <input type='password' class="form-control" name="adminpwd" value="" id="adminpwd" placeholder="必须输入账号密码验证">
   </div>
 
   <div class="text-right">
@@ -39,16 +43,56 @@
   <div style="text-align:center"> 非管理员,不可查看 </div>
   {% endif %}
 
+  <script>
+    $(function() {
+      $('#submit').on('click', function() {
+        var env = {};
+        env["adminpwd"] = md5($('#adminpwd')[0].value);
+        env["adminmail"] = $('#adminmail')[0].value;
+        if (env["adminpwd"] == '' || env["adminmail"] == ''){
+          $('#run-result').html("<h1 class=\"alert alert-danger text-center\">错误</h1><div><pre>请填写管理员邮箱和密码</pre></div>").show();
+          return false;
+        }
+        if ($('#regEn')[0].checked){
+          env["site.regEn"] = 'on'
+        }
+        if ($('#MustVerifyEmailEn')[0].checked){
+          env["site.MustVerifyEmailEn"] = 'on'
+        }
+        if ($('#logDay')[0].value != ''){
+          env["site.logDay"] = $('#logDay')[0].value
+        }
+
+        var $this = $(this);
+        $this.button('loading');
+        $.ajax("/site/{{ userid }}/manage", {
+          type: 'POST',
+          data: env,
+        })
+        .done(function(response, status, xhr) {
+          if (response.indexOf('alert alert-success text-center') > -1){
+            refresh_modal_load("/site/{{ userid }}/manage?flg=success&title=操作成功")
+          }else{
+            $('#run-result').html(response).show()
+          }
+        })
+        .fail(function(jxhr, status, response) {
+          if (jxhr.status == 504) {
+            $('#run-result').html('<h1 class="text-center alert alert-danger">超时</h1><div class="well"></div>')
+            .find('.well').text('前端回调获取响应超时, 请耐心等待或刷新页面后查看执行结果');
+          } else {
+            $('#run-result').html('<h1 class="text-center alert alert-danger">错误</h1><div class="well"></div>')
+            .find('.well').text(jxhr.responseText);
+          }
+        })
+        .always(function() {
+          $this.button('reset');
+        });
+
+        return false;
+      });
+    })
+  </script>
+
   {{ utils.submit_loading() }}
 </form>
-
-<script>
-  function check() {
-      var pwd = document.getElementById('adminpwd');
-      var md5pwd = document.getElementById('md5-password');
-      md5pwd.value = md5(pwd.value);
-      //return false回阻止提交
-      return true;
-  }
-</script>
-
