@@ -7,19 +7,28 @@
 
 import base64
 import datetime
+import functools
 import hashlib
 import ipaddress
+import random
 import re
+import smtplib
 import socket
 import struct
 import time
-import urllib
 import uuid
+from email.mime.text import MIMEText
+from hashlib import sha1
+from urllib import parse as urllib_parse
 
-import jinja2
+import charset_normalizer
+import umsgpack
 from Crypto.Cipher import AES
 from faker import Faker
 from jinja2.filters import do_float, do_int
+from jinja2.runtime import Undefined
+from jinja2.utils import generate_lorem_ipsum
+from requests.utils import get_encoding_from_headers
 from tornado import gen, httpclient
 
 import config
@@ -28,7 +37,14 @@ from libs.mcrypto import aes_decrypt, aes_encrypt, passlib_or_crypt
 
 from .log import Log
 
+try:
+    from hashlib import md5 as _md5
+except ImportError:
+    # Assume we're running in FIPS mode here
+    _md5 = None
+
 logger_Util = Log('QD.Http.Util').getlogger()
+
 def ip2int(addr):
     try:
         return struct.unpack("!I", socket.inet_aton(addr))[0]
@@ -199,18 +215,6 @@ def domainMatch(domain):
         return match.group()
     return ''
 
-def getLocalScheme(scheme):
-    if scheme in ['http','https']:
-        if config.https:
-            return 'https'
-        else:
-            return 'http'
-    return scheme
-
-import functools
-
-import umsgpack
-
 
 def func_cache(f):
     _cache = {}
@@ -338,7 +342,7 @@ def to_bool(a):
         return True
     return False
 
-async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"QD提醒 <noreply@{}>".format(config.mail_domain)):
+async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"QD提醒 <noreply@{}>".format(config.domain)):
     if not config.mailgun_key:
         subtype = 'html' if html else 'plain'
         await _send_mail(to, subject, html or text or '', subtype)
@@ -365,18 +369,13 @@ async def send_mail(to, subject, text=None, html=None, shark=False, _from=u"QD�
 
     req = httpclient.HTTPRequest(
         method="POST",
-        url="https://api.mailgun.net/v2/%s/messages" % config.mail_domain,
+        url="https://api.mailgun.net/v3/%s/messages" % config.mailgun_domain,
         auth_username="api",
         auth_password=config.mailgun_key,
-        body=urllib.parse.urlencode(body)
+        body=urllib_parse.urlencode(body)
     )
     res = await client.fetch(req)
     return res
-
-
-import smtplib
-from email.mime.text import MIMEText
-
 
 async def _send_mail(to, subject, text=None, subtype='html'):
     if not config.mail_smtp:
@@ -408,10 +407,6 @@ async def _send_mail(to, subject, text=None, subtype='html'):
     except Exception as e:
         logger_Util.error('send mail error {}'.format(str(e)))
     return
-
-
-import charset_normalizer
-from requests.utils import get_encoding_from_headers
 
 
 def get_encodings_from_content(content):
@@ -480,17 +475,9 @@ def quote_chinese(url, encodeing="utf-8"):
         return quote_chinese(url.encode("utf-8"))
     if isinstance(url,bytes):
         url = url.decode()
-    res = [b if ord(b) < 128 else urllib.parse.quote(b) for b in url]
+    res = [b if ord(b) < 128 else urllib_parse.quote(b) for b in url]
     return "".join(res)
 
-
-from hashlib import sha1
-
-try:
-    from hashlib import md5 as _md5
-except ImportError:
-    # Assume we're running in FIPS mode here
-    _md5 = None
 
 def secure_hash_s(data, hash_func=sha1):
     ''' Return a secure hash hex digest of data. '''
@@ -504,8 +491,6 @@ def md5string(data):
     if not _md5:
         raise ValueError('MD5 not available.  Possibly running in FIPS mode')
     return secure_hash_s(data, _md5)
-
-import random
 
 
 def get_random(min_num, max_num, unit):
@@ -619,7 +604,7 @@ def regex_search(value, pattern, *args, **kwargs):
 
 def ternary(value, true_val, false_val, none_val=None):
     '''  value ? true_val : false_val '''
-    if (value is None or isinstance(value, jinja2.Undefined)) and none_val is not None:
+    if (value is None or isinstance(value, Undefined)) and none_val is not None:
         return none_val
     elif bool(value):
         return true_val
@@ -742,8 +727,6 @@ def to_uuid(string, namespace=uuid.NAMESPACE_URL):
     return to_text(uuid.uuid5(uuid_namespace, to_native(string, errors='surrogate_or_strict')))
 
 def mandatory(a, msg=None):
-    from jinja2.runtime import Undefined
-
     ''' Make a variable mandatory '''
     if isinstance(a, Undefined):
         if a._undefined_name is not None:
@@ -854,6 +837,6 @@ jinja_globals = {
 
 jinja_inner_globals = {
     'dict': dict,
-    'lipsum': jinja2.utils.generate_lorem_ipsum,
+    'lipsum': generate_lorem_ipsum,
     'range': range,
 }

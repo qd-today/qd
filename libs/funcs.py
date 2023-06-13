@@ -401,6 +401,10 @@ class pusher(object):
         return r
 
     async def sendmail(self, email, title, content:str, sql_session=None):
+        if not config.domain:
+            r = '请配置框架域名 domain, 以启用邮箱推送功能!'
+            logger_Funcs.error('Send mail error: %s', r)
+            return Exception(r)
         user = await self.db.user.get(email=email, fields=('id', 'email', 'email_verified', 'nickname'), sql_session=sql_session)
         if user['email'] and user['email_verified']:
             try:

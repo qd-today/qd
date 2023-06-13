@@ -51,6 +51,8 @@ class SiteManagerHandler(BaseHandler):
                                 raise Exception(u"开启注册失败")
 
                         if ("site.MustVerifyEmailEn" in envs):
+                            if not config.domain:
+                                raise Exception('请先配置 QD 框架域名 domain, 以启用邮箱验证功能!')
                             if (user['email_verified'] != 0):
                                 await self.db.site.mod(1, MustVerifyEmailEn=1, sql_session=sql_session)
                                 if (await self.db.site.get(1, fields=('MustVerifyEmailEn',), sql_session=sql_session))['MustVerifyEmailEn'] != 1:
@@ -103,7 +105,7 @@ class SiteManagerHandler(BaseHandler):
         </tr>
         </tbody>
         </table>
-        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True))
+        """.format(http='https' if config.mail_domain_https else 'http', domain=config.domain, code=verified_code), shark=True))
 
         return
 

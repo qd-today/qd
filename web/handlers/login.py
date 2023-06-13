@@ -67,7 +67,7 @@ class LoginHandler(BaseHandler):
                         expires_days=config.cookie_days,
                         httponly=True,
                         )
-                if config.https:
+                if config.cookie_secure_mode:
                     setcookie['secure'] = True
                 self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
                 await self.db.user.mod(user['id'], atime=time.time(), aip=self.ip2varbinary, sql_session=sql_session)
@@ -136,7 +136,7 @@ class RegisterHandler(BaseHandler):
                             expires_days=config.cookie_days,
                             httponly=True,
                             )
-                    if config.https:
+                    if config.cookie_secure_mode:
                         setcookie['secure'] = True
                     self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
                     usertmp = await self.db.user.list(sql_session=sql_session, fields=('id', 'email', 'nickname', 'role', 'email_verified'))
@@ -145,15 +145,24 @@ class RegisterHandler(BaseHandler):
                             await self.db.user.mod(usertmp[0]['id'], role='admin', sql_session=sql_session)
 
                     if siteconfig['MustVerifyEmailEn'] == 1:
-                        await self.render('register.html', email_error=u'请验证邮箱后再登陆', regFlg=regFlg)
-                    await self.send_mail(user, sql_session=sql_session)
+                        if not config.domain:
+                            await self.render('register.html', email_error=u'请联系 QD 框架管理员配置框架域名 domain, 以启用邮箱验证功能!', regFlg=regFlg)
+                        else:
+                            await self.render('register.html', email_error=u'请验证邮箱后再登陆', regFlg=regFlg)
+                    if config.domain:
+                        await self.send_mail(user, sql_session=sql_session)
+                    else:
+                        logger_Web_Handler.warning('请配置框架域名 domain, 以启用邮箱验证功能!')
                 else:
                     await self.render('register.html', email_error=u'管理员关闭注册', regFlg=regFlg)
                     return
             else:
                 if (MustVerifyEmailEn == 1):
                     if (user['email_verified'] != 1):
-                        await self.render('register.html', email_error=u'email地址未验证，邮件已发送，请验证邮件后登陆')
+                        if not config.domain:
+                            await self.render('register.html', email_error=u'请联系 QD 框架管理员配置框架域名 domain, 以启用邮箱验证功能!', regFlg=regFlg)
+                            return
+                        await self.render('register.html', email_error=u'email地址未验证, 邮件已发送, 请验证邮件后登陆')
                         await self.send_mail(user, sql_session=sql_session)
                     else:
                         await self.render('register.html', email_error=u'email地址已注册', regFlg=regFlg)
@@ -168,7 +177,7 @@ class RegisterHandler(BaseHandler):
         verified_code = await self.db.user.encrypt(user['id'], verified_code, sql_session=sql_session)
         verified_code = await self.db.user.encrypt(0, [user['id'], verified_code], sql_session=sql_session)
         verified_code = base64.b64encode(verified_code).decode()
-        await gen.convert_yielded(utils.send_mail(to=user['email'], subject=u"欢迎注册 QD平台", html=u"""
+        await gen.convert_yielded(utils.send_mail(to=user['email'], subject=u"欢迎注册 QD 平台", html=u"""
                 <table style="width:99.8%%;height:99.8%%"><tbody><tr><td style=" background:#fafafa url(#) "><div style="border-radius:10px;font-size:13px;color:#555;width:666px;font-family:'Century Gothic','Trebuchet MS','Hiragino Sans GB','微软雅黑','Microsoft Yahei',Tahoma,Helvetica,Arial,SimSun,sans-serif;margin:50px auto;border:1px solid #eee;max-width:100%%;background:#fff repeating-linear-gradient(-45deg,#fff,#fff 1.125rem,transparent 1.125rem,transparent 2.25rem);box-shadow:0 1px 5px rgba(0,0,0,.15)"><div style="width:100%%;background:#49BDAD;color:#fff;border-radius:10px 10px 0 0;background-image:-moz-linear-gradient(0deg,#43c6b8,#ffd1f4);background-image:-webkit-linear-gradient(0deg,#4831ff,#0497ff);height:66px"><p style="font-size:15px;word-break:break-all;padding:23px 32px;margin:0;background-color:hsla(0,0%%,100%%,.4);border-radius:10px 10px 0 0">&nbsp;[QD平台]&nbsp;&nbsp;{http}://{domain}</p></div>
                 <div style="margin:40px auto;width:90%%">
                     <p>点击以下链接验证邮箱，当您的定时任务执行失败的时候，会自动给您发送通知邮件。</p>
@@ -181,7 +190,7 @@ class RegisterHandler(BaseHandler):
         </tr>
         </tbody>
         </table>
-        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True))
+        """.format(http='https' if config.mail_domain_https else 'http', domain=config.domain, code=verified_code), shark=True))
 
         return
 
@@ -235,6 +244,9 @@ class PasswordResetHandler(BaseHandler):
         return await self.render('password_reset.html')
 
     async def post(self, code):
+        if not config.domain:
+            await self.finish('请联系 QD 框架管理员配置框架域名 domain, 以启用密码重置功能!')
+            return
         if not code:
             self.evil(+5)
 
@@ -279,7 +291,7 @@ class PasswordResetHandler(BaseHandler):
                                 mtime=time.time(),
                                 sql_session=sql_session
                                 )
-            return self.finish("""密码重置成功! 请<a href="{http}://{domain}/login" >点击此处</a>返回登录页面。""".format(http='https' if config.https else 'http', domain=config.domain))
+            return self.finish("""密码重置成功! 请<a href="{http}://{domain}/login" >点击此处</a>返回登录页面。""".format(http='https' if config.mail_domain_https else 'http', domain=config.domain))
 
     async def send_mail(self, user):
         verified_code = [user['mtime'], time.time()]
@@ -302,7 +314,7 @@ class PasswordResetHandler(BaseHandler):
         </tbody>
         </table>
 
-        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True))
+        """.format(http='https' if config.mail_domain_https else 'http', domain=config.domain, code=verified_code), shark=True))
 
         return
 
