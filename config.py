@@ -180,8 +180,10 @@ mail_domain_https = bool(strtobool(os.getenv('ENABLE_HTTPS', None) or
 mailgun_key = os.getenv('MAILGUN_KEY',"")                                   # Mailgun Api_Key, 若不为空则优先用 Mailgun 方式发送邮件
 mailgun_domain = os.getenv('MAILGUN_DOMAIN', domain)                        # Mailgun Domain
 
-# Google analytics 设置
-ga_key = os.getenv('GA_KEY', '')                                            # Google analytics 密钥
+# Google Analytics 设置
+ga_key = os.getenv('GA_KEY', '')                                            # Google Analytics (GA) 密钥, 为空则不启用,
+                                                                            # GA 密钥格式为 G-XXXXXXXXXX,
+                                                                            # 如果为 UA-XXXXXXXXX-X, 请前往GA后台获取新版密钥
 
 try:
     from local_config import *  # 修改 `local_config.py` 文件的内容不受通过 Git 更新源码的影响
