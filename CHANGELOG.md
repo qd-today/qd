@@ -68,7 +68,7 @@ Nothing right now.
 ### Fixed
 
 1. 修复报错日志顺序异常 Fix qd-today/qd#391
-2. Mandatory smtp authentication. Fix qd-today/qd##394
+2. Mandatory smtp authentication. Fix qd-today/qd#394
 3. 修复网页显示时区与系统时区不一致 Fix qd-today/qd#396
 
 ## [20230228] - 2023.02.28 更新
