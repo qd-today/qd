@@ -17,7 +17,6 @@ charset-normalizer = "*"
 requests = {version = "*", index = "pypi"}
 pbkdf2 = "*"
 pycryptodome = {version = "*", index = "pypi"}
-pytz = "*"
 croniter = {version = "*", index = "pypi"}
 Jinja2 = "*"
 redis = "*"
@@ -33,6 +32,7 @@ aiosqlite = "*"
 cryptography = "*"
 aiohttp = "*"
 sqlalchemy = {version = "<2.0", extras = ["asyncio"]}
+tzdata = "*"
 
 [dev-packages]
 #ddddocr = "*"

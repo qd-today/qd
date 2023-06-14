@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "63c6bfcccc85be0e587f9e86c8586598b3d3e946dff0aeef950d03c865643db1"
+            "sha256": "093459aff2e02fa88e8ff11dab74fe5b231c6f5513175a7c39baa82ca932c4d9"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -151,7 +151,7 @@
                 "sha256:2163e1640ddb52b7a8c80d0a67a08587e5d245cc9c553a74a847056bc2976b15",
                 "sha256:8ca1e4fcf50d07413d66d1a5e416e42cfdf5851c981d679a09851a6853383b3c"
             ],
-            "markers": "python_full_version <= '3.11.2'",
+            "markers": "python_version >= '3.6'",
             "version": "==4.0.2"
         },
         "attrs": {
@@ -761,14 +761,6 @@
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.8.2"
         },
-        "pytz": {
-            "hashes": [
-                "sha256:1d8ce29db189191fb55338ee6d0387d82ab59f3d00eac103412d64e0ebd0c588",
-                "sha256:a151b3abb88eda1d4e34a9814df37de2a80e301e68ba0fd856fb9b46bfbbbffb"
-            ],
-            "index": "tencent",
-            "version": "==2023.3"
-        },
         "redis": {
             "hashes": [
                 "sha256:77929bc7f5dab9adf3acba2d3bb7d7658f1e0c2f1cafe7eb36434e751c471119",
@@ -859,6 +851,14 @@
             ],
             "index": "tencent",
             "version": "==6.3.2"
+        },
+        "tzdata": {
+            "hashes": [
+                "sha256:11ef1e08e54acb0d4f95bdb1be05da659673de4acbd21bf9c69e94cc5e907a3a",
+                "sha256:7e65763eef3120314099b6939b5546db7adce1e7d6f2e179e3df563c70511eda"
+            ],
+            "index": "tencent",
+            "version": "==2023.3"
         },
         "u-msgpack-python": {
             "hashes": [

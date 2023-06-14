@@ -9,9 +9,9 @@ import re
 import time
 import traceback
 import urllib
+from zoneinfo import ZoneInfo
 
 import aiohttp
-import pytz
 from Crypto import Random
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -122,8 +122,8 @@ class TimeStampHandler(BaseHandler):
             time_format = self.get_argument("form", "%Y-%m-%d %H:%M:%S")
             if not time_format:
                 time_format = "%Y-%m-%d %H:%M:%S"
-            cst_tz = pytz.timezone('Asia/Shanghai')
-            utc_tz = pytz.timezone("UTC")
+            cst_tz = ZoneInfo('Asia/Shanghai')
+            utc_tz = ZoneInfo("UTC")
             GMT_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
             tmp = datetime.datetime.fromtimestamp
 

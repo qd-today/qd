@@ -584,6 +584,6 @@ dateutil = wrap_module(dateutil, {
 })
 json = wrap_module(__import__('json'), ['loads', 'dumps'])
 time = wrap_module(__import__('time'), ['time', 'strptime', 'strftime', 'sleep'])
-pytz = wrap_module(__import__('pytz'), [
-    'utc', 'UTC', 'timezone',
+zoneinfo = wrap_module(__import__('zoneinfo'), [
+    'ZoneInfo', 'available_timezones',
 ])
