@@ -102,7 +102,7 @@ class TaskNewHandler(BaseHandler):
                                 break
                         else:
                             target_group = 'None'
-
+            retry_interval_modified = True
             if not taskid:
                 env = await self.db.user.encrypt(user['id'], env, sql_session=sql_session)
                 taskid = await self.db.task.add(tplid, user['id'], env, sql_session=sql_session)
@@ -112,7 +112,9 @@ class TaskNewHandler(BaseHandler):
                 else:
                     await self.db.task.mod(taskid, note=note, next=time.time() + config.new_task_delay, sql_session=sql_session)
             else:
-                task = self.check_permission(await self.db.task.get(taskid, fields=('id', 'userid', 'init_env'), sql_session=sql_session), 'w')
+                task = self.check_permission(await self.db.task.get(taskid, fields=('id', 'userid', 'init_env', 'retry_interval'), sql_session=sql_session), 'w')
+                if task['retry_interval'] == retry_interval or (retry_interval == '' and task['retry_interval'] is None):
+                    retry_interval_modified = False
 
                 init_env = await self.db.user.decrypt(user['id'], task['init_env'], sql_session=sql_session)
                 init_env.update(env)
@@ -125,8 +127,11 @@ class TaskNewHandler(BaseHandler):
             if isinstance(retry_count, int) and -1 <= retry_count:
                 await self.db.task.mod(taskid, retry_count=retry_count, sql_session=sql_session)
 
-            if retry_interval:
-                await self.db.task.mod(taskid, retry_interval=retry_interval, sql_session=sql_session)
+            if retry_interval_modified:
+                if retry_interval:
+                    await self.db.task.mod(taskid, retry_interval=retry_interval, sql_session=sql_session)
+                else:
+                    await self.db.task.mod(taskid, retry_interval=None, sql_session=sql_session)
 
         self.redirect('/my/')
 
@@ -148,6 +153,8 @@ class TaskEditHandler(TaskNewHandler):
             init_env.append({'name':var, 'value':value})
 
         proxy = task['init_env']['_proxy'] if '_proxy' in task['init_env'] else ''
+        if task['retry_interval'] is None:
+            task['retry_interval'] = ''
 
         await self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=init_env, proxy=proxy, retry_count=task['retry_count'], retry_interval=task['retry_interval'], default_retry_count=config.task_max_retry_count, task_title="修改任务")
 
