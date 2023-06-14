@@ -17,7 +17,6 @@ charset-normalizer = "*"
 requests = {version = "*", index = "pypi"}
 pbkdf2 = "*"
 pycryptodome = {version = "*", index = "pypi"}
-pytz = "*"
 croniter = {version = "*", index = "pypi"}
 Jinja2 = "*"
 redis = "*"
@@ -33,11 +32,11 @@ aiosqlite = "*"
 cryptography = "*"
 aiohttp = "*"
 sqlalchemy = {version = "<2.0", extras = ["asyncio"]}
+tzdata = "*"
 
 [dev-packages]
-opencv-python-headless = "*"
-ddddocr = "*"
-pycurl = {version = "*", markers="sys_platform != 'win32'"}
+#ddddocr = "*"
+#pycurl = {version = "*", markers="sys_platform != 'win32'"}
 
 [requires]
 python_version = "3.11"

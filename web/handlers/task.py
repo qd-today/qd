@@ -12,8 +12,7 @@ import time
 import traceback
 from codecs import escape_decode
 
-import pytz
-from tornado import gen
+from tornado.iostream import StreamClosedError
 
 from libs import utils
 from libs.funcs import cal, pusher
@@ -103,7 +102,7 @@ class TaskNewHandler(BaseHandler):
                                 break
                         else:
                             target_group = 'None'
-
+            retry_interval_modified = True
             if not taskid:
                 env = await self.db.user.encrypt(user['id'], env, sql_session=sql_session)
                 taskid = await self.db.task.add(tplid, user['id'], env, sql_session=sql_session)
@@ -113,7 +112,9 @@ class TaskNewHandler(BaseHandler):
                 else:
                     await self.db.task.mod(taskid, note=note, next=time.time() + config.new_task_delay, sql_session=sql_session)
             else:
-                task = self.check_permission(await self.db.task.get(taskid, fields=('id', 'userid', 'init_env'), sql_session=sql_session), 'w')
+                task = self.check_permission(await self.db.task.get(taskid, fields=('id', 'userid', 'init_env', 'retry_interval'), sql_session=sql_session), 'w')
+                if task['retry_interval'] == retry_interval or (retry_interval == '' and task['retry_interval'] is None):
+                    retry_interval_modified = False
 
                 init_env = await self.db.user.decrypt(user['id'], task['init_env'], sql_session=sql_session)
                 init_env.update(env)
@@ -126,8 +127,11 @@ class TaskNewHandler(BaseHandler):
             if isinstance(retry_count, int) and -1 <= retry_count:
                 await self.db.task.mod(taskid, retry_count=retry_count, sql_session=sql_session)
 
-            if retry_interval:
-                await self.db.task.mod(taskid, retry_interval=retry_interval, sql_session=sql_session)
+            if retry_interval_modified:
+                if retry_interval:
+                    await self.db.task.mod(taskid, retry_interval=retry_interval, sql_session=sql_session)
+                else:
+                    await self.db.task.mod(taskid, retry_interval=None, sql_session=sql_session)
 
         self.redirect('/my/')
 
@@ -149,6 +153,8 @@ class TaskEditHandler(TaskNewHandler):
             init_env.append({'name':var, 'value':value})
 
         proxy = task['init_env']['_proxy'] if '_proxy' in task['init_env'] else ''
+        if task['retry_interval'] is None:
+            task['retry_interval'] = ''
 
         await self.render('task_new.html', tpls=[tpl, ], tplid=tpl['id'], tpl=tpl, variables=variables, task=task, init_env=init_env, proxy=proxy, retry_count=task['retry_count'], retry_interval=task['retry_interval'], default_retry_count=config.task_max_retry_count, task_title="修改任务")
 
@@ -181,7 +187,7 @@ class TaskRunHandler(BaseHandler):
             try:
                 url = parse_url(env['variables'].get('_proxy'))
                 if not url:
-                    new_env = await self.fetcher.do_fetch(fetch_tpl, env)
+                    new_env, _ = await self.fetcher.do_fetch(fetch_tpl, env)
                 else:
                     proxy = {
                         'scheme': url['scheme'],
@@ -190,7 +196,7 @@ class TaskRunHandler(BaseHandler):
                         'username': url['username'],
                         'password': url['password']
                     }
-                    new_env = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+                    new_env, _ = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
             except Exception as e:
                 logger_Web_Handler.error('taskid:%d tplid:%d failed! %.4fs \r\n%s', task['id'], task['tplid'], time.time()-start_ts, str(e).replace('\\r\\n','\r\n'))
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -204,7 +210,11 @@ class TaskRunHandler(BaseHandler):
                         last_failed_count=task['last_failed_count']+1,
                         sql_session=sql_session
                         )
-                await self.finish('<h1 class="alert alert-danger text-center">运行失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+                try:
+                    await self.finish('<h1 class="alert alert-danger text-center">运行失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+                except StreamClosedError:
+                    if config.traceback_print:
+                        traceback.print_exc()
 
                 await pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
                 return
@@ -235,7 +245,11 @@ class TaskRunHandler(BaseHandler):
             logtmp = u"{0} \\r\\n日志：{1}".format(t, logtmp)
 
             await self.db.tpl.incr_success(tpl['id'],sql_session=sql_session)
-            await self.finish('<h1 class="alert alert-success text-center">运行成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+            try:
+                await self.finish('<h1 class="alert alert-success text-center">运行成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
+            except StreamClosedError:
+                if config.traceback_print:
+                    traceback.print_exc()
 
             await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
             logDay = int((await self.db.site.get(1, fields=('logDay',),sql_session=sql_session))['logDay'])

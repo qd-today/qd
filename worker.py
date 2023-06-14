@@ -10,7 +10,6 @@ import json
 import time
 import traceback
 
-import pytz
 import tornado.ioloop
 import tornado.log
 from tornado import gen
@@ -110,14 +109,24 @@ class BaseWorker(object):
         elif retry_count == 0:
             next = None
 
-        if interval is None:
-            interval = 24 * 60 * 60
-        if next:
-            next = min(next, interval / 2)
+        if next and not retry_interval:
+            if interval is None:
+                interval = 12 * 60 * 60
+            next = min(next, interval)
         return next
 
     @staticmethod
-    def fix_next_time(next, gmt_offset=-8*60):
+    def fix_next_time(next: float, gmt_offset=time.timezone/60) -> float:
+        """
+        fix next time to 2:00 - 21:00 (local time), while tpl interval is unset.
+
+        Args:
+            next (float): next timestamp
+            gmt_offset (float, optional): gmt offset in minutes. Defaults to time.timezone/60.
+
+        Returns:
+            next (float): fixed next timestamp
+        """
         date = datetime.datetime.utcfromtimestamp(next)
         local_date = date - datetime.timedelta(minutes=gmt_offset)
         if local_date.hour < 2:
@@ -125,21 +134,6 @@ class BaseWorker(object):
         if local_date.hour > 21:
             next -= 3 * 60 * 60
         return next
-
-    @staticmethod
-    def is_tommorrow(next, gmt_offset=-8*60):
-        date = datetime.datetime.utcfromtimestamp(next)
-        now = datetime.datetime.utcnow()
-        local_date = date - datetime.timedelta(minutes=gmt_offset)
-        local_now = now - datetime.timedelta(minutes=gmt_offset)
-        local_tomorrow = local_now + datetime.timedelta(hours=24)
-
-        if local_date.day == local_tomorrow.day and not now.hour > 22:
-            return True
-        elif local_date.hour > 22:
-            return True
-        else:
-            return False
 
     async def do(self, task):
         async with self.db.transaction() as sql_session:
@@ -184,7 +178,7 @@ class BaseWorker(object):
 
                 url = parse_url(env['variables'].get('_proxy'))
                 if not url:
-                    new_env = await self.fetcher.do_fetch(fetch_tpl, env)
+                    new_env, _ = await self.fetcher.do_fetch(fetch_tpl, env)
                 else:
                     proxy = {
                         'scheme': url['scheme'],
@@ -193,13 +187,12 @@ class BaseWorker(object):
                         'username': url['username'],
                         'password': url['password']
                     }
-                    new_env = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+                    new_env, _ = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
 
                 variables = await self.db.user.encrypt(task['userid'], new_env['variables'], sql_session=sql_session)
                 session = await self.db.user.encrypt(task['userid'],
                         new_env['session'].to_json() if hasattr(new_env['session'], 'to_json') else new_env['session'], sql_session=sql_session)
 
-                # TODO next not mid night
                 if (newontime['sw']):
                     if ('mode' not in newontime):
                         newontime['mode'] = 'ontime'

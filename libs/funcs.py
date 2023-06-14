@@ -149,6 +149,16 @@ class pusher(object):
                     else:
                         link = u'https://{0}bot{1}/sendMessage'.format(tgHost,token)
                 picurl = config.push_pic if pic == '' else pic
+
+                # 匹配标题"QD[定时]任务 {0}-{1} 成功|失败" 的 {0} 部分, 获取 hashtag
+                title_sp = title.split(' ')
+                if len(title_sp) >= 3:
+                    title1 = title_sp[1].split('-')
+                    if len(title1) == 2:
+                        title1[0] = '#' + title1[0] + ' '
+                    title_sp[1] = '-'.join(title1)
+                title = ' '.join(title_sp)
+
                 content = content.replace('\\r\\n','</pre>\n<pre>')
                 d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' + '------<a href="' + picurl + '">QD提醒</a>------', 'disable_web_page_preview':'false', 'parse_mode': 'HTML'}
                 if proxy:
@@ -391,6 +401,10 @@ class pusher(object):
         return r
 
     async def sendmail(self, email, title, content:str, sql_session=None):
+        if not config.domain:
+            r = '请配置框架域名 domain, 以启用邮箱推送功能!'
+            logger_Funcs.error('Send mail error: %s', r)
+            return Exception(r)
         user = await self.db.user.get(email=email, fields=('id', 'email', 'email_verified', 'nickname'), sql_session=sql_session)
         if user['email'] and user['email_verified']:
             try:

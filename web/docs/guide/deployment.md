@@ -106,32 +106,32 @@ python ./chrole.py your@email.address admin
 |:-: | :-: | :-: | :-:|
 |BIND|No|0.0.0.0|Listening address|
 |PORT|No|8923|Listening port|
-|QIANDAO_DEBUG|No|False|Whether to enable Debug mode|
+|QD_DEBUG|No|False|Whether to enable Debug mode|
 |WORKER_METHOD|No|Queue|Task timing execution method, <br>The default is Queue, optional Queue or Batch, <br>Batch mode is the old version of timing task execution method, the performance is weak, <br>**Recommended only when Queue timed execution mode fails**|
 |MULTI_PROCESS|No|False|(Experimental) Whether to enable multi-process mode, <br>invalid on Windows platform|
 |AUTO_RELOAD|No|False|Whether to enable automatic hot reload, <br>invalid when MULTI_PROCESS=True|
-|ENABLE_HTTPS|No|False|Enable HTTPS for email sent, <br>Non-framework front-end using HTTPS, if the front-end needs HTTPS, please use a reverse proxy.|
-|DOMAIN|No|qiandao.today|Specify the access domain name, <br>**(recommended modification)**, otherwise the function of resetting password by email is not valid|
+|STATIC_URL_PREFIX|No|`/static/`|Static file URL prefix|
+|DOMAIN|No|''|Specify the access domain name, <br>**(recommended modification)**, otherwise the function of resetting password by email is not valid|
 |AES_KEY|No|binux|AES encryption key, **(Modification strongly recommended)**|
 |COOKIE_SECRET|No|binux|cookie encryption key, **(Modification strongly recommended)**|
 |COOKIE_DAY|No|5|The number of days the cookie is kept in the client|
 |DB_TYPE|No|sqlite3|Set to 'mysql' when MySQL is required|
 |JAWSDB_MARIA_URL|No|''|When you need to use MySQL, <br> set to `mysql://username:password@hostname:port/database_name?auth_plugin=`|
-|QIANDAO_SQL_ECHO|No|False|Whether to enable the log output of SQLAlchmey, the default is False, <br>When set to True, the SQL statement will be output on the console, <br>allow to set to debug to enable debug mode|
-|QIANDAO_SQL_LOGGING_NAME|No|QD.sql_engine|SQLAlchmey log name, default is 'QD.sql_engine'|
-|QIANDAO_SQL_LOGGING_LEVEL|No|Warning|SQLAlchmey log level, default is 'Warning'|
-|QIANDAO_SQL_ECHO_POOL|No|True|Whether to enable SQLAlchmey's connection pool log output, the default is True, <br>allow setting to debug to enable debug mode|
-|QIANDAO_SQL_LOGGING_POOL_NAME|No|QD.sql_pool|SQLAlchmey connection pool log name, the default is 'QD.sql_pool'|
-|QIANDAO_SQL_LOGGING_POOL_LEVEL|No|Warning|SQLAlchmey connection pool log level, default is 'Warning'|
-|QIANDAO_SQL_POOL_SIZE|No|10|SQLAlchmey connection pool size, default is 10|
-|QIANDAO_SQL_MAX_OVERFLOW|No|50|SQLAlchmey connection pool maximum overflow, the default is 50|
-|QIANDAO_SQL_POOL_PRE_PING|No|True|Whether to ping before the connection pool gets a connection, the default is True|
-|QIANDAO_SQL_POOL_RECYCLE|No|3600|SQLAlchmey connection pool recovery time, the default is 3600|
-|QIANDAO_SQL_POOL_TIMEOUT|No|60|SQLAlchmey connection pool timeout, the default is 60|
-|QIANDAO_SQL_POOL_USE_LIFO|No|True|SQLAlchmey whether to use LIFO algorithm, the default is True|
+|QD_SQL_ECHO|No|False|Whether to enable the log output of SQLAlchmey, the default is False, <br>When set to True, the SQL statement will be output on the console, <br>allow to set to debug to enable debug mode|
+|QD_SQL_LOGGING_NAME|No|QD.sql_engine|SQLAlchmey log name, default is 'QD.sql_engine'|
+|QD_SQL_LOGGING_LEVEL|No|Warning|SQLAlchmey log level, default is 'Warning'|
+|QD_SQL_ECHO_POOL|No|True|Whether to enable SQLAlchmey's connection pool log output, the default is True, <br>allow setting to debug to enable debug mode|
+|QD_SQL_LOGGING_POOL_NAME|No|QD.sql_pool|SQLAlchmey connection pool log name, the default is 'QD.sql_pool'|
+|QD_SQL_LOGGING_POOL_LEVEL|No|Warning|SQLAlchmey connection pool log level, default is 'Warning'|
+|QD_SQL_POOL_SIZE|No|10|SQLAlchmey connection pool size, default is 10|
+|QD_SQL_MAX_OVERFLOW|No|50|SQLAlchmey connection pool maximum overflow, the default is 50|
+|QD_SQL_POOL_PRE_PING|No|True|Whether to ping before the connection pool gets a connection, the default is True|
+|QD_SQL_POOL_RECYCLE|No|3600|SQLAlchmey connection pool recovery time, the default is 3600|
+|QD_SQL_POOL_TIMEOUT|No|60|SQLAlchmey connection pool timeout, the default is 60|
+|QD_SQL_POOL_USE_LIFO|No|True|SQLAlchmey whether to use LIFO algorithm, the default is True|
 |REDISCLOUD_URL|No|''|When you need to use Redis or RedisCloud, <br> set to <http://rediscloud:password@hostname:port>|
 |REDIS_DB_INDEX|No|1|The default is 1|
-|QIANDAO_EVIL|No|500|(Only when the Redis connection is enabled)<br>Score = number of operation failures (such as login, verification, test, etc.) * corresponding penalty points<br>When the score reaches the upper limit of evil, it will be automatically banned until the next hour cycle|
+|QD_EVIL|No|500|(Only when the Redis connection is enabled)<br>Score = number of operation failures (such as login, verification, test, etc.) * corresponding penalty points<br>When the score reaches the upper limit of evil, it will be automatically banned until the next hour cycle|
 |EVIL_PASS_LAN_IP|No|True|Whether to turn off the evil restriction of local private IP address users and Localhost_API requests|
 |TRACEBACK_PRINT|No|False|Whether to enable to print Exception's TraceBack information in the console log|
 |PUSH_PIC_URL|No|[push_pic.png](https://fastly.jsdelivr.net/gh/qd-today/qd@master/web/static/img/push_pic.png)|The default is [push_pic.png](https ://fastly.jsdelivr.net/gh/qd-today/qd@master/web/static/img/push_pic.png)|
@@ -141,10 +141,13 @@ python ./chrole.py your@email.address admin
 |MAIL_USER|No|""|Email username|
 |MAIL_PASSWORD|No|""|Email password|
 |MAIL_FROM|No|MAIL_USER|The Email used when sending, the default is the same as MAIL_USER|
-|MAIL_DOMAIN|No|mail.qd.today|Email domain name, useless, use DOMAIN|
+|MAIL_DOMAIN_HTTPS|No|False|Whether to use HTTPS for email domain name. <br>Not the framework itself HTTPS configuration. <br>If you need HTTPS, please use an external reverse proxy|
 |PROXIES|No|""|Global proxy domain name list, separated by "\|"|
 |PROXY_DIRECT_MODE|No|""|Global proxy blacklist mode, not enabled by default <br>"url" is URL matching mode; "regexp" is regular expression matching mode|
 |PROXY_DIRECT|No|""|Global proxy blacklist matching rules|
+|NEW_TASK_DELAY|No|1|Preparation time after new task, default is 1 second|
+|TASK_WHILE_LOOP_TIMEOUT|No|900|Maximum runtime of a single While loop during a task run, <br>the default is 15 minutes|
+|TASK_REQUEST_LIMIT|No|1500|Maximum number of requests per task run, <br>the default is 1500|
 |USE_PYCURL|No|True|Whether to enable Pycurl module|
 |ALLOW_RETRY|No|True|When some requests in the Pycurl environment may cause Request errors, <br>automatically modify the conflict settings and resend the request|
 |DNS_SERVER|No|""|Use specified DNS for resolution via Curl (only supports Pycurl environment), <br>such as 8.8.8.8|

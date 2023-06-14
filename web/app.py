@@ -23,6 +23,7 @@ class Application(tornado.web.Application):
         settings = dict(
                 template_path = os.path.join(os.path.dirname(__file__), "tpl"),
                 static_path = os.path.join(os.path.dirname(__file__), "static"),
+                static_url_prefix = config.static_url_prefix,
                 debug = config.debug,
                 gzip = config.gzip,
                 autoreload = config.autoreload,

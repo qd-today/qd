@@ -164,7 +164,7 @@
         return $scope.ev_click(save_link);
       };
       $scope.pre_save = function() {
-        var alert_elem, alert_info_elem, base, base1, base2, error, first_entry, parsed_url;
+        var alert_elem, alert_info_elem, base, base1, base2, base3, error, first_entry, parsed_url;
         alert_elem = angular.element('#save-har .alert-danger').hide();
         alert_info_elem = angular.element('#save-har .alert-info').hide();
         first_entry = (function() {
@@ -199,18 +199,24 @@
           if ($scope.setting == null) {
             $scope.setting = {};
           }
-          if ((base = $scope.setting).sitename == null) {
-            base.sitename = first_entry && utils.get_domain(first_entry.request.url).split('.')[0];
+          if (HARNAME !== "") {
+            if ((base = $scope.setting).sitename == null) {
+              base.sitename = HARNAME.split('.har')[0];
+            }
+          } else {
+            if ((base1 = $scope.setting).sitename == null) {
+              base1.sitename = first_entry && utils.get_domain(first_entry.request.url).split('.')[0];
+            }
           }
           parsed_url = first_entry && utils.url_parse(first_entry.request.url);
           if (parsed_url) {
-            if ((base1 = $scope.setting).siteurl == null) {
-              base1.siteurl = parsed_url.protocol === 'https:' && `${parsed_url.protocol}//${parsed_url.host}` || parsed_url.host;
+            if ((base2 = $scope.setting).siteurl == null) {
+              base2.siteurl = parsed_url.protocol === 'https:' && `${parsed_url.protocol}//${parsed_url.host}` || parsed_url.host;
             }
           }
           if (HARNOTE !== "") {
-            if ((base2 = $scope.setting).note == null) {
-              base2.note = HARNOTE.replaceAll("&lt;br&gt;", "\r\n");
+            if ((base3 = $scope.setting).note == null) {
+              base3.note = HARNOTE.replaceAll("&lt;br&gt;", "\r\n");
             }
           }
         } catch (error1) {

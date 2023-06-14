@@ -106,32 +106,32 @@ python ./chrole.py your@email.address admin
 :-: | :-: | :-: | :-:
 BIND|否|0.0.0.0|监听地址
 PORT|否|8923|监听端口
-QIANDAO_DEBUG|否|False|是否启用Debug模式
+QD_DEBUG|否|False|是否启用Debug模式
 WORKER_METHOD|否|Queue|任务定时执行方式, <br>默认为 Queue, 可选 Queue 或 Batch, <br>Batch 模式为旧版定时任务执行方式, 性能较弱, <br>**建议仅当 Queue 定时执行模式失效时使用**
 MULTI_PROCESS|否|False|(实验性)是否启用多进程模式, <br>Windows平台无效
 AUTO_RELOAD|否|False|是否启用自动热加载, <br>MULTI_PROCESS=True时无效
-ENABLE_HTTPS|否|False|发送的邮件链接启用HTTPS, <br>非框架前端使用HTTPS, 如果前端需要HTTPS,请使用反向代理.
-DOMAIN|否|qiandao.today|指定访问域名, <br>**(建议修改)**, 否则通过邮件重置密码等功能无效
+STATIC_URL_PREFIX|否|`/static/`|静态文件URL前缀
+DOMAIN|否|''|指定访问域名, <br>**(建议修改)**, 否则通过邮件重置密码及邮箱推送等功能无效
 AES_KEY|否|binux|AES加密密钥, **(强烈建议修改)**
 COOKIE_SECRET|否|binux|cookie加密密钥, **(强烈建议修改)**
 COOKIE_DAY|否|5|Cookie在客户端中保留的天数
 DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
 JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 (mysql://用户名:密码@hostname:port/数据库名?auth_plugin=)
-QIANDAO_SQL_ECHO|否|False|是否启用 SQLAlchmey 的日志输出, 默认为 False, <br>设置为 True 时, 会在控制台输出 SQL 语句, <br>允许设置为 debug 以启用 debug 模式
-QIANDAO_SQL_LOGGING_NAME|否|QD.sql_engine|SQLAlchmey 日志名称, 默认为 'QD.sql_engine'
-QIANDAO_SQL_LOGGING_LEVEL|否|Warning|SQLAlchmey 日志级别, 默认为 'Warning'
-QIANDAO_SQL_ECHO_POOL|否|True|是否启用 SQLAlchmey 的连接池日志输出, 默认为 True, <br>允许设置为 debug 以启用 debug 模式
-QIANDAO_SQL_LOGGING_POOL_NAME|否|QD.sql_pool|SQLAlchmey 连接池日志名称, 默认为 'QD.sql_pool'
-QIANDAO_SQL_LOGGING_POOL_LEVEL|否|Warning|SQLAlchmey 连接池日志级别, 默认为 'Warning'
-QIANDAO_SQL_POOL_SIZE|否|10|SQLAlchmey 连接池大小, 默认为 10
-QIANDAO_SQL_MAX_OVERFLOW|否|50|SQLAlchmey 连接池最大溢出, 默认为 50
-QIANDAO_SQL_POOL_PRE_PING|否|True|是否在连接池获取连接前, <br>先ping一下, 默认为 True
-QIANDAO_SQL_POOL_RECYCLE|否|3600|SQLAlchmey 连接池回收时间, 默认为 3600
-QIANDAO_SQL_POOL_TIMEOUT|否|60|SQLAlchmey 连接池超时时间, 默认为 60
-QIANDAO_SQL_POOL_USE_LIFO|否|True|SQLAlchmey 是否使用 LIFO 算法, 默认为 True
+QD_SQL_ECHO|否|False|是否启用 SQLAlchmey 的日志输出, 默认为 False, <br>设置为 True 时, 会在控制台输出 SQL 语句, <br>允许设置为 debug 以启用 debug 模式
+QD_SQL_LOGGING_NAME|否|QD.sql_engine|SQLAlchmey 日志名称, 默认为 'QD.sql_engine'
+QD_SQL_LOGGING_LEVEL|否|Warning|SQLAlchmey 日志级别, 默认为 'Warning'
+QD_SQL_ECHO_POOL|否|True|是否启用 SQLAlchmey 的连接池日志输出, 默认为 True, <br>允许设置为 debug 以启用 debug 模式
+QD_SQL_LOGGING_POOL_NAME|否|QD.sql_pool|SQLAlchmey 连接池日志名称, 默认为 'QD.sql_pool'
+QD_SQL_LOGGING_POOL_LEVEL|否|Warning|SQLAlchmey 连接池日志级别, 默认为 'Warning'
+QD_SQL_POOL_SIZE|否|10|SQLAlchmey 连接池大小, 默认为 10
+QD_SQL_MAX_OVERFLOW|否|50|SQLAlchmey 连接池最大溢出, 默认为 50
+QD_SQL_POOL_PRE_PING|否|True|是否在连接池获取连接前, <br>先ping一下, 默认为 True
+QD_SQL_POOL_RECYCLE|否|3600|SQLAlchmey 连接池回收时间, 默认为 3600
+QD_SQL_POOL_TIMEOUT|否|60|SQLAlchmey 连接池超时时间, 默认为 60
+QD_SQL_POOL_USE_LIFO|否|True|SQLAlchmey 是否使用 LIFO 算法, 默认为 True
 REDISCLOUD_URL|否|''|需要使用Redis或RedisCloud时, <br>设置为 <http://rediscloud:密码@hostname:port>
 REDIS_DB_INDEX|否|1|默认为1
-QIANDAO_EVIL|否|500|(限Redis连接已开启)登录用户或IP在1小时内 <br>分数 = 操作失败(如登录, 验证, 测试等操作)次数 * 相应惩罚分值 <br>分数达到evil上限后自动封禁直至下一小时周期
+QD_EVIL|否|500|(限Redis连接已开启)登录用户或IP在1小时内 <br>分数 = 操作失败(如登录, 验证, 测试等操作)次数 * 相应惩罚分值 <br>分数达到evil上限后自动封禁直至下一小时周期
 EVIL_PASS_LAN_IP|否|True|是否关闭本机私有IP地址用户及Localhost_API请求的evil限制
 TRACEBACK_PRINT|否|False|是否启用在控制台日志中打印Exception的TraceBack信息
 PUSH_PIC_URL|否|[push_pic.png](https://fastly.jsdelivr.net/gh/qd-today/qd@master/web/static/img/push_pic.png)|默认为[push_pic.png](https://fastly.jsdelivr.net/gh/qd-today/qd@master/web/static/img/push_pic.png)
@@ -141,10 +141,13 @@ MAIL_PORT|否|""|邮箱SMTP服务器端口
 MAIL_USER|否|""|邮箱用户名
 MAIL_PASSWORD|否|""|邮箱密码
 MAIL_FROM|否|MAIL_USER|发送时使用的邮箱，默认与MAIL_USER相同
-MAIL_DOMAIN|否|mail.qd.today|邮箱域名,没啥用, 使用的DOMAIN
+MAIL_DOMAIN_HTTPS|否|False|发送的邮件链接启用HTTPS, <br>非框架前端使用HTTPS, <br>如果前端需要HTTPS, 请使用反向代理.
 PROXIES|否|""|全局代理域名列表,用"|"分隔
 PROXY_DIRECT_MODE|否|""|全局代理黑名单模式,默认不启用 <br>"url"为网址匹配模式;"regexp"为正则表达式匹配模式
 PROXY_DIRECT|否|""|全局代理黑名单匹配规则
+NEW_TASK_DELAY|否|1|新建任务后准备时间, 单位为秒, 默认为1秒
+TASK_WHILE_LOOP_TIMEOUT|否|900|任务运行中单个 While 循环最大运行时间, <br>单位为秒, 默认为 15 分钟
+TASK_REQUEST_LIMIT|否|1500|任务运行中单个任务最大请求次数, <br>默认为 1500 次
 USE_PYCURL|否|True|是否启用Pycurl模组
 ALLOW_RETRY|否|True|在Pycurl环境下部分请求可能导致Request错误时, <br>自动修改冲突设置并重发请求
 DNS_SERVER|否|""|通过Curl使用指定DNS进行解析(仅支持Pycurl环境), <br>如 8.8.8.8

@@ -136,11 +136,11 @@ class TPLRunHandler(BaseHandler):
                         'username': url['username'],
                         'password':url['password']
                     }
-                    result = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
+                    result, _ = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
                 elif self.current_user:
-                    result = await self.fetcher.do_fetch(fetch_tpl, env)
+                    result, _ = await self.fetcher.do_fetch(fetch_tpl, env)
                 else:
-                    result = await self.fetcher.do_fetch(fetch_tpl, env, proxies=[])
+                    result, _ = await self.fetcher.do_fetch(fetch_tpl, env, proxies=[])
             except Exception as e:
                 if config.traceback_print:
                     traceback.print_exc()

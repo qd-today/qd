@@ -101,7 +101,7 @@ if __name__ == '__main__':
     ioloop.stop()
 
     try:
-        result = result.result()
+        result, _ = result.result()
     except Exception as e:
         print('QD failed!', e)
     else:

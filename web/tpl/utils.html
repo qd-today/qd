@@ -59,10 +59,15 @@
       })
       .fail(function(jxhr, data) {
         $('#modal_load .modal-content')
-        .html('<h1 class="text-center alert alert-danger">FAIL</h1><div class="well"></div>')
+        .html('<h1 class="text-center alert alert-danger">运行失败</h1><div class="well"></div>')
         .find('.well').text(jxhr.responseText);
       })
-      .always(function() {
+      .always(function(jxhr) {
+        if (jxhr.status == 504) {
+          $('#modal_load .modal-content')
+          .html('<h1 class="text-center alert alert-danger">超时</h1><div class="well"></div>')
+          .find('.well').text('前端回调获取响应超时, 请耐心等待或刷新页面后查看执行结果');
+        }
         lock = false;
       })
       return false;

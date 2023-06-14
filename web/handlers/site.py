@@ -17,6 +17,9 @@ from .base import *
 class SiteManagerHandler(BaseHandler):
     @tornado.web.authenticated
     async def get(self, userid):
+        flg = self.get_argument("flg", '')
+        title = self.get_argument("title", '')
+        log = self.get_argument("log", '')
         adminflg = False
         site = {'regEn': False}
         user = await self.db.user.get(userid, fields=('role',))
@@ -26,7 +29,7 @@ class SiteManagerHandler(BaseHandler):
             site['regEn'] = False if site['regEn'] == 1 else True
             site['MustVerifyEmailEn'] = False if site['MustVerifyEmailEn'] == 0 else True
 
-        await self.render("site_manage.html", userid=userid, adminflg=adminflg, site=site, logDay=site['logDay'])
+        await self.render("site_manage.html", userid=userid, adminflg=adminflg, site=site, logDay=site['logDay'], flg=flg, title=title,log=log)
         return
 
     @tornado.web.authenticated
@@ -51,6 +54,8 @@ class SiteManagerHandler(BaseHandler):
                                 raise Exception(u"开启注册失败")
 
                         if ("site.MustVerifyEmailEn" in envs):
+                            if not config.domain:
+                                raise Exception('请先配置 QD 框架域名 domain, 以启用邮箱验证功能!')
                             if (user['email_verified'] != 0):
                                 await self.db.site.mod(1, MustVerifyEmailEn=1, sql_session=sql_session)
                                 if (await self.db.site.get(1, fields=('MustVerifyEmailEn',), sql_session=sql_session))['MustVerifyEmailEn'] != 1:
@@ -78,11 +83,10 @@ class SiteManagerHandler(BaseHandler):
                 traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
-            await self.render('tpl_run_failed.html', log=str(e))
+            await self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
             logger_Web_Handler.error('UserID: %s modify Manage_Board failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
             return
-
-        self.redirect('/my/')
+        await self.render('utils_run_result.html', title='设置成功', flg='success')
         return
 
     async def send_verify_mail(self, user):
@@ -103,7 +107,7 @@ class SiteManagerHandler(BaseHandler):
         </tr>
         </tbody>
         </table>
-        """.format(http='https' if config.https else 'http', domain=config.domain, code=verified_code), shark=True))
+        """.format(http='https' if config.mail_domain_https else 'http', domain=config.domain, code=verified_code), shark=True))
 
         return
 
