@@ -21,6 +21,7 @@ gzip = bool(strtobool(os.getenv('GZIP','True')))                            # �
 accesslog = bool(strtobool(os.getenv('ACCESS_LOG', 'True')))                # 是否输出 Tornado access Log
 display_import_warning = bool(strtobool(os.getenv('DISPLAY_IMPORT_WARNING', 'True')))           # 是否显示导入模组失败或 Redis 连接失败的警告
 user0isadmin = bool(strtobool(os.getenv('USER0ISADMIN','True')))            # 是否将第一个注册用户设置为管理员
+static_url_prefix = os.getenv('STATIC_URL_PREFIX', '/static/')              # 静态文件访问路径前缀, 默认为 '/static/'
 
 # 指定域名, 用于发送邮件及微信推送内链接域名显示,
 # 如果是 *域名* 方式请正确输入 `domain.com`, 请勿包含协议头 `http://` 或 `https://`

@@ -110,6 +110,7 @@ python ./chrole.py your@email.address admin
 |WORKER_METHOD|No|Queue|Task timing execution method, <br>The default is Queue, optional Queue or Batch, <br>Batch mode is the old version of timing task execution method, the performance is weak, <br>**Recommended only when Queue timed execution mode fails**|
 |MULTI_PROCESS|No|False|(Experimental) Whether to enable multi-process mode, <br>invalid on Windows platform|
 |AUTO_RELOAD|No|False|Whether to enable automatic hot reload, <br>invalid when MULTI_PROCESS=True|
+|STATIC_URL_PREFIX|No|`/static/`|Static file URL prefix|
 |DOMAIN|No|''|Specify the access domain name, <br>**(recommended modification)**, otherwise the function of resetting password by email is not valid|
 |AES_KEY|No|binux|AES encryption key, **(Modification strongly recommended)**|
 |COOKIE_SECRET|No|binux|cookie encryption key, **(Modification strongly recommended)**|

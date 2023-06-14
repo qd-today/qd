@@ -110,6 +110,7 @@ QD_DEBUG|否|False|是否启用Debug模式
 WORKER_METHOD|否|Queue|任务定时执行方式, <br>默认为 Queue, 可选 Queue 或 Batch, <br>Batch 模式为旧版定时任务执行方式, 性能较弱, <br>**建议仅当 Queue 定时执行模式失效时使用**
 MULTI_PROCESS|否|False|(实验性)是否启用多进程模式, <br>Windows平台无效
 AUTO_RELOAD|否|False|是否启用自动热加载, <br>MULTI_PROCESS=True时无效
+STATIC_URL_PREFIX|否|`/static/`|静态文件URL前缀
 DOMAIN|否|''|指定访问域名, <br>**(建议修改)**, 否则通过邮件重置密码及邮箱推送等功能无效
 AES_KEY|否|binux|AES加密密钥, **(强烈建议修改)**
 COOKIE_SECRET|否|binux|cookie加密密钥, **(强烈建议修改)**

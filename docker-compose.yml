@@ -22,6 +22,7 @@ services:
       # - ACCESS_LOG=True
       # - DISPLAY_IMPORT_WARNING=True
       # - USER0ISADMIN=True
+      # - STATIC_URL_PREFIX=/static/
       - DOMAIN=
       # - COOKIE_DAY=5
       # - COOKIE_SECURE_MODE=False
