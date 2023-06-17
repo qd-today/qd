@@ -331,11 +331,11 @@
         },
         "croniter": {
             "hashes": [
-                "sha256:924a38fda88f675ec6835667e1d32ac37ff0d65509c2152729d16ff205e32a65",
-                "sha256:f17f877be1d93b9e3191151584a19d8b367b017ab0febc8c5472b9300da61c4c"
+                "sha256:1a6df60eacec3b7a0aa52a8f2ef251ae3dd2a7c7c8b9874e73e791636d55a361",
+                "sha256:9595da48af37ea06ec3a9f899738f1b2c1c13da3c38cea606ef7cd03ea421128"
             ],
             "index": "pypi",
-            "version": "==1.3.15"
+            "version": "==1.4.1"
         },
         "cryptography": {
             "hashes": [

@@ -8,6 +8,61 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20230618] - 2023.06.18 更新
+
+### Features
+
+1. 为 for 循环段 添加 `loop` 信息, 支持基于 `range` 和 `list` 的 for 循环
+2. 测试中支持 if 控制语句, 优化测试中 if 控制语句的信息格式及错误信息显示
+3. 添加 while 循环 Feat qd-today/qd#371
+
+   > - 添加 TASK_WHILE_LOOP_TIMEOUT 环境变量, 单个 while 循环超时限制为15分钟;
+   > - 添加 TASK_REQUEST_LIMIT 环境变量, 单个任务中请求数限制为1500;
+   > - 测试中支持 while 控制语句查看信息
+   > - while 循环中支持 loop_index 和 loop_index0
+   > - 具体可以查看前端 `关于` 页面信息
+
+4. 时间戳 API 加入更多转换功能 Feat qd-today/qd#388
+
+   > - 支持 `ts` 输入小数以输出毫秒及微秒级时间
+   > - 支持使用 `%f` 作为毫微秒时间的格式化字符串
+
+5. Telegram 消息标题增加 `hashtag` 以便于搜索 Feat qd-today/qd#401
+6. 添加 `COOKIE_SECURE_MODE` 环境变量配置, 用于 HTTPS 下的 Cookie 安全设置开关
+7. 添加 `STATIC_URL_PREFIX` 环境变量配置 Feat qd-today/qd#359
+8. 添加 `display_import_warning` 配置
+9. 允许使用 `update.sh` 修改 Alpine apk 镜像源
+
+### Changed
+
+1. 添加前端请求超时提示
+2. 订阅公共模板以文件名作为默认模板名
+3. 优化 `config.py` 文件配置内容顺序和注释
+4. 优化邮箱设置
+
+   > - 未配置 DOMAIN 时, 禁止修改强制验证邮箱功能
+   > - 未配置 DOMAIN 时, 邮箱推送自动失效并在后端日志提示
+   > - 未配置 DOMAIN 时, 用户注册或修改密码时在前端提示
+   > - 邮箱域名 MAIL_DOMAIN 合并入 DOMAIN 变量
+   > - MailGun API优化
+
+5. 优化网站管理页面错误显示效果
+6. 当设置重试间隔后允许重试间隔超过12小时
+7. Update deployment, update, faq in docs
+8. Clean and optimize code
+9. Add description for left button
+10. Update google analysis method
+11. Update requirements.txt, replace pytz with built-in zoneinfo
+
+### Fixed
+
+1. Fix server disconnected for subscribe
+2. Fix not display err msg for subscribe
+3. Fix qd.py failure
+4. Fix "Stream abnormally closed" which causes task not recorded in SQL db.
+5. Fix set empty retry_interval not work
+6. Fix typo
+
 ## [20230601] - 2023.06.01 更新
 
 ### Features
