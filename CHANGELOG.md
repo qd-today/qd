@@ -16,10 +16,10 @@ Nothing right now.
 2. 测试中支持 if 控制语句, 优化测试中 if 控制语句的信息格式及错误信息显示
 3. 添加 while 循环 Feat qd-today/qd#371
 
-   > - 添加 TASK_WHILE_LOOP_TIMEOUT 环境变量, 单个 while 循环超时限制为15分钟;
-   > - 添加 TASK_REQUEST_LIMIT 环境变量, 单个任务中请求数限制为1500;
+   > - 添加 `TASK_WHILE_LOOP_TIMEOUT` 环境变量, 单个 while 循环超时限制为15分钟;
+   > - 添加 `TASK_REQUEST_LIMIT` 环境变量, 单个任务中请求数限制为1500;
    > - 测试中支持 while 控制语句查看信息
-   > - while 循环中支持 loop_index 和 loop_index0
+   > - while 循环中支持 `loop_index` 和 `loop_index0`
    > - 具体可以查看前端 `关于` 页面信息
 
 4. 时间戳 API 加入更多转换功能 Feat qd-today/qd#388
@@ -40,10 +40,10 @@ Nothing right now.
 3. 优化 `config.py` 文件配置内容顺序和注释
 4. 优化邮箱设置
 
-   > - 未配置 DOMAIN 时, 禁止修改强制验证邮箱功能
-   > - 未配置 DOMAIN 时, 邮箱推送自动失效并在后端日志提示
-   > - 未配置 DOMAIN 时, 用户注册或修改密码时在前端提示
-   > - 邮箱域名 MAIL_DOMAIN 合并入 DOMAIN 变量
+   > - 未配置 `DOMAIN` 环境变量或参数时, 禁止修改强制验证邮箱功能
+   > - 未配置 `DOMAIN` 时, 邮箱推送自动失效并在后端日志提示
+   > - 未配置 `DOMAIN` 时, 用户注册或修改密码时在前端提示
+   > - 邮箱域名 `MAIL_DOMAIN` 合并入 `DOMAIN` 变量
    > - MailGun API优化
 
 5. 优化网站管理页面错误显示效果
@@ -52,15 +52,15 @@ Nothing right now.
 8. Clean and optimize code
 9. Add description for left button
 10. Update google analysis method
-11. Update requirements.txt, replace pytz with built-in zoneinfo
+11. Update requirements.txt, replace `pytz` with built-in `zoneinfo`
 
 ### Fixed
 
 1. Fix server disconnected for subscribe
 2. Fix not display err msg for subscribe
-3. Fix qd.py failure
+3. Fix `qd.py` failure
 4. Fix "Stream abnormally closed" which causes task not recorded in SQL db.
-5. Fix set empty retry_interval not work
+5. Fix set empty `retry_interval` not work
 6. Fix typo
 
 ## [20230601] - 2023.06.01 更新
