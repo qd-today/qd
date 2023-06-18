@@ -286,6 +286,20 @@
     <tbody style="text-align:center;font-size:xx-small">
 
       <tr>
+        <td>{{_proxy}}</td>
+        <td>代理, 用于HAR模板单个请求的测试. 格式: <br>scheme://username:password@hostname:port <br>支持HTTP/HTTPs/Socks5代理</td>
+        <td>\</td>
+        <td class="autowrap">\</td>
+      </tr>
+
+      <tr>
+        <td>{{__log__}}</td>
+        <td>日志, 用于单个模板任务的日志记录和输出. <br>支持多行日志, 用'\r\n'分隔</td>
+        <td>\</td>
+        <td class="autowrap">\</td>
+      </tr>
+
+      <tr>
         <td>{{unicode(a)}}</td>
         <td>将 a 由 Unicode 转为中文（和上面 API 相同）</td>
         <td>{{unicode("\u4f60\u597d")}}</td>
