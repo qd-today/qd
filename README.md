@@ -13,31 +13,37 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 [![Github][Github-image]][Github-url]
 [![Gitee][Gitee-image]][Gitee-url]
 [![license][github-license-image]][github-license-url]
+[![QQ频道][QQPD-image]][QQPD-url]
 [![Build Image][workflow-image]][workflow-url]
 [![last commit][last-commit-image]][last-commit-url]
 [![commit activity][commit-activity-image]][commit-activity-url]
+![repo size][repo-size-image]
 [![docker version][docker-version-image]][docker-version-url]
 [![docker pulls][docker-pulls-image]][docker-pulls-url]
 [![docker stars][docker-stars-image]][docker-stars-url]
 [![docker image size][docker-image-size-image]][docker-image-size-url]
-![repo size][repo-size-image]
 ![python version][python-version-image]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-15-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-[HomePage-image]: https://img.shields.io/badge/HomePage-qd--today-brightgreen
+[HomePage-image]: https://img.shields.io/badge/HomePage-QD--Today-brightgreen
 [HomePage-url]: https://qd.a76yyyy.cn
-[Github-image]: https://img.shields.io/static/v1?label=Github&message=qd-today&color=brightgreen
+[Github-image]: https://img.shields.io/static/v1?label=Github&message=QD&color=brightgreen
 [Github-url]: https://github.com/qd-today/qd/
-[Gitee-image]: https://img.shields.io/static/v1?label=Gitee&message=a76yyyy&color=brightgreen
+[Gitee-image]: https://img.shields.io/static/v1?label=Gitee&message=QD&color=brightgreen
 [Gitee-url]: https://gitee.com/qd-today/qd/
 [github-license-image]: https://img.shields.io/github/license/qd-today/qd
 [github-license-url]: https://github.com/qd-today/qd/blob/master/LICENSE
+[QQPD-image]: https://img.shields.io/static/v1?label=QQ%E9%A2%91%E9%81%93&message=QD&color=brightgreen
+[QQPD-url]: https://pd.qq.com/s/g9qaiue25
+[workflow-image]: https://github.com/qd-today/qd/actions/workflows/Publish%20Package.yml/badge.svg
+[workflow-url]: https://github.com/qd-today/qd/actions/workflows/Publish%20Package.yml
 [last-commit-image]: https://img.shields.io/github/last-commit/qd-today/qd
 [last-commit-url]: https://github.com/qd-today/qd/
 [commit-activity-image]: https://img.shields.io/github/commit-activity/m/qd-today/qd
 [commit-activity-url]: https://github.com/qd-today/qd/
+[repo-size-image]: https://img.shields.io/github/repo-size/qd-today/qd
 [docker-version-image]: https://img.shields.io/docker/v/qdtoday/qd/latest?style=flat
 [docker-version-url]: https://hub.docker.com/r/qdtoday/qd/tags?latest
 [docker-pulls-image]: https://img.shields.io/docker/pulls/qdtoday/qd?style=flat
@@ -46,10 +52,7 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 [docker-stars-url]: https://hub.docker.com/r/qdtoday/qd
 [docker-image-size-image]: https://img.shields.io/docker/image-size/qdtoday/qd/latest?style=flat&arch=amd64
 [docker-image-size-url]: https://hub.docker.com/r/qdtoday/qd
-[repo-size-image]: https://img.shields.io/github/repo-size/qd-today/qd
 [python-version-image]: https://img.shields.io/github/pipenv/locked/python-version/qd-today/qd
-[workflow-image]: https://github.com/qd-today/qd/actions/workflows/Publish%20Package.yml/badge.svg
-[workflow-url]: https://github.com/qd-today/qd/actions/workflows/Publish%20Package.yml
 
 </div>
 
