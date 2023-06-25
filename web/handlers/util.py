@@ -135,14 +135,14 @@ class TimeStampHandler(BaseHandler):
                 Rtv[u"完整时间戳"] = float(ts)
                 Rtv[u"时间戳"] = int(Rtv[u"完整时间戳"])
                 Rtv[u"16位时间戳"] = int(Rtv[u"完整时间戳"] * 1000000)
-                Rtv[u"周"] = tmp(Rtv[u"时间戳"]).strftime("%w/%W")
+                Rtv[u"周"] = tmp(Rtv[u"完整时间戳"]).strftime("%w/%W")
                 Rtv[u"日"] = "/".join([
-                    tmp(Rtv[u"时间戳"]).strftime("%j"),
-                    yearday(tmp(Rtv[u"时间戳"]).year)
+                    tmp(Rtv[u"完整时间戳"]).strftime("%j"),
+                    yearday(tmp(Rtv[u"完整时间戳"]).year)
                 ])
-                Rtv[u"北京时间"] = tmp(Rtv[u"时间戳"], cst_tz).strftime(time_format)
-                Rtv[u"GMT格式"] = tmp(Rtv[u"时间戳"], utc_tz).strftime(GMT_FORMAT)
-                Rtv[u"ISO格式"] = tmp(Rtv[u"时间戳"],
+                Rtv[u"北京时间"] = tmp(Rtv[u"完整时间戳"], cst_tz).strftime(time_format)
+                Rtv[u"GMT格式"] = tmp(Rtv[u"完整时间戳"], utc_tz).strftime(GMT_FORMAT)
+                Rtv[u"ISO格式"] = tmp(Rtv[u"完整时间戳"],
                                     utc_tz).isoformat().split("+")[0] + "Z"
             else:
                 # 当前本机时间戳, 本机时间和北京时间
