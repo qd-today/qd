@@ -303,7 +303,9 @@ class Fetcher(object):
                 return response.headers.get(_from, '')
             elif _from == 'header':
                 try:
-                    return str(response.headers._dict).replace('\'', '')
+                    if hasattr(response, 'headers') and isinstance(response.headers, HTTPHeaders):
+                        return '\n'.join(['{key}: {value}'.format(key=key,value=value) for key,value in response.headers.get_all()])
+                    return '\n'.join(['{key}: {value}'.format(key=key,value=value) for key,value in response.headers._dict.items()])
                 except Exception as e:
                     if config.traceback_print:
                         traceback.print_exc()
