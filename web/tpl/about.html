@@ -300,31 +300,185 @@
       </tr>
 
       <tr>
-        <td>{{unicode(a)}}</td>
-        <td>将 a 由 Unicode 转为中文（和上面 API 相同）</td>
-        <td>{{unicode("\u4f60\u597d")}}</td>
-        <td class="autowrap">你好</td>
+        <td>{{int(value, default=0, base=10)}}</td>
+        <td>将 value 转为整数, <br>base: 进制, 默认为10<br>default: 转换失败时的默认值, 默认为0</td>
+        <td>{{int("123", base=10)}}</td>
+        <td class="autowrap">123</td>
       </tr>
 
       <tr>
-        <td>{{quote_chinese(a)}}</td>
-        <td>将 a 中所有 ord() &gt;=128 的用 urlencode 表示（注意和 urlencode 有区别）</td>
-        <td>{{quote_chinese("123中文QAQ&amp;amp;/:")}}</td>
-        <td class="autowrap">123%E4%B8%AD%E6%96%87QAQ&amp;amp;/:</td>
+        <td>{{float(value, default=0)}}</td>
+        <td>将 value 转为浮点数, <br>default: 转换失败时的默认值, 默认为0</td>
+        <td>{{float("123.456")}}</td>
+        <td class="autowrap">123.456</td>
       </tr>
 
       <tr>
-        <td>{{bool(a)}}</td>
-        <td>将 a 转为布尔值, <br>a为("yes", "on", "1", "true", 1)时为True, 不区分大小写</td>
+        <td>{{bool(value)}}</td>
+        <td>将 value 转为布尔值, <br>value 为("yes", "on", "1", "true", 1)时为True, 不区分大小写</td>
         <td>{{bool("Yes")}}</td>
         <td class="autowrap">True</td>
       </tr>
 
       <tr>
-        <td>{{random(min,max,unit)}}</td>
-        <td>随机生成从 min 到 max 的 unit 位小数</td>
-        <td>{{random(0,10,4)}}</td>
-        <td class="autowrap">0.8696</td>
+        <td>{{utf8(value)}}</td>
+        <td>当 value 为字符串时, 将其转为 utf-8 编码的字节流</td>
+        <td>{{utf8("你好")}}</td>
+        <td class="autowrap">b'\xe4\xbd\xa0\xe5\xa5\xbd'</td>
+      </tr>
+
+      <tr>
+        <td>{{unicode(value, html_unescape=False)}}</td>
+        <td>将字符串 value 由 Unicode 转为中文, <br>html_unescape: 是否对 value 进行 html 反转义, 默认为 False <br>注意: 当 value 不为字符串类型时, 先尝试对其进行 utf-8 解码, 解码失败则对其进行 str() 转换.<br>可用于转换字节流为字符串</td>
+        <td>{{unicode("\u4f60\u597d")}}</td>
+        <td class="autowrap">你好</td>
+      </tr>
+
+      <tr>
+        <td>{{quote_chinese(value, sep="", encoding="utf-8", decoding="utf-8")}}</td>
+        <td>将 value 中所有 ord()>=128 的字节用 urlencode 表示 (注意和 urlencode 有区别), <br>sep: 分隔符, 默认为"", if <br>encoding: 编码, 默认为 utf-8, <br>decoding: 解码, 默认为 utf-8</td>
+        <td>{{quote_chinese("123中文QAQ&amp;amp;/:")}}</td>
+        <td class="autowrap">123%E4%B8%AD%E6%96%87QAQ&amp;amp;/:</td>
+      </tr>
+
+      <tr>
+        <td>b2a_hex(data[, sep[, bytes_per_sep=1]])</td>
+        <td>将字节流 data 转为十六进制表示, <br>sep: 分隔符, 默认为空<br>bytes_per_sep: 每隔多少个字节添加一个分隔符, 默认为1</td>
+        <td>{{unicode(b2a_hex(utf8('1234567890abcdef'), sep=' ', bytes_per_sep=2))}}</td>
+        <td class="autowrap">31 32 33 34 35 36 37 38 39 30 61 62 63 64 65 66</td>
+      </tr>
+
+      <tr>
+        <td>a2b_hex(hexstr)</td>
+        <td>将十六进制 ASCII 字符串表示的 hexstr 转为字节流</td>
+        <td>{{unicode(a2b_hex('31323334353637383930616263646566'))}}</td>
+        <td class="autowrap">1234567890abcdef</td>
+      </tr>
+
+      <tr>
+        <td>b2a_uu(data, *, backtick=False)</td>
+        <td>将字节流 data 转为 uu 编码, <br>backtick: 是否使用反引号表示 0, <br>默认为False, 即使用空格表示 0<br>注意: data 的长度最多为45, 返回值包含换行符</td>
+        <td>{{unicode(b2a_uu(utf8('1234567890abcdef'), backtick=True))}}</td>
+        <td class="autowrap">'0,3(S-#4V-S@Y,&%B8V1E9@``\n'</td>
+      </tr>
+
+      <tr>
+        <td>a2b_uu(data)</td>
+        <td>将单行 uu 编码的字符串 data 转为字节流</td>
+        <td>{{unicode(a2b_uu('0,3(S-#4V-S@Y,&%B8V1E9@``'))}}</td>
+        <td class="autowrap">1234567890abcdef</td>
+      </tr>
+
+      <tr>
+        <td>b2a_base64(data, *, newline=True)</td>
+        <td>将字节流 data 转为 base64 编码, <br>newline: 是否添加换行符, 默认为True</td>
+        <td>{{unicode(b2a_base64(utf8('1234567890abcdef'), newline=False))}}</td>
+        <td class="autowrap">MTIzNDU2Nzg5MGFiY2RlZg==</td>
+      </tr>
+
+      <tr>
+        <td>a2b_base64(data)</td>
+        <td>将 base64 编码的字符串 data 转为字节流</td>
+        <td>{{unicode(a2b_base64('MTIzNDU2Nzg5MGFiY2RlZg=='))}}</td>
+        <td class="autowrap">1234567890abcdef</td>
+      </tr>
+
+      <tr>
+        <td>b2a_qp(data, *, quotetabs=False, istext=True, header=False)</td>
+        <td>将字节流 data 转为带引号的可打印编码, <br>quotetabs: 是否对制表符和空格进行编码, 默认为False<br>istext: 是否不对换行符进行编码, 默认为True<br>header: 是否将空格编码为下划线, 默认为False</td>
+        <td>{{unicode(b2a_qp(utf8('1234567890abcdef \n123'), quotetabs=True, istext=False, header=True))}}</td>
+        <td class="autowrap">1234567890abcdef=20=0A123</td>
+      </tr>
+
+      <tr>
+        <td>a2b_qp(data, *, header=False)</td>
+        <td>将带引号的可打印编码 data 转为字节流, <br>header: 是否将下划线解码为空格, 默认为False</td>
+        <td>{{unicode(a2b_qp('1234567890abcdef=20=0A123', header=True))}}</td>
+        <td class="autowrap">1234567890abcdef \n123</td>
+      </tr>
+
+      <tr>
+        <td>crc_hqx(data, value)</td>
+        <td>计算字节流 data 的 CRC 校验值, <br>value: 初始 CRC</td>
+        <td>{{crc_hqx(utf8('1234567890abcdef'), 0)}}</td>
+        <td class="autowrap">62028</td>
+      </tr>
+
+      <tr>
+        <td>crc32(data[, value])</td>
+        <td>计算字节流 data 的 CRC 校验值, <br>value: 初始 CRC, 默认为0</td>
+        <td>{{crc32(utf8('1234567890abcdef'), 0)}}</td>
+        <td class="autowrap">1554196281</td>
+      </tr>
+
+      <tr>
+        <td>{{format(value, format_spec="")}}</td>
+        <td>格式化输出, <br>value: 要格式化的值, <br>format_spec: 格式化字符串, <br>默认为空, 详见: <a href="https://docs.python.org/zh-cn/3/library/string.html#format-specification-mini-language" target="_blank" rel="nofollow">format-specification-mini-language</a></td>
+        <td>{{format(123.456, "0.2f")}}</td>
+        <td class="autowrap">123.46</td>
+      </tr>
+
+      <tr>
+        <td>{{b64encode(value, encoding="utf-8")}}</td>
+        <td>计算 value 的 base64 编码值, <br>encoding: 编码, 默认为 utf-8</td>
+        <td>{{b64encode("hello")}}</td>
+        <td class="autowrap">aGVsbG8=</td>
+      </tr>
+
+      <tr>
+        <td>{{b64decode(value, encoding="utf-8")}}</td>
+        <td>计算 value 的 base64 解码值, <br>encoding: 编码, 默认为 utf-8</td>
+        <td>{{b64decode("aGVsbG8=")}}</td>
+        <td class="autowrap">hello</td>
+      </tr>
+
+      <tr>
+        <td>{{to_uuid(value, namespace='6ba7b811-9dad-11d1-80b4-00c04fd430c8')}}</td>
+        <td>计算 value 的 uuid5 生成值; <br>namespace: uuid所使用的命名空间, <br>默认为: 6ba7b811-9dad-11d1-80b4-00c04fd430c8</td>
+        <td>{{to_uuid("hello")}}</td>
+        <td class="autowrap">074171de-bc84-5ea4-b636-1135477620e1</td>
+      </tr>
+
+      <tr>
+        <td>{{md5(value)}}</td>
+        <td>计算 value 的 md5 值</td>
+        <td>{{md5("123")}}</td>
+        <td class="autowrap">202cb962ac59075b964b07152d234b70</td>
+      </tr>
+
+      <tr>
+        <td>{{sha1(value)}}</td>
+        <td>计算 value 的 sha1 值</td>
+        <td>{{sha1("123")}}</td>
+        <td class="autowrap">40bd001563085fc35165329ea1ff5c5ecbdbbeef</td>
+      </tr>
+
+      <tr>
+        <td>{{password_hash(password, hashtype, salt=salt, salt_size=salt_size, rounds=rounds, ident=ident)}}</td>
+        <td>计算 password 的 加密hash 值; <br>hashtype: Hash 类型 ("md5", "sha256", "sha512", "blowfish"), 默认为 sha512 <br>salt: password 盐值 <br>salt_size: password 盐值尺寸 <br>rounds: password hash迭代次数 <br>ident: blowfish 算法版本, 默认为 2b</td>
+        <td>{{password_hash("hello")}}</td>
+        <td class="autowrap">$6$rounds=656000$KSQu5IKoWLdHDYqJ$W.MQWC3LsuzRsQ35.07h48Mr3TMJ9Cjj0du.5mGEW2yOFkQlxi/ySwwG5Z4SKVewpWn8PFPZLUuTrAwcV0ke0.</td>
+      </tr>
+
+      <tr>
+        <td>{{hash(value,hashtype)}}</td>
+        <td>计算 value 的 hash 值; <br>hashtype: Hash 类型, 默认为 sha1</td>
+        <td>{{hash("123","sha256")}}</td>
+        <td class="autowrap">a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3</td>
+      </tr>
+
+      <tr>
+        <td>{{aes_encrypt(word, key, mode, iv, output_format='base64', padding=True, padding_style='pkcs7')}}</td>
+        <td>计算 word 的 AES 加密值; <br>word: 待加密文本 <br>key: 密钥, 长度应为16, 24或32 <br>mode: 加密模式, ("ECB","CBC","CFB","OFB","CTR","GCM") <br>iv: 初始化向量, 长度为16 <br>output_format: 输出格式, 默认为 base64 <br>padding: 是否使用填充, 默认为 True <br>padding_style: 填充方式, 默认为 pkcs7</td>
+        <td>{{aes_encrypt("hello", "1234567890123456", "ECB", "1234567890123456", "hex")}}</td>
+        <td class="autowrap">ebb7c703e675db3da397038b4c17823c</td>
+      </tr>
+
+      <tr>
+        <td>{{aes_decrypt(word, key, mode, iv, input_format='base64', padding=True, padding_style='pkcs7')}}</td>
+        <td>计算 word 的 AES 解密值; <br>word: 待解密文本 <br>key: 密钥, 长度应为16, 24或32 <br>mode: 加密模式, ("ECB","CBC","CFB","OFB","CTR","GCM") <br>iv: 初始化向量, 长度为16 <br>input_format: 输入格式, 默认为 base64 <br>padding: 是否使用填充, 默认为 True <br>padding_style: 填充方式, 默认为 pkcs7</td>
+        <td>{{aes_decrypt("ebb7c703e675db3da397038b4c17823c", "1234567890123456", "ECB", "1234567890123456", "hex")}}</td>
+        <td class="autowrap">hello</td>
       </tr>
 
       <tr>
@@ -342,8 +496,8 @@
       </tr>
 
       <tr>
-        <td>{{is_num(s)}}</td>
-        <td>判断s是否为数字 <br>不支持科学计数</td>
+        <td>{{is_num(value)}}</td>
+        <td>判断 value 是否为数字 <br>不支持科学计数</td>
         <td>{{is_num('0.5')}}</td>
         <td class="autowrap">True</td>
       </tr>
@@ -384,69 +538,6 @@
       </tr>
 
       <tr>
-        <td>{{b64encode(a)}}</td>
-        <td>计算 a 的 base64 编码值</td>
-        <td>{{b64encode("hello")}}</td>
-        <td class="autowrap">aGVsbG8=</td>
-      </tr>
-
-      <tr>
-        <td>{{b64decode(a)}}</td>
-        <td>计算 a 的 base64 解码值</td>
-        <td>{{b64decode("aGVsbG8=")}}</td>
-        <td class="autowrap">hello</td>
-      </tr>
-
-      <tr>
-        <td>{{to_uuid(a, namespace)}}</td>
-        <td>计算 a 的 uuid5 生成值; <br>namespace: uuid所使用的命名空间, <br>默认为: 6ba7b811-9dad-11d1-80b4-00c04fd430c8</td>
-        <td>{{to_uuid("hello")}}</td>
-        <td class="autowrap">074171de-bc84-5ea4-b636-1135477620e1</td>
-      </tr>
-
-      <tr>
-        <td>{{md5(a)}}</td>
-        <td>计算 a 的 md5 值</td>
-        <td>{{md5("123")}}</td>
-        <td class="autowrap">202cb962ac59075b964b07152d234b70</td>
-      </tr>
-
-      <tr>
-        <td>{{sha1(a)}}</td>
-        <td>计算 a 的 sha1 值</td>
-        <td>{{sha1("123")}}</td>
-        <td class="autowrap">40bd001563085fc35165329ea1ff5c5ecbdbbeef</td>
-      </tr>
-
-      <tr>
-        <td>{{hash(a,hashtype)}}</td>
-        <td>计算 a 的 hash 值; <br>hashtype: Hash 类型, 默认为 sha1</td>
-        <td>{{hash("123","sha256")}}</td>
-        <td class="autowrap">a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3</td>
-      </tr>
-
-      <tr>
-        <td>{{aes_encrypt(word, key, mode, iv, output_format='base64', padding=True, padding_style='pkcs7')}}</td>
-        <td>计算 word 的 AES 加密值; <br>word: 待加密文本 <br>key: 密钥, 长度应为16, 24或32 <br>mode: 加密模式, ("ECB","CBC","CFB","OFB","CTR","GCM") <br>iv: 初始化向量, 长度为16 <br>output_format: 输出格式, 默认为 base64 <br>padding: 是否使用填充, 默认为 True <br>padding_style: 填充方式, 默认为 pkcs7</td>
-        <td>{{aes_encrypt("hello", "1234567890123456", "ECB", "1234567890123456", "hex")}}</td>
-        <td class="autowrap">ebb7c703e675db3da397038b4c17823c</td>
-      </tr>
-
-      <tr>
-        <td>{{aes_decrypt(word, key, mode, iv, input_format='base64', padding=True, padding_style='pkcs7')}}</td>
-        <td>计算 word 的 AES 解密值; <br>word: 待解密文本 <br>key: 密钥, 长度应为16, 24或32 <br>mode: 加密模式, ("ECB","CBC","CFB","OFB","CTR","GCM") <br>iv: 初始化向量, 长度为16 <br>input_format: 输入格式, 默认为 base64 <br>padding: 是否使用填充, 默认为 True <br>padding_style: 填充方式, 默认为 pkcs7</td>
-        <td>{{aes_decrypt("ebb7c703e675db3da397038b4c17823c", "1234567890123456", "ECB", "1234567890123456", "hex")}}</td>
-        <td class="autowrap">hello</td>
-      </tr>
-
-      <tr>
-        <td>{{password_hash(password, hashtype, salt=salt, salt_size=salt_size, rounds=rounds, ident=ident)}}</td>
-        <td>计算 password 的 加密hash 值; <br>hashtype: Hash 类型 ("md5", "sha256", "sha512", "blowfish"), 默认为 sha512 <br>salt: password 盐值 <br>salt_size: password 盐值尺寸 <br>rounds: password hash迭代次数 <br>ident: blowfish 算法版本, 默认为 2b</td>
-        <td>{{password_hash("hello")}}</td>
-        <td class="autowrap">$6$rounds=656000$KSQu5IKoWLdHDYqJ$W.MQWC3LsuzRsQ35.07h48Mr3TMJ9Cjj0du.5mGEW2yOFkQlxi/ySwwG5Z4SKVewpWn8PFPZLUuTrAwcV0ke0.</td>
-      </tr>
-
-      <tr>
         <td>{{regex_replace(value, pattern, replacement, count, ignorecase, multiline)}}</td>
         <td>匹配替换为指定文本, re.sub 方法实现; <br>value: 要被查找替换的原始字符串, <br>pattern: 正则中的模式字符串 <br>replacement: 匹配后替换字符串 <br>count: 替换次数, 默认为 0 (全部替换) <br>ignorecase: 忽略大小写, 默认为 False <br>multiline: 多行匹配, 默认为 False</td>
         <td>{{regex_replace("账号: 123456789A!", "[a-z|0-5]", "*", 0, True, False)}}</td>
@@ -479,6 +570,27 @@
         <td>为 True/False/None 定义不同的值; <br>value: 原始表达式/原始布尔值 或 原始变量, <br>true_val: 当 value为True 时返回该值 <br>false_val: 当 value为False 时返回该值 <br>none_val: 当 value为None或未定义 时返回该值, 默认为 None</td>
         <td>{{ternary(variable == "needs_restart", "restart", "continue") }}</td>
         <td class="autowrap">continue</td>
+      </tr>
+
+      <tr>
+        <td>{{random(min, max, unit)}}</td>
+        <td>随机生成从 min 到 max 的 unit 位小数</td>
+        <td>{{random(0,10,4)}}</td>
+        <td class="autowrap">0.8696</td>
+      </tr>
+
+      <tr>
+        <td>{{shuffle(mylist, seed=None)}}</td>
+        <td>随机打乱列表 mylist, seed 为随机种子</td>
+        <td>{{shuffle([1,2,3,4,5,6,7,8,9,10])}}</td>
+        <td class="autowrap">[2, 1, 3, 4, 5, 6, 7, 8, 9, 10]</td>
+      </tr>
+
+      <tr>
+        <td>{{type_debug(value)}}</td>
+        <td>返回 value 的类型名, 用于调试</td>
+        <td>{{type_debug(unicode(""))}}</td>
+        <td class="autowrap">str</td>
       </tr>
 
       <tr>

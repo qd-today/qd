@@ -9,6 +9,7 @@ import base64
 import datetime
 import functools
 import hashlib
+import html
 import ipaddress
 import random
 import re
@@ -17,6 +18,8 @@ import socket
 import struct
 import time
 import uuid
+from binascii import (a2b_base64, a2b_hex, a2b_qp, a2b_uu, b2a_base64, b2a_hex,
+                      b2a_qp, b2a_uu, crc32, crc_hqx)
 from email.mime.text import MIMEText
 from hashlib import sha1
 from urllib import parse as urllib_parse
@@ -317,28 +320,31 @@ def format_date(date, gmt_offset=time.timezone/60, relative=True, shorter=False,
         "time": str_time
     }
 
-def utf8(string):
-    if isinstance(string, str):
-        return string.encode('utf8')
-    return string
+def utf8(value):
+    if isinstance(value, str):
+        return value.encode('utf8')
+    return value
 
-def conver2unicode(string):
-    if not isinstance(string,str):
+def conver2unicode(value, html_unescape=False):
+    if not isinstance(value, str):
         try:
-            string = string.decode()
+            value = value.decode()
         except :
-            string =  str(string)
-    tmp = bytes(string,'unicode_escape').decode('utf-8').replace(r'\u',r'\\u').replace(r'\\\u',r'\\u')
+            value = str(value)
+    tmp = bytes(value,'unicode_escape').decode('utf-8').replace(r'\u',r'\\u').replace(r'\\\u',r'\\u')
     tmp = bytes(tmp,'utf-8').decode('unicode_escape')
-    return tmp.encode('utf-8').replace(b'\xc2\xa0',b'\xa0').decode('unicode_escape')
+    tmp = tmp.encode('utf-8').replace(b'\xc2\xa0',b'\xa0').decode('unicode_escape')
+    if html_unescape:
+        tmp = html.unescape(tmp)
+    return tmp
 
-def to_bool(a):
+def to_bool(value):
     ''' return a bool for the arg '''
-    if a is None or isinstance(a, bool):
-        return a
-    if isinstance(a, str):
-        a = a.lower()
-    if a in ('yes', 'on', '1', 'true', 1):
+    if value is None or isinstance(value, bool):
+        return value
+    if isinstance(value, str):
+        value = value.lower()
+    if value in ('yes', 'on', '1', 'true', 1):
         return True
     return False
 
@@ -470,27 +476,29 @@ def decode(content, headers=None):
         return None
 
 
-def quote_chinese(url, encodeing="utf-8"):
-    if isinstance(url, str):
-        return quote_chinese(url.encode("utf-8"))
-    if isinstance(url,bytes):
-        url = url.decode()
-    res = [b if ord(b) < 128 else urllib_parse.quote(b) for b in url]
-    return "".join(res)
+def quote_chinese(value, sep="", encoding="utf-8", decoding="utf-8"):
+    if isinstance(value, str):
+        return quote_chinese(value.encode(encoding))
+    if isinstance(value, bytes):
+        value = value.decode(decoding)
+    res = [b if ord(b) < 128 else urllib_parse.quote(b) for b in value]
+    if sep is not None:
+        return sep.join(res)
+    return res
 
 
-def secure_hash_s(data, hash_func=sha1):
+def secure_hash_s(value, hash_func=sha1):
     ''' Return a secure hash hex digest of data. '''
 
     digest = hash_func()
-    data = to_bytes(data, errors='surrogate_or_strict')
-    digest.update(data)
+    value = to_bytes(value, errors='surrogate_or_strict')
+    digest.update(value)
     return digest.hexdigest()
 
-def md5string(data):
+def md5string(value):
     if not _md5:
         raise ValueError('MD5 not available.  Possibly running in FIPS mode')
-    return secure_hash_s(data, _md5)
+    return secure_hash_s(value, _md5)
 
 
 def get_random(min_num, max_num, unit):
@@ -687,22 +695,22 @@ def divide(*args):
     else:
         return result
 
-def is_num(s:str=''):
-    s = str(s)
-    if s.count('.') ==1:
-        tmp = s.split('.')
+def is_num(value:str=''):
+    value = str(value)
+    if value.count('.') ==1:
+        tmp = value.split('.')
         return tmp[0].lstrip('-').isdigit() and tmp[1].isdigit()
     else:
-        return s.lstrip('-').isdigit()
+        return value.lstrip('-').isdigit()
 
-def get_hash(data, hashtype='sha1'):
+def get_hash(value, hashtype='sha1'):
     try:
         h = hashlib.new(hashtype)
     except Exception as e:
         # hash is not supported?
         raise Exception(e)
 
-    h.update(to_bytes(data, errors='surrogate_or_strict'))
+    h.update(to_bytes(value, errors='surrogate_or_strict'))
     return h.hexdigest()
 
 def get_encrypted_password(password, hashtype='sha512', salt=None, salt_size=None, rounds=None, ident=None):
@@ -716,7 +724,7 @@ def get_encrypted_password(password, hashtype='sha512', salt=None, salt_size=Non
     hashtype = passlib_mapping.get(hashtype, hashtype)
     return passlib_or_crypt(password, hashtype, salt=salt, salt_size=salt_size, rounds=rounds, ident=ident)
 
-def to_uuid(string, namespace=uuid.NAMESPACE_URL):
+def to_uuid(value, namespace=uuid.NAMESPACE_URL):
     uuid_namespace = namespace
     if not isinstance(uuid_namespace, uuid.UUID):
         try:
@@ -724,13 +732,13 @@ def to_uuid(string, namespace=uuid.NAMESPACE_URL):
         except (AttributeError, ValueError) as e:
             raise Exception("Invalid value '%s' for 'namespace': %s" % (to_native(namespace), to_native(e)))
     # uuid.uuid5() requires bytes on Python 2 and bytes or text or Python 3
-    return to_text(uuid.uuid5(uuid_namespace, to_native(string, errors='surrogate_or_strict')))
+    return to_text(uuid.uuid5(uuid_namespace, to_native(value, errors='surrogate_or_strict')))
 
-def mandatory(a, msg=None):
+def mandatory(value, msg=None):
     ''' Make a variable mandatory '''
-    if isinstance(a, Undefined):
-        if a._undefined_name is not None:
-            name = "'%s' " % to_text(a._undefined_name)
+    if isinstance(value, Undefined):
+        if value._undefined_name is not None:
+            name = "'%s' " % to_text(value._undefined_name)
         else:
             name = ''
 
@@ -739,13 +747,13 @@ def mandatory(a, msg=None):
         else:
             raise Exception("Mandatory variable %s not defined." % name)
 
-    return a
+    return value
 
-def b64encode(string, encoding='utf-8'):
-    return to_text(base64.b64encode(to_bytes(string, encoding=encoding, errors='surrogate_or_strict')))
+def b64encode(value, encoding='utf-8'):
+    return to_text(base64.b64encode(to_bytes(value, encoding=encoding, errors='surrogate_or_strict')))
 
-def b64decode(string, encoding='utf-8'):
-    return to_text(base64.b64decode(to_bytes(string, errors='surrogate_or_strict')), encoding=encoding)
+def b64decode(value, encoding='utf-8'):
+    return to_text(base64.b64decode(to_bytes(value, errors='surrogate_or_strict')), encoding=encoding)
 
 def switch_mode(mode):
     mode = mode.upper()
@@ -786,24 +794,28 @@ def _aes_decrypt(word:str, key:str, mode='CBC', iv:str=None, input_format='base6
     mode = switch_mode(mode)
     return aes_decrypt(word.encode("utf-8"), key.encode("utf-8"), mode=mode, iv=iv.encode("utf-8"), input=input_format, padding=padding, padding_style=padding_style, no_packb=no_packb)
 
+
 jinja_globals = {
     # types
-    'quote_chinese': quote_chinese,
     'int': do_int,
     'float': do_float,
     'bool': to_bool,
     'utf8': utf8,
     'unicode': conver2unicode,
-    # time
-    'timestamp': timestamp,
-    'date_time': get_date_time,
-    # Calculate
-    'is_num': is_num,
-    'add': add,
-    'sub': sub,
-    'multiply': multiply,
-    'divide': divide,
-    'Faker': Faker,
+    'quote_chinese': quote_chinese,
+    # binascii
+    'b2a_hex': b2a_hex,
+    'a2b_hex': a2b_hex,
+    'b2a_uu': b2a_uu,
+    'a2b_uu': a2b_uu,
+    'b2a_base64': b2a_base64,
+    'a2b_base64': a2b_base64,
+    'b2a_qp': b2a_qp,
+    'a2b_qp': a2b_qp,
+    'crc_hqx': crc_hqx,
+    'crc32': crc32,
+    # format
+    'format': format,
     # base64
     'b64decode': b64decode,
     'b64encode': b64encode,
@@ -819,6 +831,16 @@ jinja_globals = {
     'hash': get_hash,
     'aes_encrypt': _aes_encrypt,
     'aes_decrypt': _aes_decrypt,
+    # time
+    'timestamp': timestamp,
+    'date_time': get_date_time,
+    # Calculate
+    'is_num': is_num,
+    'add': add,
+    'sub': sub,
+    'multiply': multiply,
+    'divide': divide,
+    'Faker': Faker,
     # regex
     'regex_replace': regex_replace,
     'regex_escape': regex_escape,
@@ -832,7 +854,7 @@ jinja_globals = {
     # undefined
     'mandatory': mandatory,
     # debug
-    'type_debug': lambda o: o.__class__.__name__,
+    'type_debug': lambda value: value.__class__.__name__,
 }
 
 jinja_inner_globals = {

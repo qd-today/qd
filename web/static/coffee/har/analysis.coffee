@@ -4,10 +4,12 @@
 # Created on 2014-08-02 10:07:33
 
 window.jinja_globals = [
-    'quote_chinese', 'int', 'float', 'bool', 'utf8', 'unicode', 'timestamp', 'date_time',
-    'is_num', 'add', 'sub', 'multiply', 'divide', 'Faker', 'b64decode',
+    'int', 'float', 'bool', 'utf8', 'unicode', 'quote_chinese',
+    'b2a_hex', 'a2b_hex', 'b2a_uu', 'a2b_uu', 'b2a_base64', 'a2b_base64',
+    'b2a_qp', 'a2b_qp', 'crc_hqx', 'crc32', 'format', 'b64decode',
     'b64encode', 'to_uuid', 'md5', 'sha1', 'password_hash', 'hash',
-    'aes_encrypt', 'aes_decrypt', 'regex_replace', 'regex_escape',
+    'aes_encrypt', 'aes_decrypt', 'timestamp', 'date_time', 'is_num',
+    'add', 'sub', 'multiply', 'divide', 'Faker', 'regex_replace', 'regex_escape',
     'regex_search', 'regex_findall', 'ternary', 'random', 'shuffle',
     'mandatory', 'type_debug', 'dict', 'lipsum', 'range',
     'loop_length', 'loop_first', 'loop_last', 'loop_index', 'loop_index0',
