@@ -398,7 +398,7 @@
             headers: [],
             cookies: [],
             postData: {
-              text: "content="
+              text: "html_unescape=false&content="
             }
           },
           response: {},
