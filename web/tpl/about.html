@@ -747,10 +747,143 @@
       </tr>
 
       <tr>
-        <td>replace(s,t)</td>
-        <td>将字符串中的 s 替换为 t</td>
+        <td>urlencode</td>
+        <td>将字符串进行url编码</td>
+        <td>{{ "http://www.baidu.com?name=张三&age=18" | urlencode }}</td>
+        <td class="autowrap">http%3A//www.baidu.com%3Fname%3D%E5%BC%A0%E4%B8%89%26age%3D18</td>
+      </tr>
+
+      <tr>
+        <td>upper</td>
+        <td>将字符串转为大写</td>
+        <td>{{ "abc" | upper }}</td>
+        <td class="autowrap">ABC</td>
+      </tr>
+
+      <tr>
+        <td>lower</td>
+        <td>将字符串转为小写</td>
+        <td>{{ "ABC" | lower }}</td>
+        <td class="autowrap">abc</td>
+      </tr>
+
+      <tr>
+        <td>capitalize</td>
+        <td>将字符串首字母大写</td>
+        <td>{{ "abc" | capitalize }}</td>
+        <td class="autowrap">Abc</td>
+      </tr>
+
+      <tr>
+        <td>title</td>
+        <td>将字符串中每个单词的首字母大写</td>
+        <td>{{ "abc def" | title }}</td>
+        <td class="autowrap">Abc Def</td>
+      </tr>
+
+      <tr>
+        <td>trim</td>
+        <td>删除字符串两端的空白字符</td>
+        <td>{{ "  abc  " | trim }}</td>
+        <td class="autowrap">abc</td>
+      </tr>
+
+      <tr>
+        <td>ltrim</td>
+        <td>删除字符串左端的空白字符</td>
+        <td>{{ "  abc  " | ltrim }}</td>
+        <td class="autowrap">abc  </td>
+      </tr>
+
+      <tr>
+        <td>rtrim</td>
+        <td>删除字符串右端的空白字符</td>
+        <td>{{ "  abc  " | rtrim }}</td>
+        <td class="autowrap">  abc</td>
+      </tr>
+
+      <tr>
+        <td>reverse</td>
+        <td>反转字符串等可迭代对象</td>
+        <td>{{ "abc" | reverse }}</td>
+        <td class="autowrap">cba</td>
+      </tr>
+
+      <tr>
+        <td>first</td>
+        <td>返回字符串等可迭代对象的第一个元素</td>
+        <td>{{ "abc" | first }}</td>
+        <td class="autowrap">a</td>
+      </tr>
+
+      <tr>
+        <td>last</td>
+        <td>返回字符串等可迭代对象的最后一个元素</td>
+        <td>{{ "abc" | last }}</td>
+        <td class="autowrap">c</td>
+      </tr>
+
+      <tr>
+        <td>join(d="", attribute=None)</td>
+        <td>将列表等可迭代对象的元素用指定字符连接, <br>d: 连接符, 默认为空 <br>attribute: 指定属性, 该值不为 None 时获取该属性的值, 默认为 None</td>
+        <td>{{ ["a","b","c"] | join(",") }}</td>
+        <td class="autowrap">a,b,c</td>
+      </tr>
+
+      <tr>
+        <td>pprint</td>
+        <td>优雅地打印变量或对象, 用于调试</td>
+        <td>{{ {"a":1,"b":2} | pprint }}</td>
+        <td class="autowrap">{'a': 1, 'b': 2}</td>
+      </tr>
+
+      <tr>
+        <td>default(default_value, boolean)</td>
+        <td>如果变量或字符串为空, 则将变量或返回值设置为 default_value 默认值, <br>boolean: 是否在变量或字符串评估为 False 时将变量或返回值设置为 default_value 默认值, 默认为 False</td>
+        <td>{{ undefined | default("abc") }}</td>
+        <td class="autowrap">abc</td>
+      </tr>
+
+      <tr>
+        <td>indent(width=4, first=False, blank=False)</td>
+        <td>缩进字符串, <br>width: 缩进宽度, 默认为 4 <br>first: 是否缩进第一行, 默认为 False <br>blank: 是否缩进空行, 默认为 False</td>
+        <td>{{ "abc\ndef\nghi\n" | indent(2, True, True) }}</td>
+        <td class="autowrap">"  abc\n  def\n  ghi\n  "</td>
+      </tr>
+
+      <tr>
+        <td>min(case_sensitive=False, attribute=None)</td>
+        <td>返回字符串或列表等可迭代对象中的最小值, <br>case_sensitive: 是否区分大小写, 默认为 False <br>attribute: 指定属性, 该值不为 None 时获取具有该属性最小值的对象, 默认为 None</td>
+        <td>{{ ["a","b","c"] | min }}</td>
+        <td class="autowrap">a</td>
+      </tr>
+
+      <tr>
+        <td>max(case_sensitive=False, attribute=None)</td>
+        <td>返回字符串或列表等可迭代对象中的最大值, <br>case_sensitive: 是否区分大小写, 默认为 False <br>attribute: 指定属性, 该值不为 None 时获取具有该属性最大值的对象, 默认为 None</td>
+        <td>{{ ["a","b","c"] | max }}</td>
+        <td class="autowrap">c</td>
+      </tr>
+
+      <tr>
+        <td>replace(old, new, count=None)</td>
+        <td>将字符串中的 old 替换为 new, <br>count: 替换次数, 默认为全部替换</td>
         <td>{{ "123" | replace("1","a") }}</td>
         <td class="autowrap">a23</td>
+      </tr>
+
+      <tr>
+        <td>round(precision=0, method="common")</td>
+        <td>对数字进行四舍五入, <br>precision: 精度, 默认为 0 <br>method: 舍入方法, common 为四舍五入, ceil 为向上取整, floor 为向下取整, 默认为 common</td>
+        <td>{{ 1.234 | round(2, "common") }}</td>
+        <td class="autowrap">1.23</td>
+      </tr>
+
+      <tr>
+        <td>sort(reverse=False, case_sensitive=False, attribute=None)</td>
+        <td>对字符串或列表等可迭代对象进行排序, <br>reverse: 是否倒序, 默认为 False <br>case_sensitive: 是否区分大小写, 默认为 False <br>attribute: 指定属性, 该值不为 None 时获取具有该属性最大值的对象, 默认为 None</td>
+        <td>{{ "acDcsrd" | sort | join(",") }}</td>
+        <td class="autowrap">a,c,c,D,d,r,s</td>
       </tr>
 
       <tr>
@@ -758,6 +891,13 @@
         <td>killwords=True 时在第 length 处截断，最后补上一个 end</td>
         <td>{{ "abcd" | truncate(2, True,'q') }}</td>
         <td class="autowrap">aq</td>
+      </tr>
+
+      <tr>
+        <td>wordwrap(width=79, break_long_words=True, wrapstring=None, break_on_hyphens=False)</td>
+        <td>将字符串按照指定宽度进行换行, <br>width: 换行宽度, 默认为 79 <br>break_long_words: 是否在长单词处换行, 默认为 True <br>wrapstring: 换行符, 默认为 None, 表示使用 "\n" 换行, <br>break_on_hyphens: 是否在连字符处换行, 默认为 False</td>
+        <td>{{ "12345678-90 abcdefgh" | wordwrap(5, True, " ", True) }}</td>
+        <td class="autowrap">12345 678- 90 ab cdefg h</td>
       </tr>
 
     </tbody>
