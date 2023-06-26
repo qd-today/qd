@@ -5,28 +5,33 @@
 #         http://binux.me
 # Created on 2012-12-15 16:15:50
 
+import importlib
 import os
-import sys
+import pkgutil
 
-sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 from . import base
 
-handlers = []
-ui_modules = {}
-ui_methods = {}
-modules = []
-for file in os.listdir(os.path.dirname(__file__)):
-    if not file.endswith(".py"):
-        continue
-    if file == "__init__.py":
-        continue
-    modules.append(file[:-3])
 
-for module in modules:
-    module = __import__('%s.%s' % (__package__, module), fromlist = ["handlers"])
-    if hasattr(module, "handlers"):
-        handlers.extend(module.handlers)
-    if hasattr(module, "ui_modules"):
-        ui_modules.update(module.ui_modules)
-    if hasattr(module, "ui_methods"):
-        ui_methods.update(module.ui_methods)
+def load_modules():
+    handlers: list[tuple[str, base.BaseHandler]] = []
+    ui_modules: dict[str, base.BaseUIModule] = {}
+    ui_methods: dict[str, base.BaseWebSocketHandler] = {}
+
+    path = os.path.join(os.path.dirname(__file__), "")
+    for finder, name, ispkg in pkgutil.iter_modules([path]):
+        module = importlib.import_module("." + name, __name__)
+        if hasattr(module, "handlers"):
+            handlers.extend(module.handlers)
+        if hasattr(module, "ui_modules"):
+            ui_modules.update(module.ui_modules)
+        if hasattr(module, "ui_methods"):
+            ui_methods.update(module.ui_methods)
+
+    return handlers, ui_modules, ui_methods
+
+
+handlers: list[tuple[str, base.BaseHandler]]
+ui_modules: dict[str, base.BaseUIModule]
+ui_methods: dict[str, base.BaseWebSocketHandler]
+
+handlers, ui_modules, ui_methods = load_modules()
