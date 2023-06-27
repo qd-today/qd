@@ -137,7 +137,7 @@ TRACEBACK_PRINT|否|False|是否启用在控制台日志中打印Exception的Tra
 PUSH_PIC_URL|否|[push_pic.png](https://fastly.jsdelivr.net/gh/qd-today/qd@master/web/static/img/push_pic.png)|默认为[push_pic.png](https://fastly.jsdelivr.net/gh/qd-today/qd@master/web/static/img/push_pic.png)
 PUSH_BATCH_SW|否|True|是否允许开启定期推送 QD 任务日志, 默认为True
 MAIL_SMTP|否|""|邮箱SMTP服务器
-MAIL_PORT|否|""|邮箱SMTP服务器端口
+MAIL_PORT|否|465|邮箱SMTP服务器端口
 MAIL_USER|否|""|邮箱用户名
 MAIL_PASSWORD|否|""|邮箱密码
 MAIL_FROM|否|MAIL_USER|发送时使用的邮箱，默认与MAIL_USER相同

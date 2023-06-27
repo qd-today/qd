@@ -318,7 +318,7 @@ class pusher(object):
 
             if qywx[u'代理'][-1]!='/':
                 qywx[u'代理'] = qywx[u'代理'] + '/'
-            if qywx[u'代理'][:4] != 'http':
+            if 'http://' in qywx[u'代理'] or 'https://' in qywx[u'代理']:
                 qywx[u'代理'] = u'https://{0}'.format(qywx[u'代理'])
             get_access_token_res = await self.get_access_token(qywx)
             pic_url = config.push_pic if qywx[u'图片'] == '' else qywx[u'图片']

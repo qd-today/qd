@@ -2,11 +2,11 @@
 
 ## 获取 HAR
 
-### 1.什么是 HAR?
+### 1. 什么是 HAR?
 
 HAR：<https://toolbox.googleapps.com/apps/har_analyzer/?lang=zh_CN>
 
-### 2.抓包
+### 2. 抓包
 
 #### 2.1. Chrome 或 Edge
 
@@ -45,7 +45,7 @@ HAR：<https://toolbox.googleapps.com/apps/har_analyzer/?lang=zh_CN>
 3. 点击开始抓包按钮，手机会自动弹出VPN配置窗口，然后选择允许。
 4. 现在尝试重现您计划发起的 HTTP 请求。
 5. 在应用页面，点击停止抓拍结束本次抓拍。
-6.导出HAR文件。
+6. 导出HAR文件。
 
 ### 3. 公共模板
 

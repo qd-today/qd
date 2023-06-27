@@ -137,7 +137,7 @@ python ./chrole.py your@email.address admin
 |PUSH_PIC_URL|No|[push_pic.png](https://fastly.jsdelivr.net/gh/qd-today/qd@master/web/static/img/push_pic.png)|The default is [push_pic.png](https ://fastly.jsdelivr.net/gh/qd-today/qd@master/web/static/img/push_pic.png)|
 |PUSH_BATCH_SW|No|True|Whether to allow periodic push of QD task logs, the default is True|
 |MAIL_SMTP|No|""|Email SMTP server|
-|MAIL_PORT|No|""|Email SMTP server port|
+|MAIL_PORT|No|465|Email SMTP server port|
 |MAIL_USER|No|""|Email username|
 |MAIL_PASSWORD|No|""|Email password|
 |MAIL_FROM|No|MAIL_USER|The Email used when sending, the default is the same as MAIL_USER|

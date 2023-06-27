@@ -81,21 +81,7 @@ QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycur
 
 你可以在`工具箱`->`推送注册`中注册不同的推送工具，以便在发生特定事件（例如定时任务执行失败）时向你推送通知
 
-### TgBot
-
-假设你已经创建了一个具有自定义域名的 Telegram bot API:
-
-`https://tg.mydomain.com/bot1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA/sendMessage?chat_id=222222222&text=HelloWorld`
-
-上面这个请求将会向`222222222`这个聊天发送一条`HelloWorld`消息。那么在注册TgBot作为推送方式时：
-
-- `TG_TOKEN` 应当填写bot的ID以及对应的key的组合，但是不包括`bot`，即申请TgBot时BotFather提供的token：`1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`
-- `TG_USERID` 应当填写telegram API中的`chat_id`字段，即 `222222222`
-- `TG_HOST` 填`tg.mydomain.com`，也可以带上`http://`或者`https://`前缀
-
-因此最终填写形式形如：
-
-`1111111111:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA;222222222;tg.mydomain.com`
+请参考 [推送工具](/zh_CN/toolbox/pusher)
 
 ## 公共模板更新页面提示错误代码为 undefined
 
