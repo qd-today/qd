@@ -58,7 +58,7 @@ docker run -d --name qd --env PORT=8923 --net=host -v $(pwd)/qd/config:/usr/src/
 
 ## 源码部署
 
-1. **Version >= python3.8**
+1. **Version >= python3.9**
 
    ``` sh
    # 请先cd到框架源码根目录
