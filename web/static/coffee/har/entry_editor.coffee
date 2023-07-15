@@ -395,7 +395,7 @@ define (require, exports, module) ->
           headers: [],
           cookies: [],
           postData: {
-            text: "content="
+            text: "unquote_plus=false&encoding=utf-8&content="
           }
         },
         response: {},

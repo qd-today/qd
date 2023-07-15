@@ -273,7 +273,12 @@ class UrlDecodeHandler(BaseHandler):
         Rtv = {}
         try:
             content = self.get_argument("content", "")
-            Rtv[u"转换后"] = urllib.parse.unquote(content)
+            encoding = self.get_argument("encoding", "utf-8")
+            unquote_plus = self.get_argument("unquote_plus", "false")
+            if strtobool(unquote_plus):
+                Rtv[u"转换后"] = urllib.parse.unquote_plus(content, encoding=encoding)
+            else:
+                Rtv[u"转换后"] = urllib.parse.unquote(content, encoding=encoding)
             Rtv[u"状态"] = "200"
         except Exception as e:
             Rtv[u"状态"] = str(e)

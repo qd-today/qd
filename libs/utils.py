@@ -22,6 +22,7 @@ from binascii import (a2b_base64, a2b_hex, a2b_qp, a2b_uu, b2a_base64, b2a_hex,
                       b2a_qp, b2a_uu, crc32, crc_hqx)
 from email.mime.text import MIMEText
 from hashlib import sha1
+from typing import Any, Iterable, Mapping, Tuple, Union
 from urllib import parse as urllib_parse
 
 import charset_normalizer
@@ -30,7 +31,7 @@ from Crypto.Cipher import AES
 from faker import Faker
 from jinja2.filters import do_float, do_int
 from jinja2.runtime import Undefined
-from jinja2.utils import generate_lorem_ipsum
+from jinja2.utils import generate_lorem_ipsum, url_quote
 from requests.utils import get_encoding_from_headers
 from tornado import gen, httpclient
 
@@ -337,6 +338,41 @@ def conver2unicode(value, html_unescape=False):
     if html_unescape:
         tmp = html.unescape(tmp)
     return tmp
+
+def urlencode_with_encoding(
+    value: Union[str, Mapping[str, Any], Iterable[Tuple[str, Any]]],
+    encoding: str = "utf-8",
+    for_qs: bool = False,
+) -> str:
+    """Quote data for use in a URL path or query using UTF-8.
+
+    Basic wrapper around :func:`urllib.parse.quote` when given a
+    string, or :func:`urllib.parse.urlencode` for a dict or iterable.
+
+    :param value: Data to quote. A string will be quoted directly. A
+        dict or iterable of ``(key, value)`` pairs will be joined as a
+        query string.
+    :param encoding: The encoding to use for quoted strings.
+    :param for_qs: If ``True``, quote ``/`` as ``%2F``. If ``False``,
+        leave slashes unquoted. Defaults to ``False``.
+
+    When given a string, "/" is not quoted. HTTP servers treat "/" and
+    "%2F" equivalently in paths. If you need quoted slashes, use the
+    ``|replace("/", "%2F")`` filter.
+
+    .. versionadded:: 2.7
+    """
+    if isinstance(value, str) or not isinstance(value, Iterable):
+        return url_quote(value, charset=encoding, for_qs=for_qs)
+
+    if isinstance(value, dict):
+        items: Iterable[Tuple[str, Any]] = value.items()
+    else:
+        items = value  # type: ignore
+
+    return "&".join(
+        f"{url_quote(k, for_qs=True)}={url_quote(v, for_qs=True)}" for k, v in items
+    )
 
 def to_bool(value):
     ''' return a bool for the arg '''
@@ -802,6 +838,7 @@ jinja_globals = {
     'bool': to_bool,
     'utf8': utf8,
     'unicode': conver2unicode,
+    'urlencode': urlencode_with_encoding,
     'quote_chinese': quote_chinese,
     # binascii
     'b2a_hex': b2a_hex,

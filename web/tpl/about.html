@@ -79,9 +79,9 @@
             <a href="/util/urldecode" target="_blank" rel="nofollow">api://util/urldecode</a>
           <button class="btn hljs-button" data-clipboard-target="#api_url3">复制</button>
         </td>
-        <td>content</td>
+        <td>unquote_plus,encoding,content</td>
         <td>是</td>
-        <td>要转码的内容</td>
+        <td>unquote_plus: 是否将加号(+)解码为空格( ), <br>默认为 False, 仅在 encoding 为 utf-8 时生效. <br>encoding: 指定编码, 默认为 utf-8<br>content:要转码的 urlencoded 内容, <br>如果 content 为非 utf-8 编码的 urlencoded 字符串, 请再次进行 urlencode 编码后再传入</td>
 
           <td id="api_exam3" class="showbut">
             <div class="autowrap">
@@ -339,6 +339,13 @@
         <td>将 value 中所有 ord()>=128 的字节用 urlencode 表示 (注意和 urlencode 有区别), <br>sep: 分隔符, 默认为"", if <br>encoding: 编码, 默认为 utf-8, <br>decoding: 解码, 默认为 utf-8</td>
         <td>{{quote_chinese("123中文QAQ&amp;amp;/:")}}</td>
         <td class="autowrap">123%E4%B8%AD%E6%96%87QAQ&amp;amp;/:</td>
+      </tr>
+
+      <tr>
+        <td>urlencode(value,encoding="utf-8", for_qs=False)</td>
+        <td>将 value 字符串进行url编码, <br>encoding: 编码, 默认为 utf-8, <br>for_qs: 是否将斜杠 / 编码为 %2F, 将 %20 替换为 +, 默认为 False</td>
+        <td>{{ urlencode("http://www.baidu.com?name=张三&age=18 ") }}</td>
+        <td class="autowrap">http%3A//www.baidu.com%3Fname%3D%E5%BC%A0%E4%B8%89%26age%3D18%20</td>
       </tr>
 
       <tr>
@@ -744,13 +751,6 @@
         <td>删除字符串中所有的html标签, 如果出现多个空格, 将替换成一个空格</td>
         <td>{{ "&lt;a&gt;123&lt;/a&gt;    &lt;p&gt;456&lt;/p&gt;" | striptags }}</td>
         <td class="autowrap">123 456</td>
-      </tr>
-
-      <tr>
-        <td>urlencode</td>
-        <td>将字符串进行url编码</td>
-        <td>{{ "http://www.baidu.com?name=张三&age=18" | urlencode }}</td>
-        <td class="autowrap">http%3A//www.baidu.com%3Fname%3D%E5%BC%A0%E4%B8%89%26age%3D18</td>
       </tr>
 
       <tr>
