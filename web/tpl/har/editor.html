@@ -117,7 +117,7 @@
           {{ entry.pageref }}
         </li>
 
-        <a href="javascript:void(0);" class="list-group-item entry"  ng-repeat-end draggable="true" ondragstart="dragstartFunc(event)" ondragend="dragendFunc(event)">
+        <a href="javascript:void(0);" class="list-group-item entry" key="{{entry.$$hashKey}}" ng-repeat-end draggable="true" ondragstart="dragstartFunc(event)" ondragend="dragendFunc(event)">
           <div class="entry-checked">
             <input ng-model="entry.checked" ng-click="save_change()" type="checkbox">
           </div>
@@ -354,6 +354,7 @@
   var startIndex = 0;
   var offsetY = 0;
   var maxIndex = 0;
+  var timerId = null;
 
   function resortEntryList() {
     DragIndex = 0;
@@ -364,40 +365,11 @@
     maxIndex = DragIndex;
   };
   function dragstartFunc(ev) {
-    resortEntryList();
-    StartY = parseInt(ev.clientY);
-    startIndex = parseInt(ev.srcElement.getAttribute('dragid'));
     currentDragItem = ev.srcElement;
     offsetY = ev.offsetY;
   }
 
   function dragendFunc(ev) {
-    var C_height = parseInt(ev.srcElement.clientHeight);
-    var EndY = parseInt(ev.clientY)
-    var EndIndex = 0;
-    if (EndY > StartY)
-    {
-      EndIndex = (parseInt(startIndex + ((EndY-StartY)/C_height)));
-    }
-    else
-    {
-      EndIndex = (parseInt(startIndex + ((EndY-StartY)/C_height) + 1));
-    }
-    var tmp = window.global_har.har.log.entries[startIndex];
-    if (EndIndex > startIndex)
-    {
-      window.global_har.har.log.entries.splice(EndIndex+1, 0, tmp);
-      window.global_har.har.log.entries.splice(startIndex, 1);
-    }
-    else
-    {
-      window.global_har.har.log.entries.splice(EndIndex, 0, tmp);
-      window.global_har.har.log.entries.splice(startIndex+1, 1);
-    }
-
-
-    resortEntryList();
-    sortRequest($('#sortBtn')[0]);
     currentDragItem = null;
   }
 
@@ -415,6 +387,23 @@
               dragitem.before(currentDragItem);
           }
       }
+
+      clearTimeout(timerId);
+      timerId = setTimeout(() => {
+        var newEntries = [];
+        var elementKeysArr = [...document.querySelectorAll('#droplist>a.list-group-item.entry')].map(item=>item.getAttribute('key'));
+        var oldEntries = window.global_har.har.log.entries;
+        var i=0;
+        oldEntries.forEach((entry,index)=>{
+          if(elementKeysArr.indexOf(entry.$$hashKey) === -1){
+            newEntries.push(entry);
+          } else {
+            newEntries.push(oldEntries.find(entry=> entry.$$hashKey === elementKeysArr[i]));
+            i++;
+          }
+        })
+          window.global_har.har.log.entries = newEntries;
+      }, 500);
   }
 </script>
 <script>
