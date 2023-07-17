@@ -16,12 +16,12 @@ async-timeout==4.0.2; python_version >= '3.6'
 attrs==23.1.0; python_version >= '3.7'
 certifi==2023.5.7; python_version >= '3.6'
 cffi==1.15.1
-charset-normalizer==3.1.0
+charset-normalizer==3.2.0
 colorama==0.4.6; sys_platform == 'win32'
 croniter==1.4.1
-cryptography==41.0.1
-faker==18.10.1
-frozenlist==1.3.3; python_version >= '3.7'
+cryptography==41.0.2
+faker==19.1.0
+frozenlist==1.4.0; python_version >= '3.8'
 greenlet==2.0.2; python_version >= '3' and platform_machine == 'aarch64' or (platform_machine == 'ppc64le' or (platform_machine == 'x86_64' or (platform_machine == 'amd64' or (platform_machine == 'AMD64' or (platform_machine == 'win32' or platform_machine == 'WIN32')))))
 idna==3.4; python_version >= '3.5'
 incremental==22.10.0
@@ -32,13 +32,13 @@ passlib==1.7.4
 pbkdf2==1.3
 pycparser==2.21
 pycryptodome==3.18.0
-pymysql==1.0.3; python_version >= '3.7'
+pymysql==1.1.0; python_version >= '3.7'
 pysocks==1.7.1
 python-dateutil==2.8.2; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-redis==4.5.5
+redis==4.6.0
 requests==2.31.0
 six==1.16.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
-sqlalchemy[asyncio]==1.4.48
+sqlalchemy[asyncio]==1.4.49
 tornado==6.3.2
 tzdata==2023.3
 u-msgpack-python==2.8.0

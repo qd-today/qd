@@ -8,6 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20230718] - 2023.07.18 更新
+
+### Features
+
+1. 添加 `bianscii` 模块中的方法至 jinja_global 域
+2. `urlencode` 和 `urldecode` 支持指定编码 Feat qd-today/qd#437
+
+### Changed
+
+1. Add `html_unescape` option for unicode
+2. 在 about.html 中添加 `_proxy` 和 `__log__` 说明 About qd-today/qd#427
+3. 优化并完善 about.html 常用参数及过滤器信息显示
+4. 企业微信代理支持 https 和 http 前缀
+5. 优化注册推送 placeholder
+
+### Fixed
+
+1. Fix 后端与前端提取 header 正则不一致, 修改为以前端为准
+
 ## [20230618] - 2023.06.18 更新
 
 ### Features
@@ -16,8 +35,8 @@ Nothing right now.
 2. 测试中支持 if 控制语句, 优化测试中 if 控制语句的信息格式及错误信息显示
 3. 添加 while 循环 Feat qd-today/qd#371
 
-   > - 添加 `TASK_WHILE_LOOP_TIMEOUT` 环境变量, 单个 while 循环超时限制为15分钟;
-   > - 添加 `TASK_REQUEST_LIMIT` 环境变量, 单个任务中请求数限制为1500;
+   > - 添加 `TASK_WHILE_LOOP_TIMEOUT` 环境变量, 单个 while 循环超时限制为 15 分钟;
+   > - 添加 `TASK_REQUEST_LIMIT` 环境变量, 单个任务中请求数限制为 1500;
    > - 测试中支持 while 控制语句查看信息
    > - while 循环中支持 `loop_index` 和 `loop_index0`
    > - 具体可以查看前端 `关于` 页面信息
@@ -44,7 +63,7 @@ Nothing right now.
    > - 未配置 `DOMAIN` 时, 邮箱推送自动失效并在后端日志提示
    > - 未配置 `DOMAIN` 时, 用户注册或修改密码时在前端提示
    > - 邮箱域名 `MAIL_DOMAIN` 合并入 `DOMAIN` 变量
-   > - MailGun API优化
+   > - MailGun API 优化
 
 5. 优化网站管理页面错误显示效果
 6. 当设置重试间隔后允许重试间隔超过12小时
