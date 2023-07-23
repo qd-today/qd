@@ -8,7 +8,7 @@
 -i https://mirrors.cloud.tencent.com/pypi/simple/
 --extra-index-url https://pypi.org/simple
 aiofiles==23.1.0
-aiohttp==3.8.4
+aiohttp==3.8.5
 aiomysql==0.2.0
 aiosignal==1.3.1; python_version >= '3.7'
 aiosqlite==0.19.0
@@ -20,7 +20,7 @@ charset-normalizer==3.2.0
 colorama==0.4.6; sys_platform == 'win32'
 croniter==1.4.1
 cryptography==41.0.2
-faker==19.1.0
+faker==19.2.0
 frozenlist==1.4.0; python_version >= '3.8'
 greenlet==2.0.2; python_version >= '3' and platform_machine == 'aarch64' or (platform_machine == 'ppc64le' or (platform_machine == 'x86_64' or (platform_machine == 'amd64' or (platform_machine == 'AMD64' or (platform_machine == 'win32' or platform_machine == 'WIN32')))))
 idna==3.4; python_version >= '3.5'
@@ -42,7 +42,7 @@ sqlalchemy[asyncio]==1.4.49
 tornado==6.3.2
 tzdata==2023.3
 u-msgpack-python==2.8.0
-urllib3==2.0.3; python_version >= '3.7'
+urllib3==2.0.4; python_version >= '3.7'
 yarl==1.9.2; python_version >= '3.7'
 # ddddocr==1.4.7
 # pycurl==7.45.2
