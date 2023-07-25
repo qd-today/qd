@@ -40,3 +40,6 @@ tzdata = "*"
 
 [requires]
 python_version = "3.11"
+
+[global]
+break-system-packages = true

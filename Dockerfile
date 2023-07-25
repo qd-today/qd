@@ -54,7 +54,7 @@ RUN sed -i 's/mirrors.ustc.edu.cn/dl-cdn.alpinelinux.org/g' /etc/apk/repositorie
     sed -i '/aiohttp/d' requirements.txt && \
     sed -i '/typing-extensions/d' requirements.txt && \
     sed -i '/yarl/d' requirements.txt && \
-    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -r requirements.txt --break-system-packages && \
     apk del .build_deps && \
     sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
     rm -rf /var/cache/apk/* && \
