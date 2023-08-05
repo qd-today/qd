@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/qd-today/qd#readme",
   "dependencies": {
-    "curl2har": "github:a76yyyy/curl2har",
+    "curl2har": "npm:@a76yyyy/curl-to-har@^0.0.23",
     "qs": "^6.11.2",
     "tough-cookie": "^4.1.3",
     "url": "^0.11.1"

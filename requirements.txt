@@ -19,7 +19,7 @@ cffi==1.15.1
 charset-normalizer==3.2.0
 colorama==0.4.6; sys_platform == 'win32'
 croniter==1.4.1
-cryptography==41.0.2
+cryptography==41.0.3
 faker==19.2.0
 frozenlist==1.4.0; python_version >= '3.8'
 greenlet==2.0.2; python_version >= '3' and platform_machine == 'aarch64' or (platform_machine == 'ppc64le' or (platform_machine == 'x86_64' or (platform_machine == 'amd64' or (platform_machine == 'AMD64' or (platform_machine == 'win32' or platform_machine == 'WIN32')))))
