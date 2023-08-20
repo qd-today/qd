@@ -51,6 +51,32 @@ In order to help users initiate requests, user names and passwords still need to
 
 If you are still worried, you can build the QD framework by yourself, download the template and run it on your own server.
 
+## Prompt `PermissionError: [Errno 1] Operation not permitted`
+
+1. If it is an ARM32 Debian system, please check whether the `Docker` version is less than `20.10.0`, and whether the `libseccomp` version is less than `2.4.4`. If so, please upgrade the above components.
+
+    Update `libseccomp` reference operation:
+
+    ```sh
+    # Get signing keys to verify the new packages, otherwise they will not install
+    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC 648ACFD622F3D138
+
+    # Add the Buster backport repository to apt sources.list
+    echo 'deb http://httpredir.debian.org/debian buster-backports main contrib non-free' | sudo tee -a /etc/apt/sources.list.d/debian-backports.list
+
+    sudo apt update
+    sudo apt install libseccomp2 -t buster-backports
+    ```
+
+    > Source:
+    >
+    > - <https://github.com/Taxel/PlexTraktSync/pull/474>
+    > - <https://stackoverflow.com/questions/70195968/dockerfile-raspberry-pi-python-pip-install-permissionerror-errno-1-operation>
+
+2. Check if the `/usr/src/app` directory inside the container is mapped to the outside of the container.
+
+    > Note that the framework only needs to map the `/usr/src/app/config` directory.
+
 ## Prompt warning message: `Connect Redis falied: Error 10061`
 
 QD uses `redis` as a flow limiting tool. If the `redis` service is not installed, the framework will prompt the following warning message.

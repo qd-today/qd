@@ -4,7 +4,7 @@
 
 QD 默认使用 **sqlite3** 作为框架数据库，`database.db` 文件保存在 `config` 目录下。使用 Docker 容器部署时，可以使用 `docker cp` 命令备份数据库文件，然后使用 `docker cp` 命令在新容器中恢复数据库文件。
 
-``` sh
+```sh
 # 数据库备份
 docker cp container_name:/usr/src/app/config/database.db .
 # 数据库恢复
@@ -13,13 +13,13 @@ docker cp database.db container_name:/usr/src/app/config/
 
 ## 如何在 Docker 中配置邮箱服务器?
 
-``` sh
+```sh
 docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --env MAIL_SMTP=STMP服务器 --env MAIL_PORT=邮箱服务器端口 --env MAIL_USER=用户名 --env MAIL_PASSWORD=密码  --env DOMAIN=域名 qdtoday/qd
 ```
 
 ## 如何在 Docker 中使用 MySQL?
 
-``` sh
+```sh
 docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://用户名:密码@hostname:port/数据库名 qdtoday/qd
 ```
 
@@ -51,11 +51,38 @@ docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --ENV
 
 如果还是不放心，可以自己搭建QD框架，下载模板在自己的服务器上运行。
 
+## 提示错误信息 `PermissionError: [Errno 1] Operation not permitted`?
+
+1. 如果是 ARM32 Debian 系统, 请检查 `Docker` 版本是否小于 `20.10.0`, 且 `libseccomp` 版本是否小于 `2.4.4`, 如果是的话, 请升级以上组件.
+
+   更新 `libseccomp` 参考操作:
+
+   ```sh
+   # Get signing keys to verify the new packages, otherwise they will not install
+   sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC 648ACFD622F3D138
+
+   # Add the Buster backport repository to apt sources.list
+   echo 'deb http://httpredir.debian.org/debian buster-backports main contrib non-free' | sudo tee -a /etc/apt/sources.list.d/debian-backports.list
+
+   sudo apt update
+   sudo apt install libseccomp2 -t buster-backports
+   ```
+
+   > 来源于:
+   >
+   > - [https://github.com/Taxel/PlexTraktSync/pull/474](https://github.com/Taxel/PlexTraktSync/pull/474)
+   > - [https://stackoverflow.com/questions/70195968/dockerfile-raspberry-pi-python-pip-install-permissionerror-errno-1-operation](https://stackoverflow.com/questions/70195968/dockerfile-raspberry-pi-python-pip-install-permissionerror-errno-1-operation)
+   >
+2. 请检查是否将容器内的 `/usr/src/app` 目录映射至容器外部.
+
+   > 请注意框架仅需映射 `/usr/src/app/config` 目录即可.
+   >
+
 ## 提示警告信息: `Connect Redis falied: Error 10061`
 
 QD 使用 `redis` 作为限流工具，如果没有安装 `redis` 服务，框架会提示以下警告信息。
 
-``` sh
+```sh
 [W xxxxxx xx:xx:xx QD.RedisDB redisdb:28] Connect Redis falied: Error 10061 connecting to localhost:6379. 由于目标计算机积极拒绝，无法连接。
 ```
 
@@ -67,7 +94,7 @@ QD 使用 `redis` 作为限流工具，如果没有安装 `redis` 服务，框�
 
 QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycurl` 模块，框架会提示以下警告信息。
 
-``` sh
+```sh
 [W xxxxxx xx:xx:xx QD.Http.Fetcher fetcher:34] Import PyCurl module falied: No module named 'pycurl'
 ```
 
@@ -79,7 +106,7 @@ QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycur
 
 ## 如何注册推送方式
 
-你可以在`工具箱`->`推送注册`中注册不同的推送工具，以便在发生特定事件（例如定时任务执行失败）时向你推送通知
+你可以在 `工具箱`->`推送注册`中注册不同的推送工具，以便在发生特定事件（例如定时任务执行失败）时向你推送通知
 
 请参考 [推送工具](/zh_CN/toolbox/pusher)
 
@@ -93,7 +120,7 @@ QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycur
 
 > 参考配置如下:
 >
-> ``` Nginx
+> ```Nginx
 > server {
 >     listen 80;
 >     # 自行修改 server_name
