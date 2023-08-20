@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20230821] - 2023.08.21 更新
+
+### Fixed
+
+1. Fix 修复鼠标移动请求位置关系错乱的问题 (qd-today/qd##447)
+2. Fix 修复删除模板导致无限推送问题 (qd-today/qd#462)
+
+### Changed
+
+1. Update web and backend packages
+2. 优化企业微信推送错误提示
+
 ## [20230718] - 2023.07.18 更新
 
 ### Features
