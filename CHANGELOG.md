@@ -12,7 +12,7 @@ Nothing right now.
 
 ### Fixed
 
-1. Fix 修复鼠标移动请求位置关系错乱的问题 (qd-today/qd##447)
+1. Fix 修复鼠标移动请求位置关系错乱的问题 (qd-today/qd#447)
 2. Fix 修复删除模板导致无限推送问题 (qd-today/qd#462)
 
 ### Changed
