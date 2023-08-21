@@ -37,7 +37,7 @@ class TPLPushHandler(BaseHandler):
         user = self.current_user
         tplid = int(tplid)
         async with self.db.transaction() as sql_session:
-            tpl = await self.db.tpl.get(tplid, fields=('id', 'userid', ),sql_session=sql_session)
+            tpl = await self.db.tpl.get(tplid, fields=('id', 'userid', ), sql_session=sql_session)
             if not self.permission(tpl, 'w'):
                 self.evil(+5)
                 await self.finish(u'<span class="alert alert-danger">没有权限</span>')
@@ -49,7 +49,7 @@ class TPLPushHandler(BaseHandler):
                 to_tplid = None
                 to_userid = None
             else:
-                totpl = await self.db.tpl.get(to_tplid, fields=('id', 'userid', ),sql_session=sql_session)
+                totpl = await self.db.tpl.get(to_tplid, fields=('id', 'userid', ), sql_session=sql_session)
                 if not totpl:
                     self.evil(+1)
                     await self.finish(u'<span class="alert alert-danger">模板不存在</span>')
@@ -57,10 +57,11 @@ class TPLPushHandler(BaseHandler):
                 to_userid = totpl['userid']
 
             await self.db.push_request.add(from_tplid=tpl['id'], from_userid=user['id'],
-                    to_tplid=to_tplid, to_userid=to_userid, msg=msg, sql_session=sql_session)
+                                           to_tplid=to_tplid, to_userid=to_userid, msg=msg, sql_session=sql_session)
             await self.db.tpl.mod(tpl['id'], lock=True, sql_session=sql_session)
 
         self.redirect('/pushs')
+
 
 class TPLVarHandler(BaseHandler):
     async def get(self, tplid):
@@ -74,15 +75,17 @@ class TPLVarHandler(BaseHandler):
             tpl['init_env'] = '{}'
         await self.render('task_new_var.html', tpl=tpl, variables=json.loads(tpl['variables']), init_env=json.loads(tpl['init_env']))
 
+
 class TPLDelHandler(BaseHandler):
     @tornado.web.authenticated
     async def post(self, tplid):
         user = self.current_user
         async with self.db.transaction() as sql_session:
-            tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid'),sql_session=sql_session), 'w')
-            await self.db.tpl.delete(tplid,sql_session=sql_session)
+            tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid'), sql_session=sql_session), 'w')
+            await self.db.tpl.delete(tplid, sql_session=sql_session)
 
         self.redirect('/my/')
+
 
 class TPLRunHandler(BaseHandler):
     async def post(self, tplid):
@@ -91,18 +94,20 @@ class TPLRunHandler(BaseHandler):
         data = {}
         try:
             if 'json' in self.request.headers['Content-Type']:
-                self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
+                self.request.body = self.request.body.replace(
+                    b'\xc2\xa0', b' ')
                 data = json.loads(self.request.body)
         except Exception as e:
             logger_Web_Handler.debug('TPLRunHandler post error: %s' % e)
 
-        tplid = tplid or data.get('tplid') or self.get_argument('_binux_tplid', None)
+        tplid = tplid or data.get(
+            'tplid') or self.get_argument('_binux_tplid', None)
         tpl = dict()
         fetch_tpl = None
         async with self.db.transaction() as sql_session:
             if tplid:
                 tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid', 'sitename',
-                    'siteurl', 'tpl', 'interval', 'last_success'), sql_session=sql_session))
+                                                                                 'siteurl', 'tpl', 'interval', 'last_success'), sql_session=sql_session))
                 fetch_tpl = await self.db.user.decrypt(tpl['userid'], tpl['tpl'], sql_session=sql_session)
 
             if not fetch_tpl:
@@ -120,9 +125,9 @@ class TPLRunHandler(BaseHandler):
             if not env:
                 try:
                     env = dict(
-                        variables = json.loads(self.get_argument('env')),
-                        session = []
-                        )
+                        variables=json.loads(self.get_argument('env')),
+                        session=[]
+                    )
                 except:
                     raise HTTPError(400)
 
@@ -134,7 +139,7 @@ class TPLRunHandler(BaseHandler):
                         'host': url['host'],
                         'port': url['port'],
                         'username': url['username'],
-                        'password':url['password']
+                        'password': url['password']
                     }
                     result, _ = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
                 elif self.current_user:
@@ -145,13 +150,16 @@ class TPLRunHandler(BaseHandler):
                 if config.traceback_print:
                     traceback.print_exc()
                 await self.render('tpl_run_failed.html', log=str(e))
-                logger_Web_Handler.error('UserID:%d tplID:%d failed! \r\n%s',user.get('id',-1) or -1, int(tplid or -1), str(e).replace('\\r\\n','\r\n'))
+                if user:
+                    logger_Web_Handler.error('UserID:%d tplID:%d failed! \r\n%s', user.get(
+                        'id', -1) or -1, int(tplid or -1), str(e).replace('\\r\\n', '\r\n'))
                 return
 
             if tpl:
                 await self.db.tpl.incr_success(tpl['id'], sql_session=sql_session)
-        await self.render('tpl_run_success.html', log = result.get('variables', {}).get('__log__'))
+        await self.render('tpl_run_success.html', log=result.get('variables', {}).get('__log__'))
         return
+
 
 class PublicTPLHandler(BaseHandler):
     async def get(self):
@@ -159,6 +167,7 @@ class PublicTPLHandler(BaseHandler):
         tpls = sorted(tpls, key=lambda t: -t['success_count'])
 
         await self.render('tpls_public.html', tpls=tpls)
+
 
 class TPLGroupHandler(BaseHandler):
     @tornado.web.authenticated
@@ -170,7 +179,7 @@ class TPLGroupHandler(BaseHandler):
         tpls = await self.db.tpl.list(userid=user['id'], fields=('_groups',), limit=None)
         for tpl in tpls:
             temp = tpl['_groups']
-            if (temp not  in _groups):
+            if (temp not in _groups):
                 _groups.append(temp)
 
         await self.render('tpl_setgroup.html', tplid=tplid, _groups=_groups, groupNow=groupNow)
@@ -182,12 +191,13 @@ class TPLGroupHandler(BaseHandler):
             envs[key] = self.get_body_arguments(key)
         New_group = envs['New_group'][0].strip()
 
-        if New_group != "" :
+        if New_group != "":
             target_group = New_group
         else:
             for value in envs:
                 if envs[value][0] == 'on':
-                    target_group = escape_decode(value.strip()[2:-1], "hex-escape")[0].decode('utf-8')
+                    target_group = escape_decode(
+                        value.strip()[2:-1], "hex-escape")[0].decode('utf-8')
                     break
                 else:
                     target_group = 'None'
@@ -196,11 +206,12 @@ class TPLGroupHandler(BaseHandler):
 
         self.redirect('/my/')
 
+
 handlers = [
-        ('/tpl/(\d+)/push', TPLPushHandler),
-        ('/tpl/(\d+)/var', TPLVarHandler),
-        ('/tpl/(\d+)/del', TPLDelHandler),
-        ('/tpl/?(\d+)?/run', TPLRunHandler),
-        ('/tpls/public', PublicTPLHandler),
-        ('/tpl/(\d+)/group', TPLGroupHandler),
-        ]
+    ('/tpl/(\d+)/push', TPLPushHandler),
+    ('/tpl/(\d+)/var', TPLVarHandler),
+    ('/tpl/(\d+)/del', TPLDelHandler),
+    ('/tpl/?(\d+)?/run', TPLRunHandler),
+    ('/tpls/public', PublicTPLHandler),
+    ('/tpl/(\d+)/group', TPLGroupHandler),
+]
