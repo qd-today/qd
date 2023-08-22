@@ -12,13 +12,13 @@ import random
 import time
 import traceback
 from typing import Any, Dict
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import aiohttp
 from tornado import httputil
 from tornado.web import Application
 
-from config import proxies
+from config import proxies, domain
 
 from .base import *
 
@@ -56,6 +56,10 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
     users:Dict[int, BaseWebSocketHandler] = {}
     updating = False
     updating_start_time = 0
+
+    def check_origin(self, origin):
+        parsed_origin = urlparse(origin)                              
+        return parsed_origin.netloc.endswith(domain)
 
     async def update(self, userid):
         SubscribeUpdatingHandler.updating = True
