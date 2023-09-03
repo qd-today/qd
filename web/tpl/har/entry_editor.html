@@ -105,7 +105,7 @@
           <dd><span class="label {{ status_label(entry.response.status) }}">{{ entry.response.status }}</span></dd>
         </dl>
         <details open onclick="return false">
-          <summary title="请求头">Response Headers</summary>
+          <summary title="响应头">Response Headers</summary>
           <dl class="dl-horizontal">
             <dt ng-repeat-start="header in entry.response.headers">{{ header.name }}</dt>
             <dd ng-repeat-end>{{ header.value }}</dd>
