@@ -39,7 +39,27 @@ docker-compose up -d
 >
 > **请勿使用 阿里云镜像源 拉取 Docker 容器, 会导致无法拉取最新镜像**
 
-#### 2. Docker 运行
+#### 2. 1Panel 部署
+
+2.1. 在 1Panel 中创建一个新的应用
+
+   ![点击安装](../../public/panel1.png)
+
+   > 不同 1Panel 版本显示 QD 框架名称可能不同, 但均为 `QD` 图标.
+
+2.2. 配置相关设置
+
+   ![安装配置](../../public/panel2.png)
+
+   > 如需设置环境变量请点击 `编辑 Compose 文件`
+   >
+   > 配置描述见下文 [Configuration](#配置环境变量)
+   >
+   > 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`qdtoday/qd:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 其他与主线版本保持一致**。
+
+2.3. 点击 `确认` 即可通过 1Panel 安装 QD
+
+#### 3. Docker 运行
 
 ``` sh
 docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config qdtoday/qd

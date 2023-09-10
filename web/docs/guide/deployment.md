@@ -39,7 +39,27 @@ docker-compose up -d
 >
 > **Please don't use AliCloud image source to pull Docker container, it will not pull the latest image.**
 
-#### 2. Docker Run
+#### 2. 1Panel Deployment
+
+2.1. Create a new application in 1Panel
+
+   ![Click to install](../public/panel1.png)
+
+   > The QD framework name may be different in different 1Panel versions, but they are all `QD` icons.
+
+2.2. Configure related settings
+
+   ![Installation configuration](../public/panel2.png)
+
+   > If you need to set environment variables, please click `Edit Compose file`
+   >
+   > See [Configuration](#configuration-environment-variables) below for configuration description
+   >
+   > If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`qdtoday/qd:lite-latest`** image, **this image only removes OCR related functions, other than the mainline version to keep consistent**.
+
+2.3. Click `Confirm` to install QD via 1Panel
+
+#### 3. Docker Run
 
 ``` sh
 docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config qdtoday/qd
