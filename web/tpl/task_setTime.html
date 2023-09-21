@@ -30,14 +30,14 @@
   </div>
   <div id="randtime_content">
     <div name="randzone readme">
-      <label class="control-label">当天随机延时区间(0-604800)：</label>
+      <label class="control-label">当天随机延时区间(0-604800)(604800为一周)：</label>
     </div>
     <div name="randzone">
       <label>
         <input type="checkbox" id="randtimezonesw" name="randtimezonesw" {% if ontime.randsw %} checked="" {% endif %} >开关
       </label>
-      <input type="number" id="randtimezone1" name="randtimezone1" value="{{ ontime.tz1 }}" class="modal_input" min="0" max="604800"/>~
-      <input type="number" id="randtimezone2" name="randtimezone2" value="{{ ontime.tz2 }}" class="modal_input" min="0" max="604800"/>秒
+      <input type="number" id="randtimezone1" name="randtimezone1" value="{{ ontime.tz1 }}" class="modal_input" min="0" max="604800" oninput="if(value<0)value=0;if(value>604800)value=604800"/>~
+      <input type="number" id="randtimezone2" name="randtimezone2" value="{{ ontime.tz2 }}" class="modal_input" min="0" max="604800" oninput="if(value<0)value=0;if(value>604800)value=604800"/>秒
     </div>
   </div>
 
@@ -70,8 +70,12 @@
       if ($('#randtimezonesw')[0].checked == true){
         sendData['tz1'] = parseInt($('#randtimezone1')[0].value);
         sendData['tz2'] = parseInt($('#randtimezone2')[0].value);
-        if (sendData['tz1'] > sendData['tz2']){
-            $('#run-result').html("<h1 class=\"alert alert-danger text-center\">随机值错误</h1><div><pre>开启随机时tz1 不能小于 tz2</pre></div>").show();
+        if (sendData['tz1'] >= sendData['tz2']){
+            $('#run-result').html("<h1 class=\"alert alert-danger text-center\">随机值错误</h1><div><pre>开启随机时tz1 需大于 tz2</pre></div>").show();
+            return false;
+        }
+        if (sendData['tz1'] > 604800 || sendData['tz2'] > 604800){
+            $('#run-result').html("<h1 class=\"alert alert-danger text-center\">随机值错误</h1><div><pre>随机值不能大于604800</pre></div>").show();
             return false;
         }
         sendData['randsw'] = true;
