@@ -225,6 +225,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "caspershw",
+      "name": "Casper",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25276620?v=4",
+      "profile": "https://blog.hicasper.com",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 8,
