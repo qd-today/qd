@@ -3,7 +3,7 @@
     "README.md"
   ],
   "imageSize": 100,
-  "commit": false,
+  "commit": true,
   "contributors": [
     {
       "login": "a76yyyy",
@@ -173,7 +173,7 @@
       ]
     }
   ],
-  "contributorsPerLine": 7,
+  "contributorsPerLine": 8,
   "projectName": "qd",
   "projectOwner": "qd-today",
   "repoType": "github",
