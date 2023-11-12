@@ -24,7 +24,7 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 [![docker image size][docker-image-size-image]][docker-image-size-url]
 ![python version][python-version-image]
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-16-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-17-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 [HomePage-image]: https://img.shields.io/badge/HomePage-QD--Today-brightgreen
@@ -113,6 +113,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/powersee"><img src="https://avatars.githubusercontent.com/u/38074760?v=4?s=100" width="100px;" alt="powersee"/><br /><sub><b>powersee</b></sub></a><br /><a href="https://github.com/qd-today/qd/commits?author=powersee" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/Cirn09"><img src="https://avatars.githubusercontent.com/u/25722111?v=4?s=100" width="100px;" alt="Cirn09"/><br /><sub><b>Cirn09</b></sub></a><br /><a href="https://github.com/qd-today/qd/commits?author=Cirn09" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Ovler-Young"><img src="https://avatars.githubusercontent.com/u/44089074?v=4?s=100" width="100px;" alt="Ovler"/><br /><sub><b>Ovler</b></sub></a><br /><a href="https://github.com/qd-today/qd/commits?author=Ovler-Young" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
