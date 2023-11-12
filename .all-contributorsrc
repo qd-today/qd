@@ -24,7 +24,8 @@
       "contributions": [
         "design",
         "code",
-        "maintenance"
+        "maintenance",
+        "doc"
       ]
     },
     {
@@ -46,8 +47,9 @@
       "contributions": [
         "design",
         "blog",
-        "example",
-        "doc"
+        "doc",
+        "maintenance",
+        "code"
       ]
     },
     {
