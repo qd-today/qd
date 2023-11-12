@@ -151,6 +151,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "Cirn09",
+      "name": "Cirn09",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25722111?v=4",
+      "profile": "https://github.com/Cirn09",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -158,5 +167,7 @@
   "projectOwner": "qd-today",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitType": "docs",
+  "commitConvention": "angular"
 }
