@@ -189,9 +189,9 @@ class pusher(object):
                     title_sp[1] = '-'.join(title1)
                 title = ' '.join(title_sp)
 
-                content = content.replace('\\r\\n', '</pre>\n<pre>')
-                d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n<pre>' + content + '</pre>\n' +
-                     '------<a href="' + picurl + '">QD提醒</a>------', 'disable_web_page_preview': 'false', 'parse_mode': 'HTML'}
+                content = content.replace('\\r\\n', '\n')
+                d = {'chat_id': str(chat_id), 'text': '<b>' + title + '</b>' + '\n' + content + '\n' +
+                     '------<a href="' + picurl + '">QD提醒</a>------', 'disable_web_page_preview': 'true', 'parse_mode': 'HTML'}
                 if proxy:
                     async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
                         async with session.post(link, json=d, verify_ssl=False, proxy=proxy, timeout=config.request_timeout) as res:
