@@ -444,9 +444,9 @@ class UserDBHandler(BaseHandler):
                 pwd = envs['adminpwd']
                 now=datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-                if ('backupbtn' in envs):
-                    if await self.db.user.challenge_MD5(mail, pwd, sql_session=sql_session) and (user['email'] == mail):
-                        if user and user['role'] == "admin":
+                if user and await self.db.user.challenge_MD5(mail, pwd, sql_session=sql_session) and (user['email'] == mail):
+                    if ('backupbtn' in envs):
+                        if user['role'] == "admin":
                             if config.db_type != "sqlite3":
                                 raise Exception(u"抱歉，暂不支持通过本页面备份MySQL数据！ﾍ(;´Д｀ﾍ)")
                             filename = config.sqlite3.path
@@ -496,10 +496,7 @@ class UserDBHandler(BaseHandler):
                                 os.remove(savename)
                         else:
                             raise Exception(u"管理员才能备份数据库")
-                    else:
-                        raise Exception(u"账号/密码错误")
 
-                if await self.db.user.challenge_MD5(mail, pwd, sql_session=sql_session) and (user['email'] == mail):
                     if ('backuptplsbtn' in envs):
                         tpls = []
                         for tpl in await self.db.tpl.list(userid=userid, fields=('id', 'siteurl', 'sitename', 'banner', 'note','fork', '_groups', 'har', 'tpl', 'variables','init_env'), limit=None, sql_session=sql_session):
@@ -540,6 +537,8 @@ class UserDBHandler(BaseHandler):
                         if ('recfile' in self.request.files):
                             envs['recfile'] = self.request.files['recfile'][0]['body']
                             if envs['recfile'][:6] == b'SQLite':
+                                if user['role'] != "admin":
+                                    raise Exception(u"管理员才能操作数据库")
                                 db_dir = os.path.dirname(config.sqlite3.path)
                                 db_restore = os.path.join(db_dir, 'database_restore.db')
                                 with open(db_restore, 'wb') as f:
