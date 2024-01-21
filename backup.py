@@ -4,6 +4,7 @@
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-08-09 11:39:25
+# pylint: disable=broad-exception-raised
 
 import sqlite3
 
@@ -127,13 +128,13 @@ class DBnew():
                 `notepadid` INTEGER NOT NULL ,
                 `content` TEXT NULL
                 );
-                ''' )
+                ''')
 
             # 获取数据库信息
             userid = int(userid)
-            user = maindb.db.user.get(id=userid, fields=('id', 'email', 'email_verified', 'password', 'password_md5', 'userkey', 'nickname', 'role', 'ctime', 'mtime', 'atime', 'cip',
-                                      'mip', 'aip', 'skey', 'barkurl', 'wxpusher', 'noticeflg', 'logtime', 'status', 'notepad', 'diypusher', 'qywx_token', 'tg_token', 'dingding_token', 'qywx_webhook', 'push_batch'))
-            userkey = maindb.db.user.__getuserkey(user['env'])
+            # user = maindb.db.user.get(id=userid, fields=('id', 'email', 'email_verified', 'password', 'password_md5', 'userkey', 'nickname', 'role', 'ctime', 'mtime', 'atime', 'cip',
+            #                           'mip', 'aip', 'skey', 'barkurl', 'wxpusher', 'noticeflg', 'logtime', 'status', 'notepad', 'diypusher', 'qywx_token', 'tg_token', 'dingding_token', 'qywx_webhook', 'push_batch'))
+            # userkey = maindb.db.user.__getuserkey(user['env'])
             tpls = []
             for tpl in maindb.db.tpl.list(fields=('id', 'userid', 'siteurl', 'sitename', 'banner', 'disabled', 'public', 'lock', 'fork', 'har', 'tpl', 'variables', 'interval', 'note', 'success_count', 'failed_count', 'last_success', 'ctime', 'mtime', 'atime', 'tplurl', 'updateable', '_groups', 'init_env'), limit=None):
                 if tpl['userid'] == userid:
@@ -141,16 +142,15 @@ class DBnew():
             tasks = []
             tasklogs = []
             for task in maindb.db.task.list(userid, fields=('id', 'tplid', 'userid', 'note', 'disabled', 'init_env', 'env', 'session', 'retry_count', 'retry_interval', 'last_success', 'success_count',
-                                                        'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'mtime', 'ontimeflg', 'ontime',  '_groups', 'pushsw', 'newontime'), limit=None):
+                                                            'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', 'mtime', 'ontimeflg', 'ontime', '_groups', 'pushsw', 'newontime'), limit=None):
                 if task['userid'] == userid:
                     tasks.append(task)
-                    for tasklog in maindb.db.tasklog.list(taskid = task['id'], fields=('id', "taskid", "success", "ctime", "msg")):
+                    for tasklog in maindb.db.tasklog.list(taskid=task['id'], fields=('id', "taskid", "success", "ctime", "msg")):
                         tasklogs.append(tasklog)
 
             c.close()
             conn.close()
 
-
         except Exception as e:
-            raise Exception("backup database error")
+            raise Exception("backup database error") from e
         print("OK")

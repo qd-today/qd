@@ -98,7 +98,7 @@ class TPLRunHandler(BaseHandler):
                     b'\xc2\xa0', b' ')
                 data = json.loads(self.request.body)
         except Exception as e:
-            logger_Web_Handler.debug('TPLRunHandler post error: %s' % e)
+            logger_web_handler.debug('TPLRunHandler post error: %s' % e)
 
         tplid = tplid or data.get(
             'tplid') or self.get_argument('_binux_tplid', None)
@@ -151,7 +151,7 @@ class TPLRunHandler(BaseHandler):
                     traceback.print_exc()
                 await self.render('tpl_run_failed.html', log=str(e))
                 if user:
-                    logger_Web_Handler.error('UserID:%d tplID:%d failed! \r\n%s', user.get(
+                    logger_web_handler.error('UserID:%d tplID:%d failed! \r\n%s', user.get(
                         'id', -1) or -1, int(tplid or -1), str(e).replace('\\r\\n', '\r\n'))
                 return
 

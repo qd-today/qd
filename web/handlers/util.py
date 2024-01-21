@@ -23,13 +23,14 @@ from libs.log import Log
 
 from .base import *
 
-logger_Web_Util = Log('QD.Web.Util').getlogger()
+logger_web_util = Log('QD.Web.Util').getlogger()
 try:
     import ddddocr
 except ImportError as e:
     if config.display_import_warning:
-        logger_Web_Util.warning('Import DdddOCR module falied: \"%s\". \nTips: This warning message is only for prompting, it will not affect running of QD framework.', e)
+        logger_web_util.warning('Import DdddOCR module falied: \"%s\". \nTips: This warning message is only for prompting, it will not affect running of QD framework.', e)
     ddddocr = None
+
 
 def request_parse(req_data):
     '''解析请求数据并以json形式返回'''
@@ -617,7 +618,7 @@ class toolbox_notepad_Handler(BaseHandler):
                 e = u'请输入用户名/密码'
             self.write(str(e))
             self.set_status(400)
-            logger_Web_Handler.error(
+            logger_web_handler.error(
                 'UserID: %s modify Notepad_Toolbox failed! Reason: %s', userid
                 or '-1', str(e))
             return
@@ -731,7 +732,7 @@ class toolbox_notepad_list_Handler(BaseHandler):
                 e = u'请输入用户名/密码'
             self.write(str(e))
             self.set_status(400)
-            logger_Web_Handler.error(
+            logger_web_handler.error(
                 'UserID: %s %s Notepad_Toolbox failed! Reason: %s', userid
                 or '-1', f, str(e))
             return
@@ -740,7 +741,7 @@ class toolbox_notepad_list_Handler(BaseHandler):
 class DdddOCRServer(object):
 
     def __init__(self):
-        if ddddocr is not None and hasattr(ddddocr,"DdddOcr"):
+        if ddddocr is not None and hasattr(ddddocr, "DdddOcr"):
             self.oldocr = ddddocr.DdddOcr(old=True, show_ad=False)
             self.ocr = ddddocr.DdddOcr(show_ad=False)
             self.det = ddddocr.DdddOcr(det=True, show_ad=False)
@@ -762,7 +763,7 @@ class DdddOCRServer(object):
                                 os.path.dirname(
                                     os.path.dirname(os.path.dirname(__file__)))),
                             "config", f"{config.extra_charsets_name[i]}.json"))
-                    logger_Web_Util.info(
+                    logger_web_util.info(
                         f"成功加载自定义Onnx模型: {config.extra_onnx_name[i]}.onnx")
 
     def classification(self, img: bytes, old=False, extra_onnx_name=""):
@@ -786,20 +787,23 @@ class DdddOCRServer(object):
                 pass
         return self.slide.slide_match(imgtarget, imgbg, simple_target=True)
 
+
 if ddddocr:
     DdddOCRServer = DdddOCRServer()
 else:
     DdddOCRServer = None
 
+
 async def get_img_from_url(imgurl):
     async with aiohttp.ClientSession(
             conn_timeout=config.connect_timeout) as session:
         async with session.get(imgurl,
-                                verify_ssl=False,
-                                timeout=config.request_timeout) as res:
+                               verify_ssl=False,
+                               timeout=config.request_timeout) as res:
             content = await res.read()
             base64_data = base64.b64encode(content).decode()
             return base64.b64decode(base64_data)
+
 
 async def get_img(img="", imgurl="",):
     if img:

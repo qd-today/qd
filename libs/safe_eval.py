@@ -14,7 +14,6 @@ condition/math builtins.
 #  - safe_eval in lp:~xrg/openobject-server/optimize-5.0
 #  - safe_eval in tryton http://hg.tryton.org/hgwebdir.cgi/trytond/rev/bbb5f73319ad
 
-# import multiprocessing
 import ctypes
 import dis
 import functools
@@ -24,7 +23,9 @@ import threading
 import types
 from types import CodeType
 
-from opcode import HAVE_ARGUMENT, opmap, opname
+# import multiprocessing
+import dateutil
+from opcode import opmap, opname
 
 import config
 
@@ -40,10 +41,13 @@ _ALLOWED_MODULES = ['_strptime', 'math', 'time']
 _UNSAFE_ATTRIBUTES = ['f_builtins', 'f_globals', 'f_locals', 'gi_frame', 'gi_code',
                       'co_code', 'func_globals']
 
-def to_opcodes(opnames, _opmap=opmap):
+
+def to_opcodes(opnames, _opmap=opmap):  # pylint: disable=dangerous-default-value
     for x in opnames:
         if x in _opmap:
             yield _opmap[x]
+
+
 # opcodes which absolutely positively must not be usable in safe_eval,
 # explicitly subtracted from all sets of valid opcodes just in case
 _BLACKLIST = set(to_opcodes([
@@ -60,7 +64,7 @@ _CONST_OPCODES = set(to_opcodes([
     # stack manipulations
     'POP_TOP', 'ROT_TWO', 'ROT_THREE', 'ROT_FOUR', 'DUP_TOP', 'DUP_TOP_TWO',
     'LOAD_CONST',
-    'RETURN_VALUE', # return the result of the literal/expr evaluation
+    'RETURN_VALUE',  # return the result of the literal/expr evaluation
     # literal collections
     'BUILD_LIST', 'BUILD_MAP', 'BUILD_TUPLE', 'BUILD_SET',
     # 3.6: literal map with constant keys https://bugs.python.org/issue27140
@@ -74,7 +78,7 @@ _CONST_OPCODES = set(to_opcodes([
 
 # operations which are both binary and inplace, same order as in doc'
 _operations = [
-    'POWER', 'MULTIPLY', # 'MATRIX_MULTIPLY', # matrix operator (3.5+)
+    'POWER', 'MULTIPLY',  # 'MATRIX_MULTIPLY', # matrix operator (3.5+)
     'FLOOR_DIVIDE', 'TRUE_DIVIDE', 'MODULO', 'ADD',
     'SUBTRACT', 'LSHIFT', 'RSHIFT', 'AND', 'XOR', 'OR',
 ]
@@ -126,9 +130,9 @@ _SAFE_OPCODES = _EXPR_OPCODES.union(to_opcodes([
     # replacement of POP_JUMP_IF_TRUE and POP_JUMP_IF_FALSE
     'POP_JUMP_FORWARD_IF_FALSE', 'POP_JUMP_FORWARD_IF_TRUE',
     'POP_JUMP_BACKWARD_IF_FALSE', 'POP_JUMP_BACKWARD_IF_TRUE',
-    #replacement of JUMP_ABSOLUTE
+    # replacement of JUMP_ABSOLUTE
     'JUMP_BACKWARD',
-    #replacement of JUMP_IF_NOT_EXC_MATCH
+    # replacement of JUMP_IF_NOT_EXC_MATCH
     'CHECK_EXC_MATCH',
     # new opcodes
     'RETURN_GENERATOR',
@@ -164,6 +168,7 @@ class RunnableProcessing(multiprocessing.Process):
         return self.queue.get()
 '''
 
+
 class TerminableThread(threading.Thread):
     """a thread that can be stopped by forcing an exception in the execution context"""
 
@@ -191,6 +196,7 @@ class ThreadKiller(threading.Thread):
                                                        ctypes.py_object(self.exception_cls))
             self.target_thread.join(self.repeat_sec)
 
+
 def timeout(sec, raise_sec=1):
     """
     timeout decorator
@@ -207,14 +213,14 @@ def timeout(sec, raise_sec=1):
             err_msg = f'Function {func.__name__} timed out after {sec} seconds'
 
             if sys.platform != 'win32':
-                '''
-                非Windows系统, 一般对signal都有全面的支持。
-                为了实现Timeout功能, 可以通过以下几步：
-                1. 选用SIGALRM信号来代表Timeout事件;
-                2. 将抛出超时异常的事件与SIGALRM信号的触发绑定;
-                3. 设定在给定时间后触发SIGALRM信号;
-                4. 运行目标函数（如超时, 会自动被信号绑定的异常事件打断）。
-                '''
+                # '''
+                # 非Windows系统, 一般对signal都有全面的支持。
+                # 为了实现Timeout功能, 可以通过以下几步：
+                # 1. 选用SIGALRM信号来代表Timeout事件;
+                # 2. 将抛出超时异常的事件与SIGALRM信号的触发绑定;
+                # 3. 设定在给定时间后触发SIGALRM信号;
+                # 4. 运行目标函数（如超时, 会自动被信号绑定的异常事件打断）。
+                # '''
 
                 def _handle_timeout(signum, frame):
                     raise TimeoutError(err_msg)
@@ -228,19 +234,19 @@ def timeout(sec, raise_sec=1):
                 return result
 
             else:
-                '''
-                Windows系统对signal的支持很差, 因此不能通过上述方法实现。
-                新的实现思路是：开启子线程来运行目标函数, 主线程计时, 超时后中止子线程。
+                # '''
+                # Windows系统对signal的支持很差, 因此不能通过上述方法实现。
+                # 新的实现思路是：开启子线程来运行目标函数, 主线程计时, 超时后中止子线程。
 
-                子线程不能向主线程返回执行结果, 但是可以和主线程共享内存。
-                因此, 我们创建result和exception两个mutable变量, 分别用来存储子线程的运行结果和异常。
-                在子线程结束后, 主线程可以直接通过这两个变量获取线程执行结果并顺利返回。
+                # 子线程不能向主线程返回执行结果, 但是可以和主线程共享内存。
+                # 因此, 我们创建result和exception两个mutable变量, 分别用来存储子线程的运行结果和异常。
+                # 在子线程结束后, 主线程可以直接通过这两个变量获取线程执行结果并顺利返回。
 
-                子线程运行中所有的异常, 均要保留到子线程结束后, 在主线程中处理。
-                如果直接在子线程中抛出异常, timeout装饰器的使用者将无法通过try/except捕获并处理该异常。
-                因此, 子线程运行的函数完全被try/except包住, 通过mutable变量交由主线程处理。
-                如果出现FuncTimeoutError, 说明是超时所致, 在子线程内不做捕获。
-                '''
+                # 子线程运行中所有的异常, 均要保留到子线程结束后, 在主线程中处理。
+                # 如果直接在子线程中抛出异常, timeout装饰器的使用者将无法通过try/except捕获并处理该异常。
+                # 因此, 子线程运行的函数完全被try/except包住, 通过mutable变量交由主线程处理。
+                # 如果出现FuncTimeoutError, 说明是超时所致, 在子线程内不做捕获。
+                # '''
                 class FuncTimeoutError(TimeoutError):
                     def __init__(self):
                         TimeoutError.__init__(self, err_msg)
@@ -251,7 +257,7 @@ def timeout(sec, raise_sec=1):
                     try:
                         res = func(*args, **kwargs)
                     except FuncTimeoutError:
-                        _logger.debug(f'Function {func.__name__} timed out after {sec} seconds')
+                        _logger.debug('Function %s timed out after %s seconds', func.__name__, sec)
                     except Exception as e:
                         exception.append(e)
                     else:
@@ -266,7 +272,7 @@ def timeout(sec, raise_sec=1):
                     # a timeout thread keeps alive after join method, terminate and raise TimeoutError
                     exc = type('TimeoutError', FuncTimeoutError.__bases__, dict(FuncTimeoutError.__dict__))
                     thread.terminate(exception_cls=FuncTimeoutError, repeat_sec=raise_sec)
-                    raise TimeoutError(err_msg)
+                    raise exc(err_msg)
                 elif exception:
                     # if exception occurs during the thread running, raise it
                     raise exception[0]
@@ -274,34 +280,35 @@ def timeout(sec, raise_sec=1):
                     # if the thread successfully finished, return its results
                     return result[0]
 
-                '''
-                # 使用子进程方式实现超时功能
-                now = time.time()
-                proc = RunnableProcessing(func, *args, **kwargs)
-                proc.start()
-                proc.join(sec)
-                if proc.is_alive():
-                    if force_kill:
-                        proc.terminate()
-                    runtime = time.time() - now
-                    raise TimeoutException('timed out after {0} seconds'.format(runtime))
-                assert proc.done()
-                success, result = proc.result()
-                if success:
-                    return result
-                else:
-                    raise result
-                '''
+                # # 使用子进程方式实现超时功能
+                # now = time.time()
+                # proc = RunnableProcessing(func, *args, **kwargs)
+                # proc.start()
+                # proc.join(sec)
+                # if proc.is_alive():
+                #     if force_kill:
+                #         proc.terminate()
+                #     runtime = time.time() - now
+                #     raise TimeoutException('timed out after {0} seconds'.format(runtime))
+                # assert proc.done()
+                # success, result = proc.result()
+                # if success:
+                #     return result
+                # else:
+                #     raise result
 
         return wrapped_func
     return decorator
 
+
 @timeout(config.unsafe_eval_timeout)
 def unsafe_eval(*args, **kwargs) :
-    return eval(*args, **kwargs)
+    return eval(*args, **kwargs)  # pylint: disable=eval-used
+
 
 class BadCompilingInput(Exception):
     """ The user tried to input something which might cause compiler to slow down. """
+
 
 def check_for_pow(expr):
     """ Python evaluates power operator during the compile time if its on constants.
@@ -311,6 +318,7 @@ def check_for_pow(expr):
     """
     if "**" in expr:
         raise BadCompilingInput("Power operation is not allowed")
+
 
 def assert_no_dunder_name(code_obj, expr):
     """ assert_no_dunder_name(code_obj, expr) -> None
@@ -329,7 +337,8 @@ def assert_no_dunder_name(code_obj, expr):
     """
     for name in code_obj.co_names:
         if "__" in name or name in _UNSAFE_ATTRIBUTES:
-            raise NameError('Access to forbidden name %r (%r)' % (name, expr))
+            raise NameError(f'Access to forbidden name {name!r} ({expr!r})')
+
 
 def assert_valid_codeobj(allowed_codes, code_obj, expr):
     """ Asserts that the provided code object validates against the bytecode
@@ -353,11 +362,12 @@ def assert_valid_codeobj(allowed_codes, code_obj, expr):
     # when loading /web according to line_profiler
     code_codes = {i.opcode for i in dis.get_instructions(code_obj)}
     if not allowed_codes >= code_codes:
-        raise ValueError("forbidden opcode(s) in %r: %s" % (expr, ', '.join(opname[x] for x in (code_codes - allowed_codes))))
+        raise ValueError(f"forbidden opcode(s) in {expr!r}: {', '.join(opname[x] for x in (code_codes - allowed_codes))}")
 
     for const in code_obj.co_consts:
         if isinstance(const, CodeType):
             assert_valid_codeobj(allowed_codes, const, 'lambda')
+
 
 def test_expr(expr, allowed_codes, mode="eval", filename=None):
     """test_expr(expression, allowed_codes[, mode[, filename]]) -> code_object
@@ -377,7 +387,7 @@ def test_expr(expr, allowed_codes, mode="eval", filename=None):
     except (SyntaxError, TypeError, ValueError):
         raise
     except Exception as e:
-        raise ValueError('"%s" while compiling\n%r' % (e, expr))
+        raise ValueError(f'"{e}" while compiling\n{expr!r}') from e
     assert_valid_codeobj(allowed_codes, code_obj, expr)
     return code_obj
 
@@ -400,6 +410,7 @@ def const_eval(expr):
     c = test_expr(expr, _CONST_OPCODES)
     return unsafe_eval(c)
 
+
 def expr_eval(expr):
     """expr_eval(expression) -> value
     Restricted Python expression evaluation
@@ -418,6 +429,7 @@ def expr_eval(expr):
     c = test_expr(expr, _EXPR_OPCODES)
     return unsafe_eval(c)
 
+
 def _import(name, globals=None, locals=None, fromlist=None, level=-1):
     if globals is None:
         globals = {}
@@ -428,6 +440,8 @@ def _import(name, globals=None, locals=None, fromlist=None, level=-1):
     if name in _ALLOWED_MODULES:
         return __import__(name, globals, locals, level)
     raise ImportError(name)
+
+
 _BUILTINS = {
     '__import__': _import,
     'True': True,
@@ -466,6 +480,8 @@ _BUILTINS = {
     'zip': zip,
     'Exception': Exception,
 }
+
+
 def safe_eval(expr, globals_dict=None, locals_dict=None, mode="eval", nocopy=False, locals_builtins=False, filename=None):
     """safe_eval(expression[, globals[, locals[, mode[, nocopy]]]]) -> result
     System-restricted Python expression evaluation
@@ -516,7 +532,9 @@ def safe_eval(expr, globals_dict=None, locals_dict=None, mode="eval", nocopy=Fal
     except ZeroDivisionError:
         raise
     except Exception as e:
-        raise ValueError('%s: "%s"' % (type(e), e))
+        raise ValueError(f'{type(e)}: "{e}"') from e
+
+
 def test_python_expr(expr, mode="eval"):
     try:
         test_expr(expr, _SAFE_OPCODES, mode=mode)
@@ -529,7 +547,7 @@ def test_python_expr(expr, mode="eval"):
                 'offset': err.args[1][2],
                 'error_line': err.args[1][3],
             }
-            msg = "%s : %s at line %d\n%s" % (type(err).__name__, error['message'], error['lineno'], error['error_line'])
+            msg = f"{type(err).__name__} : {error['message']} at line {error['lineno']}\n{error['error_line']}"
         else:
             msg = err
         return msg
@@ -550,7 +568,8 @@ Pre-wrapped modules are provided as attributes of `odoo.tools.safe_eval`.
 """)
     return d
 
-class wrap_module:
+
+class WrapModule:
     def __init__(self, module, attributes):
         """Helper for wrapping a package/module to expose selected attributes
         :param module: the actual package/module to wrap, as returned by ``import <module>``
@@ -565,25 +584,25 @@ class wrap_module:
         for attrib in attributes:
             target = getattr(module, attrib)
             if isinstance(target, types.ModuleType):
-                target = wrap_module(target, attributes[attrib])
+                target = WrapModule(target, attributes[attrib])
             setattr(self, attrib, target)
 
     def __repr__(self):
         return self._repr
 
+
 # dateutil submodules are lazy so need to import them for them to "exist"
-import dateutil
 
 mods = ['parser', 'relativedelta', 'rrule', 'tz']
 for mod in mods:
-    __import__('dateutil.%s' % mod)
-datetime = wrap_module(__import__('datetime'), ['date', 'datetime', 'time', 'timedelta', 'timezone', 'tzinfo', 'MAXYEAR', 'MINYEAR'])
-dateutil = wrap_module(dateutil, {
+    __import__(f'dateutil.{mod}')
+datetime = WrapModule(__import__('datetime'), ['date', 'datetime', 'time', 'timedelta', 'timezone', 'tzinfo', 'MAXYEAR', 'MINYEAR'])
+dateutil = WrapModule(dateutil, {  # type: ignore
     mod: getattr(dateutil, mod).__all__
     for mod in mods
 })
-json = wrap_module(__import__('json'), ['loads', 'dumps'])
-time = wrap_module(__import__('time'), ['time', 'strptime', 'strftime', 'sleep'])
-zoneinfo = wrap_module(__import__('zoneinfo'), [
+json = WrapModule(__import__('json'), ['loads', 'dumps'])
+time = WrapModule(__import__('time'), ['time', 'strptime', 'strftime', 'sleep'])
+zoneinfo = WrapModule(__import__('zoneinfo'), [
     'ZoneInfo', 'available_timezones',
 ])

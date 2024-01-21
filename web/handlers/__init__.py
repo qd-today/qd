@@ -8,8 +8,9 @@
 import os
 import sys
 
-sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 from . import base
+
+sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
 handlers = []
 ui_modules = {}
@@ -23,10 +24,10 @@ for file in os.listdir(os.path.dirname(__file__)):
     modules.append(file[:-3])
 
 for module in modules:
-    module = __import__('%s.%s' % (__package__, module), fromlist = ["handlers"])
-    if hasattr(module, "handlers"):
-        handlers.extend(module.handlers)
-    if hasattr(module, "ui_modules"):
-        ui_modules.update(module.ui_modules)
-    if hasattr(module, "ui_methods"):
-        ui_methods.update(module.ui_methods)
+    module_object = __import__(f'{__package__}.{module}', fromlist=["handlers"])
+    if hasattr(module_object, "handlers"):
+        handlers.extend(module_object.handlers)
+    if hasattr(module_object, "ui_modules"):
+        ui_modules.update(module_object.ui_modules)
+    if hasattr(module_object, "ui_methods"):
+        ui_methods.update(module_object.ui_methods)

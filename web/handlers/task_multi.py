@@ -5,15 +5,11 @@
 #         http://binux.me
 # Created on 2014-08-09 11:39:25
 
-import datetime
 import json
-import random
 import time
 import traceback
 
-import croniter
-
-from libs.funcs import cal
+from libs.funcs import Cal
 
 from .base import *
 
@@ -28,7 +24,7 @@ class TaskMultiOperateHandler(BaseHandler):
             _groups = []
             if (op != ''):
                 tasktype = op
-                if isinstance(tasktype,bytes):
+                if isinstance(tasktype, bytes):
                     tasktype = tasktype.decode()
             else:
                 raise Exception('错误参数')
@@ -37,14 +33,14 @@ class TaskMultiOperateHandler(BaseHandler):
                     if not isinstance(task['_groups'], str):
                         task['_groups'] = str(task['_groups'])
                     temp = task['_groups']
-                    if (temp not  in _groups):
+                    if (temp not in _groups):
                         _groups.append(temp)
 
         except Exception as e:
             if config.traceback_print:
                 traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'打开失败', flg='danger')
-            logger_Web_Handler.error('UserID: %s browse Task_Multi failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
+            logger_web_handler.error('UserID: %s browse Task_Multi failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'))
             return
 
         await self.render('taskmulti.html', user=user, tasktype=tasktype, _groups=_groups)
@@ -61,26 +57,26 @@ class TaskMultiOperateHandler(BaseHandler):
             op = self.get_argument('op', '')
             if (op != ''):
                 tasktype = op
-                if isinstance(tasktype,bytes):
+                if isinstance(tasktype, bytes):
                     tasktype = tasktype.decode()
             else:
                 raise Exception('错误参数')
-            for k, v  in envs.items():
+            for k, v in envs.items():
                 env[k] = json.loads(v[0])
             if len(env['selectedtasks']) == 0:
                 raise Exception('请选择任务')
-            for taskid, selected  in env['selectedtasks'].items():
+            for taskid, selected in env['selectedtasks'].items():
                 if (selected):
                     async with self.db.transaction() as sql_session:
-                        task = await self.db.task.get(taskid, fields=('id',  'note', 'tplid', 'userid'), sql_session=sql_session)
+                        task = await self.db.task.get(taskid, fields=('id', 'note', 'tplid', 'userid'), sql_session=sql_session)
                         if (task):
                             if (task['userid']) == int(userid):
                                 if (tasktype == 'disable'):
-                                    await self.db.task.mod(taskid, disabled = True, sql_session=sql_session)
+                                    await self.db.task.mod(taskid, disabled=True, sql_session=sql_session)
                                 if (tasktype == 'enable'):
-                                    await self.db.task.mod(taskid, disabled = False, sql_session=sql_session)
+                                    await self.db.task.mod(taskid, disabled=False, sql_session=sql_session)
                                 if (tasktype == 'delete'):
-                                    logs = await self.db.tasklog.list(taskid = taskid, fields=('id',), sql_session=sql_session)
+                                    logs = await self.db.tasklog.list(taskid=taskid, fields=('id',), sql_session=sql_session)
                                     for log in logs:
                                         await self.db.tasklog.delete(log['id'], sql_session=sql_session)
                                     await self.db.task.delete(taskid, sql_session=sql_session)
@@ -96,7 +92,7 @@ class TaskMultiOperateHandler(BaseHandler):
 
                                 if (tasktype == 'settime'):
                                     time_env = env['settime']
-                                    c = cal()
+                                    c = Cal()
                                     settime_env = {
                                         'sw': True,
                                         'time': time_env['ontime_val'],
@@ -119,12 +115,12 @@ class TaskMultiOperateHandler(BaseHandler):
                                     if (len(settime_env['time'].split(':')) == 2):
                                         settime_env['time'] = settime_env['time'] + ':00'
 
-                                    tmp = c.calNextTs(settime_env)
+                                    tmp = c.cal_next_ts(settime_env)
                                     if (tmp['r'] == 'True'):
-                                        await self.db.task.mod(taskid, disabled = False,
-                                                                newontime = json.dumps(settime_env),
-                                                                next = tmp['ts'],
-                                                                sql_session=sql_session)
+                                        await self.db.task.mod(taskid, disabled=False,
+                                                               newontime=json.dumps(settime_env),
+                                                               next=tmp['ts'],
+                                                               sql_session=sql_session)
                                     else:
                                         raise Exception(u'参数错误')
                             else:
@@ -133,11 +129,12 @@ class TaskMultiOperateHandler(BaseHandler):
             if config.traceback_print:
                 traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
-            logger_Web_Handler.error('UserID: %s set Task_Multi failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
+            logger_web_handler.error('UserID: %s set Task_Multi failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'))
             return
 
         await self.render('utils_run_result.html', log=u'设置成功，请关闭操作对话框或刷新页面查看', title=u'设置成功', flg='success')
         return
+
 
 class GetTasksInfoHandler(BaseHandler):
     @tornado.web.authenticated
@@ -148,11 +145,11 @@ class GetTasksInfoHandler(BaseHandler):
                 envs[key] = self.get_body_arguments(key)
             user = self.current_user
             tasks = []
-            for taskid, selected  in envs.items():
-                if isinstance(selected[0],bytes):
+            for taskid, selected in envs.items():
+                if isinstance(selected[0], bytes):
                     selected[0] = selected[0].decode()
                 if (selected[0] == 'true'):
-                    task = await self.db.task.get(taskid, fields=('id',  'note', 'tplid'))
+                    task = await self.db.task.get(taskid, fields=('id', 'note', 'tplid'))
                     if (task):
                         sitename = (await self.db.tpl.get(task['tplid'], fields=('sitename',)))['sitename']
                         task['sitename'] = sitename
@@ -161,13 +158,14 @@ class GetTasksInfoHandler(BaseHandler):
             if config.traceback_print:
                 traceback.print_exc()
             await self.render('utils_run_result.html', log=str(e), title=u'获取信息失败', flg='danger')
-            logger_Web_Handler.error('UserID: %s get Tasks_Info failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
+            logger_web_handler.error('UserID: %s get Tasks_Info failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'))
             return
 
-        await self.render('taskmulti_tasksinfo.html',  tasks=tasks)
+        await self.render('taskmulti_tasksinfo.html', tasks=tasks)
         return
 
+
 handlers = [
-        ('/task/(\d+)/multi', TaskMultiOperateHandler),
-        ('/task/(\d+)/get_tasksinfo', GetTasksInfoHandler),
-        ]
+    ('/task/(\d+)/multi', TaskMultiOperateHandler),
+    ('/task/(\d+)/get_tasksinfo', GetTasksInfoHandler),
+]

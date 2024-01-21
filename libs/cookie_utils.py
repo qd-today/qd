@@ -8,8 +8,9 @@
 
 import http.cookiejar as cookielib
 import time
-from http.cookiejar import (_warn_unhandled_exception, parse_ns_headers,
-                            split_header_words)
+from http.cookiejar import _warn_unhandled_exception  # type:ignore
+from http.cookiejar import parse_ns_headers  # type:ignore
+from http.cookiejar import split_header_words  # type:ignore
 
 from requests.cookies import (MockRequest, MockResponse, RequestsCookieJar,
                               get_cookie_header)
@@ -20,18 +21,23 @@ import config
 from .log import Log
 
 logger_CookieJar = Log('QD.Http.CookieJar').getlogger()
+
+
 def _debug(*args):
     if not config.debug:
-        return
+        return None
     return logger_CookieJar.debug(*args, stacklevel=2)
-cookielib._debug = _debug
 
-def dump_cookie(cookie):
+
+setattr(cookielib, '_debug', _debug)
+
+
+def dump_cookie(cookie: cookielib.Cookie):
     result = {}
     for key in ('name', 'value', 'expires', 'secure', 'port', 'domain', 'path',
-            'discard', 'comment', 'comment_url', 'rfc2109'):
+                'discard', 'comment', 'comment_url', 'rfc2109'):
         result[key] = getattr(cookie, key)
-    result['rest'] = cookie._rest
+    result['rest'] = cookie._rest  # type: ignore # pylint:disable=protected-access
     return result
 
 
@@ -70,10 +76,10 @@ class CookieSession(RequestsCookieJar):
         rfc2965 = self._policy.rfc2965
         netscape = self._policy.netscape
 
-        if ((not rfc2965_hdrs and not ns_hdrs) or
-            (not ns_hdrs and not rfc2965) or
-            (not rfc2965_hdrs and not netscape) or
-            (not netscape and not rfc2965)):
+        if ((not rfc2965_hdrs and not ns_hdrs)
+            or (not ns_hdrs and not rfc2965)
+            or (not rfc2965_hdrs and not netscape)
+                or (not netscape and not rfc2965)):
             return []  # no relevant cookie headers: quick exit
 
         try:

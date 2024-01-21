@@ -10,15 +10,19 @@ change the role of user
 """
 
 import asyncio
+import logging
 import sys
 
 import db
 
+logger = logging.getLogger(__name__)
+
 
 def usage():
-    print('Usage: python3 %s <email> [role]' % sys.argv[0])
-    print('Example: python3 %s admin@qd.today admin' % sys.argv[0])
+    print(f'Usage: python3 {sys.argv[0]} <email> [role]')
+    print(f'Example: python3 {sys.argv[0]} admin@qd.today admin')
     sys.exit(1)
+
 
 async def main():
     email = sys.argv[1]
@@ -31,9 +35,9 @@ async def main():
         sys.exit(1)
     rowcount = await userdb.mod(user['id'], role=role)
     if rowcount >= 1:
-        print("role of {} changed to {}".format(email, role or '[empty]'))
+        logger.info("role of %s changed to %s", email, role or '[empty]')
     else:
-        print("role of {} not changed".format(email))
+        logger.warning("role of %s not changed", email)
 
 
 if __name__ == '__main__':

@@ -25,6 +25,7 @@ class ForbiddenHandler(BaseHandler):
     async def get(self):
         return await self.render('Forbidden.html')
 
+
 class LoginHandler(BaseHandler):
     async def get(self):
         if (self.current_user) and (await self.db.user.get(self.current_user['id'], fields=('id',))):
@@ -64,9 +65,9 @@ class LoginHandler(BaseHandler):
                     return
 
                 setcookie = dict(
-                        expires_days=config.cookie_days,
-                        httponly=True,
-                        )
+                    expires_days=config.cookie_days,
+                    httponly=True,
+                )
                 if config.cookie_secure_mode:
                     setcookie['secure'] = True
                 self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
@@ -76,7 +77,7 @@ class LoginHandler(BaseHandler):
                 user = await self.db.user.get(email=email, fields=('id', 'password', 'password_md5'), sql_session=sql_session)
                 hash = MD5.new()
                 hash.update(password.encode('utf-8'))
-                tmp = crypto.password_hash(hash.hexdigest(),await self.db.user.decrypt(user['id'], user['password'], sql_session=sql_session))
+                tmp = crypto.password_hash(hash.hexdigest(), await self.db.user.decrypt(user['id'], user['password'], sql_session=sql_session))
                 if (user['password_md5'] != tmp):
                     await self.db.user.mod(user['id'], password_md5=tmp, sql_session=sql_session)
             else:
@@ -87,10 +88,12 @@ class LoginHandler(BaseHandler):
         if user:
             self.redirect('/my/')
 
+
 class LogoutHandler(BaseHandler):
     def get(self):
         self.clear_all_cookies()
         self.redirect('/')
+
 
 class RegisterHandler(BaseHandler):
     async def get(self):
@@ -120,7 +123,7 @@ class RegisterHandler(BaseHandler):
                 await self.render('register.html', password_error=u'密码需要大于6位', email=email, regFlg=regFlg)
                 return
 
-            user = await self.db.user.get(email = email, fields=('id', 'email', 'email_verified', 'nickname', 'role'), sql_session=sql_session)
+            user = await self.db.user.get(email=email, fields=('id', 'email', 'email_verified', 'nickname', 'role'), sql_session=sql_session)
             if user is None:
                 if (regEn == 1):
                     self.evil(+5)
@@ -133,9 +136,9 @@ class RegisterHandler(BaseHandler):
                     user = await self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role'), sql_session=sql_session)
                     await self.db.notepad.add(dict(userid=user['id'], notepadid=1), sql_session=sql_session)
                     setcookie = dict(
-                            expires_days=config.cookie_days,
-                            httponly=True,
-                            )
+                        expires_days=config.cookie_days,
+                        httponly=True,
+                    )
                     if config.cookie_secure_mode:
                         setcookie['secure'] = True
                     self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
@@ -152,7 +155,7 @@ class RegisterHandler(BaseHandler):
                     if config.domain:
                         await self.send_mail(user, sql_session=sql_session)
                     else:
-                        logger_Web_Handler.warning('请配置框架域名 domain, 以启用邮箱验证功能!')
+                        logger_web_handler.warning('请配置框架域名 domain, 以启用邮箱验证功能!')
                 else:
                     await self.render('register.html', email_error=u'管理员关闭注册', regFlg=regFlg)
                     return
@@ -194,9 +197,10 @@ class RegisterHandler(BaseHandler):
 
         return
 
+
 class VerifyHandler(BaseHandler):
     async def get(self, code):
-        userid=None
+        userid = None
         try:
             async with self.db.transaction() as sql_session:
                 verified_code = base64.b64decode(code)
@@ -209,14 +213,14 @@ class VerifyHandler(BaseHandler):
                 assert user['email'] == email
 
                 await self.db.user.mod(userid,
-                        email_verified=True,
-                        mtime=time.time(),
-                        sql_session=sql_session
-                        )
+                                       email_verified=True,
+                                       mtime=time.time(),
+                                       sql_session=sql_session
+                                       )
             await self.finish('验证成功')
         except Exception as e:
             self.evil(+5)
-            logger_Web_Handler.error('UserID: %s verify email failed! Reason: %s', userid or '-1', e)
+            logger_web_handler.error('UserID: %s verify email failed! Reason: %s', userid or '-1', e)
             self.set_status(400)
             await self.finish('验证失败')
 
@@ -236,7 +240,7 @@ class PasswordResetHandler(BaseHandler):
             assert time.time() - time_time < 60 * 60
         except Exception as e:
             self.evil(+10)
-            logger_Web_Handler.error('%r',e)
+            logger_web_handler.error('%r', e)
             self.set_status(400)
             await self.finish('Bad Request')
             return
@@ -253,15 +257,15 @@ class PasswordResetHandler(BaseHandler):
             email = self.get_argument('email')
             if not email:
                 return await self.render('password_reset_email.html',
-                                   email_error=u'请输入邮箱')
+                                         email_error=u'请输入邮箱')
             if email.count('@') != 1 or email.count('.') == 0:
                 return await self.render('password_reset_email.html',
-                                   email_error=u'邮箱格式不正确')
+                                         email_error=u'邮箱格式不正确')
 
             user = await self.db.user.get(email=email, fields=('id', 'email', 'mtime', 'nickname', 'role'))
             await self.finish("如果用户存在，会将发送密码重置邮件到您的邮箱，请注意查收。（如果您没有收到过激活邮件，可能无法也无法收到密码重置邮件）")
             if user:
-                logger_Web_Handler.info('password reset: userid=%(id)s email=%(email)s', user)
+                logger_web_handler.info('password reset: userid=%(id)s email=%(email)s', user)
                 await self.send_mail(user)
 
             return
@@ -281,16 +285,16 @@ class PasswordResetHandler(BaseHandler):
                     assert time.time() - time_time < 60 * 60
                 except Exception as e:
                     self.evil(+10)
-                    logger_Web_Handler.error('%r',e)
+                    logger_web_handler.error('%r', e)
                     self.set_status(400)
                     await self.finish('Bad Request')
                     return
 
                 await self.db.user.mod(userid,
-                                password=password,
-                                mtime=time.time(),
-                                sql_session=sql_session
-                                )
+                                       password=password,
+                                       mtime=time.time(),
+                                       sql_session=sql_session
+                                       )
             return self.finish("""密码重置成功! 请<a href="{http}://{domain}/login" >点击此处</a>返回登录页面。""".format(http='https' if config.mail_domain_https else 'http', domain=config.domain))
 
     async def send_mail(self, user):
@@ -318,11 +322,12 @@ class PasswordResetHandler(BaseHandler):
 
         return
 
+
 handlers = [
-        ('/login', LoginHandler),
-        ('/logout', LogoutHandler),
-        ('/register', RegisterHandler),
-        ('/verify/(.*)', VerifyHandler),
-        ('/password_reset/?(.*)', PasswordResetHandler),
-        ('/forbidden', ForbiddenHandler),
-        ]
+    ('/login', LoginHandler),
+    ('/logout', LogoutHandler),
+    ('/register', RegisterHandler),
+    ('/verify/(.*)', VerifyHandler),
+    ('/password_reset/?(.*)', PasswordResetHandler),
+    ('/forbidden', ForbiddenHandler),
+]

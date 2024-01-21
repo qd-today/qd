@@ -29,14 +29,14 @@ class SiteManagerHandler(BaseHandler):
             site['regEn'] = False if site['regEn'] == 1 else True
             site['MustVerifyEmailEn'] = False if site['MustVerifyEmailEn'] == 0 else True
 
-        await self.render("site_manage.html", userid=userid, adminflg=adminflg, site=site, logDay=site['logDay'], flg=flg, title=title,log=log)
+        await self.render("site_manage.html", userid=userid, adminflg=adminflg, site=site, logDay=site['logDay'], flg=flg, title=title, log=log)
         return
 
     @tornado.web.authenticated
     async def post(self, userid):
         try:
             async with self.db.transaction() as sql_session:
-                user = await self.db.user.get(userid, fields=('id','email', 'role', 'email_verified'), sql_session=sql_session)
+                user = await self.db.user.get(userid, fields=('id', 'email', 'role', 'email_verified'), sql_session=sql_session)
                 if user and user['role'] == "admin":
                     envs = {}
                     for key in self.request.body_arguments:
@@ -84,7 +84,7 @@ class SiteManagerHandler(BaseHandler):
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
             await self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
-            logger_Web_Handler.error('UserID: %s modify Manage_Board failed! Reason: %s', userid, str(e).replace('\\r\\n','\r\n'))
+            logger_web_handler.error('UserID: %s modify Manage_Board failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'))
             return
         await self.render('utils_run_result.html', title='设置成功', flg='success')
         return
@@ -111,6 +111,7 @@ class SiteManagerHandler(BaseHandler):
 
         return
 
+
 handlers = [
-        ('/site/(\d+)/manage', SiteManagerHandler),
-        ]
+    ('/site/(\d+)/manage', SiteManagerHandler),
+]

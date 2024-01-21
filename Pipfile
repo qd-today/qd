@@ -37,6 +37,9 @@ tzdata = "*"
 [dev-packages]
 #ddddocr = "*"
 #pycurl = {version = "*", markers="sys_platform != 'win32'"}
+types-croniter = "*"
+types-requests = "*"
+types-python-dateutil = "*"
 
 [requires]
 python_version = "3.11"
