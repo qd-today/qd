@@ -38,7 +38,7 @@ if config.use_pycurl:
         pycurl = None
 else:
     pycurl = None
-local_host="http://localhost:" + str(config.port)
+local_host = f'http://{config.bind}:{config.port}'.replace('0.0.0.0','localhost')
 NOT_RETYR_CODE = config.not_retry_code
 
 class Fetcher(object):
