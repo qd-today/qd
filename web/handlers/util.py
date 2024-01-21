@@ -46,7 +46,7 @@ class UtilDelayParaHandler(BaseHandler):
     async def get(self):
         try:
             seconds = float(self.get_argument("seconds", 0))
-        except Exception as e:
+        except Exception:
             if config.traceback_print:
                 traceback.print_exc()
             await gen.sleep(0.0)
@@ -71,7 +71,7 @@ class UtilDelayIntHandler(BaseHandler):
     async def get(self, seconds):
         try:
             seconds = float(seconds)
-        except Exception as e:
+        except Exception:
             if config.traceback_print:
                 traceback.print_exc()
             self.write(u'delay %s second.' % seconds)
@@ -95,7 +95,7 @@ class UtilDelayHandler(BaseHandler):
     async def get(self, seconds):
         try:
             seconds = float(seconds)
-        except Exception as e:
+        except Exception:
             if config.traceback_print:
                 traceback.print_exc()
             self.write(u'delay %s second.' % seconds)

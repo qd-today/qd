@@ -127,7 +127,7 @@ class Pusher:
 
         except Exception as e:
             r = traceback.format_exc()
-            logger_funcs.error('Sent to Bark error: %s', e)
+            logger_funcs.error('Sent to Bark error: %s', e, exc_info=config.traceback_print)
             return e
         return r
 
@@ -144,7 +144,7 @@ class Pusher:
 
             except Exception as e:
                 r = traceback.format_exc()
-                logger_funcs.error('Sent to ServerChan error: %s', e)
+                logger_funcs.error('Sent to ServerChan error: %s', e, exc_info=config.traceback_print)
                 return e
         return r
 
@@ -200,7 +200,7 @@ class Pusher:
                             r = await self.judge_res(res)
             except Exception as e:
                 r = traceback.format_exc()
-                logger_funcs.error('Sent to Telegram error: %s', e)
+                logger_funcs.error('Sent to Telegram error: %s', e, exc_info=config.traceback_print)
                 return e
         return r
 
@@ -225,7 +225,7 @@ class Pusher:
                             raise Exception(_json)
             except Exception as e:
                 r = traceback.format_exc()
-                logger_funcs.error('Sent to DingDing error: %s', e)
+                logger_funcs.error('Sent to DingDing error: %s', e, exc_info=config.traceback_print)
                 return e
         return r
 
@@ -254,7 +254,7 @@ class Pusher:
                             raise Exception(_json)
             except Exception as e:
                 r = traceback.format_exc()
-                logger_funcs.error('Sent to WxPusher error: %s', e)
+                logger_funcs.error('Sent to WxPusher error: %s', e, exc_info=config.traceback_print)
                 return e
         else:
             return Exception("参数不完整! ")
@@ -307,7 +307,7 @@ class Pusher:
 
         except Exception as e:
             r = traceback.format_exc()
-            logger_funcs.error('Sent to Cus_Pusher error: %s', e)
+            logger_funcs.error('Sent to Cus_Pusher error: %s', e, exc_info=config.traceback_print)
             return e
         return r
 
@@ -402,7 +402,7 @@ class Pusher:
 
         except Exception as e:
             r = traceback.format_exc()
-            logger_funcs.error('Sent to QYWX Pusher error: %s', e)
+            logger_funcs.error('Sent to QYWX Pusher error: %s', e, exc_info=config.traceback_print)
             return e
         return r
 
@@ -434,7 +434,7 @@ class Pusher:
                         raise Exception(_json['errmsg'])
         except Exception as e:
             r = traceback.format_exc()
-            logger_funcs.error('Sent to QYWX WebHook error: %s', e)
+            logger_funcs.error('Sent to QYWX WebHook error: %s', e, exc_info=config.traceback_print)
             return e
         return r
 
@@ -452,7 +452,7 @@ class Pusher:
                                       text=content,
                                       shark=True)
             except Exception as e:
-                logger_funcs.error('Send mail error: %r', e)
+                logger_funcs.error('Send mail error: %r', e, exc_info=config.traceback_print)
 
 
 class Cal:
@@ -487,5 +487,5 @@ class Cal:
             r['ts'] = ts
         except Exception as e:
             r['r'] = e
-            logger_funcs.error('Calculate Next Timestamp error: %s', r['r'])
+            logger_funcs.error('Calculate Next Timestamp error: %s', r['r'], exc_info=config.traceback_print)
         return r

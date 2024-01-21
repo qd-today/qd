@@ -49,7 +49,7 @@ if __name__ == '__main__':
         # deepcode ignore PT: tpl_file is a file
         tpl = json.load(open(tpl_file, encoding='utf-8'))
     except Exception as e:
-        logger_qd.error(e)
+        logger_qd.error(e, exc_info=config.traceback_print)
         usage()
 
     # load env
@@ -68,7 +68,7 @@ if __name__ == '__main__':
             # deepcode ignore PT: env_file is a file
             env = json.load(open(ENV_FILE, encoding='utf-8'))
         except Exception as e:
-            logger_qd.error(e)
+            logger_qd.error(e, exc_info=config.traceback_print)
             usage()
     if 'variables' not in env or not isinstance(env['variables'], dict) \
             or 'session' not in env:

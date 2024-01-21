@@ -200,7 +200,7 @@ class TaskRunHandler(BaseHandler):
                     }
                     new_env, _ = await self.fetcher.do_fetch(fetch_tpl, env, [proxy])
             except Exception as e:
-                logger_web_handler.error('taskid:%d tplid:%d failed! %.4fs \r\n%s', task['id'], task['tplid'], time.time() - start_ts, str(e).replace('\\r\\n', '\r\n'))
+                logger_web_handler.error('taskid:%d tplid:%d failed! %.4fs \r\n%s', task['id'], task['tplid'], time.time() - start_ts, str(e).replace('\\r\\n', '\r\n'), exc_info=config.traceback_print)
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 title = u"QD任务 {0}-{1} 失败".format(tpl['sitename'], task['note'])
                 logtmp = u"{0} \\r\\n日志：{1}".format(t, e)

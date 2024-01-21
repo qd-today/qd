@@ -471,7 +471,7 @@ async def _send_mail(to, subject, text=None, subtype='html'):
         s.sendmail(config.mail_from, to, msg.as_string())
         s.close()
     except Exception as e:
-        logger_util.error('send mail error: %s', e)
+        logger_util.error('send mail error: %s', e, exc_info=config.traceback_print)
     return
 
 
@@ -533,7 +533,7 @@ def decode(content, headers=None):
     try:
         return content.decode(encoding, 'replace')
     except Exception as e:
-        logger_util.error('utils.decode: %s', e)
+        logger_util.error('utils.decode: %s', e, exc_info=config.traceback_print)
         return None
 
 

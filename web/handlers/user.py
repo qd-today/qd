@@ -423,7 +423,7 @@ class UserManagerHandler(BaseHandler):
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
             await self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
-            logger_web_handler.error('UserID: %s manage User failed! Reason: %s', userid or '-1', str(e))
+            logger_web_handler.error('UserID: %s manage User failed! Reason: %s', userid or '-1', str(e), exc_info=config.traceback_print)
             return
         await self.render('utils_run_result.html', title='操作成功', flg='success')
         return
@@ -704,12 +704,12 @@ class custom_pusher_Handler(BaseHandler):
 
             log = u'运行成功，请检查是否收到推送'
         except Exception as e:
+            if config.traceback_print:
+                traceback.print_exc()
             if (str(e).find('get user need id or email') > -1):
                 e = u'请输入用户名/密码'
             await self.render('utils_run_result.html', log=str(e), title=u'设置失败', flg='danger')
             logger_web_handler.error('UserID: %s register or tes Cus_Pusher failed! Reason: %s', userid or '-1', str(e))
-            if config.traceback_print:
-                traceback.print_exc()
             return
 
         await self.render('utils_run_result.html', log=log, title=u'设置成功', flg='success')

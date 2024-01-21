@@ -239,8 +239,8 @@ class Fetcher(object):
                         urlparse.parse_qsl(request.body)]
                     try:
                         _ = json.dumps(ret['postData']['params'])
-                    except UnicodeDecodeError:
-                        logger_fetcher.error('params encoding error')
+                    except UnicodeDecodeError as e:
+                        logger_fetcher.error(f'params encoding error: {e}', exc_info=config.traceback_print)
                         del ret['postData']['params']
 
             return ret
@@ -313,15 +313,11 @@ class Fetcher(object):
                         return '\n'.join([f'{key}: {value}' for key, value in response.headers.get_all()])
                     return '\n'.join([f'{key}: {value}' for key, value in response.headers._dict.items()])  # pylint: disable=protected-access
                 except Exception as e:
-                    if config.traceback_print:
-                        traceback.print_exc()
-                    logger_fetcher.error('Run rule failed: %s', str(e))
+                    logger_fetcher.error('Run rule failed: %s', str(e), exc_info=config.traceback_print)
                 try:
                     return json.dumps(response.headers._dict)  # pylint: disable=protected-access
                 except Exception as e:
-                    if config.traceback_print:
-                        traceback.print_exc()
-                    logger_fetcher.error('Run rule failed: %s', str(e))
+                    logger_fetcher.error('Run rule failed: %s', str(e), exc_info=config.traceback_print)
             else:
                 return ''
 
@@ -435,8 +431,8 @@ class Fetcher(object):
                     request['postData']['params'] = params
                     try:
                         _ = json.dumps(request['postData']['params'])
-                    except UnicodeDecodeError:
-                        logger_fetcher.error('params encoding error')
+                    except UnicodeDecodeError as e:
+                        logger_fetcher.error(f'params encoding error: {e}', exc_info=config.traceback_print)
                         del request['postData']['params']
             return request
 
@@ -497,13 +493,13 @@ class Fetcher(object):
                             logger_fetcher.warning('%s %s [Warning] %s -> Try to retry!', req.method, req.url, e)
                             client = simple_httpclient.SimpleAsyncHTTPClient()
                             e.response = await client.fetch(req)
-                        except Exception:
-                            logger_fetcher.error(e.message.replace('\\r\\n', '\r\n') or e.response.replace('\\r\\n', '\r\n') or Exception)
+                        except Exception as e0:
+                            logger_fetcher.error(e.message.replace('\\r\\n', '\r\n') or e.response.replace('\\r\\n', '\r\n') or e0, exc_info=config.traceback_print)
                     else:
                         try:
                             logger_fetcher.warning('%s %s [Warning] %s', req.method, req.url, e)
-                        except Exception:
-                            logger_fetcher.error(e.message.replace('\\r\\n', '\r\n') or e.response.replace('\\r\\n', '\r\n') or Exception)
+                        except Exception as e0:
+                            logger_fetcher.error(e.message.replace('\\r\\n', '\r\n') or e.response.replace('\\r\\n', '\r\n') or e0, exc_info=config.traceback_print)
                 else:
                     logger_fetcher.warning('%s %s [Warning] %s', req.method, req.url, e)
             finally:

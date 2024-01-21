@@ -220,7 +220,7 @@ class VerifyHandler(BaseHandler):
             await self.finish('验证成功')
         except Exception as e:
             self.evil(+5)
-            logger_web_handler.error('UserID: %s verify email failed! Reason: %s', userid or '-1', e)
+            logger_web_handler.error('UserID: %s verify email failed! Reason: %s', userid or '-1', e, exc_info=config.traceback_print)
             self.set_status(400)
             await self.finish('验证失败')
 
@@ -240,7 +240,7 @@ class PasswordResetHandler(BaseHandler):
             assert time.time() - time_time < 60 * 60
         except Exception as e:
             self.evil(+10)
-            logger_web_handler.error('%r', e)
+            logger_web_handler.error('%r', e, exc_info=config.traceback_print)
             self.set_status(400)
             await self.finish('Bad Request')
             return
@@ -285,7 +285,7 @@ class PasswordResetHandler(BaseHandler):
                     assert time.time() - time_time < 60 * 60
                 except Exception as e:
                     self.evil(+10)
-                    logger_web_handler.error('%r', e)
+                    logger_web_handler.error('%r', e, exc_info=config.traceback_print)
                     self.set_status(400)
                     await self.finish('Bad Request')
                     return

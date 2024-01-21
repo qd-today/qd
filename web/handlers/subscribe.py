@@ -44,12 +44,10 @@ class SubscribeHandler(BaseHandler):
             await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=msg)
 
         except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
             user = self.current_user
             tpls = await self.db.pubtpl.list()
             await self.render('pubtpl_subscribe.html', tpls=tpls, user=user, userid=user['id'], adminflg=adminflg, repos=repos['repos'], msg=str(e))
-            logger_web_handler.error('UserID: %s browse Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'))
+            logger_web_handler.error('UserID: %s browse Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'), exc_info=config.traceback_print)
             return
 
 
@@ -166,15 +164,12 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
                         await self.send_global_message({'code': 1000, 'message': '-----更新 {repo} 模板仓库结束-----'.format(repo=repo['reponame'])})
             success = True
         except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
-
             msg = str(e).replace('\\r\\n', '\r\n')
             if msg == "":
                 msg = e.__class__.__name__
             if msg.endswith('\r\n'):
                 msg = msg[:-2]
-            logger_web_handler.error('UserID: %s update Subscribe failed! Reason: %s', userid, msg)
+            logger_web_handler.error('UserID: %s update Subscribe failed! Reason: %s', userid, msg, exc_info=config.traceback_print)
             await self.send_global_message({'code': 0, 'message': '更新失败, 原因: {msg}'.format(msg=msg)})
 
         try:

@@ -347,9 +347,7 @@ class QueueWorker(BaseWorker):
                 done = await self.do(task)
             except Exception as e:
                 logger_worker.error(
-                    'Runner %d get task: %s, failed! %s' , id, task['id'], str(e))
-                if config.traceback_print:
-                    traceback.print_exc()
+                    'Runner %d get task: %s, failed! %s' , id, task['id'], str(e), exc_info=config.traceback_print)
             if done:
                 self.success += 1
                 self.task_lock.pop(task['id'], None)
@@ -377,9 +375,7 @@ class QueueWorker(BaseWorker):
                             'Scaned %d task, put in Queue...', unlock_tasks)
             except Exception as e:
                 logger_worker.error(
-                    'Schedule Producer get tasks failed! %s', e)
-                if config.traceback_print:
-                    traceback.print_exc()
+                    'Schedule Producer get tasks failed! %s', e, exc_info=config.traceback_print)
             await sleep
 
 # 旧版本批量任务定时执行
