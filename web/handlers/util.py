@@ -74,7 +74,7 @@ class UtilDelayIntHandler(BaseHandler):
             seconds = float(seconds)
         except Exception as e:
             logger_web_handler.debug('Error, delay 0.0 second: %s', e, exc_info=config.traceback_print)
-            self.write(f'delay {seconds} second.')
+            self.write('Error, delay 0.0 second.')
             return
         if seconds < 0:
             seconds = 0.0
