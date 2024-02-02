@@ -9,7 +9,6 @@
 import datetime
 import json
 import time
-import traceback
 from codecs import escape_decode
 
 from tornado.iostream import StreamClosedError
@@ -214,9 +213,8 @@ class TaskRunHandler(BaseHandler):
                                        )
                 try:
                     await self.finish('<h1 class="alert alert-danger text-center">运行失败</h1><div class="showbut well autowrap" id="errmsg">%s<button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
-                except StreamClosedError:
-                    if config.traceback_print:
-                        traceback.print_exc()
+                except StreamClosedError as e:
+                    logger_web_handler.error('stream closed error: %s', e, exc_info=config.traceback_print)
 
                 await pushertool.pusher(user['id'], pushsw, 0x4, title, logtmp)
                 return
@@ -249,9 +247,8 @@ class TaskRunHandler(BaseHandler):
             await self.db.tpl.incr_success(tpl['id'], sql_session=sql_session)
             try:
                 await self.finish('<h1 class="alert alert-success text-center">运行成功</h1><div class="showbut well autowrap" id="errmsg"><pre>%s</pre><button class="btn hljs-button" data-clipboard-target="#errmsg" >复制</button></div>' % logtmp.replace('\\r\\n', '<br>'))
-            except StreamClosedError:
-                if config.traceback_print:
-                    traceback.print_exc()
+            except StreamClosedError as e:
+                logger_web_handler.error('stream closed error: %s', e, exc_info=config.traceback_print)
 
             await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
             log_day = int((await self.db.site.get(1, fields=('logDay',), sql_session=sql_session))['logDay'])
@@ -453,10 +450,8 @@ class TaskSetTimeHandler(BaseHandler):
                     await self.db.task.mod(taskid, newontime=json.dumps(tmp), sql_session=sql_session)
 
         except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
+            logger_web_handler.error('TaskID: %s set Time failed! Reason: %s', taskid, str(e).replace('\\r\\n', '\r\n'), exc_info=config.traceback_print)
             await self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
-            logger_web_handler.error('TaskID: %s set Time failed! Reason: %s', taskid, str(e).replace('\\r\\n', '\r\n'))
             return
 
         await self.render('utils_run_result.html', log=log, title='设置成功', flg='success')
@@ -529,10 +524,8 @@ class TasksDelHandler(BaseHandler):
                 await self.finish('<h1 class="alert alert-success text-center">操作成功</h1>')
             raise Exception('taskids not found!')
         except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
+            logger_web_handler.error('TaskID: %s delete failed! Reason: %s', taskid, str(e).replace('\\r\\n', '\r\n'), exc_info=config.traceback_print)
             await self.render('tpl_run_failed.html', log=str(e))
-            logger_web_handler.error('TaskID: %s delete failed! Reason: %s', taskid, str(e).replace('\\r\\n', '\r\n'))
             return
 
 

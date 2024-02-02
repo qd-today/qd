@@ -6,7 +6,6 @@
 # Created on 2014-08-09 17:52:49
 
 import json
-import traceback
 from codecs import escape_decode
 
 from tornado.web import HTTPError, authenticated
@@ -148,12 +147,9 @@ class TPLRunHandler(BaseHandler):
                 else:
                     result, _ = await self.fetcher.do_fetch(fetch_tpl, env, proxies=[])
             except Exception as e:
-                if config.traceback_print:
-                    traceback.print_exc()
+                logger_web_handler.error('UserID:%d tplID:%d failed! \r\n%s', user.get(
+                    'id', -1) or -1, int(tplid or -1), str(e).replace('\\r\\n', '\r\n'), exc_info=config.traceback_print)
                 await self.render('tpl_run_failed.html', log=str(e))
-                if user:
-                    logger_web_handler.error('UserID:%d tplID:%d failed! \r\n%s', user.get(
-                        'id', -1) or -1, int(tplid or -1), str(e).replace('\\r\\n', '\r\n'))
                 return
 
             if tpl:

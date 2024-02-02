@@ -129,10 +129,8 @@ class UserRegPush(BaseHandler):
                         log = log + "企业微信 Webhook 未填写完整\r\n"
 
             except Exception as e:
-                if config.traceback_print:
-                    traceback.print_exc()
+                logger_web_handler.error('UserID: %s register Pusher_info failed! Reason: %s', userid or '-1', str(e), exc_info=config.traceback_print)
                 await self.render('tpl_run_failed.html', log=str(e))
-                logger_web_handler.error('UserID: %s register Pusher_info failed! Reason: %s', userid or '-1', str(e))
                 return
 
             await self.render('utils_run_result.html', log=log, title='设置成功', flg='success')
@@ -330,10 +328,8 @@ class UserRegPushSw(BaseHandler):
                     await self.db.task.mod(task["id"], pushsw=json.dumps(task['pushsw']), sql_session=sql_session)
 
         except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
+            logger_web_handler.error('UserID: %s modify Push_settings failed! Reason: %s', userid or '-1', str(e), exc_info=config.traceback_print)
             await self.render('tpl_run_failed.html', log=str(e))
-            logger_web_handler.error('UserID: %s modify Push_settings failed! Reason: %s', userid or '-1', str(e))
             return
         await self.render('utils_run_result.html', log="设置完成", title='设置成功', flg='success')
         return
@@ -734,10 +730,8 @@ class UserSetNewPWDHandler(BaseHandler):
                 else:
                     raise Exception('管理员用户名/密码错误')
         except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
+            logger_web_handler.error('UserID: %s set New_Password failed! Reason: %s', userid or '-1', str(e), exc_info=config.traceback_print)
             await self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
-            logger_web_handler.error('UserID: %s set New_Password failed! Reason: %s', userid or '-1', str(e))
             return
 
         await self.render('utils_run_result.html', log=log, title='设置成功', flg='success')

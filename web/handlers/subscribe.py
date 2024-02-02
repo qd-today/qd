@@ -11,7 +11,6 @@ import base64
 import json
 import random
 import time
-import traceback
 from typing import Dict
 from urllib.parse import quote, urlparse
 
@@ -288,10 +287,8 @@ class SubscribeRefreshHandler(BaseHandler):
                 else:
                     raise Exception('没有权限操作')
         except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
+            logger_web_handler.error('UserID: %s refresh Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'), exc_info=config.traceback_print)
             await self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
-            logger_web_handler.error('UserID: %s refresh Subscribe failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'))
             return
 
         self.redirect(f'/subscribe/{int(userid)}/')
@@ -348,10 +345,8 @@ class SubscribSignupReposHandler(BaseHandler):
                 raise Exception('非管理员用户，不可设置')
 
         except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
+            logger_web_handler.error('UserID: %s modify Subscribe_signup_repos failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'), exc_info=config.traceback_print)
             await self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
-            logger_web_handler.error('UserID: %s modify Subscribe_signup_repos failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'))
             return
 
         await self.render('utils_run_result.html', log='设置成功，请关闭操作对话框或刷新页面查看', title='设置成功', flg='success')
@@ -377,10 +372,8 @@ class GetReposInfoHandler(BaseHandler):
             else:
                 raise Exception('非管理员用户，不可查看')
         except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
+            logger_web_handler.error('UserID: %s get Subscribe_Repos_Info failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'), exc_info=config.traceback_print)
             await self.render('utils_run_result.html', log=str(e), title='获取信息失败', flg='danger')
-            logger_web_handler.error('UserID: %s get Subscribe_Repos_Info failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'))
             return
 
         await self.render('pubtpl_reposinfo.html', repos=repos)
@@ -398,10 +391,8 @@ class UnsubscribeReposHandler(BaseHandler):
                 raise Exception('非管理员用户，不可设置')
             return
         except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
+            logger_web_handler.error('UserID: %s browse UnSubscribe_Repos failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'), exc_info=config.traceback_print)
             await self.render('utils_run_result.html', log=str(e), title='打开失败', flg='danger')
-            logger_web_handler.error('UserID: %s browse UnSubscribe_Repos failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'))
             return
 
     @authenticated
@@ -437,10 +428,8 @@ class UnsubscribeReposHandler(BaseHandler):
                 raise Exception('非管理员用户，不可设置')
 
         except Exception as e:
-            if config.traceback_print:
-                traceback.print_exc()
+            logger_web_handler.error('UserID: %s unsubscribe Subscribe_Repos failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'), exc_info=config.traceback_print)
             await self.render('utils_run_result.html', log=str(e), title='设置失败', flg='danger')
-            logger_web_handler.error('UserID: %s unsubscribe Subscribe_Repos failed! Reason: %s', userid, str(e).replace('\\r\\n', '\r\n'))
             return
 
         await self.render('utils_run_result.html', log='设置成功，请关闭操作对话框或刷新页面查看', title='设置成功', flg='success')
