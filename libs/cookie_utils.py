@@ -17,8 +17,7 @@ from requests.cookies import (MockRequest, MockResponse, RequestsCookieJar,
 from tornado import httpclient
 
 import config
-
-from .log import Log
+from libs.log import Log
 
 logger_CookieJar = Log('QD.Http.CookieJar').getlogger()
 

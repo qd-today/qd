@@ -38,9 +38,8 @@ from tornado import httpclient
 
 import config
 from libs.convert import to_bytes, to_native, to_text
+from libs.log import Log
 from libs.mcrypto import aes_decrypt, aes_encrypt, passlib_or_crypt
-
-from .log import Log
 
 try:
     from hashlib import md5 as _md5  # pylint: disable=ungrouped-imports

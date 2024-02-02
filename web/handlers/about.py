@@ -5,15 +5,18 @@
 #         http://binux.me
 # Created on 2014-08-08 21:06:02
 
-from .base import *
+from tornado.web import addslash
+
+from web.handlers.base import BaseHandler
 
 
 class AboutHandler(BaseHandler):
-    @tornado.web.addslash
+    @addslash
     async def get(self):
         await self.render('about.html')
         return
 
+
 handlers = [
-        ('/about/?', AboutHandler),
-        ]
+    ('/about/?', AboutHandler),
+]

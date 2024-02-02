@@ -4,26 +4,25 @@
 # Author: Binux<i@binux.me>
 #         http://binux.me
 # Created on 2014-08-01 10:35:08
+# pylint: disable=broad-exception-raised
 
-import asyncio
-import functools
 import json
 import re
 import time
 from io import BytesIO
-from typing import Iterable
+from typing import Sequence
 
-import umsgpack
-from jinja2 import Environment, meta
-from jinja2.nodes import Const, Filter, Getattr, List, Name, Tuple
-from tornado import gen, httpclient
+import tornado
+from jinja2 import meta
+from jinja2.nodes import Filter, Name
+from tornado import httpclient
 
+import config
 from libs import json_typing, utils
 from libs.fetcher import Fetcher
 from libs.parse_url import parse_url
 from libs.safe_eval import safe_eval
-
-from .base import *
+from web.handlers.base import BaseHandler, logger_web_handler
 
 
 class HAREditor(BaseHandler):
@@ -36,11 +35,11 @@ class HAREditor(BaseHandler):
             tpl = await self.db.pubtpl.list(filename=harname,
                                             reponame=reponame,
                                             fields=('id', 'name', 'content', 'comments'))
-            if (len(tpl) > 0):
+            if len(tpl) > 0:
                 hardata = tpl[0]['content']
                 harnote = tpl[0]['comments']
             else:
-                await self.render('tpl_run_failed.html', log=u'此模板不存在')
+                await self.render('tpl_run_failed.html', log='此模板不存在')
                 return
         else:
             hardata = ''
@@ -84,22 +83,22 @@ class HAREditor(BaseHandler):
 
 
 class HARTest(BaseHandler):
-    async def post(self):
+    async def post(self) -> None:
         self.evil(+1)
         try:
             if 'json' in self.request.headers['Content-Type']:
                 self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
         except Exception as e:
-            logger_web_handler.debug('HARTest Replace error: %s' % e)
+            logger_web_handler.debug('HARTest Replace error: %s', e)
         data: json_typing.HARTest = json.loads(self.request.body)
-        FOR_START = re.compile('{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}').match(data['request']['url'])
-        WHILE_START = re.compile('{%\s*while\s+([\s\S]*)\s*%}').match(data['request']['url'])
-        IF_START = re.compile('{%\s*if\s+(.+)\s*%}').match(data['request']['url'])
-        ELSE_START = re.compile('{%\s*else\s*%}').match(data['request']['url'])
-        PARSE_END = re.compile('{%\s*end(for|if)\s*%}').match(data['request']['url'])
+        FOR_START = re.compile(r'{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}').match(data['request']['url'])  # pylint: disable=invalid-name
+        WHILE_START = re.compile(r'{%\s*while\s+([\s\S]*)\s*%}').match(data['request']['url'])  # pylint: disable=invalid-name
+        IF_START = re.compile(r'{%\s*if\s+(.+)\s*%}').match(data['request']['url'])  # pylint: disable=invalid-name
+        ELSE_START = re.compile(r'{%\s*else\s*%}').match(data['request']['url'])  # pylint: disable=invalid-name
+        PARSE_END = re.compile(r'{%\s*end(for|if)\s*%}').match(data['request']['url'])  # pylint: disable=invalid-name
         if FOR_START or WHILE_START or IF_START or ELSE_START or PARSE_END:
             tmp = {'env': data['env'], 'rule': data['rule']}
-            tmp['request'] = {'method': 'GET', 'url': 'api://util/unicode?content=', 'headers': [], 'cookies': []}
+            tmp['request'] = {'method': 'GET', 'url': 'api://util/unicode?content=', 'headers': [], 'cookies': []}  # type: ignore
             req, rule, env = self.fetcher.build_request(tmp)
             if FOR_START:
                 _target = FOR_START.group(1)
@@ -108,7 +107,7 @@ class HARTest(BaseHandler):
                 try:
                     if _from_var.startswith('list(') or _from_var.startswith('range('):
                         _from = safe_eval(_from_var, env['variables'])
-                    if not isinstance(_from, Iterable):
+                    if not isinstance(_from, Sequence):
                         raise Exception('for循环只支持可迭代类型及变量')
                 except Exception as e:
                     raise e
@@ -119,7 +118,7 @@ class HARTest(BaseHandler):
                 env['variables']['loop_length'] = str(env['variables'].get('loop_length', len(_from)))
                 env['variables']['loop_revindex0'] = str(env['variables'].get('loop_revindex0', len(_from) - 1))
                 env['variables']['loop_revindex'] = str(env['variables'].get('loop_revindex', len(_from)))
-                res = '循环内赋值变量: %s, 循环列表变量: %s, 循环次数: %s, \r\n循环列表内容: %s.\r\n此页面仅用于显示循环信息, 禁止在此页面提取变量' % (_target, _from_var, len(_from), str(list(_from)))
+                res = f'循环内赋值变量: {_target}, 循环列表变量: {_from_var}, 循环次数: {len(_from)}, \r\n循环列表内容: {list(_from)}.\r\n此页面仅用于显示循环信息, 禁止在此页面提取变量'
                 response = httpclient.HTTPResponse(request=req, code=200, reason='OK', buffer=BytesIO(str(res).encode()))
             elif WHILE_START:
                 try:
@@ -128,18 +127,23 @@ class HARTest(BaseHandler):
                     condition = safe_eval(WHILE_START.group(1), env['variables'])
                     condition = 'while 循环判断结果: true' if condition else 'while 循环判断结果: false'
                     code = 200
-                except NameError:
+                except NameError as e:
+                    logger_web_handler.debug('while 循环判断结果: false, error: %s', e, exc_info=config.traceback_print)
                     condition = 'while 循环判断结果: false'
                     code = 200
                 except ValueError as e:
                     if len(str(e)) > 20 and str(e)[:20] == "<class 'NameError'>:":
+                        logger_web_handler.debug('while 循环判断结果: false, error: %s', e, exc_info=config.traceback_print)
                         condition = 'while 循环判断结果: false'
                         code = 200
                     else:
-                        condition = 'while 循环条件错误: %s\r\n条件表达式: %s' % (str(e).replace("<class 'ValueError'>", "ValueError"), WHILE_START.group(1))
+                        logger_web_handler.debug('while 循环条件错误: %s, 条件表达式: %s', e, WHILE_START.group(1), exc_info=config.traceback_print)
+                        e_str = str(e).replace("<class 'ValueError'>", "ValueError")
+                        condition = f'while 循环条件错误: {e_str}\r\n条件表达式: {WHILE_START.group(1)}'
                         code = 500
                 except Exception as e:
-                    condition = 'while循环条件错误: %s\r\n条件表达式: %s' % (str(e), WHILE_START.group(1))
+                    logger_web_handler.debug('while 循环条件错误: %s, 条件表达式: %s', e, WHILE_START.group(1), exc_info=config.traceback_print)
+                    condition = f'while 循环条件错误: {e}\r\n条件表达式: {WHILE_START.group(1)}'
                     code = 500
                 condition += '\r\n此页面仅用于显示循环判断结果, 禁止在此页面提取变量'
                 response = httpclient.HTTPResponse(request=req, code=code, buffer=BytesIO(str(condition).encode()))
@@ -148,22 +152,27 @@ class HARTest(BaseHandler):
                     condition = safe_eval(IF_START.group(1), env['variables'])
                     condition = '判断结果: true' if condition else '判断结果: false'
                     code = 200
-                except NameError:
+                except NameError as e:
+                    logger_web_handler.debug('判断结果: false, error: %s', e, exc_info=config.traceback_print)
                     condition = False
                 except ValueError as e:
                     if len(str(e)) > 20 and str(e)[:20] == "<class 'NameError'>:":
+                        logger_web_handler.debug('判断结果: false, error: %s', e, exc_info=config.traceback_print)
                         condition = False
                     else:
-                        condition = '判断条件错误: %s\r\n条件表达式: %s' % (str(e).replace("<class 'ValueError'>", "ValueError"), IF_START.group(1))
+                        logger_web_handler.debug('判断条件错误: %s, 条件表达式: %s', e, IF_START.group(1), exc_info=config.traceback_print)
+                        e_str = str(e).replace("<class 'ValueError'>", "ValueError")
+                        condition = f'判断条件错误: {e_str}\r\n条件表达式: {IF_START.group(1)}'
                         code = 500
                 except Exception as e:
-                    condition = '判断条件错误: %s\r\n条件表达式: %s' % (str(e), IF_START.group(1))
+                    logger_web_handler.debug('判断条件错误: %s, 条件表达式: %s', e, IF_START.group(1), exc_info=config.traceback_print)
+                    condition = f'判断条件错误: {e}\r\n条件表达式: {IF_START.group(1)}'
                     code = 500
                 condition += '\r\n此页面仅用于显示判断结果, 禁止在此页面提取变量'
                 response = httpclient.HTTPResponse(request=req, code=code, buffer=BytesIO(str(condition).encode()))
             else:
-                e = httpclient.HTTPError(405, "结束等控制语句不支持在单条请求中测试")
-                response = httpclient.HTTPResponse(request=req, code=e.code, reason=e.message, buffer=BytesIO(str(e).encode()))
+                exc = httpclient.HTTPError(405, "结束等控制语句不支持在单条请求中测试")  # type: ignore
+                response = httpclient.HTTPResponse(request=req, code=exc.code, reason=exc.message, buffer=BytesIO(str(exc).encode()))
             env['session'].extract_cookies_to_jar(response.request, response)
             success, _ = self.fetcher.run_rule(response, rule, env)
             result = {
@@ -218,9 +227,10 @@ class HARSave(BaseHandler):
                     return
                 try:
                     ast = env.parse(obj[key])
-                except:
+                except Exception as e:
+                    logger_web_handler.debug("Parse %s from env failed: %s" , obj[key], e, exc_info=config.traceback_print)
                     return
-                var.update(meta.find_undeclared_variables(ast))
+                var.update(meta.find_undeclared_variables(ast))  # pylint: disable=cell-var-from-loop
 
             _get(req, 'method')
             _get(req, 'url')
@@ -245,8 +255,8 @@ class HARSave(BaseHandler):
         try:
             if 'json' in self.request.headers['Content-Type']:
                 self.request.body = self.request.body.replace(b'\xc2\xa0', b' ')
-        except :
-            logger_web_handler.debug('HARSave Replace error: %s' % e)
+        except Exception as e:
+            logger_web_handler.debug('HARSave Replace error: %s', e, exc_info=config.traceback_print)
         data = json.loads(self.request.body)
 
         async with self.db.transaction() as sql_session:
@@ -261,44 +271,44 @@ class HARSave(BaseHandler):
                         try:
                             init_env[x.node.name] = x.args[0].as_const()
                         except Exception as e:
-                            logger_web_handler.debug('HARSave init_env error: %s' % e)
+                            logger_web_handler.debug('HARSave init_env error: %s', e, exc_info=config.traceback_print)
             except Exception as e:
-                logger_web_handler.debug('HARSave ast error: %s' % e)
+                logger_web_handler.debug('HARSave ast error: %s', e, exc_info=config.traceback_print)
             variables = json.dumps(variables)
             init_env = json.dumps(init_env)
-            groupName = 'None'
+            group_name = 'None'
             if id:
                 _tmp = self.check_permission(await self.db.tpl.get(id, fields=('id', 'userid', 'lock'), sql_session=sql_session), 'w')
                 if not _tmp['userid']:
                     self.set_status(403)
-                    await self.finish(u'公开模板不允许编辑')
+                    await self.finish('公开模板不允许编辑')
                     return
                 if _tmp['lock']:
                     self.set_status(403)
-                    await self.finish(u'模板已锁定')
+                    await self.finish('模板已锁定')
                     return
 
                 await self.db.tpl.mod(id, har=har, tpl=tpl, variables=variables, init_env=init_env, sql_session=sql_session)
-                groupName = (await self.db.tpl.get(id, fields=('_groups',), sql_session=sql_session))['_groups']
+                group_name = (await self.db.tpl.get(id, fields=('_groups',), sql_session=sql_session))['_groups']
             else:
                 try:
                     id = await self.db.tpl.add(userid, har, tpl, variables, init_env=init_env, sql_session=sql_session)
                 except Exception as e:
                     if "max_allowed_packet" in str(e):
-                        raise Exception('har大小超过MySQL max_allowed_packet 限制; \n' + str(e))
+                        raise Exception('har大小超过MySQL max_allowed_packet 限制; \n' + str(e)) from e
                 if not id:
                     raise Exception('create tpl error')
 
         setting = data.get('setting', {})
         await self.db.tpl.mod(id,
-                              tplurl='{0}|{1}'.format(harname, reponame),
+                              tplurl=f'{harname}|{reponame}',
                               sitename=setting.get('sitename'),
                               siteurl=setting.get('siteurl'),
                               note=setting.get('note'),
                               interval=setting.get('interval') or None,
                               mtime=time.time(),
                               updateable=0,
-                              _groups=groupName,
+                              _groups=group_name,
                               sql_session=sql_session)
         await self.finish({
             'id': id

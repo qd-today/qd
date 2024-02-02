@@ -6,11 +6,6 @@
 # Created on 2012-12-15 16:15:50
 
 import os
-import sys
-
-from . import base
-
-sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))))
 
 handlers = []
 ui_modules = {}

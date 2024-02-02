@@ -28,8 +28,7 @@ import dateutil
 from opcode import opmap, opname
 
 import config
-
-from .log import Log
+from libs.log import Log
 
 __all__ = ['test_expr', 'safe_eval', 'const_eval']
 

@@ -15,10 +15,9 @@ from sqlalchemy import (VARBINARY, Column, Integer, String, delete, select,
                         text, update)
 from sqlalchemy.dialects.mysql import INTEGER, TINYINT
 
+from db.basedb import AlchemyMixin, BaseDB, config
 from libs import mcrypto as crypto
 from libs import utils
-
-from .basedb import AlchemyMixin, BaseDB, config
 
 
 class User(BaseDB, AlchemyMixin):
@@ -81,8 +80,8 @@ class User(BaseDB, AlchemyMixin):
 
         now = time.time()
         if isinstance(ip, str):
-            ipVersion = utils.is_ip(ip)
-            ip = utils.ip2varbinary(ip, ipVersion)
+            ip_version = utils.is_ip(ip)
+            ip = utils.ip2varbinary(ip, ip_version)
         userkey = umsgpack.unpackb(crypto.password_hash(password))[0]
 
         hash = MD5.new()
@@ -118,12 +117,12 @@ class User(BaseDB, AlchemyMixin):
 
         return False
 
-    async def challenge_MD5(self, email, password_md5, sql_session=None):
+    async def challenge_md5(self, email, password_md5, sql_session=None):
         user = await self.get(email=email, fields=('id', 'password', 'password_md5'), sql_session=sql_session)
         if user is None:
             return False
         else:
-            if (user['password_md5'] == ''):
+            if user['password_md5'] == '':
                 pass
             else:
                 password_hash = await self.decrypt(user['id'], user['password'], sql_session=sql_session)
@@ -158,8 +157,8 @@ class User(BaseDB, AlchemyMixin):
 
         try:
             return crypto.aes_encrypt(data, userkey)
-        except Exception as e:
-            raise self.UserDBException('encrypt error')
+        except Exception as exc:
+            raise self.UserDBException('encrypt error') from exc
 
     async def decrypt(self, id, data, sql_session=None):
         if id:
@@ -175,10 +174,10 @@ class User(BaseDB, AlchemyMixin):
                         key = key.decode('utf-8')
                     old[key] = value
             return old
-        except Exception as e:
-            raise self.UserDBException('decrypt error')
+        except Exception as exc:
+            raise self.UserDBException('decrypt error') from exc
 
-    async def get(self, id=None, email=None, fields: tuple = None, one_or_none=False, first=True, to_dict=True, sql_session=None):
+    async def get(self, id=None, email=None, fields=None, one_or_none=False, first=True, to_dict=True, sql_session=None):
         if fields is None:
             _fields = User
         else:
@@ -196,7 +195,7 @@ class User(BaseDB, AlchemyMixin):
             return self.to_dict(result, fields)
         return result
 
-    async def list(self, fields: tuple = None, limit=None, to_dict=True, sql_session=None, **kwargs):
+    async def list(self, fields=None, limit=None, to_dict=True, sql_session=None, **kwargs):
         if fields is None:
             _fields = User
         else:

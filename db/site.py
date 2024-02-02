@@ -7,10 +7,10 @@
 
 from sqlalchemy import INTEGER, Column, Integer, Text, select, text, update
 
-from .basedb import AlchemyMixin, BaseDB
+from db.basedb import AlchemyMixin, BaseDB
 
 
-class Site(BaseDB,AlchemyMixin):
+class Site(BaseDB, AlchemyMixin):
     '''
     Site db
 
@@ -25,7 +25,7 @@ class Site(BaseDB,AlchemyMixin):
     repos = Column(Text, nullable=False)
 
     def add(self, sql_session=None):
-        insert = dict(regEn = 1)
+        insert = dict(regEn=1)
         return self._insert(Site(**insert), sql_session=sql_session)
 
     def mod(self, id, sql_session=None, **kwargs):
@@ -43,5 +43,5 @@ class Site(BaseDB,AlchemyMixin):
 
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
-            return self.to_dict(result,fields)
+            return self.to_dict(result, fields)
         return result

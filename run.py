@@ -58,7 +58,7 @@ def start_server():
         converter = db_converter.DBconverter(database)
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        run = asyncio.ensure_future(converter.ConvertNewType(database) , loop=loop)
+        run = asyncio.ensure_future(converter.convert_new_type(database) , loop=loop)
         loop.run_until_complete(run)
 
         default_version = json.load(open(os.path.join(os.path.dirname(__file__), 'version.json'), 'r', encoding='utf-8'))['version']

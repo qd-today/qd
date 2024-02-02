@@ -7,12 +7,16 @@
 import json
 import re
 import warnings
+from typing import Optional
 
+import aiosqlite
+from jinja2.nodes import Filter, Name
 from sqlalchemy import update
 
 import config
 from db import DB, Site, Task, Tpl, User
 from libs import mcrypto as crypto
+from libs.fetcher import Fetcher
 from libs.log import Log
 
 logger_db_converter = Log('QD.DB.Converter').getlogger()
@@ -21,13 +25,15 @@ logger_db_converter = Log('QD.DB.Converter').getlogger()
 class DBconverter():
     def __init__(self, path=config.sqlite3.path):
         self.path = path
+        self.db = None
 
-    async def ConvertNewType(self, db: DB = None, path=config.sqlite3.path):
+    async def convert_new_type(self, db: Optional[DB] = None):
         if db:
             self.db = db
         else:
             self.db = DB()
-        exec_shell = self.db._execute
+        exec_shell = self.db._execute  # pylint: disable=protected-access
+        update_shell = self.db._update  # pylint: disable=protected-access
 
         async def _convert_task(group_with_underline: bool):
             async with self.db.transaction() as sql_session:
@@ -74,8 +80,8 @@ class DBconverter():
                     autokey = 'AUTOINCREMENT'
                 else:
                     autokey = 'AUTO_INCREMENT'
-                await exec_shell('''CREATE TABLE IF NOT EXISTS `tpl` (
-                `id` INTEGER NOT NULL PRIMARY KEY %s,
+                await exec_shell(f"""CREATE TABLE IF NOT EXISTS `tpl` (
+                `id` INTEGER NOT NULL PRIMARY KEY {autokey},
                 `userid` INT UNSIGNED NULL,
                 `siteurl` VARCHAR(256) NULL,
                 `sitename` VARCHAR(128) NULL,
@@ -98,7 +104,7 @@ class DBconverter():
                 `tplurl` VARCHAR(1024) NULL DEFAULT '',
                 `updateable` INT UNSIGNED NOT NULL DEFAULT 0,
                 `_groups` VARCHAR(256) NOT NULL DEFAULT 'None'
-                );''' % autokey, sql_session=sql_session)
+                );""", sql_session=sql_session)
                 if group_with_underline:
                     await exec_shell("INSERT INTO `tpl` SELECT `id`,`userid`,`siteurl`,`sitename`,`banner`,`disabled`,`public`,`lock`,`fork`,`har`,`tpl`,`variables`,`interval`,`note`,`success_count`,`failed_count`,`last_success`,`ctime`,`mtime`,`atime`,`tplurl`,`updateable`,`_groups` FROM `tplold` ", sql_session=sql_session)
                 else:
@@ -177,8 +183,8 @@ class DBconverter():
             `dingding_token` VARCHAR(1024) NOT NULL DEFAULT '',
             `push_batch` VARCHAR(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
             );''' % autokey)
-            await exec_shell('''CREATE TABLE IF NOT EXISTS `tpl` (
-            `id` INTEGER NOT NULL PRIMARY KEY %s,
+            await exec_shell(f"""CREATE TABLE IF NOT EXISTS `tpl` (
+            `id` INTEGER NOT NULL PRIMARY KEY {autokey},
             `userid` INT UNSIGNED NULL,
             `siteurl` VARCHAR(256) NULL,
             `sitename` VARCHAR(128) NULL,
@@ -202,7 +208,7 @@ class DBconverter():
             `updateable` INT UNSIGNED NOT NULL DEFAULT 0,
             `_groups` VARCHAR(256) NOT NULL DEFAULT 'None',
             `init_env` TEXT NULL
-            );''' % autokey)
+            );""")
             await exec_shell('''CREATE TABLE IF NOT EXISTS `task` (
             `id` INTEGER NOT NULL PRIMARY KEY %s,
             `tplid` INT UNSIGNED NOT NULL,
@@ -228,15 +234,15 @@ class DBconverter():
             `pushsw`  VARCHAR(128) NOT NULL DEFAULT '{"logen":false,"pushen":true}',
             `newontime`  VARCHAR(256) NOT NULL DEFAULT '{"sw":false,"time":"00:10:10","randsw":false,"tz1":0,"tz2":0}'
             );''' % autokey)
-            await exec_shell('''CREATE TABLE IF NOT EXISTS `tasklog` (
-            `id` INTEGER NOT NULL PRIMARY KEY %s,
+            await exec_shell(f'''CREATE TABLE IF NOT EXISTS `tasklog` (
+            `id` INTEGER NOT NULL PRIMARY KEY {autokey},
             `taskid` INT UNSIGNED NOT NULL,
             `success` TINYINT NOT NULL,
             `ctime` INT UNSIGNED NOT NULL,
             `msg` TEXT NULL
-            );''' % autokey)
-            await exec_shell('''CREATE TABLE IF NOT EXISTS `push_request` (
-            `id` INTEGER NOT NULL PRIMARY KEY %s,
+            );''')
+            await exec_shell(f'''CREATE TABLE IF NOT EXISTS `push_request` (
+            `id` INTEGER NOT NULL PRIMARY KEY {autokey},
             `from_tplid` INT UNSIGNED NOT NULL,
             `from_userid` INT UNSIGNED NOT NULL,
             `to_tplid` INT UNSIGNED NULL,
@@ -246,16 +252,16 @@ class DBconverter():
             `ctime` INT UNSIGNED NOT NULL,
             `mtime` INT UNSIGNED NOT NULL,
             `atime` INT UNSIGNED NOT NULL
-            );''' % autokey)
-            await exec_shell('''CREATE TABLE IF NOT EXISTS `site` (
-            `id` INTEGER NOT NULL PRIMARY KEY %s,
+            );''')
+            await exec_shell(f"""CREATE TABLE IF NOT EXISTS `site` (
+            `id` INTEGER NOT NULL PRIMARY KEY {autokey},
             `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
             `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0,
             `logDay` INT UNSIGNED NOT NULL DEFAULT 365,
             `repos` TEXT NOT NULL
-            );''' % autokey)
-            await exec_shell('''CREATE TABLE IF NOT EXISTS `pubtpl` (
-                `id` INTEGER NOT NULL PRIMARY KEY %s,
+            );""")
+            await exec_shell(f'''CREATE TABLE IF NOT EXISTS `pubtpl` (
+                `id` INTEGER NOT NULL PRIMARY KEY {autokey},
                 `name` TEXT ,
                 `author` TEXT ,
                 `comments` TEXT ,
@@ -270,23 +276,21 @@ class DBconverter():
                 `repoacc` TEXT,
                 `repobranch` TEXT,
                 `commenturl` TEXT
-            );''' % autokey)
-            await exec_shell('''CREATE TABLE IF NOT EXISTS `notepad` (
-                `id` INTEGER NOT NULL PRIMARY KEY %s,
+            );''')
+            await exec_shell(f'''CREATE TABLE IF NOT EXISTS `notepad` (
+                `id` INTEGER NOT NULL PRIMARY KEY {autokey},
                 `userid` INTEGER NOT NULL ,
                 `notepadid` INTEGER NOT NULL ,
                 `content` TEXT NULL
-            );''' % autokey)
+            );''')
 
         if config.db_type == 'sqlite3':
             for each in ('email', 'nickname'):
-                await exec_shell('''CREATE UNIQUE INDEX IF NOT EXISTS `ix_%s_%s` ON %s (%s)''' % (
-                    self.db.user.__tablename__, each, self.db.user.__tablename__, each))
+                await exec_shell(f'''CREATE UNIQUE INDEX IF NOT EXISTS `ix_{self.db.user.__tablename__}_{each}` ON {self.db.user.__tablename__} ({each})''')
         else:
             for each in ('email', 'nickname'):
                 try:
-                    await exec_shell('''ALTER TABLE `%s` ADD UNIQUE INDEX `ix_%s_%s` (%s)''' % (
-                        self.db.user.__tablename__, self.db.user.__tablename__, each, each))
+                    await exec_shell(f'''ALTER TABLE `{self.db.user.__tablename__}` ADD UNIQUE INDEX `ix_{self.db.user.__tablename__}_{each}` ({each})''')
                 except Exception as e:
                     logger_db_converter.debug(e)
 
@@ -388,12 +392,12 @@ class DBconverter():
 
         try:
             temp = await self.db.site.get("1", fields=('regEn',))
-            if not (temp):
+            if not temp:
                 raise Exception("for table site, new row will be created")
         except Exception as e:
             logger_db_converter.debug(e)
             insert = dict(regEn=1, repos='{"repos":[{"reponame":"default","repourl":"https://github.com/qd-today/templates","repobranch":"master","repoacc":true}], "lastupdate":0}')
-            await self.db.site._insert(Site(**insert))
+            await self.db.site._insert(Site(**insert))  # pylint: disable=protected-access
 
         try:
             await self.db.site.get("1", fields=('MustVerifyEmailEn',))
@@ -441,12 +445,12 @@ class DBconverter():
                     autokey = ''
                 else:
                     autokey = 'AUTO_INCREMENT'
-                await exec_shell('''CREATE TABLE IF NOT EXISTS `newsite` (
-                            `id` INTEGER NOT NULL PRIMARY KEY {0},
+                await exec_shell(f'''CREATE TABLE IF NOT EXISTS `newsite` (
+                            `id` INTEGER NOT NULL PRIMARY KEY {autokey},
                             `regEn` INT UNSIGNED NOT NULL DEFAULT 1,
                             `MustVerifyEmailEn` INT UNSIGNED NOT NULL DEFAULT 0,
                             `logDay` INT UNSIGNED NOT NULL DEFAULT 365
-                            );'''.format(autokey))
+                            );''')
                 await exec_shell('INSERT INTO `newsite` SELECT id,regEn,MustVerifyEmailEn,LogDay FROM `site`')
                 await exec_shell("DROP TABLE `site`")
                 await exec_shell('CREATE TABLE `site` as select * from `newsite`')
@@ -484,22 +488,22 @@ class DBconverter():
 
         if config.db_type == 'sqlite3':
             try:
-                import aiosqlite
+
                 conn = await aiosqlite.connect(f"{config.sqlite3.path}")
                 conn.text_factory = bytes
                 cursor = await conn.execute('SELECT id, password, userkey, password_md5 FROM user')
                 for row in await cursor.fetchall():
-                    result = await self.db._update(update(User).where(User.id == row[0]).values(password=row[1], userkey=row[2], password_md5=row[3]))
+                    result = await update_shell(update(User).where(User.id == row[0]).values(password=row[1], userkey=row[2], password_md5=row[3]))
                 await cursor.close()
 
                 cursor = await conn.execute('SELECT id, init_env, env, session FROM task')
                 for row in await cursor.fetchall():
-                    result = await self.db._update(update(Task).where(Task.id == row[0]).values(init_env=row[1], env=row[2], session=row[3]))
+                    result = await update_shell(update(Task).where(Task.id == row[0]).values(init_env=row[1], env=row[2], session=row[3]))
                 await cursor.close()
 
                 cursor = await conn.execute('SELECT id, har, tpl FROM tpl')
                 for row in await cursor.fetchall():
-                    result = await self.db._update(update(Tpl).where(Tpl.id == row[0]).values(har=row[1], tpl=row[2]))
+                    result = await update_shell(update(Tpl).where(Tpl.id == row[0]).values(har=row[1], tpl=row[2]))
                 await cursor.close()
 
                 await conn.close()
@@ -583,7 +587,6 @@ class DBconverter():
                     await self.db.site.mod(1, repos=repo['repos'].replace("qiandao-today/templates", "qd-today/templates"), sql_session=sql_session)
         except Exception as e:
             logger_db_converter.debug(e)
-            pass
 
         try:
             await self.db.pubtpl.list(limit=1, fields=('commenturl',))
@@ -607,7 +610,7 @@ class DBconverter():
 
         try:
             # deepcode ignore change_to_is: use "is" will cause error
-            result = await self.db._update(update(Tpl).where(Tpl.userid == None).where(Tpl.public == 0).values(public=1))
+            result = await update_shell(update(Tpl).where(Tpl.userid.is_(None)).where(Tpl.public == 0).values(public=1))
         except Exception as e:
             logger_db_converter.debug(e)
 
@@ -616,9 +619,7 @@ class DBconverter():
         except Exception as e:
             logger_db_converter.debug(e)
             await exec_shell("ALTER TABLE `tpl` ADD `init_env` TEXT NULL")
-            from jinja2.nodes import Filter, Name
 
-            from libs.fetcher import Fetcher
             env = Fetcher().jinja_env
             async with self.db.transaction() as sql_session:
                 tpls = await self.db.tpl.list(fields=('id', 'userid', 'tpl', 'variables', 'init_env'), sql_session=sql_session)
@@ -637,9 +638,9 @@ class DBconverter():
                                         try:
                                             init_env[x.node.name] = x.args[0].as_const()
                                         except Exception as e:
-                                            logger_db_converter.debug('Convert init_env error: %s' % e)
+                                            logger_db_converter.debug('Convert init_env error: %s', e, exc_info=True)
                             except Exception as e:
-                                logger_db_converter.debug('Convert init_env error: %s' % e)
+                                logger_db_converter.debug('Convert init_env error: %s', e, exc_info=True)
                         await self.db.tpl.mod(tpl['id'], init_env=json.dumps(init_env), sql_session=sql_session)
 
         return

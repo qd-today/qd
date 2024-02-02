@@ -7,7 +7,7 @@
 
 import json
 
-from .base import *
+from web.handlers.base import BaseHandler
 
 
 class IndexHandlers(BaseHandler):
@@ -35,6 +35,7 @@ class IndexHandlers(BaseHandler):
 
         return await self.render('index.html', tpls=tpls, tplid=tplid, tpl=tpl, variables=variables, init_env=json.loads(tpl['init_env']))
 
+
 handlers = [
-        ('/', IndexHandlers),
-        ]
+    ('/', IndexHandlers),
+]

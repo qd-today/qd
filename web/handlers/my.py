@@ -7,7 +7,9 @@
 
 import time
 
-from .base import *
+from tornado.web import addslash, authenticated
+
+from web.handlers.base import BaseHandler
 
 
 def my_status(task):
@@ -21,9 +23,10 @@ def my_status(task):
         return u'正在准备执行任务'
     return u'正常'
 
+
 class MyHandler(BaseHandler):
-    @tornado.web.addslash
-    @tornado.web.authenticated
+    @addslash
+    @authenticated
     async def get(self):
         user = self.current_user
         adminflg = False
@@ -36,7 +39,7 @@ class MyHandler(BaseHandler):
 
             tasks = await self.db.task.list(user['id'], fields=('id', 'tplid', 'note', 'disabled', 'last_success', 'success_count', 'failed_count', 'last_failed', 'next', 'last_failed_count', 'ctime', '_groups'), limit=None)
             for task in tasks:
-                tpl = await self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note') )
+                tpl = await self.db.tpl.get(task['tplid'], fields=('id', 'userid', 'sitename', 'siteurl', 'banner', 'note'))
                 task['tpl'] = tpl
 
             _groups = []
@@ -50,16 +53,17 @@ class MyHandler(BaseHandler):
             tplgroups = []
             for tpl in tpls:
                 temp = tpl['_groups']
-                if (temp not  in tplgroups):
+                if (temp not in tplgroups):
                     tplgroups.append(temp)
 
-            await self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=_groups,  tplgroups=tplgroups, adminflg=adminflg)
+            await self.render('my.html', tpls=tpls, tasks=tasks, my_status=my_status, userid=user['id'], taskgroups=_groups, tplgroups=tplgroups, adminflg=adminflg)
         else:
             return self.redirect('/login')
 
+
 class CheckUpdateHandler(BaseHandler):
-    @tornado.web.addslash
-    @tornado.web.authenticated
+    @addslash
+    @authenticated
     async def get(self):
         user = self.current_user
         async with self.db.transaction() as sql_session:
@@ -70,13 +74,13 @@ class CheckUpdateHandler(BaseHandler):
                 hjson[f'{h["filename"]}|{h["reponame"]}'] = h
 
             for tpl in tpls:
-                if tpl["tplurl"] in hjson and hjson[tpl["tplurl"]]["update"] and tpl['mtime'] < time.mktime(time.strptime(hjson[tpl["tplurl"]]['date'],"%Y-%m-%d %H:%M:%S")):
+                if tpl["tplurl"] in hjson and hjson[tpl["tplurl"]]["update"] and tpl['mtime'] < time.mktime(time.strptime(hjson[tpl["tplurl"]]['date'], "%Y-%m-%d %H:%M:%S")):
                     await self.db.tpl.mod(tpl["id"], updateable=1, sql_session=sql_session)
 
         self.redirect('/my/')
 
-handlers = [
-        ('/my/?', MyHandler),
-        ('/my/checkupdate/?', CheckUpdateHandler),
-        ]
 
+handlers = [
+    ('/my/?', MyHandler),
+    ('/my/checkupdate/?', CheckUpdateHandler),
+]

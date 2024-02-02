@@ -24,9 +24,8 @@ from tornado.httputil import HTTPHeaders
 
 import config
 from libs import cookie_utils, utils
-
-from .log import Log
-from .safe_eval import safe_eval
+from libs.log import Log
+from libs.safe_eval import safe_eval
 
 logger_fetcher = Log('QD.Http.Fetcher').getlogger()
 if config.use_pycurl:
@@ -240,7 +239,7 @@ class Fetcher(object):
                     try:
                         _ = json.dumps(ret['postData']['params'])
                     except UnicodeDecodeError as e:
-                        logger_fetcher.error(f'params encoding error: {e}', exc_info=config.traceback_print)
+                        logger_fetcher.error('params encoding error: %s', e, exc_info=config.traceback_print)
                         del ret['postData']['params']
 
             return ret
@@ -432,7 +431,7 @@ class Fetcher(object):
                     try:
                         _ = json.dumps(request['postData']['params'])
                     except UnicodeDecodeError as e:
-                        logger_fetcher.error(f'params encoding error: {e}', exc_info=config.traceback_print)
+                        logger_fetcher.error('params encoding error: %s', e, exc_info=config.traceback_print)
                         del request['postData']['params']
             return request
 

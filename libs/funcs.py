@@ -16,8 +16,7 @@ from tornado import gen
 import config
 from db import DB
 from libs import utils
-
-from .log import Log
+from libs.log import Log
 
 logger_funcs = Log('QD.Http.Funcs').getlogger()
 
