@@ -165,6 +165,9 @@ class TaskRunHandler(BaseHandler):
         self.evil(+2)
         start_ts = int(time.time())
         user = self.current_user
+        pushsw = None
+        title = f"QD 任务ID: {taskid} 完成"
+        logtmp = ""
         async with self.db.transaction() as sql_session:
             task = self.check_permission(await self.db.task.get(taskid, fields=('id', 'tplid', 'userid', 'init_env',
                                                                                 'env', 'session', 'retry_count', 'retry_interval', 'last_success', 'last_failed', 'success_count', 'note',
@@ -250,11 +253,11 @@ class TaskRunHandler(BaseHandler):
             except StreamClosedError as e:
                 logger_web_handler.error('stream closed error: %s', e, exc_info=config.traceback_print)
 
-            await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
             log_day = int((await self.db.site.get(1, fields=('logDay',), sql_session=sql_session))['logDay'])
             for log in await self.db.tasklog.list(taskid=taskid, fields=('id', 'ctime'), sql_session=sql_session):
                 if (time.time() - log['ctime']) > (log_day * 24 * 60 * 60):
                     await self.db.tasklog.delete(log['id'], sql_session=sql_session)
+        await pushertool.pusher(user['id'], pushsw, 0x8, title, logtmp)
         return
 
 

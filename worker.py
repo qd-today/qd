@@ -110,17 +110,17 @@ class BaseWorker:
                                     tmp += ''.join(tmpval)
                                     logtemp += tmp
                             push_batch["time"] = push_batch['time'] + delta
-                            await self.db.user.mod(userid, push_batch=json.dumps(push_batch), sql_session=sql_session)
                             if tmp and numlog:
                                 user_email = user.get('email', 'Unkown')
                                 logger_worker.debug(
                                     "Start push batch log for user %s, email:%s", userid, user_email)
                                 await pushtool.pusher(userid, {"pushen": bool(push_batch.get("sw", False))}, 4080, title, logtemp)
                                 logger_worker.info(
-                                    "Success push batch log for user %s, email:%s", userid, user_email)
+                                    "Complete push batch log for user %s, email:%s", userid, user_email)
                             else:
                                 logger_worker.debug(
                                     'User %s does not need to perform push_batch task, stop.', userid)
+                            await self.db.user.mod(userid, push_batch=json.dumps(push_batch), sql_session=sql_session)
         except Exception as e:
             logger_worker.error('Push batch task failed: %s', e, exc_info=config.traceback_print)
 
@@ -173,8 +173,15 @@ class BaseWorker:
         return next
 
     async def do(self, task):
+        is_success = False
+        should_push = 0
+        userid = None
+        title = f"QD 定时任务ID {task['id']}-{task.get('note',None)} 完成"
+        content = ""
+        pushsw = json.loads(task['pushsw'])
         async with self.db.transaction() as sql_session:
             user = await self.db.user.get(task['userid'], fields=('id', 'email', 'email_verified', 'nickname', 'logtime'), sql_session=sql_session)
+            userid = user['id']
             if not user:
                 await self.db.tasklog.add(task['id'], False, msg='no such user, disabled.', sql_session=sql_session)
                 await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
@@ -195,15 +202,6 @@ class BaseWorker:
                 await self.db.tasklog.add(task['id'], False, msg='no permission error, task disabled.', sql_session=sql_session)
                 await self.db.task.mod(task['id'], next=None, disabled=1, sql_session=sql_session)
                 return False
-
-            newontime = json.loads(task["newontime"])
-            pushtool = Pusher(self.db, sql_session=sql_session)
-            caltool = Cal()
-            logtime = json.loads(user['logtime'])
-            pushsw = json.loads(task['pushsw'])
-
-            if 'ErrTolerateCnt' not in logtime:
-                logtime['ErrTolerateCnt'] = 0
 
             start = time.perf_counter()
             try:
@@ -230,6 +228,8 @@ class BaseWorker:
                 session = await self.db.user.encrypt(task['userid'],
                                                      new_env['session'].to_json() if hasattr(new_env['session'], 'to_json') else new_env['session'], sql_session=sql_session)
 
+                newontime = json.loads(task["newontime"])
+                caltool = Cal()
                 if newontime['sw']:
                     if 'mode' not in newontime:
                         newontime['mode'] = 'ontime'
@@ -259,9 +259,9 @@ class BaseWorker:
 
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 title = f"QD定时任务 {tpl['sitename']}-{task['note']} 成功"
-                logtemp = new_env['variables'].get('__log__')
-                logtemp = f"{t} \\r\\n日志：{logtemp}"
-                await pushtool.pusher(user['id'], pushsw, 0x2, title, logtemp)
+                content = new_env['variables'].get('__log__')
+                content = f"{t} \\r\\n日志：{content}"
+                should_push = 0x2
 
                 logger_worker.info('taskid:%d tplid:%d successed! %.5fs',
                                    task['id'], task['tplid'], time.perf_counter() - start)
@@ -269,6 +269,7 @@ class BaseWorker:
                 await self.clear_log(task['id'], sql_session=sql_session)
                 logger_worker.info(
                     'taskid:%d tplid:%d clear log.', task['id'], task['tplid'])
+                is_success = True
             except Exception as e:
                 # failed feedback
                 if config.traceback_print:
@@ -284,13 +285,16 @@ class BaseWorker:
                     next = time.time() + next_time_delta
                     content = content + \
                         f" \\r\\n下次运行时间：{time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(next))}"
+                    logtime = json.loads(user['logtime'])
+                    if 'ErrTolerateCnt' not in logtime:
+                        logtime['ErrTolerateCnt'] = 0
                     if logtime['ErrTolerateCnt'] <= task['last_failed_count']:
-                        await pushtool.pusher(user['id'], pushsw, 0x1, title, content)
+                        should_push = 0x1
                 else:
                     disabled = True
                     next = None
                     content = " \\r\\n任务已禁用"
-                    await pushtool.pusher(user['id'], pushsw, 0x1, title, content)
+                    should_push = 0x1
 
                 await self.db.tasklog.add(task['id'], success=False, msg=str(e), sql_session=sql_session)
                 await self.db.task.mod(task['id'],
@@ -305,8 +309,14 @@ class BaseWorker:
 
                 logger_worker.error('taskid:%d tplid:%d failed! %.4fs \r\n%s', task['id'], task['tplid'], time.perf_counter(
                 ) - start, str(e).replace('\\r\\n', '\r\n'))
-                return False
-        return True
+
+        if should_push:
+            try:
+                pushtool = Pusher(self.db, sql_session=sql_session)
+                await pushtool.pusher(userid, pushsw, should_push, title, content)
+            except Exception as e:
+                logger_worker.error('taskid:%d push failed! %s', task['id'], str(e), exc_info=config.traceback_print)
+        return is_success
 
 
 class QueueWorker(BaseWorker):
