@@ -186,7 +186,7 @@ class PushActionHandler(BaseHandler):
 
 class PushViewHandler(BaseHandler):
     @authenticated
-    async def get(self):
+    async def get(self, prid):  # pylint: disable=unused-argument
         return await self.render('har/editor.html')
 
     @authenticated
