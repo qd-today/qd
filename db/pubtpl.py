@@ -7,10 +7,10 @@
 
 from sqlalchemy import Column, Integer, Text, delete, select, update
 
-from .basedb import AlchemyMixin, BaseDB
+from db.basedb import AlchemyMixin, BaseDB
 
 
-class Pubtpl(BaseDB,AlchemyMixin):
+class Pubtpl(BaseDB, AlchemyMixin):
     '''
     Site db
 
@@ -51,7 +51,7 @@ class Pubtpl(BaseDB,AlchemyMixin):
 
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
-            return self.to_dict(result,fields)
+            return self.to_dict(result, fields)
         return result
 
     async def list(self, fields=None, limit=1000, to_dict=True, sql_session=None, **kwargs):
@@ -70,7 +70,7 @@ class Pubtpl(BaseDB,AlchemyMixin):
 
         result = await self._get(smtm, sql_session=sql_session)
         if to_dict and result is not None:
-            return [self.to_dict(row,fields) for row in result]
+            return [self.to_dict(row, fields) for row in result]
         return result
 
     def delete(self, id, sql_session=None):

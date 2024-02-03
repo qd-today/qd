@@ -6,33 +6,31 @@
 # Created on 2014-08-09 17:52:49
 
 import json
-import traceback
 from codecs import escape_decode
 
-from tornado import gen
+from tornado.web import HTTPError, authenticated
 
-from libs import utils
+import config
 from libs.parse_url import parse_url
-
-from .base import *
+from web.handlers.base import BaseHandler, logger_web_handler
 
 
 class TPLPushHandler(BaseHandler):
-    @tornado.web.authenticated
+    @authenticated
     async def get(self, tplid):
-        user = self.current_user
+        # user = self.current_user
         tpl = await self.db.tpl.get(tplid, fields=('id', 'userid', 'sitename'))
         if not self.permission(tpl, 'w'):
             self.evil(+5)
-            await self.finish(u'<span class="alert alert-danger">没有权限</span>')
+            await self.finish('<span class="alert alert-danger">没有权限</span>')
             return
         tpls = await self.db.tpl.list(userid=None, limit=None, fields=('id', 'sitename', 'public'))
-        for i in range(len(tpls)):
+        for i, _ in enumerate(tpls):
             if tpls[i]['public'] == 2:
-                tpls[i]['sitename'] += u' [已取消]'
+                tpls[i]['sitename'] += ' [已取消]'
         await self.render('tpl_push.html', tpl=tpl, tpls=tpls)
 
-    @tornado.web.authenticated
+    @authenticated
     async def post(self, tplid):
         user = self.current_user
         tplid = int(tplid)
@@ -40,7 +38,7 @@ class TPLPushHandler(BaseHandler):
             tpl = await self.db.tpl.get(tplid, fields=('id', 'userid', ), sql_session=sql_session)
             if not self.permission(tpl, 'w'):
                 self.evil(+5)
-                await self.finish(u'<span class="alert alert-danger">没有权限</span>')
+                await self.finish('<span class="alert alert-danger">没有权限</span>')
                 return
 
             to_tplid = int(self.get_argument('totpl'))
@@ -52,7 +50,7 @@ class TPLPushHandler(BaseHandler):
                 totpl = await self.db.tpl.get(to_tplid, fields=('id', 'userid', ), sql_session=sql_session)
                 if not totpl:
                     self.evil(+1)
-                    await self.finish(u'<span class="alert alert-danger">模板不存在</span>')
+                    await self.finish('<span class="alert alert-danger">模板不存在</span>')
                     return
                 to_userid = totpl['userid']
 
@@ -65,7 +63,7 @@ class TPLPushHandler(BaseHandler):
 
 class TPLVarHandler(BaseHandler):
     async def get(self, tplid):
-        user = self.current_user
+        # user = self.current_user
         tpl = await self.db.tpl.get(tplid, fields=('id', 'note', 'userid', 'sitename', 'siteurl', 'variables', 'init_env'))
         if not self.permission(tpl):
             self.evil(+5)
@@ -77,11 +75,15 @@ class TPLVarHandler(BaseHandler):
 
 
 class TPLDelHandler(BaseHandler):
-    @tornado.web.authenticated
+    @authenticated
     async def post(self, tplid):
-        user = self.current_user
+        # user = self.current_user
         async with self.db.transaction() as sql_session:
-            tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid'), sql_session=sql_session), 'w')
+            tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid', 'public'), sql_session=sql_session), 'w')
+            if tpl['public'] == 1:
+                prs = await self.db.push_request.list(to_tplid=tplid, fields=('id', ), sql_session=sql_session)
+                for pr in prs:
+                    await self.db.push_request.mod(pr['id'], status=self.db.push_request.CANCEL, sql_session=sql_session)
             await self.db.tpl.delete(tplid, sql_session=sql_session)
 
         self.redirect('/my/')
@@ -98,7 +100,7 @@ class TPLRunHandler(BaseHandler):
                     b'\xc2\xa0', b' ')
                 data = json.loads(self.request.body)
         except Exception as e:
-            logger_Web_Handler.debug('TPLRunHandler post error: %s' % e)
+            logger_web_handler.debug('TPLRunHandler post error: %s', e, exc_info=config.traceback_print)
 
         tplid = tplid or data.get(
             'tplid') or self.get_argument('_binux_tplid', None)
@@ -116,10 +118,11 @@ class TPLRunHandler(BaseHandler):
             if not fetch_tpl:
                 try:
                     fetch_tpl = json.loads(self.get_argument('tpl'))
-                except:
+                except Exception as e:
+                    logger_web_handler.debug("parse json error: %s", e, exc_info=config.traceback_print)
                     if not user:
                         return await self.render('tpl_run_failed.html', log="请先登录!")
-                    raise HTTPError(400)
+                    raise HTTPError(400) from e
 
             env = data.get('env')
             if not env:
@@ -128,8 +131,9 @@ class TPLRunHandler(BaseHandler):
                         variables=json.loads(self.get_argument('env')),
                         session=[]
                     )
-                except:
-                    raise HTTPError(400)
+                except Exception as e:
+                    logger_web_handler.debug("parse json error: %s", e, exc_info=config.traceback_print)
+                    raise HTTPError(400) from e
 
             try:
                 url = parse_url(env['variables'].get('_binux_proxy'))
@@ -147,12 +151,9 @@ class TPLRunHandler(BaseHandler):
                 else:
                     result, _ = await self.fetcher.do_fetch(fetch_tpl, env, proxies=[])
             except Exception as e:
-                if config.traceback_print:
-                    traceback.print_exc()
+                logger_web_handler.error('UserID:%d tplID:%d failed! \r\n%s', user.get(
+                    'id', -1) or -1, int(tplid or -1), str(e).replace('\\r\\n', '\r\n'), exc_info=config.traceback_print)
                 await self.render('tpl_run_failed.html', log=str(e))
-                if user:
-                    logger_Web_Handler.error('UserID:%d tplID:%d failed! \r\n%s', user.get(
-                        'id', -1) or -1, int(tplid or -1), str(e).replace('\\r\\n', '\r\n'))
                 return
 
             if tpl:
@@ -170,37 +171,36 @@ class PublicTPLHandler(BaseHandler):
 
 
 class TPLGroupHandler(BaseHandler):
-    @tornado.web.authenticated
+    @authenticated
     async def get(self, tplid):
         user = self.current_user
-        groupNow = (await self.db.tpl.get(tplid, fields=('_groups',)))['_groups']
-        tasks = []
+        group_now = (await self.db.tpl.get(tplid, fields=('_groups',)))['_groups']
+        # tasks = []
         _groups = []
         tpls = await self.db.tpl.list(userid=user['id'], fields=('_groups',), limit=None)
         for tpl in tpls:
             temp = tpl['_groups']
-            if (temp not in _groups):
+            if temp not in _groups:
                 _groups.append(temp)
 
-        await self.render('tpl_setgroup.html', tplid=tplid, _groups=_groups, groupNow=groupNow)
+        await self.render('tpl_setgroup.html', tplid=tplid, _groups=_groups, groupNow=group_now)
 
-    @tornado.web.authenticated
+    @authenticated
     async def post(self, tplid):
         envs = {}
         for key in self.request.body_arguments:
             envs[key] = self.get_body_arguments(key)
-        New_group = envs['New_group'][0].strip()
+        new_group = envs['New_group'][0].strip()
 
-        if New_group != "":
-            target_group = New_group
+        if new_group != "":
+            target_group = new_group
         else:
-            for value in envs:
-                if envs[value][0] == 'on':
+            for key, value in envs.items():
+                if value[0] == 'on':
                     target_group = escape_decode(
-                        value.strip()[2:-1], "hex-escape")[0].decode('utf-8')
+                        key.strip()[2:-1], "hex-escape")[0].decode('utf-8')
                     break
-                else:
-                    target_group = 'None'
+                target_group = 'None'
 
         await self.db.tpl.mod(tplid, _groups=target_group)
 
@@ -208,10 +208,10 @@ class TPLGroupHandler(BaseHandler):
 
 
 handlers = [
-    ('/tpl/(\d+)/push', TPLPushHandler),
-    ('/tpl/(\d+)/var', TPLVarHandler),
-    ('/tpl/(\d+)/del', TPLDelHandler),
-    ('/tpl/?(\d+)?/run', TPLRunHandler),
-    ('/tpls/public', PublicTPLHandler),
-    ('/tpl/(\d+)/group', TPLGroupHandler),
+    (r'/tpl/(\d+)/push', TPLPushHandler),
+    (r'/tpl/(\d+)/var', TPLVarHandler),
+    (r'/tpl/(\d+)/del', TPLDelHandler),
+    (r'/tpl/?(\d+)?/run', TPLRunHandler),
+    (r'/tpls/public', PublicTPLHandler),
+    (r'/tpl/(\d+)/group', TPLGroupHandler),
 ]

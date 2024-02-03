@@ -10,10 +10,10 @@ import time
 from sqlalchemy import INTEGER, Column, Integer, String, select, text, update
 from sqlalchemy.dialects.mysql import TINYINT
 
-from .basedb import AlchemyMixin, BaseDB
+from db.basedb import AlchemyMixin, BaseDB
 
 
-class PushRequest(BaseDB,AlchemyMixin):
+class PushRequest(BaseDB, AlchemyMixin):
     '''
     push request db
 
@@ -32,33 +32,33 @@ class PushRequest(BaseDB,AlchemyMixin):
     to_userid = Column(INTEGER)
     msg = Column(String(1024))
 
-
     PENDING = 0
     CANCEL = 1
     REFUSE = 2
     ACCEPT = 3
 
-    class NOTSET(object): pass
+    class NOTSET(object):
+        pass
 
     def add(self, from_tplid, from_userid, to_tplid, to_userid, msg='', sql_session=None):
         now = time.time()
 
         insert = dict(
-                from_tplid = from_tplid,
-                from_userid = from_userid,
-                to_tplid = to_tplid,
-                to_userid = to_userid,
-                status = PushRequest.PENDING,
-                msg = msg,
-                ctime = now,
-                mtime = now,
-                atime = now,
-                )
+            from_tplid=from_tplid,
+            from_userid=from_userid,
+            to_tplid=to_tplid,
+            to_userid=to_userid,
+            status=PushRequest.PENDING,
+            msg=msg,
+            ctime=now,
+            mtime=now,
+            atime=now,
+        )
         return self._insert(PushRequest(**insert), sql_session=sql_session)
 
     def mod(self, id, sql_session=None, **kwargs):
         for each in ('id', 'from_tplid', 'from_userid', 'to_userid', 'ctime'):
-            assert each not in kwargs, '%s not modifiable' % each
+            assert each not in kwargs, f'{each} not modifiable'
 
         kwargs['mtime'] = time.time()
         return self._update(update(PushRequest).where(PushRequest.id == id).values(**kwargs), sql_session=sql_session)
@@ -74,7 +74,7 @@ class PushRequest(BaseDB,AlchemyMixin):
 
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
-            return self.to_dict(result,fields)
+            return self.to_dict(result, fields)
         return result
 
     async def list(self, fields=None, limit=1000, to_dict=True, sql_session=None, **kwargs):
@@ -93,5 +93,5 @@ class PushRequest(BaseDB,AlchemyMixin):
 
         result = await self._get(smtm.order_by(PushRequest.mtime.desc()), sql_session=sql_session)
         if to_dict and result is not None:
-            return [self.to_dict(row,fields) for row in result]
+            return [self.to_dict(row, fields) for row in result]
         return result

@@ -77,6 +77,7 @@ services:
       # - PROXIES=
       # - PROXY_DIRECT_MODE=regexp
       # - PROXY_DIRECT=(?xi)\A([a-z][a-z0-9+\-.]*://)?(0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])(:[0-9]+)?
+      # - NOTEPAD_LIMIT=20
       # - EXTRA_ONNX_NAME=
       # - EXTRA_CHARSETS_NAME=
       # - MAIL_SMTP=

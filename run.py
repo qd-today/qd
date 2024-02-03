@@ -21,20 +21,21 @@ from libs.log import Log
 from web.app import Application
 from worker import BatchWorker, QueueWorker
 
+if sys.getdefaultencoding() != 'utf-8':
+    import importlib
+    importlib.reload(sys)
+
 
 def start_server():
-    if sys.getdefaultencoding() != 'utf-8':
-        import importlib
-        importlib.reload(sys)
     # init logging
     logger = Log().getlogger()
-    logger_QD = Log('QD.Run').getlogger()
+    logger_qd = Log('QD.Run').getlogger()
 
     if config.debug:
         channel = logging.StreamHandler(sys.stderr)
         channel.setFormatter(tornado.log.LogFormatter())
         channel.setLevel(logging.WARNING)
-        logger_QD.addHandler(channel)
+        logger_qd.addHandler(channel)
 
     if not config.accesslog:
         tornado.log.access_log.disabled = True
@@ -57,12 +58,12 @@ def start_server():
         converter = db_converter.DBconverter(database)
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        run = asyncio.ensure_future(converter.ConvertNewType(database) , loop=loop)
+        run = asyncio.ensure_future(converter.convert_new_type(database) , loop=loop)
         loop.run_until_complete(run)
 
-        default_version = json.load(open(os.path.join(os.path.dirname(__file__), 'version.json'),'r', encoding='utf-8'))['version']
-        App= Application(database, default_version)
-        http_server = HTTPServer(App, xheaders=True)
+        default_version = json.load(open(os.path.join(os.path.dirname(__file__), 'version.json'), 'r', encoding='utf-8'))['version']
+        app = Application(database, default_version)
+        http_server = HTTPServer(app, xheaders=True)
         http_server.bind(port, config.bind)
         if config.multiprocess:
             http_server.start(num_processes=0)
@@ -78,20 +79,20 @@ def start_server():
                 worker = BatchWorker(database)
                 PeriodicCallback(worker, config.check_task_loop).start()
             else:
-                raise Exception('worker_method must be Queue or Batch, please check config!')
+                raise RuntimeError('worker_method must be Queue or Batch, please check config!')
         except Exception as e:
-            logger.exception('worker start error!')
-            raise KeyboardInterrupt()
+            logger.exception('worker start error: %s', e)
+            raise KeyboardInterrupt() from e
 
-        logger_QD.info("Http Server started on %s:%s", config.bind, port)
+        logger_qd.info("Http Server started on %s:%s", config.bind, port)
         io_loop.start()
     except KeyboardInterrupt :
-        logger_QD.info("Http Server is being manually interrupted... ")
+        logger_qd.info("Http Server is being manually interrupted... ")
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         run = asyncio.ensure_future(engine.dispose() , loop=loop)
         loop.run_until_complete(run)
-        logger_QD.info("Http Server is ended. ")
+        logger_qd.info("Http Server is ended. ")
 
 
 if __name__ == "__main__":

@@ -37,6 +37,11 @@ tzdata = "*"
 [dev-packages]
 #ddddocr = "*"
 #pycurl = {version = "*", markers="sys_platform != 'win32'"}
+types-croniter = "*"
+types-requests = "*"
+types-python-dateutil = "*"
+sqlalchemy2-stubs = "*"
+types-aiofiles = "*"
 
 [requires]
 python_version = "3.11"

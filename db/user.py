@@ -15,13 +15,12 @@ from sqlalchemy import (VARBINARY, Column, Integer, String, delete, select,
                         text, update)
 from sqlalchemy.dialects.mysql import INTEGER, TINYINT
 
+from db.basedb import AlchemyMixin, BaseDB, config
 from libs import mcrypto as crypto
 from libs import utils
 
-from .basedb import AlchemyMixin, BaseDB, config
 
-
-class User(BaseDB,AlchemyMixin):
+class User(BaseDB, AlchemyMixin):
     '''
     User DB
 
@@ -56,10 +55,17 @@ class User(BaseDB,AlchemyMixin):
     nickname = Column(String(64), unique=True, index=True)
     role = Column(String(128))
 
-    class UserDBException(Exception): pass
-    class NoUserException(UserDBException): pass
-    class DeplicateUser(UserDBException): pass
-    class UserNameError(UserDBException): pass
+    class UserDBException(Exception):
+        pass
+
+    class NoUserException(UserDBException):
+        pass
+
+    class DeplicateUser(UserDBException):
+        pass
+
+    class UserNameError(UserDBException):
+        pass
 
     @staticmethod
     def check_nickname(nickname):
@@ -73,32 +79,32 @@ class User(BaseDB,AlchemyMixin):
             raise self.DeplicateUser('duplicate username')
 
         now = time.time()
-        if isinstance(ip,str):
-            ipVersion = utils.isIP(ip)
-            ip = utils.ip2varbinary(ip,ipVersion)
+        if isinstance(ip, str):
+            ip_version = utils.is_ip(ip)
+            ip = utils.ip2varbinary(ip, ip_version)
         userkey = umsgpack.unpackb(crypto.password_hash(password))[0]
 
         hash = MD5.new()
         hash.update(password.encode('utf-8'))
         password_hash = crypto.password_hash(password)
-        password_md5_hash = crypto.password_hash(hash.hexdigest(),password_hash)
+        password_md5_hash = crypto.password_hash(hash.hexdigest(), password_hash)
 
         insert = dict(
-                email = email,
-                email_verified = 0,
-                password = crypto.aes_encrypt(password_hash, userkey),
-                userkey = crypto.aes_encrypt(userkey),
-                nickname = None,
-                role = None,
-                ctime = now,
-                mtime = now,
-                atime = now,
-                cip = ip,
-                mip = ip,
-                aip = ip,
-                password_md5 = password_md5_hash,
-                )
-        await self._insert(User(**insert),sql_session=sql_session)
+            email=email,
+            email_verified=0,
+            password=crypto.aes_encrypt(password_hash, userkey),
+            userkey=crypto.aes_encrypt(userkey),
+            nickname=None,
+            role=None,
+            ctime=now,
+            mtime=now,
+            atime=now,
+            cip=ip,
+            mip=ip,
+            aip=ip,
+            password_md5=password_md5_hash,
+        )
+        await self._insert(User(**insert), sql_session=sql_session)
         return
 
     async def challenge(self, email, password, sql_session=None):
@@ -111,12 +117,12 @@ class User(BaseDB,AlchemyMixin):
 
         return False
 
-    async def challenge_MD5(self, email, password_md5, sql_session=None):
+    async def challenge_md5(self, email, password_md5, sql_session=None):
         user = await self.get(email=email, fields=('id', 'password', 'password_md5'), sql_session=sql_session)
         if user is None:
             return False
         else:
-            if (user['password_md5'] == ''):
+            if user['password_md5'] == '':
                 pass
             else:
                 password_hash = await self.decrypt(user['id'], user['password'], sql_session=sql_session)
@@ -135,7 +141,7 @@ class User(BaseDB,AlchemyMixin):
         if 'token' in kwargs:
             kwargs['token'] = await self.encrypt(id, crypto.password_hash(kwargs['token']), sql_session=sql_session)
 
-        result = await self._update(update(User).where(User.id == id).values(**kwargs),sql_session=sql_session)
+        result = await self._update(update(User).where(User.id == id).values(**kwargs), sql_session=sql_session)
         return result
 
     # @utils.method_cache
@@ -151,8 +157,8 @@ class User(BaseDB,AlchemyMixin):
 
         try:
             return crypto.aes_encrypt(data, userkey)
-        except Exception as e:
-            raise self.UserDBException('encrypt error')
+        except Exception as exc:
+            raise self.UserDBException('encrypt error') from exc
 
     async def decrypt(self, id, data, sql_session=None):
         if id:
@@ -161,17 +167,17 @@ class User(BaseDB,AlchemyMixin):
             userkey = config.aes_key
         try:
             old = tmp = crypto.aes_decrypt(data, userkey)
-            if isinstance(tmp,dict):
+            if isinstance(tmp, dict):
                 old = {}
-                for key,value in tmp.items():
-                    if isinstance(key,bytes):
-                        key=key.decode('utf-8')
-                    old[key]=value
+                for key, value in tmp.items():
+                    if isinstance(key, bytes):
+                        key = key.decode('utf-8')
+                    old[key] = value
             return old
-        except Exception as e:
-            raise self.UserDBException('decrypt error')
+        except Exception as exc:
+            raise self.UserDBException('decrypt error') from exc
 
-    async def get(self, id=None, email=None, fields:tuple=None, one_or_none=False, first=True, to_dict=True, sql_session=None):
+    async def get(self, id=None, email=None, fields=None, one_or_none=False, first=True, to_dict=True, sql_session=None):
         if fields is None:
             _fields = User
         else:
@@ -186,10 +192,10 @@ class User(BaseDB,AlchemyMixin):
 
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
-            return self.to_dict(result,fields)
+            return self.to_dict(result, fields)
         return result
 
-    async def list(self, fields:tuple=None, limit=None, to_dict=True, sql_session=None, **kwargs):
+    async def list(self, fields=None, limit=None, to_dict=True, sql_session=None, **kwargs):
         if fields is None:
             _fields = User
         else:
@@ -205,31 +211,33 @@ class User(BaseDB,AlchemyMixin):
 
         result = await self._get(smtm, sql_session=sql_session)
         if to_dict and result is not None:
-            return [self.to_dict(row,fields) for row in result]
+            return [self.to_dict(row, fields) for row in result]
         return result
 
     def delete(self, id, sql_session=None):
         return self._delete(delete(User).where(User.id == id), sql_session=sql_session)
 
+
 if __name__ == '__main__':
     import asyncio
+
     async def test():
         user = User()
         try:
             async with user.session as sql_session:
                 async with sql_session.begin():
-                    await user.add('admin1@localhost', 'admin', '127.0.0.1',sql_session=sql_session)
+                    await user.add('admin1@localhost', 'admin', '127.0.0.1', sql_session=sql_session)
             await user.add('admin2@localhost', 'admin', '127.0.0.1')
         except User.DeplicateUser as e:
             print(e)
         await user.get(email='admin1@localhost')
         user1 = await user.get(email='admin1@localhost')
-        user2 = await user.get(email='admin2@localhost',fields=('id',))
+        user2 = await user.get(email='admin2@localhost', fields=('id',))
         print('user1: ', user1)
         print('user2: ', user2)
 
         user1_list = await user.list(email='admin1@localhost')
-        user2_list = await user.list(email='admin2@localhost',fields=('id','email','password'))
+        user2_list = await user.list(email='admin2@localhost', fields=('id', 'email', 'password'))
         print('user1_list: ', user1_list)
         print('user2_list: ', user2_list)
 

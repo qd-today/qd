@@ -6,18 +6,16 @@
 # Created on 2014-08-08 19:53:09
 
 import time
-from unittest import result
 
-from sqlalchemy import (INTEGER, VARBINARY, Column, Integer, LargeBinary,
-                        String, delete, select, text, update)
+from sqlalchemy import (INTEGER, Column, Integer, LargeBinary, String, delete,
+                        select, text, update)
 from sqlalchemy.dialects.mysql import TINYINT
 
 import config
+from db.basedb import AlchemyMixin, BaseDB
 
-from .basedb import AlchemyMixin, BaseDB
 
-
-class Task(BaseDB,AlchemyMixin):
+class Task(BaseDB, AlchemyMixin):
     '''
     task db
 
@@ -52,22 +50,22 @@ class Task(BaseDB,AlchemyMixin):
         now = time.time()
 
         insert = dict(
-                tplid = tplid,
-                userid = userid,
-                disabled = 0,
-                init_env = env,
-                retry_count = config.task_max_retry_count,
-                retry_interval = None,
-                last_success = None,
-                last_failed = None,
-                success_count = 0,
-                failed_count = 0,
-                next = None,
-                ctime = now,
-                mtime = now,
-                ontime='00:10',
-                ontimeflg=0,
-                )
+            tplid=tplid,
+            userid=userid,
+            disabled=0,
+            init_env=env,
+            retry_count=config.task_max_retry_count,
+            retry_interval=None,
+            last_success=None,
+            last_failed=None,
+            success_count=0,
+            failed_count=0,
+            next=None,
+            ctime=now,
+            mtime=now,
+            ontime='00:10',
+            ontimeflg=0,
+        )
         return self._insert(Task(**insert), sql_session=sql_session)
 
     def mod(self, id, sql_session=None, **kwargs):
@@ -89,7 +87,7 @@ class Task(BaseDB,AlchemyMixin):
 
         result = await self._get(smtm, one_or_none=one_or_none, first=first, sql_session=sql_session)
         if to_dict and result is not None:
-            return self.to_dict(result,fields)
+            return self.to_dict(result, fields)
         return result
 
     async def list(self, userid=None, fields=None, limit=1000, to_dict=True, scan=False, scan_time=None, sql_session=None, **kwargs):
@@ -111,9 +109,9 @@ class Task(BaseDB,AlchemyMixin):
         if limit:
             smtm = smtm.limit(limit)
 
-        result = await self._get(smtm,sql_session=sql_session)
+        result = await self._get(smtm, sql_session=sql_session)
         if to_dict and result is not None:
-            return [self.to_dict(row,fields) for row in result]
+            return [self.to_dict(row, fields) for row in result]
         return result
 
     def delete(self, id, sql_session=None):

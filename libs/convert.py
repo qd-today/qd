@@ -12,6 +12,7 @@ try:
 except LookupError:
     HAS_SURROGATEESCAPE = False
 
+
 def to_bytes(obj, encoding='utf-8', errors=None, nonstring='simplerepr'):
     """Make sure that a string is a byte string
 
@@ -124,9 +125,10 @@ def to_bytes(obj, encoding='utf-8', errors=None, nonstring='simplerepr'):
     elif nonstring == 'strict':
         raise TypeError('obj must be a string type')
     else:
-        raise TypeError('Invalid value %s for to_bytes\' nonstring parameter' % nonstring)
+        raise TypeError(f'Invalid value {nonstring} for to_bytes\' nonstring parameter')
 
     return to_bytes(value, encoding, errors)
+
 
 def to_text(obj, encoding='utf-8', errors=None, nonstring='simplerepr'):
     """Make sure that a string is a text string
@@ -206,17 +208,18 @@ def to_text(obj, encoding='utf-8', errors=None, nonstring='simplerepr'):
                 value = repr(obj)
             except UnicodeError:
                 # Giving up
-                return u''
+                return ''
     elif nonstring == 'passthru':
         return obj
     elif nonstring == 'empty':
-        return u''
+        return ''
     elif nonstring == 'strict':
         raise TypeError('obj must be a string type')
     else:
-        raise TypeError('Invalid value %s for to_text\'s nonstring parameter' % nonstring)
+        raise TypeError(f'Invalid value {nonstring} for to_text\'s nonstring parameter')
 
     return to_text(value, encoding, errors)
+
 
 if PY3:
     to_native = to_text
