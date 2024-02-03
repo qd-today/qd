@@ -538,7 +538,7 @@ class ToolboxNotepadHandler(BaseHandler):
                 {"userid": int(userid)}, 'r'):
             notepadlist = await self.db.notepad.list(fields=('notepadid',
                                                              'content'),
-                                                     limit=20,
+                                                     limit=config.notepad_limit,
                                                      userid=userid)
             notepadlist.sort(key=lambda x: x['notepadid'])
             if len(notepadlist) == 0:
@@ -546,7 +546,7 @@ class ToolboxNotepadHandler(BaseHandler):
                     await self.db.notepad.add(dict(userid=userid, notepadid=1))
                     notepadlist = await self.db.notepad.list(fields=('notepadid',
                                                                      'content'),
-                                                             limit=20,
+                                                             limit=config.notepad_limit,
                                                              userid=userid)
                 else:
                     raise HTTPError(404,
@@ -634,7 +634,7 @@ class ToolboxNotepadListHandler(BaseHandler):
                 {"userid": int(userid)}, 'r'):
             notepadlist = await self.db.notepad.list(fields=('notepadid',
                                                              'content'),
-                                                     limit=20,
+                                                     limit=config.notepad_limit,
                                                      userid=userid)
             notepadlist.sort(key=lambda x: x['notepadid'])
             if len(notepadlist) == 0:
@@ -642,7 +642,7 @@ class ToolboxNotepadListHandler(BaseHandler):
                     await self.db.notepad.add(dict(userid=userid, notepadid=1))
                     notepadlist = await self.db.notepad.list(fields=('notepadid',
                                                                      'content'),
-                                                             limit=20,
+                                                             limit=config.notepad_limit,
                                                              userid=userid)
                 else:
                     raise HTTPError(404,
@@ -678,7 +678,7 @@ class ToolboxNotepadListHandler(BaseHandler):
                             notepadid = int(notepadid)
                         notepadlist = await self.db.notepad.list(
                             fields=('notepadid', ),
-                            limit=20,
+                            limit=config.notepad_limit,
                             userid=userid,
                             sql_session=sql_session)
                         notepadlist = [x['notepadid'] for x in notepadlist]
@@ -686,8 +686,8 @@ class ToolboxNotepadListHandler(BaseHandler):
                         if len(notepadlist) == 0:
                             raise Exception("无法获取该用户记事本编号")
                         if f.find('add') > -1:
-                            if len(notepadlist) >= 20:
-                                raise Exception("记事本数量超过上限, limit: 20")
+                            if len(notepadlist) >= config.notepad_limit:
+                                raise Exception(f"记事本数量超过上限, limit: {config.notepad_limit}")
                             new_data = self.get_argument("data", '')
                             if new_data == '':
                                 new_data = None

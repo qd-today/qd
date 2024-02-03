@@ -176,6 +176,7 @@ python ./chrole.py your@email.address admin
 |NOT_RETRY_CODE|No|[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|
 |EMPTY_RETRY|No|True|[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|
 |USER0ISADMIN|No|True|The first registered user is an administrator, False to close|
+|NOTEPAD_LIMIT|No|20|The maximum number of notepads within the same user, the default is 20|
 |EXTRA_ONNX_NAME|No|""|Customize the ONNX file name in the config directory<br>(do not fill in the ".onnx" suffix)<br>Separate multiple onnx file names with "\|"|
 |EXTRA_CHARSETS_NAME|No|""|Custom ONNX in the config directory corresponds to the custom charsets.json file name<br>(do not fill in the ".json" suffix)<br>Multiple json file names are separated by "\|"|
 |WS_PING_INTERVAL|No|5|WebSocket ping interval, the default is 5 seconds|

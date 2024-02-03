@@ -176,6 +176,7 @@ CURL_CONTENT_LENGTH|否|True|是否允许Curl使用Headers中自定义Content-Le
 NOT_RETRY_CODE|否|[详见配置](https://github.com/qd-today/qd/blob/master/config.py)...|[详见配置](https://github.com/qd-today/qd/blob/master/config.py)...
 EMPTY_RETRY|否|True|[详见配置](https://github.com/qd-today/qd/blob/master/config.py)...
 USER0ISADMIN|否|True|第一个注册用户为管理员，False关闭
+NOTEPAD_LIMIT|否|20|单个用户拥有记事本最大数量, 默认为 20
 EXTRA_ONNX_NAME|否|""|config目录下自定义ONNX文件名<br>(不填 ".onnx" 后缀)<br>多个onnx文件名用"\|"分隔
 EXTRA_CHARSETS_NAME|否|""|config目录下自定义ONNX对应自定义charsets.json文件名<br>(不填 ".json" 后缀)<br>多个json文件名用"\|"分隔
 WS_PING_INTERVAL|No|5|WebSocket ping间隔, 单位为秒, 默认为 5s

@@ -48,10 +48,9 @@ db_type = os.getenv('DB_TYPE', 'sqlite3')                                   # �
 ## MySQL URL设置
 mysql_url = urlparse(os.getenv('JAWSDB_MARIA_URL', ''))                     # 格式: mysql://用户名:密码@hostname:port/数据库名?auth_plugin=
 
-## 数据库连接参数, 建议基于 MySQL URL 自动设置, 可选
 
-
-class mysql(object):
+class mysql:
+    ## 数据库连接参数, 建议基于 MySQL URL 自动设置, 可选
     host = mysql_url.hostname or 'localhost'                                # 访问 MySQL 的 Hostname
     port = mysql_url.port or '3306'                                         # MySQL 的 端口Port
     database = mysql_url.path[1:] or 'qd'                                   # QD 框架的数据库名
@@ -62,13 +61,12 @@ class mysql(object):
 ## Sqlite3 设置
 
 
-class sqlite3(object):
+class sqlite3:
     path = os.path.join(os.path.dirname(__file__), 'config', 'database.db')   # Sqlite3数据库文件地址
 
-## SQLAlchmey配置
 
-
-class sqlalchemy(object):
+class sqlalchemy:
+    ## SQLAlchmey配置
     logging_name = os.getenv('QD_SQL_LOGGING_NAME', 'QD.sql')               # SQLAlchmey 日志名称
     logging_level = os.getenv('QD_SQL_LOGGING_LEVEL', 'WARNING')            # SQLAlchmey 日志级别
     pool_logging_name = os.getenv('QD_SQL_POOL_LOGGING_NAME', 'QD.sql.pool')  # 连接池日志名称
@@ -85,11 +83,9 @@ class sqlalchemy(object):
 ## Redis URL设置
 redis_url = urlparse(os.getenv('REDISCLOUD_URL', ''))                       # 格式: (redis/http)://rediscloud:密码@hostname:port
 
-## redis 连接参数,
-## 建议基于 Redis URL 自动设置, 可选
 
-
-class redis(object):
+class redis:
+    ## redis 连接参数, 建议基于 Redis URL 自动设置, 可选
     host = redis_url.hostname or 'localhost'                                # 访问 Redis 的 Hostname
     port = redis_url.port or 6379                                           # Redis 的 端口Port
     passwd = redis_url.password or None                                     # 访问 Redis 权限密码
@@ -137,10 +133,9 @@ push_pic = os.getenv('PUSH_PIC_URL', 'https://gitee.com/qd-today/qd/raw/master/w
 push_batch_sw = bool(strtobool(os.getenv('PUSH_BATCH_SW', 'True')))         # 是否允许开启定期推送任务日志, 默认为 True
 push_batch_delta = int(os.getenv('PUSH_BATCH_DELTA', '60'))                   # 执行 PUSH_BATCH 的时间间隔, 单位为秒, 默认为 60s, 非全局推动 QD 任务日志间隔
 
-# WebSocket 设置
-
 
 class websocket:
+    # WebSocket 设置
     ping_interval = int(os.getenv('WS_PING_INTERVAL', '5'))                   # WebSocket ping 间隔, 单位为秒, 默认为 5s
     ping_timeout = int(os.getenv('WS_PING_TIMEOUT', '30'))                    # WebSocket ping超时时间, 单位为秒, 默认为 30s
     max_message_size = int(os.getenv('WS_MAX_MESSAGE_SIZE', '10485760'))  # WebSocket 单次接收最大消息大小, 默认为 10MB
@@ -179,10 +174,12 @@ proxy_direct = os.getenv('PROXY_DIRECT', r"""(?xi)\A
                 (:[0-9]+)? """                                              # :Port
                          )
 
+# 记事本设置
+notepad_limit = int(os.getenv('NOTEPAD_LIMIT', '20'))                       # 单个用户拥有记事本最大数量, 默认为 20
+
 # DdddOCR 设置
 extra_onnx_name = os.getenv('EXTRA_ONNX_NAME', '').split('|')               # config 目录下自定义 ONNX 文件名(不含 ".onnx" 后缀), 多个onnx文件名用"|"分隔
-extra_charsets_name = os.getenv('EXTRA_CHARSETS_NAME', '').split('|')       # config 目录下自定义 ONNX 对应自定义 `charsets.json` 文件名(不含 ".json" 后缀),
-# 多个 json 文件名用"|"分隔
+extra_charsets_name = os.getenv('EXTRA_CHARSETS_NAME', '').split('|')       # config 目录下自定义 ONNX 对应自定义 `charsets.json` 文件名(不含 ".json" 后缀), 多个 json 文件名用"|"分隔
 
 # 邮件发送相关配置
 mail_smtp = os.getenv('MAIL_SMTP', "")                                      # 邮箱 SMTP 服务器
