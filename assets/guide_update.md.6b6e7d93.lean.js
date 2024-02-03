@@ -1,0 +1,1 @@
+import{_ as s,o as a,c as e,V as o}from"./chunks/framework.feaf5d10.js";const B=JSON.parse('{"title":"Update","description":"","frontmatter":{},"headers":[],"relativePath":"guide/update.md","filePath":"guide/update.md"}'),t={name:"guide/update.md"},n=o("",10),p=[n];function l(c,r,d,i,y,h){return a(),e("div",null,p)}const m=s(t,[["render",l]]);export{B as __pageData,m as default};
