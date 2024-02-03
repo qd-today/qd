@@ -79,7 +79,11 @@ class TPLDelHandler(BaseHandler):
     async def post(self, tplid):
         # user = self.current_user
         async with self.db.transaction() as sql_session:
-            self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid'), sql_session=sql_session), 'w')
+            tpl = self.check_permission(await self.db.tpl.get(tplid, fields=('id', 'userid', 'public'), sql_session=sql_session), 'w')
+            if tpl['public'] == 1:
+                prs = await self.db.push_request.list(to_tplid=tplid, fields=('id', ), sql_session=sql_session)
+                for pr in prs:
+                    await self.db.push_request.mod(pr['id'], status=self.db.push_request.CANCEL, sql_session=sql_session)
             await self.db.tpl.delete(tplid, sql_session=sql_session)
 
         self.redirect('/my/')
