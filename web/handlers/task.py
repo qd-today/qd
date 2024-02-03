@@ -421,11 +421,11 @@ class TaskSetTimeHandler(BaseHandler):
             envs = {}
             for key in self.request.body_arguments:
                 envs[key] = self.get_body_arguments(key)
-            for value in envs.values():
+            for key, value in envs.items():
                 if value[0] == 'true' or value[0] == 'false':
-                    value = True if value[0] == 'true' else False
+                    envs[key] = True if value[0] == 'true' else False
                 else:
-                    value = str(value[0])
+                    envs[key] = str(value[0])
 
             async with self.db.transaction() as sql_session:
                 if envs['sw']:
