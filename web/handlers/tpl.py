@@ -25,9 +25,9 @@ class TPLPushHandler(BaseHandler):
             await self.finish('<span class="alert alert-danger">没有权限</span>')
             return
         tpls = await self.db.tpl.list(userid=None, limit=None, fields=('id', 'sitename', 'public'))
-        for tpl in tpls:
-            if tpl['public'] == 2:
-                tpl['sitename'] += ' [已取消]'
+        for i, _ in enumerate(tpls):
+            if tpls[i]['public'] == 2:
+                tpls[i]['sitename'] += ' [已取消]'
         await self.render('tpl_push.html', tpl=tpl, tpls=tpls)
 
     @authenticated
