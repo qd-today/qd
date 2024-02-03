@@ -105,21 +105,39 @@ class HARTest(BaseHandler):
                 _from_var = FOR_START.group(2)
                 _from = env['variables'].get(_from_var, [])
                 try:
-                    if _from_var.startswith('list(') or _from_var.startswith('range('):
+                    if _from_var.startswith(('list(', 'range(')):
                         _from = safe_eval(_from_var, env['variables'])
                     if not isinstance(_from, Sequence):
-                        raise Exception('for循环只支持可迭代类型及变量')
+                        raise Exception('for 循环只支持可迭代类型及变量')
+                    env['variables']['loop_index0'] = str(env['variables'].get('loop_index0', 0))
+                    env['variables']['loop_index'] = str(env['variables'].get('loop_index', 1))
+                    env['variables']['loop_first'] = str(env['variables'].get('loop_first', True))
+                    env['variables']['loop_last'] = str(env['variables'].get('loop_last', False))
+                    env['variables']['loop_length'] = str(env['variables'].get('loop_length', len(_from)))
+                    env['variables']['loop_revindex0'] = str(env['variables'].get('loop_revindex0', len(_from) - 1))
+                    env['variables']['loop_revindex'] = str(env['variables'].get('loop_revindex', len(_from)))
+                    res = f'循环内赋值变量: {_target}, 循环列表变量: {_from_var}, 循环次数: {len(_from)}, \r\n循环列表内容: {list(_from)}.'
+                    code = 200
+                except NameError as e:
+                    logger_web_handler.debug('for 循环变量错误: %s', e, exc_info=config.traceback_print)
+                    res = f'循环变量错误: {e}'
+                    code = 500
+                except ValueError as e:
+                    code = 500
+                    if str(e).startswith("<class 'NameError'>:"):
+                        e_str = str(e).replace("<class 'NameError'>", "NameError")
+                        logger_web_handler.debug('for 循环变量错误: %s', e_str, exc_info=config.traceback_print)
+                        res = f'循环变量错误: {e_str}'
+                    else:
+                        e_str = str(e).replace("<class 'ValueError'>", "ValueError")
+                        logger_web_handler.debug('for 循环错误: %s', e_str, exc_info=config.traceback_print)
+                        res = f'for 循环错误: {e_str}'
                 except Exception as e:
-                    raise e
-                env['variables']['loop_index0'] = str(env['variables'].get('loop_index0', 0))
-                env['variables']['loop_index'] = str(env['variables'].get('loop_index', 1))
-                env['variables']['loop_first'] = str(env['variables'].get('loop_first', True))
-                env['variables']['loop_last'] = str(env['variables'].get('loop_last', False))
-                env['variables']['loop_length'] = str(env['variables'].get('loop_length', len(_from)))
-                env['variables']['loop_revindex0'] = str(env['variables'].get('loop_revindex0', len(_from) - 1))
-                env['variables']['loop_revindex'] = str(env['variables'].get('loop_revindex', len(_from)))
-                res = f'循环内赋值变量: {_target}, 循环列表变量: {_from_var}, 循环次数: {len(_from)}, \r\n循环列表内容: {list(_from)}.\r\n此页面仅用于显示循环信息, 禁止在此页面提取变量'
-                response = httpclient.HTTPResponse(request=req, code=200, reason='OK', buffer=BytesIO(str(res).encode()))
+                    logger_web_handler.debug('for 循环错误: %s', e, exc_info=config.traceback_print)
+                    res = f'for 循环错误: {e}'
+                    code = 500
+                res += '\r\n此页面仅用于显示循环信息, 禁止在此页面提取变量'
+                response = httpclient.HTTPResponse(request=req, code=code, buffer=BytesIO(str(res).encode()))
             elif WHILE_START:
                 try:
                     env['variables']['loop_index0'] = str(env['variables'].get('loop_index0', 0))
