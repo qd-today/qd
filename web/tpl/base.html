@@ -97,15 +97,8 @@
         return version
       }
       var d = Solar.fromDate(new Date())
-      holiday = HolidayUtil.getHoliday(d.toYmd())
-      if (holiday) {
-        if (holiday.isWork()) {
-          return version
-        }
-        return holiday.getName() + '快乐'
-      } else {
-        return version
-      }
+      festivals = d.getFestivals().length > 0 ? d.getFestivals() : d.getLunar().getFestivals()
+      return festivals.length > 0 ? festivals[0] + '快乐' : version
     }
   </script>
   {% block body %}{% endblock %}
