@@ -8,6 +8,37 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20240208] - 2024.02.08 更新
+
+### Fixed
+
+1. Fix 访客执行任务后端报错
+2. Fix websockets 禁止跨域问题 (qd-today/qd#463)
+3. Fix `cffi` Docker 构建
+4. Fix telegram 消息格式，避免过多的无效信息干扰 (qd-today/qd#488)
+5. Fix qd-today/qd#493: recovery permission (qd-today/qd#494)
+6. Fix qd-today/qd#477: `api://` error when Server not bind `0.0.0.0` (qd-today/qd#495)
+7. Fix 部分日志不显示错误详情（需打开 `config.traceback_print` 开关） qd-today/qd#491
+8. Fix 无法跳转发布项详情
+9. Fix 任务定时开关设置
+10. Fix `incr_success` 应发生在事务即将结束前
+
+### Changed
+
+1. Update `entry_editor.html` (qd-today/qd#465)
+2. Update 包依赖和前端依赖
+3. Refactor 优化代码和 logger 格式和静态类型 by `pylint`/`flake8`/`mypy` (qd-today/qd#496)
+4. Merge logger 和错误栈打印
+5. Change 解析 Url 方式
+6. Optimize `for` 循环调试显示
+7. Change 删除公开模板时自动取消发布请求
+8. Change 支持自定义单用户拥有记事本最大数量配置
+9. Change 更改节日祝福判断
+
+### Docs
+
+1. Docs(contrib): 📚 修改贡献者展示
+
 ## [20230821] - 2023.08.21 更新
 
 ### Fixed
