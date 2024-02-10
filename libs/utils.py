@@ -454,7 +454,15 @@ async def _send_mail(to, subject, text=None, subtype='html'):
         logger_util.info('send mail to %s', to)
         if config.mail_port:
             if config.mail_ssl or config.mail_port in [465, 587]:
-                s = smtplib.SMTP_SSL(config.mail_smtp, config.mail_port)
+                s = None
+                if config.mail_port == 587:  # use starttls
+                    try:
+                        s = smtplib.SMTP(config.mail_smtp, config.mail_port)
+                        s.starttls()
+                    except smtplib.SMTPException as e:
+                        logger_util.error("smtp starttls failed: %s", e, exc_info=config.traceback_print)
+                if s is None:
+                    s = smtplib.SMTP_SSL(config.mail_smtp, config.mail_port)
             else:
                 s = smtplib.SMTP(config.mail_smtp, config.mail_port)
             s.connect(config.mail_smtp, config.mail_port)
