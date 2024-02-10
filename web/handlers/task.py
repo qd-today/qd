@@ -135,9 +135,9 @@ class TaskNewHandler(BaseHandler):
         self.redirect('/my/')
 
 
-class TaskEditHandler(BaseHandler):
+class TaskEditHandler(TaskNewHandler):
     @authenticated
-    async def get(self, taskid):
+    async def get(self, taskid):  # pylint: disable=W0221
         user = self.current_user
         task = self.check_permission(await self.db.task.get(taskid, fields=('id', 'userid',
                                                                             'tplid', 'disabled', 'note', 'retry_count', 'retry_interval')), 'w')
