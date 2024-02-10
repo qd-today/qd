@@ -65,7 +65,7 @@ class SiteManagerHandler(BaseHandler):
                                 if (await self.db.site.get(1, fields=('MustVerifyEmailEn',), sql_session=sql_session))['MustVerifyEmailEn'] != 1:
                                     raise Exception("开启 强制邮箱验证 失败")
                             else:
-                                await self.send_verify_mail(user)
+                                await self.send_verify_mail(user, sql_session=sql_session)
                                 raise Exception("必须验证 管理员邮箱 才能开启, 已尝试发送验证邮件, 请查收。")
                         else:
                             await self.db.site.mod(1, MustVerifyEmailEn=0, sql_session=sql_session)
@@ -93,10 +93,10 @@ class SiteManagerHandler(BaseHandler):
         await self.render('utils_run_result.html', title='设置成功', flg='success')
         return
 
-    async def send_verify_mail(self, user):
+    async def send_verify_mail(self, user, sql_session=None):
         verified_code = [user['email'], time.time()]
-        verified_code = await self.db.user.encrypt(user['id'], verified_code)
-        verified_code = await self.db.user.encrypt(0, [user['id'], verified_code])
+        verified_code = await self.db.user.encrypt(user['id'], verified_code, sql_session=sql_session)
+        verified_code = await self.db.user.encrypt(0, [user['id'], verified_code], sql_session=sql_session)
         verified_code = base64.b64encode(verified_code).decode()
         await gen.convert_yielded(utils.send_mail(to=user['email'], subject="QD平台 验证邮箱", html="""
                 <table style="width:99.8%%;height:99.8%%"><tbody><tr><td style=" background:#fafafa url(#) "><div style="border-radius:10px;font-size:13px;color:#555;width:666px;font-family:'Century Gothic','Trebuchet MS','Hiragino Sans GB','微软雅黑','Microsoft Yahei',Tahoma,Helvetica,Arial,SimSun,sans-serif;margin:50px auto;border:1px solid #eee;max-width:100%%;background:#fff repeating-linear-gradient(-45deg,#fff,#fff 1.125rem,transparent 1.125rem,transparent 2.25rem);box-shadow:0 1px 5px rgba(0,0,0,.15)"><div style="width:100%%;background:#49BDAD;color:#fff;border-radius:10px 10px 0 0;background-image:-moz-linear-gradient(0deg,#43c6b8,#ffd1f4);background-image:-webkit-linear-gradient(0deg,#4831ff,#0497ff);height:66px"><p style="font-size:15px;word-break:break-all;padding:23px 32px;margin:0;background-color:hsla(0,0%%,100%%,.4);border-radius:10px 10px 0 0">&nbsp;[QD平台]&nbsp;&nbsp;{http}://{domain}</p></div>
