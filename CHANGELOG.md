@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 Nothing right now.
 
+## [20240210] - 2024.02.10 更新
+
+### Fixed
+
+1. Bugfix(web): 🐛 修复无法修改任务 fixed qd-today/qd#500
+2. Bugfix(libs.utils): 🐛 587 端口使用 starttls 方法 fixed qd-today/qd#424
+3. Bugfix(web): 🐛 管理员未验证邮箱开启强制验证失败
+
+### Changed
+
+1. Build(package): 🏗️ 更新包依赖
+
 ## [20240208] - 2024.02.08 更新
 
 ### Fixed
