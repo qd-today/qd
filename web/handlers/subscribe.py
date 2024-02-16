@@ -56,9 +56,13 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
     updating = False
     updating_start_time = 0
 
-    def check_origin(self, origin):
+    def check_origin(self, origin: str) -> bool:
         parsed_origin = urlparse(origin)
-        return parsed_origin.netloc.endswith(domain)
+        origin = parsed_origin.netloc.lower()
+        host: str = self.request.headers.get("Host", "")
+        logger_web_handler.debug("check_origin: %s, host: %s", origin, host)
+
+        return origin.endswith(domain) or host.lower() == origin
 
     async def update(self, userid):
         SubscribeUpdatingHandler.updating = True
