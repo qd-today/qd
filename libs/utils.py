@@ -81,7 +81,7 @@ def int2ip(addr):
         return str(ipaddress.ip_address(addr))
 
 
-def varbinary2ip(addr: bytes | int | str):
+def varbinary2ip(addr: Union[bytes, int, str]):
     if isinstance(addr, int):
         return int2ip(addr)
     if isinstance(addr, str):
@@ -872,7 +872,7 @@ def switch_mode(mode):
         raise Exception(f'Invalid AES mode: {mode}')
 
 
-def _aes_encrypt(word: str, key: str, mode='CBC', iv: str | bytes | None = None, output_format='base64', padding=True, padding_style='pkcs7', no_packb=True):
+def _aes_encrypt(word: str, key: str, mode='CBC', iv: Union[str, bytes, None] = None, output_format='base64', padding=True, padding_style='pkcs7', no_packb=True):
     if key is None:
         raise Exception('key is required')
     if isinstance(iv, str):
@@ -881,7 +881,7 @@ def _aes_encrypt(word: str, key: str, mode='CBC', iv: str | bytes | None = None,
     return aes_encrypt(word.encode("utf-8"), key.encode("utf-8"), mode=mode, iv=iv, output=output_format, padding=padding, padding_style=padding_style, no_packb=no_packb)
 
 
-def _aes_decrypt(word: str, key: str, mode='CBC', iv: str | bytes | None = None, input_format='base64', padding=True, padding_style='pkcs7', no_packb=True):
+def _aes_decrypt(word: str, key: str, mode='CBC', iv: Union[str, bytes, None] = None, input_format='base64', padding=True, padding_style='pkcs7', no_packb=True):
     if key is None:
         raise Exception('key is required')
     if isinstance(iv, str):

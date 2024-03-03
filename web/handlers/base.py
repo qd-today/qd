@@ -96,7 +96,7 @@ class _BaseHandler(tornado.web.RequestHandler):
             return True
         return False
 
-    def data_received(self, chunk: bytes) -> Awaitable[None] | None:
+    def data_received(self, chunk: bytes) -> Union[Awaitable[None], None]:
         return super().data_received(chunk)
 
 
@@ -152,7 +152,7 @@ class BaseWebSocketHandler(_BaseHandler, tornado.websocket.WebSocketHandler):
     def get_compression_options(self):
         return {}
 
-    def on_message(self, message: str | bytes) -> Awaitable[None] | None:
+    def on_message(self, message: Union[str, bytes]) -> Union[Awaitable[None], None]:
         return super().on_message(message)
 
 
