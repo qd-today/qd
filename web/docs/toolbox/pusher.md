@@ -48,6 +48,8 @@ Variable name|Required|Default|Description
 :-: | :-: | :-: | :-:
 MAIL_SMTP|True|""|Email SMTP server
 MAIL_PORT|False|465|Email SMTP server port
+MAIL_SSL|False|True|Whether to use SSL
+MAIL_STARTTLS|False|False|Whether to use TLS
 MAIL_USER|True|""|Email username
 MAIL_PASSWORD|True|""|Email password
 MAIL_FROM|False|MAIL_USER|The Email used when sending, the default is the same as MAIL_USER

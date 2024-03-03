@@ -48,6 +48,8 @@ QD 框架提供以下推送方式：
 :-: | :-: | :-: | :-:
 MAIL_SMTP|是|""|邮箱SMTP服务器
 MAIL_PORT|否|465|邮箱SMTP服务器端口
+MAIL_SSL|否|True|是否使用SSL
+MAIL_STARTTLS|否|False|是否使用STARTTLS
 MAIL_USER|是|""|邮箱用户名
 MAIL_PASSWORD|是|""|邮箱密码
 MAIL_FROM|否|MAIL_USER|发送时使用的邮箱，默认与MAIL_USER相同
