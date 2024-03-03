@@ -452,33 +452,35 @@ async def _send_mail(to, subject, text=None, subtype='html'):
     msg['To'] = to
     try:
         logger_util.info('send mail to %s', to)
-        if config.mail_port:
-            if config.mail_ssl or config.mail_port in [465, 587]:
-                s = None
-                if config.mail_port == 587:  # use starttls
-                    try:
-                        s = smtplib.SMTP(config.mail_smtp, config.mail_port)
-                        s.starttls()
-                    except smtplib.SMTPException as e:
-                        logger_util.error("smtp starttls failed: %s", e, exc_info=config.traceback_print)
-                if s is None:
-                    s = smtplib.SMTP_SSL(config.mail_smtp, config.mail_port)
-            else:
-                s = smtplib.SMTP(config.mail_smtp, config.mail_port)
-            s.connect(config.mail_smtp, config.mail_port)
-        else:
+        tls_established = False
+
+        # Create SMTP connection according to the configuration
+        if config.mail_starttls:  # use starttls
+            s = smtplib.SMTP(config.mail_smtp, config.mail_port or 587)
+            try:
+                s.starttls()
+                tls_established = True
+            except smtplib.SMTPException as e:
+                logger_util.error("smtp starttls failed: %s", e, exc_info=config.traceback_print)
+        if not tls_established:
             if config.mail_ssl:
-                s = smtplib.SMTP_SSL(config.mail_smtp)
+                s = smtplib.SMTP_SSL(config.mail_smtp, config.mail_port or 465)
             else:
-                s = smtplib.SMTP(config.mail_smtp)
-            s.connect(config.mail_smtp)
-        # s = config.mail_ssl and smtplib.SMTP_SSL(config.mail_smtp) or smtplib.SMTP(config.mail_smtp)
-        if config.mail_user:
-            s.login(config.mail_user, config.mail_password)
-        s.sendmail(config.mail_from, to, msg.as_string())
-        s.close()
+                s = smtplib.SMTP(config.mail_smtp, config.mail_port or 25)
+
+        try:
+            # Only attempt login if user and password are set
+            if config.mail_user and config.mail_password:
+                s.login(config.mail_user, config.mail_password)
+            s.sendmail(config.mail_from, to, msg.as_string())
+        except smtplib.SMTPException as e:
+            logger_util.error("smtp sendmail error: %s", e, exc_info=config.traceback_print)
+        finally:
+            # If sending fails, still close the connection
+            s.quit()
+
     except Exception as e:
-        logger_util.error('send mail error: %s', e, exc_info=config.traceback_print)
+        logger_util.error('error occurred while sending mail: %s', e, exc_info=config.traceback_print)
     return
 
 

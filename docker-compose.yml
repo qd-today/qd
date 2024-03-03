@@ -83,6 +83,7 @@ services:
       # - MAIL_SMTP=
       # - MAIL_PORT=465
       # - MAIL_SSL=True
+      # - MAIL_STARTTLS=False
       # - MAIL_USER=
       # - MAIL_PASSWORD=
       # - MAIL_FROM=${MAIL_USER}

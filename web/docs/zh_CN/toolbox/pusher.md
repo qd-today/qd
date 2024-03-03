@@ -61,7 +61,7 @@ MAIL_DOMAIN_HTTPS|否|False|发送的邮件链接启用HTTPS, <br>非框架前�
 QQ邮箱|[如何开启QQ邮箱的POP3/SMTP/IMAP服务？](https://service.mail.qq.com/detail/0/428)|[如何打开POP3/SMTP/IMAP功能？](https://service.mail.qq.com/detail/0/310)|[开启POP3/SMTP/IMAP功能为什么需要先设置独立密码？](https://service.mail.qq.com/detail/0/86)
 网易企业邮箱|-|[企业邮箱的POP、SMTP、IMAP服务器地址设置。](https://qiye.163.com/help/client-profile.html)|[什么是客户端授权码，如何使用？](https://qiye.163.com/help/af988e.html)
 网易邮箱|[什么是POP3、SMTP及IMAP？](https://help.mail.163.com/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f67ac21b87735d7227c217)|[如何开启客户端协议？](https://help.mail.163.com/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f67ac2a5feb28b66796d3b)|-
-Gmail|-|[如何使用POP3/SMTP/IMAP服务？](https://support.google.com/mail/answer/7126229?hl=zh-Hans)|[如何使用客户端授权密码？](https://support.google.com/accounts/answer/185833?hl=zh-Hans)
+Gmail|-|[如何使用POP3/SMTP/IMAP服务？](https://support.google.com/mail/answer/7104828?hl=zh-Hans)|[如何使用客户端授权密码？](https://support.google.com/accounts/answer/185833?hl=zh-Hans)
 Outlook|-|[POP、IMAP 和 SMTP 设置](https://support.microsoft.com/zh-cn/office/pop-imap-%E5%92%8C-smtp-%E8%AE%BE%E7%BD%AE-8361e398-8af4-4e97-b147-6c6c4ac95353)|[对不支持双重验证的应用使用应用密码](https://support.microsoft.com/zh-cn/account-billing/%E5%AF%B9%E4%B8%8D%E6%94%AF%E6%8C%81%E5%8F%8C%E9%87%8D%E9%AA%8C%E8%AF%81%E7%9A%84%E5%BA%94%E7%94%A8%E4%BD%BF%E7%94%A8%E5%BA%94%E7%94%A8%E5%AF%86%E7%A0%81-5896ed9b-4263-e681-128a-a6f2979a7944)
 
 ::: tip MailGun

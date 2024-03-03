@@ -61,7 +61,7 @@ Tencent Enterprise Mail|[How to enable Tencent Enterprise Mail POP/SMTP/IMAP ser
 QQ Mail|[How to enable QQ Mail POP3/SMTP/IMAP service?](https://service.mail.qq.com/detail/0/428)|[How to turn on POP3/SMTP/IMAP?](https://service.mail.qq.com/detail/0/310)|[Why do I need to set a separate password to enable POP3/SMTP/IMAP?](https://service.mail.qq.com/detail/0/86)
 Netease Enterprise Mail|-|[Enterprise Mail POP, SMTP, IMAP server address settings.](https://qiye.163.com/help/client-profile.html)|[What is a client authorization code and how do I use it?](https://qiye.163.com/help/af988e.html)
 Netease Mail|[What is POP3, SMTP and IMAP?](https://help.mail.163.com/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f67ac21b87735d7227c217)|[How to enable client protocol?](https://help.mail.163.com/faqDetail.do?code=d7a5dc8471cd0c0e8b4b8f4f8e49998b374173cfe9171305fa1ce630d7f67ac2a5feb28b66796d3b)|-
-Gmail|-|[How to use POP3/SMTP/IMAP service?](https://support.google.com/mail/answer/7126229?hl=en)|[Sign in with app passwords](https://support.google.com/accounts/answer/185833?hl=en)
+Gmail|-|[How to use POP3/SMTP/IMAP service?](https://support.google.com/mail/answer/7104828?hl=en)|[Sign in with app passwords](https://support.google.com/accounts/answer/185833?hl=en)
 Outlook|-|[POP, IMAP and SMTP settings](https://support.microsoft.com/en-us/office/pop-imap-and-smtp-settings-8361e398-8af4-4e97-b147-6c6c4ac95353)|[Use app passwords with apps that don't support two-step verification](https://support.microsoft.com/en-us/account-billing/using-app-passwords-with-apps-that-don-t-support-two-step-verification-5896ed9b-4263-e681-128a-a6f2979a7944)
 
 ::: tip MailGun

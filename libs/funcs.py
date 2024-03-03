@@ -452,6 +452,9 @@ class Pusher:
                                       shark=True)
             except Exception as e:
                 logger_funcs.error('Send mail error: %r', e, exc_info=config.traceback_print)
+        else:
+            r = '邮箱未验证或邮箱不存在!'
+            logger_funcs.error('Send mail error: %s, email: %s', r, email)
 
 
 class Cal:

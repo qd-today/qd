@@ -185,6 +185,7 @@ extra_charsets_name = os.getenv('EXTRA_CHARSETS_NAME', '').split('|')       # co
 mail_smtp = os.getenv('MAIL_SMTP', "")                                      # 邮箱 SMTP 服务器
 mail_port = int(os.getenv('MAIL_PORT', '465'))                              # 邮箱 SMTP 服务器端口
 mail_ssl = bool(strtobool(os.getenv('MAIL_SSL', 'True')))                   # 是否使用 SSL 加密方式收发邮件
+mail_starttls = bool(strtobool(os.getenv('MAIL_STARTTLS', 'False')))        # 是否使用 STARTTLS 加密方式收发邮件, 默认不启用
 mail_user = os.getenv('MAIL_USER', '')                                      # 邮箱用户名
 mail_password = os.getenv('MAIL_PASSWORD', '')                              # 邮箱密码
 mail_from = os.getenv('MAIL_FROM', mail_user)                               # 发送时使用的邮箱，默认与 MAIL_USER 相同
