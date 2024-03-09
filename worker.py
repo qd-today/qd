@@ -255,7 +255,6 @@ class BaseWorker:
                                        mtime=time.time(),
                                        next=next,
                                        sql_session=sql_session)
-                await self.db.tpl.incr_success(tpl['id'], sql_session=sql_session)
 
                 t = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                 title = f"QD定时任务 {tpl['sitename']}-{task['note']} 成功"
@@ -305,10 +304,16 @@ class BaseWorker:
                                        mtime=time.time(),
                                        next=next,
                                        sql_session=sql_session)
-                await self.db.tpl.incr_failed(tpl['id'], sql_session=sql_session)
 
                 logger_worker.error('taskid:%d tplid:%d failed! %.4fs \r\n%s', task['id'], task['tplid'], time.perf_counter(
                 ) - start, str(e).replace('\\r\\n', '\r\n'))
+
+        async with self.db.transaction() as sql_session:
+            if tpl and tpl.get('id'):
+                if is_success:
+                    await self.db.tpl.incr_success(tpl['id'], sql_session=sql_session)
+                else:
+                    await self.db.tpl.incr_failed(tpl['id'], sql_session=sql_session)
 
         if should_push:
             try:
