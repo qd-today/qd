@@ -103,7 +103,7 @@ class TaskMultiOperateHandler(BaseHandler):
                                         'cron_val': time_env['cron_val'],
                                     }
 
-                                    if time_env['randtimezone1'] != '':
+                                    if time_env['randtimezone1']:
                                         settime_env['randsw'] = True
                                     # if time_env['cron_sec'] != '':
                                     #     settime_env['cron_sec'] = time_env['cron_sec']
