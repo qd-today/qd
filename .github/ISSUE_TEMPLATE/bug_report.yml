@@ -1,0 +1,117 @@
+name: Bug报告
+description: Create a report to help us improve
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        如果你可以自己 debug 并解决的话, 建议您直接提交 PR 或 描述解决方法, 非常感谢!
+  - type: checkboxes
+    id: verify_step
+    attributes:
+      label: Verify steps
+      description: |
+        在提交之前, 请确认 Please verify that you've followed these steps.
+      options:
+        - label: Tracker 我已经在 [Issue Tracker](……/) 中找过我要提出的问题
+          required: true
+        - label: Latest 我已经使用 最新源码 测试过，问题依旧存在
+          required: true
+        - label: Core 这是 QD 框架存在的问题，并非我所使用的 QD 早期版本（如 20210628及之前版号 等）或模板的特定问题
+          required: true
+        - label: Meaningful 我提交的不是无意义的 催促更新或修复 请求
+          required: true
+  - type: input
+    id: qd_version
+    attributes:
+      label: QD Version
+      description: |
+        QD 版本号
+      placeholder: "20211228"
+    validations:
+      required: true
+  - type: dropdown
+    id: bug_os
+    attributes:
+      label: Bug on OS
+      description: |
+        发现问题所在的系统环境 OS
+      multiple: true
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - OpenBSD/FreeBSD
+    validations:
+      required: true
+  - type: dropdown
+    id: bug_platform
+    attributes:
+      label: Bug on Platform
+      description: |
+        发现问题所在的平台 Platform
+      multiple: true
+      options:
+        - Docker/macOS
+        - Docker/Windows x86
+        - Docker/Windows x64
+        - Docker/Linux 32位
+        - Docker/Linux 64位
+        - Code Build/macOS
+        - Code Build/Windows x86
+        - Code Build/Windows x64
+        - Code Build/Linux 32位
+        - Code Build/Linux 64位
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce_bug
+    attributes:
+      label: To Reproduce
+      description: |
+        复现此Bug的步骤.
+    validations:
+      required: true
+  - type: textarea
+    id: describe_bug
+    attributes:
+      label: Describe the Bug
+      description: |
+        对Bug本身清晰而简洁的描述.
+    validations:
+      required: true
+  - type: textarea
+    id: qd_config
+    attributes:
+      label: QD config
+      description: |
+        在下方附上 QD 脱敏后配置文件 或 创建容器命令及环境变量 的内容.
+      render: shell
+    validations:
+      required: false
+  - type: textarea
+    id: qd_log
+    attributes:
+      label: QD log
+      description: |
+        在下方附上 QD 后台报错 的日志.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: excepted_behavior
+    attributes:
+      label: Expected behavior
+      description: |
+        对预期修复后情况的清晰明了的描述.
+    validations:
+      required: true
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: |
+        添加屏幕截图以帮助解释您的问题.
+    validations:
+      required: false

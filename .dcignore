@@ -1,0 +1,78 @@
+# Write glob rules for ignored files.
+# Check syntax on https://deepcode.freshdesk.com/support/solutions/articles/60000531055-how-can-i-ignore-files-or-directories-
+# Check examples on https://github.com/github/gitignore
+
+# Hidden directories
+.*/
+
+node_modules/
+bower_components/
+build/
+dist/
+
+# ExtJs
+build/
+ext/
+
+# Python
+__pycache__/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+MANIFEST
+htmlcov/
+cover/
+instance/
+docs/_build/
+target/
+profile_default/
+__pypackages__/
+celerybeat-schedule
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+/site
+cython_debug/
+
+# Node
+logs
+pids
+lib-cov
+coverage
+bower_components
+build/Release
+node_modules/
+jspm_packages/
+web_modules/
+out
+dist
+
+# QD
+web/static/components/*/
+database.db
+config.json
+database - 副本.db
+*.db-journal
+qiandao.rar
+qd.rar
+压缩.bat
+.ssh/
+database*.db
+local_config.py
+.virtual_documents/
+.gitkeep
+web/static/components/*/package-lock.json
+redis
+tmp/

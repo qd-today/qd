@@ -1,0 +1,238 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": true,
+  "contributors": [
+    {
+      "login": "a76yyyy",
+      "name": "a76yyyy",
+      "avatar_url": "https://avatars.githubusercontent.com/u/56478790?v=4",
+      "profile": "http://www.a76yyyy.cn",
+      "contributions": [
+        "design",
+        "code",
+        "maintenance",
+        "doc"
+      ]
+    },
+    {
+      "login": "Binux",
+      "name": "Roy Binux",
+      "avatar_url": "https://avatars.githubusercontent.com/u/646451?v=4",
+      "profile": "http://binux.me/",
+      "contributions": [
+        "design",
+        "code",
+        "maintenance",
+        "doc"
+      ]
+    },
+    {
+      "login": "AragonSnow",
+      "name": "AragonSnow",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22835918?v=4",
+      "profile": "https://github.com/AragonSnow",
+      "contributions": [
+        "code",
+        "design",
+        "maintenance"
+      ]
+    },
+    {
+      "login": "Mark-1215",
+      "name": "Mark",
+      "avatar_url": "https://avatars.githubusercontent.com/u/36469805?v=4",
+      "profile": "https://www.quchao.net",
+      "contributions": [
+        "design",
+        "blog",
+        "doc",
+        "maintenance",
+        "code"
+      ]
+    },
+    {
+      "login": "cdpidan",
+      "name": "pidan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8141453?v=4",
+      "profile": "https://github.com/cdpidan",
+      "contributions": [
+        "design",
+        "code"
+      ]
+    },
+    {
+      "login": "buzhibujuelb",
+      "name": "buzhibujue",
+      "avatar_url": "https://avatars.githubusercontent.com/u/24644841?v=4",
+      "profile": "https://buzhibujue.cf",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "billypon",
+      "name": "billypon",
+      "avatar_url": "https://avatars.githubusercontent.com/u/1763302?v=4",
+      "profile": "https://github.com/billypon",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "acooler15",
+      "name": "acooler15",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19186382?v=4",
+      "profile": "http://www.lingyan8.com",
+      "contributions": [
+        "code",
+        "maintenance"
+      ]
+    },
+    {
+      "login": "aa889788",
+      "name": "shxyke",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16019986?v=4",
+      "profile": "https://github.com/aa889788",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "gxitm",
+      "name": "xiaoxiao",
+      "avatar_url": "https://avatars.githubusercontent.com/u/2405087?v=4",
+      "profile": "https://github.com/gxitm",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "caspershw",
+      "name": "Casper",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25276620?v=4",
+      "profile": "https://blog.hicasper.com",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ckx000",
+      "name": "旋子",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5800591?v=4",
+      "profile": "https://github.com/ckx000",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "chen8945",
+      "name": "chen8945",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44148812?v=4",
+      "profile": "https://github.com/chen8945",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "seiuneko",
+      "name": "seiuneko",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25706824?v=4",
+      "profile": "https://github.com/seiuneko",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "powersee",
+      "name": "powersee",
+      "avatar_url": "https://avatars.githubusercontent.com/u/38074760?v=4",
+      "profile": "https://github.com/powersee",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Cirn09",
+      "name": "Cirn09",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25722111?v=4",
+      "profile": "https://github.com/Cirn09",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Ovler-Young",
+      "name": "Ovler",
+      "avatar_url": "https://avatars.githubusercontent.com/u/44089074?v=4",
+      "profile": "https://github.com/Ovler-Young",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Ansen",
+      "name": "An",
+      "avatar_url": "https://avatars.githubusercontent.com/u/676412?v=4",
+      "profile": "https://www.lshell.com",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Siman8",
+      "name": "Siman8",
+      "avatar_url": "https://avatars.githubusercontent.com/u/32073730?v=4",
+      "profile": "https://github.com/Siman8",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "uiolee",
+      "name": "Uiolee",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22849383?v=4",
+      "profile": "https://github.com/uiolee",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "OwnerCM",
+      "name": "OwnerCM",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22722811?v=4",
+      "profile": "https://github.com/OwnerCM",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "jionkitten",
+      "name": "jionkitten",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30788097?v=4",
+      "profile": "https://github.com/jionkitten",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Patrick-Ze",
+      "name": "Patrick-Ze",
+      "avatar_url": "https://avatars.githubusercontent.com/u/19711799?v=4",
+      "profile": "https://github.com/Patrick-Ze",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 8,
+  "projectName": "qd",
+  "projectOwner": "qd-today",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true,
+  "commitType": "docs",
+  "commitConvention": "angular"
+}
