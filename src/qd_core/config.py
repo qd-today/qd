@@ -215,12 +215,13 @@ class DdddOcrSettings(BaseModel):
 
     # 自定义 ONNX 文件名列表
     extra_onnx_name: List[str] = Field(
-        default=[], description="config 目录下自定义 ONNX 文件名列表（不含 '.onnx' 后缀）"
+        default=[""], description="config 目录下自定义 ONNX 文件名列表（不含 '.onnx' 后缀）"
     )
 
     # 自定义字符集 JSON 文件名列表
     extra_charsets_name: List[str] = Field(
-        default=[], description="config 目录下自定义 ONNX 对应的自定义 `charsets.json` 文件名列表（不含 '.json' 后缀）"
+        default=[""],
+        description="config 目录下自定义 ONNX 对应的自定义 `charsets.json` 文件名列表（不含 '.json' 后缀）",
     )
 
 

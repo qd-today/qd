@@ -11,6 +11,7 @@ dynamic = ["version"]
 classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "License :: MIT",
 ]
 dependencies = [
@@ -47,7 +48,6 @@ Repository = "https://github.com/qd-today/qd"
 Issues = "https://github.com/qd-today/qd/issues"
 
 [project.optional-dependencies]
-ocr = ["ddddocr"]
 dev = [
     "colorama; sys_platform == 'win32'",
     "pytest",
@@ -62,8 +62,14 @@ dev = [
     "types-passlib",
     "types-setuptools",
     "types-PyYAML",
-    "types-toml"
+    "types-toml",
+    "setuptools",
+    'wheel',
 ]
+ddddocr = ["ddddocr>=1.5.3"]
+
+[project.scripts]
+plugins = "qd_core.plugins.base:entrypoints"
 
 [tool.setuptools]
 include-package-data = false
@@ -73,28 +79,19 @@ where = ["src"]
 include = ["qd_core*"]
 exclude = ["test*"]
 
-[tool.uv]
-default-dev-dependencies = ["test", "format", "lint"]
+[tool.rye]
+managed = true
+dev-dependencies = ["setuptools>=70.0.0"]
 
-[tool.uv.dev-dependencies]
-test = ["pytest"]
-format = ["ruff"]
-lint = [
-    "mypy",
-    "types-croniter",
-    "types-requests",
-    "types-python-dateutil",
-    "sqlalchemy2-stubs",
-    "types-aiofiles",
-    "pylint-pydantic",
-    "types-passlib",
-    "types-setuptools",
-    "types-PyYAML",
-]
+[tool.uv]
+dev-dependencies = ["setuptools>=70.0.0"]
 
 [tool.uv.indexes]
 tencent = "https://mirrors.tencent.com/pypi/simple"
 pypi = "https://pypi.org/simple"
+
+[tool.uv.pip]
+index-url = "https://mirrors.tencent.com/pypi/simple"
 
 [tool.mypy]
 mypy_path = "$MYPY_CONFIG_FILE_DIR/src"

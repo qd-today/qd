@@ -65,14 +65,13 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 ==========
 
 ```env
-PYTHONPATH=./src
-SETUPTOOLS_USE_DISTUTILS=stdlib
 QD_DEBUG=True
 ```
 
 ```shell
-uv venv
-uv pip install -r .\pyproject.toml -i https://mirrors.tencent.com/pypi/simple
+rye sync
+rye run plugins
+rye build
 ```
 
 请参阅 **[使用指南](https://qd-today.github.io/qd/zh_CN/)**

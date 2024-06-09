@@ -17,16 +17,13 @@ from tornado.web import HTTPError
 from zoneinfo import ZoneInfo
 
 from qd_core.config import get_settings
-from qd_core.plugins.base import api_plugin
-from qd_core.utils.log import Log
-
-logger_web_util = Log("QD.Plugins.Default").getlogger()
+from qd_core.plugins.base import api_plugin, logger_plugins
 
 try:
     import ddddocr  # type: ignore
 except ImportError as e:
     if get_settings().log.display_import_warning:
-        logger_web_util.warning(
+        logger_plugins.warning(
             'Import DdddOCR module falied: "%s". \n'
             "Tips: This warning message is only for prompting, it will not affect running of QD framework.",
             e,
@@ -313,7 +310,7 @@ class DdddOcrServer:
                             f"{onnx_name}.json",
                         ),
                     )
-                    logger_web_util.info("成功加载自定义Onnx模型: %s.onnx", onnx_name)
+                    logger_plugins.info("成功加载自定义Onnx模型: %s.onnx", onnx_name)
 
     def classification(self, img: bytes, old=False, extra_onnx_name=""):
         if extra_onnx_name:
@@ -333,7 +330,7 @@ class DdddOcrServer:
             try:
                 return self.slide.slide_match(imgtarget, imgbg)
             except Exception as e:
-                logger_web_util.debug("slide_match error: %s", e, exc_info=get_settings().log.traceback_print)
+                logger_plugins.debug("slide_match error: %s", e, exc_info=get_settings().log.traceback_print)
         return self.slide.slide_match(imgtarget, imgbg, simple_target=True)
 
 
@@ -361,7 +358,7 @@ async def get_img(
             try:
                 return await get_img_from_url(img)
             except Exception as e:
-                logger_web_util.debug("get_img_from_url error: %s", e, exc_info=get_settings().log.traceback_print)
+                logger_plugins.debug("get_img_from_url error: %s", e, exc_info=get_settings().log.traceback_print)
                 return base64.b64decode(img)
         return base64.b64decode(img)
     elif imgurl:
