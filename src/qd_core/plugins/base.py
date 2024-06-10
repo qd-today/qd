@@ -2,10 +2,10 @@ import os
 import subprocess
 import sys
 from functools import partial, wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from fastapi import APIRouter
-from plux import plugin  # type: ignore
+from plux import FunctionPlugin, PluginSpec  # type: ignore
 from pydantic_settings import BaseSettings
 
 from qd_core.utils.decorator import pydantic_convert
@@ -33,44 +33,62 @@ def add_api_routes(
         router.include_router(_api_router, **api_router_kwargs)
 
 
-def api_plugin(
+def api_function_plugin(
     namespace: str,
-    name: str,
-    api_paths: List[str],
-    api_methods: List[List[str]],
+    name: Optional[str] = None,
+    api_paths: Optional[List[str]] = None,
+    api_methods: Optional[List[List[str]]] = None,
     api_kwargs: Optional[Dict[str, Any]] = None,
     api_router: Optional[APIRouter] = None,
     api_router_kwargs: Optional[Dict[str, Any]] = None,
+    should_load: Optional[Union[bool, Callable[[], bool]]] = None,
+    load: Optional[Callable] = None,
     settings: Optional[BaseSettings] = None,
 ):
+    """
+    A combined decorator that both exposes a function as a discoverable and loadable FunctionPlugin
+    and sets up API routing for the function if API-related parameters are provided.
+    """
     if api_kwargs is None:
         api_kwargs = {}
     if api_router_kwargs is None:
         api_router_kwargs = {}
     if settings is None:
-        settings = BaseSettings()  # TODO: add settings
+        settings = BaseSettings()
 
     def wrapper(fn):
-        pydantic_converted_fn = pydantic_convert(fn)
+        plugin_name = name or fn.__name__
+        fn = pydantic_convert(fn)
 
-        @wraps(pydantic_converted_fn)
-        @plugin(
-            namespace=namespace,
-            name=name,
-            load=partial(
-                add_api_routes,
-                api_paths,
-                pydantic_converted_fn,
-                api_methods=api_methods,
-                api_kwargs=api_kwargs,
-                api_router=api_router,
-                api_router_kwargs=api_router_kwargs,
-            ),
-        )
-        def plugin_wrapper(*args, **kwargs):
-            return pydantic_converted_fn(*args, **kwargs)
+        @wraps(fn)
+        def factory():
+            # Set up API routes if API paths and methods are provided
+            if api_paths and api_methods:
+                _load = partial(
+                    add_api_routes,
+                    api_paths,
+                    fn,
+                    api_methods=api_methods,
+                    api_kwargs=api_kwargs,
+                    api_router=api_router,
+                    api_router_kwargs=api_router_kwargs,
+                )
 
-        return plugin_wrapper
+            # Create and attach the FunctionPlugin
+            fn_plugin = FunctionPlugin(
+                fn,
+                should_load=should_load,
+                load=_load or load,
+            )
+            fn_plugin.namespace = namespace
+            fn_plugin.name = plugin_name
+
+            return fn_plugin
+
+        # Attach the plugin spec to the function for discovery
+        fn.__pluginspec__ = PluginSpec(namespace, plugin_name, factory)
+
+        return fn
 
     return wrapper
 

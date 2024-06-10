@@ -17,7 +17,7 @@ from tornado.web import HTTPError
 from zoneinfo import ZoneInfo
 
 from qd_core.config import get_settings
-from qd_core.plugins.base import api_plugin, logger_plugins
+from qd_core.plugins.base import api_function_plugin, logger_plugins
 
 try:
     import ddddocr  # type: ignore
@@ -31,7 +31,7 @@ except ImportError as e:
     ddddocr = None
 
 
-@api_plugin(
+@api_function_plugin(
     namespace="qd.plugins.default",
     name="util-delay",
     api_paths=["/delay/{seconds}", "/delay"],
@@ -70,7 +70,7 @@ def yearday(year: int):
 GMT_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
 
 
-@api_plugin(
+@api_function_plugin(
     namespace="qd.plugins.default",
     name="util-timestamp",
     api_paths=["/timestamp"],
@@ -115,7 +115,7 @@ async def timestamp(
     return rtv
 
 
-@api_plugin(
+@api_function_plugin(
     namespace="qd.plugins.default",
     name="util-unicode",
     api_paths=["/unicode"],
@@ -142,7 +142,7 @@ async def unicode(
     return rtv
 
 
-@api_plugin(
+@api_function_plugin(
     namespace="qd.plugins.default",
     name="util-urldecode",
     api_paths=["/urldecode"],
@@ -176,7 +176,7 @@ async def urldecode(
     return rtv
 
 
-@api_plugin(
+@api_function_plugin(
     namespace="qd.plugins.default",
     name="util-gb2312",
     api_paths=["/gb2312"],
@@ -192,7 +192,7 @@ async def gb2312(content: Annotated[str, Field("", description="要转码的内�
     return rtv
 
 
-@api_plugin(
+@api_function_plugin(
     namespace="qd.plugins.default",
     name="util-regex",
     api_paths=["/regex"],
@@ -215,7 +215,7 @@ async def regex(
     return rtv
 
 
-@api_plugin(
+@api_function_plugin(
     namespace="qd.plugins.default",
     name="util-string-replace",
     api_paths=["/string/replace"],
@@ -239,7 +239,7 @@ async def string_replace(
     return rtv
 
 
-@api_plugin(
+@api_function_plugin(
     namespace="qd.plugins.default",
     name="util-rsa",
     api_paths=["/rsa"],
@@ -367,7 +367,7 @@ async def get_img(
         raise HTTPError(415)
 
 
-@api_plugin(
+@api_function_plugin(
     namespace="qd.plugins.default",
     name="util-dddd-ocr",
     api_paths=["/dddd/ocr"],
@@ -392,7 +392,7 @@ async def dddd_ocr(
     return rtv
 
 
-@api_plugin(
+@api_function_plugin(
     namespace="qd.plugins.default",
     name="util-dddd-det",
     api_paths=["/dddd/det"],
@@ -415,7 +415,7 @@ async def dddd_det(
     return rtv
 
 
-@api_plugin(
+@api_function_plugin(
     namespace="qd.plugins.default",
     name="util-dddd-slide",
     api_paths=["/dddd/slide"],
