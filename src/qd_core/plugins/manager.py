@@ -1,6 +1,5 @@
 import asyncio
 import importlib.metadata as importlib_metadata
-import logging
 import sys
 import time
 from typing import Dict
@@ -8,9 +7,10 @@ from typing import Dict
 from pip._internal.req.constructors import install_req_from_line
 from plux import Plugin, PluginManager  # type: ignore
 
+from qd_core.utils.log import Log
 from qd_core.utils.shell import run_command_and_log_output_async
 
-logger = logging.getLogger(__name__)
+logger = Log("QD.Plugins.Manager").getlogger()
 
 
 class QDPluginManager:

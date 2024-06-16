@@ -92,7 +92,6 @@ def api_function_plugin(
 
     return wrapper
 
-
 def set_env_variable_and_run_command(command: List[str], envs: Optional[Dict[str, str]] = None):
     """
     设置环境变量并运行给定的命令，确保环境变量在子进程中生效。
@@ -102,13 +101,13 @@ def set_env_variable_and_run_command(command: List[str], envs: Optional[Dict[str
     if not isinstance(command, list):
         logger_plugins.error("命令必须以列表形式提供。")
         raise ValueError("命令必须以列表形式提供。")
-    if not isinstance(envs, dict):
-        logger_plugins.error("环境变量必须以字典形式提供。")
-        raise ValueError("环境变量必须以字典形式提供。")
 
     # 复制当前环境变量并更新
     env = dict(os.environ)
     if envs:
+        if not isinstance(envs, dict):
+            logger_plugins.error("环境变量必须以字典形式提供。")
+            raise ValueError("环境变量必须以字典形式提供。")
         logger_plugins.info(f"设置环境变量: {envs}")
         env.update(envs)
 
@@ -126,7 +125,7 @@ def set_env_variable_and_run_command(command: List[str], envs: Optional[Dict[str
 
 
 def entrypoints(args=None):
-    command = ["python", "-m", "plux", "entrypoints"]
+    command = [sys.executable, "-m", "plux", "entrypoints"]
 
     # 判断 python 版本是否小于 3.12, 是则设置 SETUPTOOLS_USE_DISTUTILS 环境变量为 stdlib
     if sys.version_info < (3, 12):

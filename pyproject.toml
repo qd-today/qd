@@ -69,7 +69,7 @@ dev = [
 ddddocr = ["ddddocr>=1.5.3"]
 
 [project.scripts]
-plugins = "qd_core.plugins.base:entrypoints"
+qd_plugins = "qd_core.plugins.base:entrypoints"
 
 [tool.setuptools]
 include-package-data = false
