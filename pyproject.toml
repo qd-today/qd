@@ -7,9 +7,9 @@ name = "qd-core"
 authors = [{ name = "a76yyyy", email = "q981331502@163.com" }]
 description = "The core library and runtime of QD"
 requires-python = ">=3.10"
-dynamic = ["version"]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "License :: MIT",
@@ -40,6 +40,7 @@ dependencies = [
     "PyYAML",
     "toml",
 ]
+version = "0.0.1"
 
 [project.urls]
 Homepage = "https://qd-today.github.io/qd/"
