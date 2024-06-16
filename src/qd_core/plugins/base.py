@@ -1,5 +1,4 @@
-import os
-import subprocess
+import asyncio
 import sys
 from functools import partial, wraps
 from typing import Any, Callable, Dict, List, Optional, Union
@@ -10,8 +9,9 @@ from pydantic_settings import BaseSettings
 
 from qd_core.utils.decorator import pydantic_convert
 from qd_core.utils.log import Log
+from qd_core.utils.shell import set_env_variable_and_run_command
 
-logger_plugins = Log("QD.Plugins").getlogger()
+logger_plugins = Log("QD.Core.Plugins").getlogger()
 router = APIRouter()
 
 
@@ -29,6 +29,7 @@ def add_api_routes(
         _api_router = api_router
     for api_path, api_method in zip(api_paths, api_methods):
         _api_router.add_api_route(api_path, fn, methods=api_method, **api_kwargs)
+        logger_plugins.debug(f"Added API route: {api_path} {api_method}")
     if api_router:
         router.include_router(_api_router, **api_router_kwargs)
 
@@ -92,43 +93,12 @@ def api_function_plugin(
 
     return wrapper
 
-def set_env_variable_and_run_command(command: List[str], envs: Optional[Dict[str, str]] = None):
-    """
-    设置环境变量并运行给定的命令，确保环境变量在子进程中生效。
-    这个函数通过直接操作环境变量而不是依赖shell来提高安全性。
-    """
-    # 参数验证
-    if not isinstance(command, list):
-        logger_plugins.error("命令必须以列表形式提供。")
-        raise ValueError("命令必须以列表形式提供。")
-
-    # 复制当前环境变量并更新
-    env = dict(os.environ)
-    if envs:
-        if not isinstance(envs, dict):
-            logger_plugins.error("环境变量必须以字典形式提供。")
-            raise ValueError("环境变量必须以字典形式提供。")
-        logger_plugins.info(f"设置环境变量: {envs}")
-        env.update(envs)
-
-    try:
-        # 使用Popen手动设置环境变量并执行命令，以确保环境变量在子进程中生效
-        process = subprocess.Popen(command, shell=False, env=env)
-        process.wait()
-        return process.returncode  # 返回命令执行的状态码
-    except OSError as e:
-        logger_plugins.error(f"执行命令时发生OS错误: {e}")
-        return -1  # 表明执行出错
-    except ValueError as e:
-        logger_plugins.error(f"无效的命令或环境变量设置: {e}")
-        return -1  # 表明执行出错
-
 
 def entrypoints(args=None):
     command = [sys.executable, "-m", "plux", "entrypoints"]
 
     # 判断 python 版本是否小于 3.12, 是则设置 SETUPTOOLS_USE_DISTUTILS 环境变量为 stdlib
     if sys.version_info < (3, 12):
-        return set_env_variable_and_run_command(command, {"SETUPTOOLS_USE_DISTUTILS": "stdlib"})
+        return asyncio.run(set_env_variable_and_run_command(command, {"SETUPTOOLS_USE_DISTUTILS": "stdlib"}))
     else:
-        return set_env_variable_and_run_command(command)
+        return asyncio.run(set_env_variable_and_run_command(command))
