@@ -5,10 +5,11 @@ from typing import Literal, Union
 
 import croniter
 from pydantic import BaseModel, Field, field_validator
+
 from qd_core.utils.decorator import log_and_raise_error
 from qd_core.utils.log import Log
 
-logger_nexttime = Log("QD.Core.NextTime").getlogger()
+logger_nexttime = Log("QD.Core.Utils").getlogger()
 
 
 class NextTsBase(BaseModel):

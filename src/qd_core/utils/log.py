@@ -4,15 +4,16 @@
 #         http://www.a76yyyy.cn
 # Created on 2022-03-14 11:39:57
 
-import logging
 import os
 import sys
 import time
+from logging import DEBUG, INFO, FileHandler, Logger, StreamHandler, basicConfig, getLogger
 
 import tornado.log
+
 from qd_core.config import get_settings
 
-DEFAULT_LEVEL = logging.DEBUG if get_settings().log.debug else logging.INFO
+DEFAULT_LEVEL = DEBUG if get_settings().log.debug else INFO
 
 
 class Log:
@@ -27,10 +28,10 @@ class Log:
         """
 
         # 创建一个logger
-        logging.basicConfig()
+        basicConfig()
         if logger is None or isinstance(logger, str):
-            self.logger = logging.getLogger(logger)
-        elif isinstance(logger, logging.Logger):
+            self.logger = getLogger(logger)
+        elif isinstance(logger, Logger):
             self.logger = logger
         self.logger.setLevel(logger_level)
         self.logger.propagate = False
@@ -45,7 +46,7 @@ class Log:
         self.logger.handlers.clear()
 
         # 创建一个handler，用于输出到控制台
-        ch = logging.StreamHandler(sys.stdout)
+        ch = StreamHandler(sys.stdout)
         ch.setFormatter(formatter)
         ch.setLevel(channel_level)
 
@@ -55,7 +56,7 @@ class Log:
         if log_dir_path:
             self.logger.propagate = True
             self.log_name = os.path.join(log_dir_path, self.log_time + ".log")
-            fh = logging.FileHandler(self.log_name, "a", encoding="utf-8")
+            fh = FileHandler(self.log_name, "a", encoding="utf-8")
             fh.setFormatter(formatter)
             self.logger.addHandler(fh)
 

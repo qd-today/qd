@@ -2,13 +2,14 @@ import smtplib
 from email.mime.text import MIMEText
 from urllib import parse as urllib_parse
 
+from tornado import httpclient
+
 from qd_core.config import get_settings
 from qd_core.filters.convert import to_bytes
 from qd_core.utils.decorator import log_and_raise_error
 from qd_core.utils.log import Log
-from tornado import httpclient
 
-logger_mail = Log("QD.Http.Funcs").getlogger()
+logger_mail = Log("QD.Core.Utils").getlogger()
 
 
 @log_and_raise_error(logger_mail, "Send mail error: %s")

@@ -13,7 +13,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List, Literal, Optional, Union
 
-from pydantic import AnyUrl, BaseModel, Field, ValidationInfo, field_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 from pydantic_core import Url
 from pydantic_settings import BaseSettings, JsonConfigSettingsSource, PydanticBaseSettingsSource, SettingsConfigDict
 

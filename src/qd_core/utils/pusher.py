@@ -14,7 +14,7 @@ from qd_core.utils.decorator import log_and_raise_error
 from qd_core.utils.log import Log
 from qd_core.utils.mail import send_mail
 
-logger_pusher = Log("QD.Http.Funcs").getlogger()
+logger_pusher = Log("QD.Core.Utils").getlogger()
 
 
 def error_message_format(provider: str) -> str:

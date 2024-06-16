@@ -35,7 +35,7 @@ from qd_core.utils.log import Log
 from qd_core.utils.router import match_route_path
 from qd_core.utils.safe_eval import safe_eval
 
-logger_fetcher = Log("QD.Http.Fetcher").getlogger()
+logger_fetcher = Log("QD.Core.Client").getlogger()
 if get_settings().curl.use_pycurl:
     try:
         import pycurl  # type: ignore
