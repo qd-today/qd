@@ -37,6 +37,10 @@ charset-normalizer==3.3.2
 click==8.1.7
     # via typer
     # via uvicorn
+colorama==0.4.6
+    # via build
+    # via click
+    # via uvicorn
 croniter==2.0.5
     # via qd-core
 dnspython==2.6.1
@@ -81,9 +85,9 @@ mdurl==0.1.2
 multidict==6.0.5
     # via aiohttp
     # via yarl
-orjson==3.10.3
+orjson==3.10.5
     # via fastapi
-packaging==24.0
+packaging==24.1
     # via build
 passlib==1.7.4
     # via qd-core
@@ -97,13 +101,13 @@ pycryptodome==3.20.0
     # via qd-core
 pycurl==7.45.3
     # via qd-core
-pydantic==2.7.3
+pydantic==2.7.4
     # via fastapi
     # via pydantic-settings
     # via qd-core
 pydantic-core==2.18.4
     # via pydantic
-pydantic-settings==2.3.1
+pydantic-settings==2.3.3
     # via qd-core
 pygments==2.18.0
     # via rich
@@ -163,8 +167,6 @@ urllib3==2.2.1
     # via requests
 uvicorn==0.30.1
     # via fastapi
-uvloop==0.19.0
-    # via uvicorn
 watchfiles==0.22.0
     # via uvicorn
 websockets==12.0

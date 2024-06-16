@@ -69,6 +69,7 @@ dev = [
 ddddocr = ["ddddocr>=1.5.3"]
 
 [project.scripts]
+qd = "qd_core.cli.cli:fetch_har_cli"
 qd_plugins = "qd_core.plugins.base:entrypoints"
 
 [tool.setuptools]
