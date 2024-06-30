@@ -51,7 +51,7 @@ def fetch_har_tpl_file(har_tpl_file, env_json=None, har_encoding="utf-8", env_en
             "QD 执行失败: %s", str(e).replace("\\r\\n", "\r\n"), exc_info=get_settings().log.traceback_print
         )
     else:
-        logger_qd.info("QD 执行成功！结果:\n %s", env.get("variables", {}).get("__log__", "").replace("\\r\\n", "\r\n"))
+        logger_qd.info("QD 执行成功！结果:\n %s", env.variables.get("__log__", "").replace("\\r\\n", "\r\n"))
 
 
 def fetch_har_cli():

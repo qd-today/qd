@@ -11,10 +11,8 @@ import random
 import re
 import time
 import traceback
-import urllib.parse as urlparse
-from datetime import datetime
 from io import BytesIO
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from jinja2.sandbox import SandboxedEnvironment as Environment
 from pydantic import AnyUrl, ValidationError
@@ -26,10 +24,10 @@ from tornado.httputil import HTTPFile, HTTPHeaders, parse_body_arguments
 from qd_core import filters
 from qd_core.client import cookie_utils
 from qd_core.config import get_settings
-from qd_core.filters.codecs import decode, find_encoding, quote_chinese
+from qd_core.filters.codecs import decode, quote_chinese
 from qd_core.filters.parse_url import urlmatch
 from qd_core.plugins.base import router
-from qd_core.schemas.har import HAR, Env, Request, Rule
+from qd_core.schemas.har import HAR, Env, Request, Result, Rule
 from qd_core.schemas.url import ApiUrl
 from qd_core.utils.log import Log
 from qd_core.utils.router import match_route_path
@@ -63,40 +61,39 @@ class Fetcher:
         self.jinja_env.globals.update(filters.jinja_inner_globals)
         self.jinja_env.filters.update(filters.jinja_globals)
 
-    def render(self, request, env, session=None):
-        if session is None:
-            session = []
+    def _render(self, key: str, value: Optional[str], env: Env, _cookies: cookie_utils.CookieSession):
+        if not value:
+            return value
+        try:
+            value = self.jinja_env.from_string(value).render(_cookies=_cookies, **env.variables)
+            return value
+        except Exception as e:
+            log_error = f"The error occurred when rendering template {key}: {value} \\r\\n {repr(e)}"
+            raise httpclient.HTTPError(500, log_error)
 
-        request = dict(request)
-        if isinstance(session, cookie_utils.CookieSession):
-            _cookies = session
+    def render(self, request: Request, env: Env):
+        if env.session is None:
+            env.session = []
+
+        if isinstance(env.session, cookie_utils.CookieSession):
+            _cookies = env.session
         else:
             _cookies = cookie_utils.CookieSession()
-            _cookies.from_json(session)
+            _cookies.from_json(env.session)
 
-        def _render(obj, key):
-            if not obj.get(key):
-                return False
-            try:
-                obj[key] = self.jinja_env.from_string(obj[key]).render(_cookies=_cookies, **env)
-                return True
-            except Exception as e:
-                log_error = f"The error occurred when rendering template {key}: {obj[key]} \\r\\n {repr(e)}"
-                raise httpclient.HTTPError(500, log_error)
-
-        _render(request, "method")
-        _render(request, "url")
-        for header in request["headers"]:
-            _render(header, "name")
-            if pycurl and header["name"] and header["name"][0] == ":":
-                header["name"] = header["name"][1:]
-            _render(header, "value")
-            header["value"] = quote_chinese(header["value"])
-        for cookie in request["cookies"]:
-            _render(cookie, "name")
-            _render(cookie, "value")
-            cookie["value"] = quote_chinese(cookie["value"])
-        _render(request, "data")
+        request.method = self._render("request.method", request.method, env, _cookies)
+        request.url = self._render("request.url", request.url, env, _cookies)
+        for header in request.headers:
+            header.name = self._render("header.name", header.name, env, _cookies)
+            if pycurl and header.name and header.name[0] == ":":
+                header.name = header.name[1:]
+            header.value = self._render("header.value", header.value, env, _cookies)
+            header.value = quote_chinese(header.value)
+        for cookie in request.cookies:
+            cookie.name = self._render("cookie.name", cookie.name, env, _cookies)
+            cookie.value = self._render("cookie.value", cookie.value, env, _cookies)
+            cookie.value = quote_chinese(cookie.value, env, _cookies)
+        request.data = self._render("request.data", request.data, env, _cookies)
         return request
 
     def build_request(
@@ -111,19 +108,17 @@ class Fetcher:
     ):
         if proxy is None:
             proxy = {}
-        env = obj["env"]
-        rule = obj["rule"]
-        request = self.render(obj["request"], env["variables"], env["session"])
+        env = obj.env
+        rule = obj.rule
+        request = self.render(obj.request, env)
 
-        method = request["method"]
-        url = request["url"]
-        headers = dict((e["name"], e["value"]) for e in request["headers"])
-        cookies = dict((e["name"], e["value"]) for e in request["cookies"])
-        data = request.get("data")
-        if method == "GET":
-            data = None
-        else:
-            data = request.get("data", "")
+        method = request.method
+        url = request.url
+        headers = dict((e.name, e.value) for e in request.headers)
+        cookies = dict((e.name, e.value) for e in request.cookies)
+        data = None
+        if method != "GET":
+            data = request.data
 
         if str(url).startswith("api://"):
             req = httpclient.HTTPRequest(
@@ -221,102 +216,20 @@ class Fetcher:
             req.headers["Cookie"] = req.headers.pop("cookie")
         if req.headers.get("Cookie"):
             session.update(dict(x.strip().split("=", 1) for x in req.headers["Cookie"].split(";") if "=" in x))
-        if isinstance(env["session"], cookie_utils.CookieSession):
-            session.from_json(env["session"].to_json())
+        if isinstance(env.session, cookie_utils.CookieSession):
+            session.from_json(env.session.to_json())
         else:
-            session.from_json(env["session"])
+            session.from_json(env.session)
         session.update(cookies)
         cookie_header = session.get_cookie_header(req)
         if cookie_header:
             req.headers["Cookie"] = cookie_header
 
-        env["session"] = session
+        env.session = session
 
         return req, rule, env
 
-    @staticmethod
-    def response2har(response):
-        request = response.request
-
-        def build_headers(headers):
-            result = []
-            if headers and isinstance(headers, HTTPHeaders):
-                for k, v in headers.get_all():
-                    result.append(dict(name=k, value=v))
-            return result
-
-        def build_request(request):
-            url = urlparse.urlparse(request.url)
-            ret = dict(
-                method=request.method,
-                url=request.url,
-                httpVersion="HTTP/1.1",
-                headers=build_headers(request.headers),
-                queryString=[{"name": n, "value": v} for n, v in urlparse.parse_qsl(url.query)],
-                cookies=[{"name": n, "value": v} for n, v in urlparse.parse_qsl(request.headers.get("cookie", ""))],
-                headersSize=-1,
-                bodySize=len(request.body) if request.body else 0,
-            )
-            if request.body:
-                if isinstance(request.body, bytes):
-                    request._body = request.body.decode()  # pylint: disable=protected-access
-                ret["postData"] = dict(
-                    mimeType=request.headers.get("content-type"),
-                    text=request.body,
-                )
-                if ret["postData"]["mimeType"] and "application/x-www-form-urlencoded" in ret["postData"]["mimeType"]:
-                    ret["postData"]["params"] = [{"name": n, "value": v} for n, v in urlparse.parse_qsl(request.body)]
-                    try:
-                        _ = json.dumps(ret["postData"]["params"])
-                    except UnicodeDecodeError as e:
-                        logger_fetcher.error(
-                            "params encoding error: %s", e, exc_info=get_settings().log.traceback_print
-                        )
-                        del ret["postData"]["params"]
-
-            return ret
-
-        def build_response(response):
-            cookies = cookie_utils.CookieSession()
-            cookies.extract_cookies_to_jar(response.request, response)
-
-            encoding = find_encoding(response.body, response.headers)
-            if not response.headers.get("content-type"):
-                response.headers["content-type"] = "text/plain"
-            if "charset=" not in response.headers.get("content-type", ""):
-                response.headers["content-type"] += "; charset=" + encoding
-
-            return dict(
-                status=response.code,
-                statusText=response.reason,
-                headers=build_headers(response.headers),
-                cookies=cookies.to_json(),
-                content=dict(
-                    size=len(response.body),
-                    mimeType=response.headers.get("content-type"),
-                    text=base64.b64encode(response.body).decode("ascii"),
-                    decoded=decode(response.body, response.headers),
-                ),
-                redirectURL=response.headers.get("Location"),
-                headersSize=-1,
-                bodySize=-1,
-            )
-
-        entry = dict(
-            startedDateTime=datetime.now().isoformat(),
-            time=response.request_time,
-            request=build_request(request),
-            response=build_response(response),
-            cache={},
-            timings=response.time_info,
-            connections="0",
-            pageref="page_0",
-        )
-        if response.body and "image" in response.headers.get("content-type"):
-            entry["response"]["content"]["decoded"] = base64.b64encode(response.body).decode("ascii")
-        return entry
-
-    def run_rule(self, response, rule, env):
+    def run_rule(self, response: httpclient.HTTPResponse, rule: Rule, env: Env):
         success = True
         msg = ""
 
@@ -354,50 +267,40 @@ class Fetcher:
             else:
                 return ""
 
-        session = env["session"]
+        session = env.session
         if isinstance(session, cookie_utils.CookieSession):
             _cookies = session
         else:
             _cookies = cookie_utils.CookieSession()
             _cookies.from_json(session)
 
-        def _render(obj, key):
-            if not obj.get(key):
-                return
-            try:
-                obj[key] = self.jinja_env.from_string(obj[key]).render(_cookies=_cookies, **env["variables"])
-                return True
-            except Exception as e:
-                log_error = f"The error occurred when rendering template {key}: {obj[key]} \\r\\n {repr(e)}"
-                raise httpclient.HTTPError(500, log_error)
-
-        for r in rule.get("success_asserts") or "":
-            _render(r, "re")
-            if r["re"] and re.search(r["re"], getdata(r["from"])):
+        for success_assert in rule.success_asserts:
+            self._render("rule.success_asserts.re", success_assert.re, env, _cookies)
+            if success_assert.re and re.search(success_assert.re, getdata(success_assert.from_)):
                 msg = ""
                 break
             else:
-                msg = f"Fail assert: {json.dumps(r, ensure_ascii=False)} from success_asserts"
+                msg = f"Fail assert: {json.dumps(success_assert, ensure_ascii=False)} from success_asserts"
         else:
-            if rule.get("success_asserts"):
+            if rule.success_asserts:
                 success = False
 
-        for r in rule.get("failed_asserts") or "":
-            _render(r, "re")
-            if r["re"] and re.search(r["re"], getdata(r["from"])):
+        for failed_assert in rule.failed_asserts:
+            self._render("rule.failed_asserts.re", failed_assert.re, env, _cookies)
+            if failed_assert.re and re.search(failed_assert.re, getdata(failed_assert.from_)):
                 success = False
-                msg = f"Fail assert: {json.dumps(r, ensure_ascii=False)} from failed_asserts"
+                msg = f"Fail assert: {json.dumps(failed_assert, ensure_ascii=False)} from failed_asserts"
                 break
 
         if not success and msg and (response.error or (response.reason and str(response.reason) != "OK")):
             msg += f", \\r\\nResponse Error : {response.error or response.reason}"
 
-        for r in rule.get("extract_variables") or "":
-            pattern = r["re"]
+        for extract_variable in rule.extract_variables:
+            pattern = extract_variable.re
             flags = 0
             find_all = False
 
-            re_m = re.match(r"^/(.*?)/([gimsu]*)$", r["re"])
+            re_m = re.match(r"^/(.*?)/([gimsu]*)$", extract_variable.re)
             if re_m:
                 pattern = re_m.group(1)
                 if "g" in re_m.group(2):
@@ -415,78 +318,23 @@ class Fetcher:
 
             if find_all:
                 try:
-                    env["variables"][r["name"]] = re.compile(pattern, flags).findall(getdata(r["from"]))
+                    env.variables[extract_variable.name] = re.compile(pattern, flags).findall(
+                        getdata(extract_variable.from_)
+                    )
                 except Exception as e:
-                    env["variables"][r["name"]] = str(e)
+                    env.variables[extract_variable.name] = str(e)
             else:
                 try:
-                    m = re.compile(pattern, flags).search(getdata(r["from"]))
+                    m = re.compile(pattern, flags).search(getdata(extract_variable.from_))
                     if m:
                         if m.groups():
-                            m = m.groups()[0]
+                            match_result = m.groups()[0]
                         else:
-                            m = m.group(0)
-                        env["variables"][r["name"]] = m
+                            match_result = m.group(0)
+                        env.variables[extract_variable.name] = match_result
                 except Exception as e:
-                    env["variables"][r["name"]] = str(e)
+                    env.variables[extract_variable.name] = str(e)
         return success, msg
-
-    @staticmethod
-    def tpl2har(tpl):
-        def build_request(en):
-            url = urlparse.urlparse(en["request"]["url"])
-            request = dict(
-                method=en["request"]["method"],
-                url=en["request"]["url"],
-                httpVersion="HTTP/1.1",
-                headers=[
-                    {"name": x["name"], "value": x["value"], "checked": True} for x in en["request"].get("headers", [])
-                ],
-                queryString=[{"name": n, "value": v} for n, v in urlparse.parse_qsl(url.query)],
-                cookies=[
-                    {"name": x["name"], "value": x["value"], "checked": True} for x in en["request"].get("cookies", [])
-                ],
-                headersSize=-1,
-                bodySize=len(en["request"].get("data")) if en["request"].get("data") else 0,
-            )
-            if en["request"].get("data"):
-                request["postData"] = dict(
-                    mimeType=en["request"].get("mimeType"),
-                    text=en["request"].get("data"),
-                )
-                if (
-                    request["postData"]["mimeType"]
-                    and "application/x-www-form-urlencoded" in request["postData"]["mimeType"]
-                ):
-                    params = [{"name": x[0], "value": x[1]} for x in urlparse.parse_qsl(en["request"]["data"], True)]
-                    request["postData"]["params"] = params
-                    try:
-                        _ = json.dumps(request["postData"]["params"])
-                    except UnicodeDecodeError as e:
-                        logger_fetcher.error(
-                            "params encoding error: %s", e, exc_info=get_settings().log.traceback_print
-                        )
-                        del request["postData"]["params"]
-            return request
-
-        entries = []
-        for en in tpl:
-            entry = dict(
-                checked=True,
-                startedDateTime=datetime.now().isoformat(),
-                time=1,
-                request=build_request(en),
-                response={},
-                cache={},
-                timings={},
-                connections="0",
-                pageref="page_0",
-                success_asserts=en.get("rule", {}).get("success_asserts", []),
-                failed_asserts=en.get("rule", {}).get("failed_asserts", []),
-                extract_variables=en.get("rule", {}).get("extract_variables", []),
-            )
-            entries.append(entry)
-        return dict(log=dict(creator=dict(name="binux", version="QD"), entries=entries, pages=[], version="1.2"))
 
     async def api_fetch(self, req: httpclient.HTTPRequest):
         start_time = time.time()
@@ -639,9 +487,11 @@ class Fetcher:
             finally:
                 if "req" not in locals().keys():
                     tmp = HAR(
-                        env=obj["env"],
-                        rule=obj["rule"],
-                        request=Request(url="api://util/unicode?content=", method="GET", headers=[], cookies=[]),
+                        env=obj.env,
+                        rule=obj.rule,
+                        request=Request(
+                            url="api://util/unicode?content=", method="GET", headers=[], cookies=[], data=None
+                        ),
                     )
                     req, rule, env = self.build_request(tmp)
                     e.response = httpclient.HTTPResponse(
@@ -653,12 +503,12 @@ class Fetcher:
                     e.response = httpclient.HTTPResponse(
                         request=req, code=e.code, reason=e.message, buffer=BytesIO(str(e).encode())
                     )
-                return rule, env, e.response  # TODO # pylint: disable=return-in-finally,lost-exception
+                return rule, env, e.response
         return rule, env, response
 
     async def fetch(
         self,
-        obj,
+        obj: HAR,
         proxy=None,
         curl_encoding=get_settings().curl.curl_encoding,
         curl_content_length=get_settings().curl.curl_length,
@@ -692,15 +542,11 @@ class Fetcher:
 
         rule, env, response = await self.build_response(obj, proxy, curl_encoding, curl_content_length, empty_retry)
 
-        env["session"].extract_cookies_to_jar(response.request, response)
+        if isinstance(env.session, cookie_utils.CookieSession):
+            env.session.extract_cookies_to_jar(response.request, response)
         success, msg = self.run_rule(response, rule, env)
 
-        return {
-            "success": success,
-            "response": response,
-            "env": env,
-            "msg": msg,
-        }
+        return Result(success=success, msg=msg, response=response, env=env)
 
     FOR_START = re.compile(r"{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}")
     IF_START = re.compile(r"{%\s*if\s+(.+)\s*%}")
@@ -786,8 +632,8 @@ class Fetcher:
             yield stmt_stack.pop()
 
     async def do_fetch(
-        self, tpl, env, proxies=None, request_limit=get_settings().task.task_request_limit, tpl_length=0
-    ) -> Tuple[Dict, int]:
+        self, tpl, env: Env, proxies=None, request_limit=get_settings().task.task_request_limit, tpl_length=0
+    ) -> Tuple[Env, int]:
         """
         do a fetch of hole tpl
         """
@@ -809,10 +655,10 @@ class Fetcher:
             elif block["type"] == "for":
                 support_enum = False
                 _from_var = block["from"]
-                _from = env["variables"].get(_from_var, [])
+                _from = env.variables.get(_from_var, [])
                 try:
                     if isinstance(_from_var, str) and _from_var.startswith("list(") or _from_var.startswith("range("):
-                        _from = safe_eval(_from_var, env["variables"])
+                        _from = safe_eval(_from_var, env.variables)
                     if not isinstance(_from, Iterable):
                         raise Exception("for循环只支持可迭代类型及变量")
                     support_enum = True
@@ -820,45 +666,45 @@ class Fetcher:
                     if get_settings().log.debug:
                         logger_fetcher.exception(e)
                 if support_enum:
-                    env["variables"]["loop_length"] = str(len(_from))
-                    env["variables"]["loop_depth"] = str(int(env["variables"].get("loop_depth", "0")) + 1)
-                    env["variables"]["loop_depth0"] = str(int(env["variables"].get("loop_depth0", "-1")) + 1)
+                    env.variables["loop_length"] = str(len(_from))
+                    env.variables["loop_depth"] = str(int(env.variables.get("loop_depth", "0")) + 1)
+                    env.variables["loop_depth0"] = str(int(env.variables.get("loop_depth0", "-1")) + 1)
                     for idx, each in enumerate(_from):
-                        env["variables"][block["target"]] = each
+                        env.variables[block["target"]] = each
                         if idx == 0:
-                            env["variables"]["loop_first"] = "True"
-                            env["variables"]["loop_last"] = "False"
+                            env.variables["loop_first"] = "True"
+                            env.variables["loop_last"] = "False"
                         elif idx == len(_from) - 1:
-                            env["variables"]["loop_first"] = "False"
-                            env["variables"]["loop_last"] = "True"
+                            env.variables["loop_first"] = "False"
+                            env.variables["loop_last"] = "True"
                         else:
-                            env["variables"]["loop_first"] = "False"
-                            env["variables"]["loop_last"] = "False"
-                        env["variables"]["loop_index"] = str(idx + 1)
-                        env["variables"]["loop_index0"] = str(idx)
-                        env["variables"]["loop_revindex"] = str(len(_from) - idx)
-                        env["variables"]["loop_revindex0"] = str(len(_from) - idx - 1)
+                            env.variables["loop_first"] = "False"
+                            env.variables["loop_last"] = "False"
+                        env.variables["loop_index"] = str(idx + 1)
+                        env.variables["loop_index0"] = str(idx)
+                        env.variables["loop_revindex"] = str(len(_from) - idx)
+                        env.variables["loop_revindex0"] = str(len(_from) - idx - 1)
                         env, request_limit = await self.do_fetch(
                             block["body"], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length
                         )
-                    env["variables"]["loop_depth"] = str(int(env["variables"].get("loop_depth", "0")) - 1)
-                    env["variables"]["loop_depth0"] = str(int(env["variables"].get("loop_depth0", "-1")) - 1)
+                    env.variables["loop_depth"] = str(int(env.variables.get("loop_depth", "0")) - 1)
+                    env.variables["loop_depth0"] = str(int(env.variables.get("loop_depth0", "-1")) - 1)
                 else:
                     for each in _from:
-                        env["variables"][block["target"]] = each
+                        env.variables[block["target"]] = each
                         env, request_limit = await self.do_fetch(
                             block["body"], env, proxies=[proxy], request_limit=request_limit, tpl_length=tpl_length
                         )
             elif block["type"] == "while":
                 start_time = time.perf_counter()
-                env["variables"]["loop_depth"] = str(int(env["variables"].get("loop_depth", "0")) + 1)
-                env["variables"]["loop_depth0"] = str(int(env["variables"].get("loop_depth0", "-1")) + 1)
+                env.variables["loop_depth"] = str(int(env.variables.get("loop_depth", "0")) + 1)
+                env.variables["loop_depth0"] = str(int(env.variables.get("loop_depth0", "-1")) + 1)
                 while_idx = 0
                 while time.perf_counter() - start_time <= get_settings().task.task_while_loop_timeout:
-                    env["variables"]["loop_index"] = str(while_idx + 1)
-                    env["variables"]["loop_index0"] = str(while_idx)
+                    env.variables["loop_index"] = str(while_idx + 1)
+                    env.variables["loop_index0"] = str(while_idx)
                     try:
-                        condition = safe_eval(block["condition"], env["variables"])
+                        condition = safe_eval(block["condition"], env.variables)
                     except NameError:
                         condition = False
                     except ValueError as e:
@@ -891,11 +737,11 @@ class Fetcher:
                         f"Error: while loop timeout, time: {time.perf_counter() - start_time}s \\r\\n"
                         f"Block condition: {block['condition']}"
                     )
-                env["variables"]["loop_depth"] = str(int(env["variables"].get("loop_depth", "0")) - 1)
-                env["variables"]["loop_depth0"] = str(int(env["variables"].get("loop_depth0", "-1")) - 1)
+                env.variables["loop_depth"] = str(int(env.variables.get("loop_depth", "0")) - 1)
+                env.variables["loop_depth0"] = str(int(env.variables.get("loop_depth0", "-1")) - 1)
             elif block["type"] == "if":
                 try:
-                    condition = safe_eval(block["condition"], env["variables"])
+                    condition = safe_eval(block["condition"], env.variables)
                 except NameError:
                     condition = False
                 except ValueError as e:
@@ -927,20 +773,16 @@ class Fetcher:
                 try:
                     request_limit -= 1
                     result = await self.fetch(
-                        dict(
-                            request=entry["request"],
-                            rule=entry["rule"],
-                            env=env,
-                        ),
+                        HAR(request=entry["request"], rule=entry["rule"], env=env),
                         proxy=proxy,
                     )
-                    env = result["env"]
+                    env = result.env
                     logger_fetcher.debug(
                         "Success at %d/%d request, \r\nRequest URL: %s, \r\nResult: %s",
                         entry["idx"],
                         tpl_length,
                         entry["request"]["url"],
-                        env.get("variables", {}).get("__log__", "").replace("\\r\\n", "\r\n"),
+                        env.variables.get("__log__", "").replace("\\r\\n", "\r\n"),
                     )
                 except Exception as e:
                     if get_settings().log.debug:
@@ -950,7 +792,7 @@ class Fetcher:
                         f"Error: {e}, \\r\\n"
                         f"Request URL: {entry['request']['url']}"
                     ) from e
-                if not result["success"]:
+                if not result.success:
                     raise Exception(
                         f"Failed at {entry['idx']}/{tpl_length} request, \\r\\n"
                         f"{result['msg']}, \\r\\n"

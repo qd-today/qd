@@ -45,11 +45,11 @@ croniter==2.0.5
     # via qd-core
 dnspython==2.6.1
     # via email-validator
-email-validator==2.1.1
+email-validator==2.2.0
     # via fastapi
 exceptiongroup==1.2.1
     # via anyio
-faker==25.8.0
+faker==25.9.1
     # via qd-core
 fastapi==0.111.0
     # via qd-core
@@ -93,9 +93,9 @@ passlib==1.7.4
     # via qd-core
 pbkdf2==1.3
     # via qd-core
-pip==24.0
+pip==24.1
     # via qd-core
-plux==1.10.0
+plux==1.11.0
     # via qd-core
 pycryptodome==3.20.0
     # via qd-core
@@ -163,7 +163,7 @@ u-msgpack-python==2.8.0
     # via qd-core
 ujson==5.10.0
     # via fastapi
-urllib3==2.2.1
+urllib3==2.2.2
     # via requests
 uvicorn==0.30.1
     # via fastapi

@@ -49,24 +49,6 @@ Repository = "https://github.com/qd-today/qd"
 Issues = "https://github.com/qd-today/qd/issues"
 
 [project.optional-dependencies]
-dev = [
-    "colorama; sys_platform == 'win32'",
-    "pytest",
-    "ruff",
-    "mypy",
-    "types-croniter",
-    "types-requests",
-    "types-python-dateutil",
-    "sqlalchemy2-stubs",
-    "types-aiofiles",
-    "pylint-pydantic",
-    "types-passlib",
-    "types-setuptools",
-    "types-PyYAML",
-    "types-toml",
-    "setuptools",
-    'wheel',
-]
 ddddocr = ["ddddocr>=1.5.3"]
 
 [project.scripts]
@@ -83,7 +65,24 @@ exclude = ["test*"]
 
 [tool.rye]
 managed = true
-dev-dependencies = ["setuptools>=70.0.0"]
+dev-dependencies = [
+    "colorama; sys_platform == 'win32'",
+    "pytest",
+    "ruff",
+    "mypy",
+    "types-croniter",
+    "types-requests",
+    "types-python-dateutil",
+    "sqlalchemy2-stubs",
+    "types-aiofiles",
+    "pylint-pydantic",
+    "types-passlib",
+    "types-setuptools",
+    "types-PyYAML",
+    "types-toml",
+    "setuptools",
+    "wheel",
+]
 
 [tool.uv]
 dev-dependencies = ["setuptools>=70.0.0"]

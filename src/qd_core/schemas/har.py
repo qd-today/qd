@@ -1,62 +1,66 @@
-import typing
-from typing import List, TypedDict, Union
+from typing import Any, List, Literal, Optional, Union
+
+from pydantic import BaseModel, Field, InstanceOf
+from tornado.httpclient import HTTPResponse
 
 from qd_core.client import cookie_utils
 
 
-class Env(TypedDict):
-    variables: typing.Dict[str, str]
-    "用户设置 Task 变量"
-    session: Union[List, cookie_utils.CookieSession]
-
-
-class _NameVlaue(TypedDict):
+class Cookie(BaseModel):
     name: str
     value: str
 
 
-Cookie = _NameVlaue
-Header = _NameVlaue
+class Header(BaseModel):
+    name: str
+    value: str
 
 
-class Request(TypedDict):
+class Request(BaseModel):
     url: str
-    method: typing.Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]  # | str
-    headers: typing.List[Header]
-    cookies: typing.List[Cookie]
+    method: Literal["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
+    headers: List[Header]
+    cookies: List[Cookie]
+    data: Optional[str] = None
 
 
-ExtractVariable = TypedDict(  # 内含 from 关键字，所以用这个方式声明
-    "ExtractVariable",
-    {
-        "name": str,
-        "re": str,
-        "from": typing.Literal["content", "status", "header", "header-location"],
-    },
-)
-FailedAssert = TypedDict(
-    "FailedAssert",
-    {
-        "re": str,
-        "from": typing.Literal["content", "status", "header", "header-location"],
-    },
-)
-SuccessAssert = TypedDict(
-    "SuccessAssert",
-    {
-        "re": str,
-        "from": typing.Literal["content", "status", "header", "header-location"],
-    },
-)
+class ExtractVariable(BaseModel):
+    name: str
+    re: str
+    from_: Literal["content", "status", "header", "header-location"] = Field(
+        ..., alias="from"
+    )  # 使用 Field 的 alias 参数处理关键字冲突
 
 
-class Rule(TypedDict):
-    extract_variables: typing.List[ExtractVariable]
-    failed_asserts: typing.List[FailedAssert]
-    success_asserts: typing.List[SuccessAssert]
+class FailedAssert(BaseModel):
+    re: str
+    from_: Literal["content", "status", "header", "header-location"] = Field(..., alias="from")
 
 
-class HAR(TypedDict):  # 可能也被用到了其它地方，暂时命名为 HARTest
+class SuccessAssert(BaseModel):
+    re: str
+    from_: Literal["content", "status", "header", "header-location"] = Field(..., alias="from")
+
+
+class Rule(BaseModel):
+    extract_variables: List[ExtractVariable]
+    failed_asserts: List[FailedAssert]
+    success_asserts: List[SuccessAssert]
+
+
+class Env(BaseModel):
+    variables: dict[str, Any] = Field(description="用户设置 Task 变量")
+    session: Union[List, InstanceOf[cookie_utils.CookieSession]]
+
+
+class HAR(BaseModel):  # 命名为 HARTest 或根据实际用途调整
     env: Env
     request: Request
     rule: Rule
+
+
+class Result(BaseModel):
+    success: bool
+    msg: str
+    env: Env
+    response: InstanceOf[HTTPResponse]
