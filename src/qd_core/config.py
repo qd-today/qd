@@ -24,7 +24,40 @@ DEFAULT_ENV_FILE = "config/.env"
 DEFAULT_ENV_ENCODING = "utf-8"
 
 
-class LogSettings(BaseModel):
+class QDBaseSettings(BaseSettings):
+    model_config = SettingsConfigDict(
+        # env_ignore_empty=True,
+        env_file=Path(DEFAULT_ENV_FILE),
+        env_file_encoding=DEFAULT_ENV_ENCODING,
+        json_file=Path(DEFAULT_JSON_FILE),
+        json_file_encoding=DEFAULT_JSON_ENCODING,
+        str_strip_whitespace=True,
+        extra="allow",
+    )
+
+    @classmethod
+    def settings_customise_sources(
+        cls,
+        settings_cls: type[BaseSettings],
+        init_settings: PydanticBaseSettingsSource,
+        env_settings: PydanticBaseSettingsSource,
+        dotenv_settings: PydanticBaseSettingsSource,
+        file_secret_settings: PydanticBaseSettingsSource,
+    ) -> tuple[PydanticBaseSettingsSource, ...]:
+        return (
+            init_settings,
+            env_settings,
+            dotenv_settings,
+            file_secret_settings,
+            JsonConfigSettingsSource(
+                settings_cls,
+                json_file=cls.model_config.get("json_file") or DEFAULT_JSON_FILE,
+                json_file_encoding=cls.model_config.get("json_file_encoding") or DEFAULT_JSON_ENCODING,
+            ),
+        )
+
+
+class LogSettings(QDBaseSettings):
     """日志设置类"""
 
     debug: bool = Field(default=False, alias="qd_debug", description="是否启用 QD 框架 Debug")
@@ -59,7 +92,7 @@ class LogSettings(BaseModel):
         return value
 
 
-class ClientRequestSettings(BaseModel):
+class ClientRequestSettings(QDBaseSettings):
     """客户端请求设置类"""
 
     download_size_limit: int = Field(default=5242880, description="允许用户单次请求下载的最大值，默认为 5MB")
@@ -84,7 +117,7 @@ class ClientRequestSettings(BaseModel):
         return value
 
 
-class TaskSettings(BaseModel):
+class TaskSettings(QDBaseSettings):
     """任务设置类"""
 
     task_while_loop_timeout: int = Field(
@@ -93,7 +126,7 @@ class TaskSettings(BaseModel):
     task_request_limit: int = Field(default=1500, description="任务运行中单个任务最大请求次数, 默认为 1500 次")
 
 
-class CurlSettings(BaseModel):
+class CurlSettings(QDBaseSettings):
     """Pycurl 相关设置"""
 
     use_pycurl: bool = Field(
@@ -158,7 +191,7 @@ class CurlSettings(BaseModel):
     )
 
 
-class ProxySettings(BaseModel):
+class ProxySettings(QDBaseSettings):
     """代理设置类"""
 
     # 全局代理域名列表
@@ -210,7 +243,7 @@ class ProxySettings(BaseModel):
         return []
 
 
-class DdddOcrSettings(BaseModel):
+class DdddOcrSettings(QDBaseSettings):
     """DdddOCR 设置类"""
 
     # 自定义 ONNX 文件名列表
@@ -225,7 +258,7 @@ class DdddOcrSettings(BaseModel):
     )
 
 
-class MailSettings(BaseModel):
+class MailSettings(QDBaseSettings):
     """邮件发送相关配置类"""
 
     mail_smtp: str = Field(default="", description="邮箱 SMTP 服务器地址")
@@ -244,7 +277,7 @@ class MailSettings(BaseModel):
     mailgun_domain: str = Field(default="", description="Mailgun Domain，需要替换为实际的 Mailgun 域名")
 
 
-class PushSettings(BaseModel):
+class PushSettings(QDBaseSettings):
     """推送设置类"""
 
     push_pic_url: Url = Field(
@@ -253,17 +286,7 @@ class PushSettings(BaseModel):
     )
 
 
-class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        # env_ignore_empty=True,
-        env_file=Path(DEFAULT_ENV_FILE),
-        env_file_encoding=DEFAULT_ENV_ENCODING,
-        json_file=Path(DEFAULT_JSON_FILE),
-        json_file_encoding=DEFAULT_JSON_ENCODING,
-        str_strip_whitespace=True,
-        extra="ignore",
-    )
-
+class QDCoreSettings(QDBaseSettings):
     log: LogSettings = Field(default_factory=LogSettings, description="日志配置")
 
     client_request: ClientRequestSettings = Field(default_factory=ClientRequestSettings, description="客户端请求配置")
@@ -280,31 +303,10 @@ class Settings(BaseSettings):
 
     push: PushSettings = Field(default_factory=PushSettings, description="推送配置")
 
-    @classmethod
-    def settings_customise_sources(
-        cls,
-        settings_cls: type[BaseSettings],
-        init_settings: PydanticBaseSettingsSource,
-        env_settings: PydanticBaseSettingsSource,
-        dotenv_settings: PydanticBaseSettingsSource,
-        file_secret_settings: PydanticBaseSettingsSource,
-    ) -> tuple[PydanticBaseSettingsSource, ...]:
-        return (
-            init_settings,
-            env_settings,
-            dotenv_settings,
-            file_secret_settings,
-            JsonConfigSettingsSource(
-                settings_cls,
-                json_file=cls.model_config.get("json_file") or DEFAULT_JSON_FILE,
-                json_file_encoding=cls.model_config.get("json_file_encoding") or DEFAULT_JSON_ENCODING,
-            ),
-        )
-
 
 @lru_cache
-def get_settings() -> Settings:
-    return Settings()
+def get_settings() -> QDCoreSettings:
+    return QDCoreSettings()
 
 
 def export_settings_to_json() -> None:
