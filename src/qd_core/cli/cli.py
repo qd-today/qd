@@ -4,18 +4,21 @@ import json
 import os
 import time
 
-from qd_core.client.fetcher import Fetcher
 from qd_core.config import get_settings
-from qd_core.plugins.manager import QDPluginManager
 from qd_core.utils.log import Log
 
 logger_qd = Log("QD.Cli").getlogger()
 
 
 async def fetch_har_with_env(har_tpl, env):
+    logger_qd.debug("开始加载插件...")
     starttime = time.perf_counter()
+    from qd_core.client.fetcher import Fetcher
+    from qd_core.plugins.manager import QDPluginManager
+
     QDPluginManager("qd.plugins")
-    logger_qd.info("加载插件耗时: %ss", time.perf_counter() - starttime)
+    logger_qd.debug("加载插件耗时: %ss", time.perf_counter() - starttime)
+
     fetcher = Fetcher()
     env, _ = await fetcher.do_fetch(har_tpl, env)
     return env
