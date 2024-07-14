@@ -5,9 +5,10 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 from fastapi import APIRouter
 from plux import FunctionPlugin, PluginSpec  # type: ignore
+from pydantic import validate_call
 from pydantic_settings import BaseSettings
 
-from qd_core.utils.decorator import pydantic_convert
+# from pydantic.config import ConfigDict
 from qd_core.utils.log import Log
 from qd_core.utils.shell import set_env_variable_and_run_command
 
@@ -16,82 +17,88 @@ router = APIRouter()
 
 
 def add_api_routes(
-    api_paths: List[str],
-    fn: Callable,
-    api_methods: List[List[str]],
-    api_kwargs: Dict = {},
-    api_router: Optional[APIRouter] = None,
-    api_router_kwargs: Dict = {},
+    path_list: List[str],
+    function: Callable,
+    method_list: List[List[str]],
+    router_kwargs: Dict = {},
+    custom_router: Optional[APIRouter] = None,
+    router_inclusion_kwargs: Dict = {},
 ):
-    if not api_router:
-        _api_router = router
-    else:
-        _api_router = api_router
-    for api_path, api_method in zip(api_paths, api_methods):
-        _api_router.add_api_route(api_path, fn, methods=api_method, **api_kwargs)
-        logger_plugins.debug(f"Added API route: {api_path} {api_method}")
-    if api_router:
-        router.include_router(_api_router, **api_router_kwargs)
+    """
+    Adds API routes to the FastAPI router.
+    """
+    target_router = custom_router or router
+    for path, methods in zip(path_list, method_list):
+        target_router.add_api_route(path, function, methods=methods, **router_kwargs)
+        logger_plugins.debug(f"Added API route: {path} {methods}")
+    if custom_router:
+        router.include_router(custom_router, **router_inclusion_kwargs)
 
 
 def api_function_plugin(
     namespace: str,
     name: Optional[str] = None,
-    api_paths: Optional[List[str]] = None,
-    api_methods: Optional[List[List[str]]] = None,
-    api_kwargs: Optional[Dict[str, Any]] = None,
-    api_router: Optional[APIRouter] = None,
-    api_router_kwargs: Optional[Dict[str, Any]] = None,
+    path_list: Optional[List[str]] = None,
+    method_list: Optional[List[List[str]]] = None,
+    router_kwargs: Optional[Dict[str, Any]] = None,
+    custom_router: Optional[APIRouter] = None,
+    router_inclusion_kwargs: Optional[Dict[str, Any]] = None,
     should_load: Optional[Union[bool, Callable[[], bool]]] = None,
-    load: Optional[Callable] = None,
+    load_function: Optional[Callable] = None,
     settings: Optional[BaseSettings] = None,
+    # TODO: 启用并测试 validate 配置
+    # validate_config: Optional[ConfigDict] = None,
+    # validate_return: bool = False,
 ):
     """
     A combined decorator that both exposes a function as a discoverable and loadable FunctionPlugin
     and sets up API routing for the function if API-related parameters are provided.
     """
-    if api_kwargs is None:
-        api_kwargs = {}
-    if api_router_kwargs is None:
-        api_router_kwargs = {}
-    if settings is None:
-        settings = BaseSettings()
+    router_kwargs = router_kwargs or {}
+    router_inclusion_kwargs = router_inclusion_kwargs or {}
+    settings = settings or BaseSettings()
 
-    def wrapper(fn):
-        plugin_name = name or fn.__name__
-        fn = pydantic_convert(fn)
+    def decorator(function: Callable):
+        plugin_name = name or function.__name__
+        validated_function = validate_call(
+            function,
+            # config=validate_config,
+            # validate_return=validate_return
+        )
 
-        @wraps(fn)
-        def factory():
+        @wraps(validated_function)
+        def plugin_factory():
             # Set up API routes if API paths and methods are provided
-            if api_paths and api_methods:
-                _load = partial(
+            if path_list and method_list:
+                route_setup_function = partial(
                     add_api_routes,
-                    api_paths,
-                    fn,
-                    api_methods=api_methods,
-                    api_kwargs=api_kwargs,
-                    api_router=api_router,
-                    api_router_kwargs=api_router_kwargs,
+                    path_list,
+                    validated_function,
+                    method_list=method_list,
+                    router_kwargs=router_kwargs,
+                    custom_router=custom_router,
+                    router_inclusion_kwargs=router_inclusion_kwargs,
                 )
+            else:
+                route_setup_function = None
 
             # Create and attach the FunctionPlugin
-            fn_plugin = FunctionPlugin(
-                fn,
-                should_load=should_load,
-                load=_load or load,
-            )
-            fn_plugin.namespace = namespace
-            fn_plugin.name = plugin_name
 
-            return fn_plugin
+            plugin = FunctionPlugin(
+                validated_function,
+                should_load=should_load,
+                load=route_setup_function or load_function,
+            )
+            plugin.namespace = namespace
+            plugin.name = plugin_name
+
+            return plugin
 
         # Attach the plugin spec to the function for discovery
-        fn.__pluginspec__ = PluginSpec(namespace, plugin_name, factory)
+        function.__pluginspec__ = PluginSpec(namespace, plugin_name, plugin_factory)  # type: ignore
+        return function
 
-        return fn
-
-    return wrapper
+    return decorator
 
 
 def entrypoints(args=None):

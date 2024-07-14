@@ -1,11 +1,8 @@
 import functools
 import inspect
 import logging
-from functools import wraps
-from typing import Any, Callable
 
 import umsgpack  # type: ignore
-from pydantic import TypeAdapter
 
 from qd_core.config import get_settings
 
@@ -84,43 +81,5 @@ def method_cache(fn):
         if key not in self._cache:
             self._cache[key] = fn(self, *args, **kwargs)
         return self._cache[key]
-
-    return wrapper
-
-
-def pydantic_convert(func: Callable) -> Callable:
-    @wraps(func)
-    async def wrapper(*args, **kwargs) -> Any:
-        args_list = []
-        if args:
-            # 处理位置参数
-            sig = inspect.signature(func)
-            parameters = sig.parameters
-            parameters_args = [
-                parameter for parameter in parameters.values() if parameter.kind <= parameter.VAR_POSITIONAL
-            ]
-            try:
-                args_list = list(args)
-                for i, (arg, parameter) in enumerate(zip(args, parameters_args)):
-                    # 使用 pydantic 解析参数，并将其转换为注解中指定的类型
-                    if parameter.annotation is not inspect.Parameter.empty:
-                        args_list[i] = TypeAdapter(parameter.annotation).validate_python(arg)
-            except Exception as e:
-                raise ValueError(f"Invalid argument type: {e}")
-
-        if kwargs:
-            # 获取函数的注解
-            annotations = inspect.get_annotations(func)
-            try:
-                # 处理关键字参数
-                for k, v in kwargs.items():
-                    if k in annotations:
-                        # 同样使用 pydantic 解析关键字参数
-                        kwargs[k] = TypeAdapter(annotations[k]).validate_python(v)
-            except Exception as e:
-                raise ValueError(f"Invalid keyword argument type for {k}: {e}")
-
-        # 调用原始函数，传递转换后的参数
-        return await func(*args_list, **kwargs)
 
     return wrapper

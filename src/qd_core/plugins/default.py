@@ -34,8 +34,8 @@ except ImportError as e:
 @api_function_plugin(
     namespace="qd.plugins.default",
     name="util-delay",
-    api_paths=["/delay/{seconds}", "/delay"],
-    api_methods=[["GET"], ["GET", "POST"]],
+    path_list=["/delay/{seconds}", "/delay"],
+    method_list=[["GET"], ["GET", "POST"]],
 )
 async def delay(
     seconds: Annotated[
@@ -73,8 +73,8 @@ GMT_FORMAT = "%a, %d %b %Y %H:%M:%S GMT"
 @api_function_plugin(
     namespace="qd.plugins.default",
     name="util-timestamp",
-    api_paths=["/timestamp"],
-    api_methods=[["GET", "POST"]],
+    path_list=["/timestamp"],
+    method_list=[["GET", "POST"]],
 )
 async def timestamp(
     ts: Annotated[Optional[float], Field(None, description="timestamp")] = None,
@@ -118,8 +118,8 @@ async def timestamp(
 @api_function_plugin(
     namespace="qd.plugins.default",
     name="util-unicode",
-    api_paths=["/unicode"],
-    api_methods=[["GET", "POST"]],
+    path_list=["/unicode"],
+    method_list=[["GET", "POST"]],
 )
 async def unicode(
     content: Annotated[str, Field("", description="要转码的内容")] = "",
@@ -145,8 +145,8 @@ async def unicode(
 @api_function_plugin(
     namespace="qd.plugins.default",
     name="util-urldecode",
-    api_paths=["/urldecode"],
-    api_methods=[["GET", "POST"]],
+    path_list=["/urldecode"],
+    method_list=[["GET", "POST"]],
 )
 async def urldecode(
     content: Annotated[
@@ -179,8 +179,8 @@ async def urldecode(
 @api_function_plugin(
     namespace="qd.plugins.default",
     name="util-gb2312",
-    api_paths=["/gb2312"],
-    api_methods=[["GET", "POST"]],
+    path_list=["/gb2312"],
+    method_list=[["GET", "POST"]],
 )
 async def gb2312(content: Annotated[str, Field("", description="要转码的内容")] = ""):
     rtv = {}
@@ -195,8 +195,8 @@ async def gb2312(content: Annotated[str, Field("", description="要转码的内�
 @api_function_plugin(
     namespace="qd.plugins.default",
     name="util-regex",
-    api_paths=["/regex"],
-    api_methods=[["GET", "POST"]],
+    path_list=["/regex"],
+    method_list=[["GET", "POST"]],
 )
 async def regex(
     data: Annotated[str, Field("", description="原始数据")] = "",
@@ -218,8 +218,8 @@ async def regex(
 @api_function_plugin(
     namespace="qd.plugins.default",
     name="util-string-replace",
-    api_paths=["/string/replace"],
-    api_methods=[["GET", "POST"]],
+    path_list=["/string/replace"],
+    method_list=[["GET", "POST"]],
 )
 async def string_replace(
     p: Annotated[str, Field("", description="正则表达式")] = "",
@@ -242,8 +242,8 @@ async def string_replace(
 @api_function_plugin(
     namespace="qd.plugins.default",
     name="util-rsa",
-    api_paths=["/rsa"],
-    api_methods=[["GET", "POST"]],
+    path_list=["/rsa"],
+    method_list=[["GET", "POST"]],
 )
 async def rsa(
     key: Annotated[str, Field("", description="RSA私钥")] = "",
@@ -370,8 +370,8 @@ async def get_img(
 @api_function_plugin(
     namespace="qd.plugins.default",
     name="util-dddd-ocr",
-    api_paths=["/dddd/ocr"],
-    api_methods=[["GET", "POST"]],
+    path_list=["/dddd/ocr"],
+    method_list=[["GET", "POST"]],
 )
 async def dddd_ocr(
     img: Annotated[str, Field("", description="要识别的Base64图片内容")] = "",
@@ -395,8 +395,8 @@ async def dddd_ocr(
 @api_function_plugin(
     namespace="qd.plugins.default",
     name="util-dddd-det",
-    api_paths=["/dddd/det"],
-    api_methods=[["GET", "POST"]],
+    path_list=["/dddd/det"],
+    method_list=[["GET", "POST"]],
 )
 async def dddd_det(
     img: Annotated[str, Field("", description="要检测的Base64图片内容")] = "",
@@ -418,8 +418,8 @@ async def dddd_det(
 @api_function_plugin(
     namespace="qd.plugins.default",
     name="util-dddd-slide",
-    api_paths=["/dddd/slide"],
-    api_methods=[["GET", "POST"]],
+    path_list=["/dddd/slide"],
+    method_list=[["GET", "POST"]],
 )
 async def dddd_slide(
     imgtarget: Annotated[str, Field("", description="要识别的Base64图片内容")] = "",
