@@ -64,6 +64,7 @@ include = ["qd_core*"]
 exclude = ["test*"]
 
 [tool.rye]
+universal = true
 managed = true
 dev-dependencies = [
     "colorama; sys_platform == 'win32'",

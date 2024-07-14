@@ -9,7 +9,7 @@
 #   generate-hashes: false
 
 -e file:.
-aiofiles==23.2.1
+aiofiles==24.1.0
     # via qd-core
 aiohttp==3.9.5
     # via qd-core
@@ -27,7 +27,7 @@ attrs==23.2.0
     # via aiohttp
 build==1.2.1
     # via qd-core
-certifi==2024.6.2
+certifi==2024.7.4
     # via httpcore
     # via httpx
     # via requests
@@ -47,9 +47,9 @@ dnspython==2.6.1
     # via email-validator
 email-validator==2.2.0
     # via fastapi
-exceptiongroup==1.2.1
+exceptiongroup==1.2.2
     # via anyio
-faker==25.9.1
+faker==26.0.0
     # via qd-core
 fastapi==0.111.0
     # via qd-core
@@ -85,7 +85,7 @@ mdurl==0.1.2
 multidict==6.0.5
     # via aiohttp
     # via yarl
-orjson==3.10.5
+orjson==3.10.6
     # via fastapi
 packaging==24.1
     # via build
@@ -93,7 +93,7 @@ passlib==1.7.4
     # via qd-core
 pbkdf2==1.3
     # via qd-core
-pip==24.1
+pip==24.1.2
     # via qd-core
 plux==1.11.0
     # via qd-core
@@ -101,13 +101,13 @@ pycryptodome==3.20.0
     # via qd-core
 pycurl==7.45.3
     # via qd-core
-pydantic==2.7.4
+pydantic==2.8.2
     # via fastapi
     # via pydantic-settings
     # via qd-core
-pydantic-core==2.18.4
+pydantic-core==2.20.1
     # via pydantic
-pydantic-settings==2.3.3
+pydantic-settings==2.3.4
     # via qd-core
 pygments==2.18.0
     # via rich

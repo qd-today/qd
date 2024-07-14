@@ -70,7 +70,7 @@ QD_DEBUG=True
 
 ```shell
 rye sync
-rye run plugins
+rye run qd_plugins
 rye build
 ```
 
