@@ -280,7 +280,7 @@ class Fetcher:
                 msg = ""
                 break
             else:
-                msg = f"Fail assert: {json.dumps(success_assert, ensure_ascii=False)} from success_asserts"
+                msg = f"Fail assert: {success_assert.model_dump_json()} from success_asserts"
         else:
             if rule.success_asserts:
                 success = False
@@ -289,7 +289,7 @@ class Fetcher:
             self._render("rule.failed_asserts.re", failed_assert.re, env, _cookies)
             if failed_assert.re and re.search(failed_assert.re, getdata(failed_assert.from_)):
                 success = False
-                msg = f"Fail assert: {json.dumps(failed_assert, ensure_ascii=False)} from failed_asserts"
+                msg = f"Fail assert: {failed_assert.model_dump_json()} from failed_asserts"
                 break
 
         if not success and msg and (response.error or (response.reason and str(response.reason) != "OK")):
@@ -418,6 +418,7 @@ class Fetcher:
     ) -> Tuple[Rule, Env, httpclient.HTTPResponse]:
         if proxy is None:
             proxy = {}
+        allow_retry = get_settings().curl.allow_retry
         try:
             req, rule, env = self.build_request(
                 obj,
@@ -427,6 +428,7 @@ class Fetcher:
                 curl_content_length=curl_content_length,
             )
             if req.url.startswith("api://"):
+                allow_retry = False
                 response = await self.api_fetch(req)
             else:
                 response = await self.client.fetch(req)
@@ -439,7 +441,7 @@ class Fetcher:
             )
         except httpclient.HTTPError as e:
             try:
-                if get_settings().curl.allow_retry and pycurl:
+                if allow_retry and pycurl:
                     if e.__dict__.get("errno", "") == 61:
                         logger_fetcher.warning("%s %s [Warning] %s -> Try to retry!", req.method, req.url, e)
                         req, rule, env = self.build_request(
@@ -777,13 +779,14 @@ class Fetcher:
                         proxy=proxy,
                     )
                     env = result.env
-                    logger_fetcher.debug(
-                        "Success at %d/%d request, \r\nRequest URL: %s, \r\nResult: %s",
-                        entry["idx"],
-                        tpl_length,
-                        entry["request"]["url"],
-                        env.variables.get("__log__", "").replace("\\r\\n", "\r\n"),
-                    )
+                    if result.success:
+                        logger_fetcher.debug(
+                            "Success at %d/%d request, \r\nRequest URL: %s, \r\nResult: %s",
+                            entry["idx"],
+                            tpl_length,
+                            entry["request"]["url"],
+                            env.variables.get("__log__", "").replace("\\r\\n", "\r\n"),
+                        )
                 except Exception as e:
                     if get_settings().log.debug:
                         logger_fetcher.exception(e)
@@ -795,7 +798,7 @@ class Fetcher:
                 if not result.success:
                     raise Exception(
                         f"Failed at {entry['idx']}/{tpl_length} request, \\r\\n"
-                        f"{result['msg']}, \\r\\n"
+                        f"{result.msg}, \\r\\n"
                         f"Request URL: {entry['request']['url']}"
                     )
         return env, request_limit
