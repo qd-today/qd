@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
-# Author: Binux<i@binux.me>
-#         http://binux.me
-# Created on 2014-08-06 11:55:41
-# pylint: disable=broad-exception-raised
-
 import base64
 import json
 import random
@@ -50,18 +43,14 @@ else:
 NOT_RETYR_CODE = get_settings().curl.not_retry_code
 
 
-class Fetcher:
-    def __init__(self, download_size_limit=get_settings().client_request.download_size_limit):
-        if pycurl:
-            httpclient.AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
-        self.client = httpclient.AsyncHTTPClient()
-        self.download_size_limit = download_size_limit
+class Renderer:
+    def __init__(self):
         self.jinja_env = Environment()
         self.jinja_env.globals = filters.jinja_globals
         self.jinja_env.globals.update(filters.jinja_inner_globals)
         self.jinja_env.filters.update(filters.jinja_globals)
 
-    def _render(self, key: str, value: Optional[str], env: Env, _cookies: cookie_utils.CookieSession):
+    def render_string(self, key: str, value: Optional[str], env: Env, _cookies: cookie_utils.CookieSession):
         if not value:
             return value
         try:
@@ -81,51 +70,141 @@ class Fetcher:
             _cookies = cookie_utils.CookieSession()
             _cookies.from_json(env.session)
 
-        request.method = self._render("request.method", request.method, env, _cookies)
-        request.url = self._render("request.url", request.url, env, _cookies)
+        request.method = self.render_string("request.method", request.method, env, _cookies)
+        request.url = self.render_string("request.url", request.url, env, _cookies)
         for header in request.headers:
-            header.name = self._render("header.name", header.name, env, _cookies)
+            header.name = self.render_string("header.name", header.name, env, _cookies)
             if pycurl and header.name and header.name[0] == ":":
                 header.name = header.name[1:]
-            header.value = self._render("header.value", header.value, env, _cookies)
+            header.value = self.render_string("header.value", header.value, env, _cookies)
             header.value = quote_chinese(header.value)
         for cookie in request.cookies:
-            cookie.name = self._render("cookie.name", cookie.name, env, _cookies)
-            cookie.value = self._render("cookie.value", cookie.value, env, _cookies)
+            cookie.name = self.render_string("cookie.name", cookie.name, env, _cookies)
+            cookie.value = self.render_string("cookie.value", cookie.value, env, _cookies)
             cookie.value = quote_chinese(cookie.value, env, _cookies)
-        request.data = self._render("request.data", request.data, env, _cookies)
+        request.data = self.render_string("request.data", request.data, env, _cookies)
         return request
 
-    def build_request(
+
+class RequestHandler:
+    def __init__(
         self,
-        obj: HAR,
         download_size_limit=get_settings().client_request.download_size_limit,
         connect_timeout=get_settings().client_request.connect_timeout,
         request_timeout=get_settings().client_request.request_timeout,
-        proxy=None,
-        curl_encoding=True,
-        curl_content_length=True,
+    ):
+        self.download_size_limit = download_size_limit
+        self.connect_timeout = connect_timeout
+        self.request_timeout = request_timeout
+
+        if pycurl:
+            httpclient.AsyncHTTPClient.configure("tornado.curl_httpclient.CurlAsyncHTTPClient")
+        self.client = httpclient.AsyncHTTPClient()
+        self.renderer = Renderer()
+
+    def _build_curl_request(
+        self,
+        request: Request,
+        http_headers: HTTPHeaders,
+        proxy: Optional[Dict] = None,
+        curl_encoding=get_settings().curl.curl_encoding,
+        curl_content_length=get_settings().curl.curl_length,
+    ):
+        def set_curl_callback(curl):
+            def size_limit(download_size, downloaded, upload_size, uploaded):  # pylint: disable=unused-argument
+                if download_size and download_size > self.download_size_limit:
+                    return 1
+                if downloaded > self.download_size_limit:
+                    return 1
+                return 0
+
+            if pycurl:
+                if not curl_encoding:
+                    try:
+                        curl.unsetopt(pycurl.ENCODING)
+                    except Exception as e:
+                        logger_fetcher.debug("unsetopt pycurl.ENCODING failed: %s", e)
+                if not curl_content_length:
+                    try:
+                        if http_headers.get("content-length"):
+                            http_headers.pop("content-length")
+                            curl.setopt(
+                                pycurl.HTTPHEADER,
+                                [f"{native_str(k)}: {native_str(v)}" for k, v in http_headers.get_all()],
+                            )
+                    except Exception as e:
+                        logger_fetcher.debug("unsetopt pycurl.CONTENT_LENGTH failed: %s", e)
+                if get_settings().curl.dns_server:
+                    curl.setopt(pycurl.DNS_SERVERS, get_settings().curl.dns_server)
+                curl.setopt(pycurl.NOPROGRESS, 0)
+                curl.setopt(pycurl.PROGRESSFUNCTION, size_limit)
+                curl.setopt(pycurl.CONNECTTIMEOUT, int(self.connect_timeout))
+                curl.setopt(pycurl.TIMEOUT, int(self.request_timeout))
+                if proxy:
+                    if proxy.get("scheme", "") == "socks5":
+                        curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
+                    elif proxy.get("scheme", "") == "socks5h":
+                        curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5_HOSTNAME)
+            return curl
+
+        req = httpclient.HTTPRequest(
+            url=request.url,
+            method=request.method,
+            headers=http_headers,
+            body=request.data,
+            follow_redirects=False,
+            max_redirects=0,
+            decompress_response=True,
+            allow_nonstandard_methods=True,
+            allow_ipv6=True,
+            prepare_curl_callback=set_curl_callback,
+            validate_cert=False,
+            connect_timeout=self.connect_timeout,
+            request_timeout=self.request_timeout,
+        )
+
+        if proxy and pycurl:
+            if not get_settings().proxy.proxy_direct_mode:
+                for key in proxy:
+                    if key != "scheme":
+                        setattr(req, f"proxy_{key}", proxy[key])
+            elif get_settings().proxy.proxy_direct_mode == "regexp":
+                for proxy_direct in get_settings().proxy.proxy_direct:
+                    if isinstance(proxy_direct, str):
+                        proxy_direct = re.compile(proxy_direct)
+                    if isinstance(proxy_direct, re.Pattern) and not proxy_direct.search(req.url):
+                        for key in proxy:
+                            if key != "scheme":
+                                setattr(req, f"proxy_{key}", proxy[key])
+            elif get_settings().proxy.proxy_direct_mode == "url":
+                if urlmatch(req.url) not in get_settings().proxy.proxy_direct:
+                    for key in proxy:
+                        if key != "scheme":
+                            setattr(req, f"proxy_{key}", proxy[key])
+        return req
+
+    def build(
+        self,
+        obj: HAR,
+        proxy: Optional[Dict] = None,
+        curl_encoding=get_settings().curl.curl_encoding,
+        curl_content_length=get_settings().curl.curl_length,
     ):
         if proxy is None:
             proxy = {}
         env = obj.env
         rule = obj.rule
-        request = self.render(obj.request, env)
+        request = self.renderer.render(obj.request, env)
 
-        method = request.method
-        url = request.url
-        headers = dict((e.name, e.value) for e in request.headers)
+        headers = HTTPHeaders(dict((e.name, e.value) for e in request.headers))
         cookies = dict((e.name, e.value) for e in request.cookies)
-        data = None
-        if method != "GET":
-            data = request.data
 
-        if str(url).startswith("api://"):
+        if str(request.url).startswith("api://"):
             req = httpclient.HTTPRequest(
-                url=url,
-                method=method,
+                url=request.url,
+                method=request.method,
                 headers=headers,
-                body=data,
+                body=request.data,
                 follow_redirects=False,
                 max_redirects=0,
                 decompress_response=True,
@@ -136,80 +215,8 @@ class Fetcher:
                 # connect_timeout=connect_timeout,
                 # request_timeout=request_timeout
             )
-
         else:
-
-            def set_curl_callback(curl):
-                def size_limit(download_size, downloaded, upload_size, uploaded):  # pylint: disable=unused-argument
-                    if download_size and download_size > download_size_limit:
-                        return 1
-                    if downloaded > download_size_limit:
-                        return 1
-                    return 0
-
-                if pycurl:
-                    if not curl_encoding:
-                        try:
-                            curl.unsetopt(pycurl.ENCODING)
-                        except Exception as e:
-                            logger_fetcher.debug("unsetopt pycurl.ENCODING failed: %s", e)
-                    if not curl_content_length:
-                        try:
-                            if headers.get("content-length"):
-                                headers.pop("content-length")
-                                curl.setopt(
-                                    pycurl.HTTPHEADER,
-                                    [f"{native_str(k)}: {native_str(v)}" for k, v in HTTPHeaders(headers).get_all()],
-                                )
-                        except Exception as e:
-                            logger_fetcher.debug("unsetopt pycurl.CONTENT_LENGTH failed: %s", e)
-                    if get_settings().curl.dns_server:
-                        curl.setopt(pycurl.DNS_SERVERS, get_settings().curl.dns_server)
-                    curl.setopt(pycurl.NOPROGRESS, 0)
-                    curl.setopt(pycurl.PROGRESSFUNCTION, size_limit)
-                    curl.setopt(pycurl.CONNECTTIMEOUT, int(connect_timeout))
-                    curl.setopt(pycurl.TIMEOUT, int(request_timeout))
-                    if proxy:
-                        if proxy.get("scheme", "") == "socks5":
-                            curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5)
-                        elif proxy.get("scheme", "") == "socks5h":
-                            curl.setopt(pycurl.PROXYTYPE, pycurl.PROXYTYPE_SOCKS5_HOSTNAME)
-                return curl
-
-            req = httpclient.HTTPRequest(
-                url=url,
-                method=method,
-                headers=headers,
-                body=data,
-                follow_redirects=False,
-                max_redirects=0,
-                decompress_response=True,
-                allow_nonstandard_methods=True,
-                allow_ipv6=True,
-                prepare_curl_callback=set_curl_callback,
-                validate_cert=False,
-                connect_timeout=connect_timeout,
-                request_timeout=request_timeout,
-            )
-
-            if proxy and pycurl:
-                if not get_settings().proxy.proxy_direct_mode:
-                    for key in proxy:
-                        if key != "scheme":
-                            setattr(req, f"proxy_{key}", proxy[key])
-                elif get_settings().proxy.proxy_direct_mode == "regexp":
-                    for proxy_direct in get_settings().proxy.proxy_direct:
-                        if isinstance(proxy_direct, str):
-                            proxy_direct = re.compile(proxy_direct)
-                        if isinstance(proxy_direct, re.Pattern) and not proxy_direct.search(req.url):
-                            for key in proxy:
-                                if key != "scheme":
-                                    setattr(req, f"proxy_{key}", proxy[key])
-                elif get_settings().proxy.proxy_direct_mode == "url":
-                    if urlmatch(req.url) not in get_settings().proxy.proxy_direct:
-                        for key in proxy:
-                            if key != "scheme":
-                                setattr(req, f"proxy_{key}", proxy[key])
+            req = self._build_curl_request(request, headers, proxy, curl_encoding, curl_content_length)
 
         session = cookie_utils.CookieSession()
         if req.headers.get("cookie"):
@@ -275,7 +282,7 @@ class Fetcher:
             _cookies.from_json(session)
 
         for success_assert in rule.success_asserts:
-            self._render("rule.success_asserts.re", success_assert.re, env, _cookies)
+            self.renderer.render_string("rule.success_asserts.re", success_assert.re, env, _cookies)
             if success_assert.re and re.search(success_assert.re, getdata(success_assert.from_)):
                 msg = ""
                 break
@@ -286,7 +293,7 @@ class Fetcher:
                 success = False
 
         for failed_assert in rule.failed_asserts:
-            self._render("rule.failed_asserts.re", failed_assert.re, env, _cookies)
+            self.renderer.render_string("rule.failed_asserts.re", failed_assert.re, env, _cookies)
             if failed_assert.re and re.search(failed_assert.re, getdata(failed_assert.from_)):
                 success = False
                 msg = f"Fail assert: {failed_assert.model_dump_json()} from failed_asserts"
@@ -408,107 +415,7 @@ class Fetcher:
             start_time=start_time,
         )
 
-    async def build_response(
-        self,
-        obj: HAR,
-        proxy=None,
-        curl_encoding=get_settings().curl.curl_encoding,
-        curl_content_length=get_settings().curl.curl_length,
-        empty_retry=get_settings().curl.empty_retry,
-    ) -> Tuple[Rule, Env, httpclient.HTTPResponse]:
-        if proxy is None:
-            proxy = {}
-        allow_retry = get_settings().curl.allow_retry
-        try:
-            req, rule, env = self.build_request(
-                obj,
-                download_size_limit=self.download_size_limit,
-                proxy=proxy,
-                curl_encoding=curl_encoding,
-                curl_content_length=curl_content_length,
-            )
-            if req.url.startswith("api://"):
-                allow_retry = False
-                response = await self.api_fetch(req)
-            else:
-                response = await self.client.fetch(req)
-            logger_fetcher.debug(
-                "%d %s %s %.2fms",
-                response.code,
-                response.request.method,
-                response.request.url,
-                1000.0 * response.request_time,
-            )
-        except httpclient.HTTPError as e:
-            try:
-                if allow_retry and pycurl:
-                    if e.__dict__.get("errno", "") == 61:
-                        logger_fetcher.warning("%s %s [Warning] %s -> Try to retry!", req.method, req.url, e)
-                        req, rule, env = self.build_request(
-                            obj,
-                            download_size_limit=self.download_size_limit,
-                            proxy=proxy,
-                            curl_encoding=False,
-                            curl_content_length=curl_content_length,
-                        )
-                        e.response = await self.client.fetch(req)
-                    elif e.code == 400 and e.message == "Bad Request" and req and req.headers.get("content-length"):
-                        logger_fetcher.warning("%s %s [Warning] %s -> Try to retry!", req.method, req.url, e)
-                        req, rule, env = self.build_request(
-                            obj,
-                            download_size_limit=self.download_size_limit,
-                            proxy=proxy,
-                            curl_encoding=curl_encoding,
-                            curl_content_length=False,
-                        )
-                        e.response = await self.client.fetch(req)
-                    elif e.code not in NOT_RETYR_CODE or (empty_retry and not e.response):
-                        try:
-                            logger_fetcher.warning("%s %s [Warning] %s -> Try to retry!", req.method, req.url, e)
-                            client = simple_httpclient.SimpleAsyncHTTPClient()
-                            e.response = await client.fetch(req)
-                        except Exception as e0:
-                            logger_fetcher.error(
-                                e.message.replace("\\r\\n", "\r\n")
-                                or (str(e.response) if e.response else "").replace("\\r\\n", "\r\n")
-                                or e0,
-                                exc_info=get_settings().log.traceback_print,
-                            )
-                    else:
-                        try:
-                            logger_fetcher.warning("%s %s [Warning] %s", req.method, req.url, e)
-                        except Exception as e0:
-                            logger_fetcher.error(
-                                e.message.replace("\\r\\n", "\r\n")
-                                or (str(e.response) if e.response else "").replace("\\r\\n", "\r\n")
-                                or e0,
-                                exc_info=get_settings().log.traceback_print,
-                            )
-                else:
-                    logger_fetcher.warning("%s %s [Warning] %s", req.method, req.url, e)
-            finally:
-                if "req" not in locals().keys():
-                    tmp = HAR(
-                        env=obj.env,
-                        rule=obj.rule,
-                        request=Request(
-                            url="api://util/unicode?content=", method="GET", headers=[], cookies=[], data=None
-                        ),
-                    )
-                    req, rule, env = self.build_request(tmp)
-                    e.response = httpclient.HTTPResponse(
-                        request=req, code=e.code, reason=e.message, buffer=BytesIO(str(e).encode())
-                    )
-                if not e.response:
-                    if get_settings().log.traceback_print:
-                        traceback.print_exc()
-                    e.response = httpclient.HTTPResponse(
-                        request=req, code=e.code, reason=e.message, buffer=BytesIO(str(e).encode())
-                    )
-                return rule, env, e.response
-        return rule, env, response
-
-    async def fetch(
+    async def do_request(
         self,
         obj: HAR,
         proxy=None,
@@ -550,13 +457,113 @@ class Fetcher:
 
         return Result(success=success, msg=msg, response=response, env=env)
 
+    async def build_response(
+        self,
+        obj: HAR,
+        proxy=None,
+        curl_encoding=get_settings().curl.curl_encoding,
+        curl_content_length=get_settings().curl.curl_length,
+        empty_retry=get_settings().curl.empty_retry,
+    ) -> Tuple[Rule, Env, httpclient.HTTPResponse]:
+        if proxy is None:
+            proxy = {}
+        allow_retry = get_settings().curl.allow_retry
+        try:
+            req, rule, env = self.build(
+                obj,
+                proxy=proxy,
+            )
+            if req.url.startswith("api://"):
+                allow_retry = False
+                response = await self.api_fetch(req)
+            else:
+                response = await self.client.fetch(req)
+            logger_fetcher.debug(
+                "%d %s %s %.2fms",
+                response.code,
+                response.request.method,
+                response.request.url,
+                1000.0 * response.request_time,
+            )
+        except httpclient.HTTPError as e:
+            try:
+                if allow_retry and pycurl:
+                    if e.__dict__.get("errno", "") == 61:
+                        logger_fetcher.warning("%s %s [Warning] %s -> Try to retry!", req.method, req.url, e)
+                        req, rule, env = self.build(
+                            obj,
+                            proxy=proxy,
+                            curl_encoding=False,
+                            curl_content_length=curl_content_length,
+                        )
+                        e.response = await self.client.fetch(req)
+                    elif e.code == 400 and e.message == "Bad Request" and req and req.headers.get("content-length"):
+                        logger_fetcher.warning("%s %s [Warning] %s -> Try to retry!", req.method, req.url, e)
+                        req, rule, env = self.build(
+                            obj,
+                            proxy=proxy,
+                            curl_encoding=curl_encoding,
+                            curl_content_length=False,
+                        )
+                        e.response = await self.client.fetch(req)
+                    elif e.code not in NOT_RETYR_CODE or (empty_retry and not e.response):
+                        try:
+                            logger_fetcher.warning("%s %s [Warning] %s -> Try to retry!", req.method, req.url, e)
+                            client = simple_httpclient.SimpleAsyncHTTPClient()
+                            e.response = await client.fetch(req)
+                        except Exception as e0:
+                            logger_fetcher.error(
+                                e.message.replace("\\r\\n", "\r\n")
+                                or (str(e.response) if e.response else "").replace("\\r\\n", "\r\n")
+                                or e0,
+                                exc_info=get_settings().log.traceback_print,
+                            )
+                    else:
+                        try:
+                            logger_fetcher.warning("%s %s [Warning] %s", req.method, req.url, e)
+                        except Exception as e0:
+                            logger_fetcher.error(
+                                e.message.replace("\\r\\n", "\r\n")
+                                or (str(e.response) if e.response else "").replace("\\r\\n", "\r\n")
+                                or e0,
+                                exc_info=get_settings().log.traceback_print,
+                            )
+                else:
+                    logger_fetcher.warning("%s %s [Warning] %s", req.method, req.url, e)
+            finally:
+                if "req" not in locals().keys():
+                    tmp = HAR(
+                        env=obj.env,
+                        rule=obj.rule,
+                        request=Request(
+                            url="api://util/unicode?content=", method="GET", headers=[], cookies=[], data=None
+                        ),
+                    )
+                    req, rule, env = self.build(tmp)
+                    e.response = httpclient.HTTPResponse(
+                        request=req, code=e.code, reason=e.message, buffer=BytesIO(str(e).encode())
+                    )
+                if not e.response:
+                    if get_settings().log.traceback_print:
+                        traceback.print_exc()
+                    e.response = httpclient.HTTPResponse(
+                        request=req, code=e.code, reason=e.message, buffer=BytesIO(str(e).encode())
+                    )
+                return rule, env, e.response
+        return rule, env, response
+
+
+class Fetcher:
     FOR_START = re.compile(r"{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}")
     IF_START = re.compile(r"{%\s*if\s+(.+)\s*%}")
     WHILE_START = re.compile(r"{%\s*while\s+(.+)\s*%}")
     ELSE_START = re.compile(r"{%\s*else\s*%}")
     PARSE_END = re.compile(r"{%\s*end(for|if|while)\s*%}")
 
-    def parse(self, tpl):
+    def __init__(self, **kwargs):
+        self.request_handler = RequestHandler(**kwargs)
+
+    def parse_har_template(self, har_template):
         stmt_stack = []
 
         def __append(entry):
@@ -565,7 +572,7 @@ class Fetcher:
             elif stmt_stack[-1]["type"] == "for" or stmt_stack[-1]["type"] == "while":
                 stmt_stack[-1]["body"].append(entry)
 
-        for i, entry in enumerate(tpl):
+        for i, entry in enumerate(har_template):
             if "type" in entry:
                 yield entry
             elif self.FOR_START.match(entry["request"]["url"]):
@@ -609,7 +616,7 @@ class Fetcher:
                 if entry_type == "for" or entry_type == "if" or entry_type == "while":
                     if m.group(1) != entry_type:
                         raise Exception(
-                            f"Failed at {i+1}/{len(tpl)} end tag \\r\\n"
+                            f"Failed at {i+1}/{len(har_template)} end tag \\r\\n"
                             f"Error: End tag should be \"end{stmt_stack[-1]['type']}\", but \"end{m.group(1)}\""
                         )
                     entry = stmt_stack.pop()
@@ -634,10 +641,10 @@ class Fetcher:
             yield stmt_stack.pop()
 
     async def do_fetch(
-        self, tpl, env: Env, proxies=None, request_limit=get_settings().task.task_request_limit, tpl_length=0
+        self, har_template, env: Env, proxies=None, request_limit=get_settings().task.task_request_limit, tpl_length=0
     ) -> Tuple[Env, int]:
         """
-        do a fetch of hole tpl
+        do a fetch of hole har template
         """
         if proxies:
             proxy = random.choice(proxies)
@@ -646,12 +653,12 @@ class Fetcher:
         else:
             proxy = {}
 
-        if tpl_length == 0 and len(tpl) > 0:
-            tpl_length = len(tpl)
-            for i, entry in enumerate(tpl):
+        if tpl_length == 0 and len(har_template) > 0:
+            tpl_length = len(har_template)
+            for i, entry in enumerate(har_template):
                 entry["idx"] = i + 1
 
-        for i, block in enumerate(self.parse(tpl)):
+        for i, block in enumerate(self.parse_har_template(har_template)):
             if request_limit <= 0:
                 raise Exception("request limit")
             elif block["type"] == "for":
@@ -774,7 +781,7 @@ class Fetcher:
                 entry = block["entry"]
                 try:
                     request_limit -= 1
-                    result = await self.fetch(
+                    result = await self.request_handler.do_request(
                         HAR(request=entry["request"], rule=entry["rule"], env=env),
                         proxy=proxy,
                     )
