@@ -27,7 +27,7 @@ dependencies = [
     "u-msgpack-python",
     "pysocks",
     "faker",
-    "fastapi",
+    "fastapi-slim",
     "aiofiles",
     "passlib",
     "aiohttp",
