@@ -8,6 +8,9 @@ import umsgpack  # type: ignore
 from cachetools import FIFOCache, LRUCache, RRCache, TLRUCache, TTLCache
 
 from qd_core.config import get_settings
+from qd_core.utils.log import Log
+
+logger_decorator = Log("QD.Core.Utils").getlogger()
 
 
 def log_and_raise_error(
@@ -62,7 +65,7 @@ def log_and_raise_error(
 _cache_lock = threading.local()
 
 
-class BaseCache:
+class FunctionCache:
     def __init__(self, maxsize=1000, cache_type="LRU", ttl=None, ttu=None):
         self.maxsize = maxsize
         self.cache_type = cache_type
@@ -106,6 +109,7 @@ class BaseCache:
         """获取或创建缓存"""
         return self._cache
 
+    @log_and_raise_error(logger_decorator, "Caching Function Result Error: %s", log_level=logging.WARNING)
     def _wrapper(self, fn, *args, **kwargs):
         # 检查 kwargs 中是否有 sql_session
         if "sql_session" in kwargs and kwargs["sql_session"] is not None:
@@ -117,28 +121,24 @@ class BaseCache:
         if inspect.iscoroutinefunction(fn):
 
             async def async_wrapper():
+                if key in self._cache:
+                    return self._cache[key]
                 with lock:
                     if key in self._cache:  # 再次检查，防止并发情况下的重复计算
                         return self._cache[key]
-                    try:
-                        result = await fn(*args, **kwargs)
-                        self._cache[key] = result
-                    except Exception as e:
-                        print(f"Error while calling function {fn.__name__}: {e}")
-                        raise
+                    result = await fn(*args, **kwargs)
+                    self._cache[key] = result
                     return self._cache.get(key)
 
             return async_wrapper()
         else:
+            if key in self._cache:
+                return self._cache[key]
             with lock:
                 if key in self._cache:  # 再次检查，防止并发情况下的重复计算
                     return self._cache[key]
-                try:
-                    result = fn(*args, **kwargs)
-                    self._cache[key] = result
-                except Exception as e:
-                    print(f"Error while calling function {fn.__name__}: {e}")
-                    raise
+                result = fn(*args, **kwargs)
+                self._cache[key] = result
                 return self._cache.get(key)
 
     def __call__(self, fn):
@@ -149,11 +149,7 @@ class BaseCache:
         return wrapper
 
 
-class FunctionCache(BaseCache):
-    pass
-
-
-class MethodCache(BaseCache):
+class MethodCache(FunctionCache):
     @classmethod
     def get_self_and_args(cls, args):
         return args[0], args[1:]
@@ -166,6 +162,7 @@ class MethodCache(BaseCache):
             return self_instance._cache
         return super().get_or_create_cache(self_instance)  # 使用 super() 调用基类方法
 
+    @log_and_raise_error(logger_decorator, "Caching Class Method Result Error: %s", log_level=logging.WARNING)
     def _wrapper(self, fn, *args, **kwargs):
         # 检查 kwargs 中是否有 sql_session
         if "sql_session" in kwargs and kwargs["sql_session"] is not None:
@@ -184,12 +181,8 @@ class MethodCache(BaseCache):
                 with lock:
                     if key in cache:  # 再次检查，防止并发情况下的重复计算
                         return cache[key]
-                    try:
-                        result = await fn(self_instance, *args, **kwargs)
-                        cache[key] = result
-                    except Exception as e:
-                        print(f"Error while calling function {fn.__name__}: {e}")
-                        raise
+                    result = await fn(self_instance, *args, **kwargs)
+                    cache[key] = result
                     return cache.get(key)
 
             return async_wrapper()
@@ -199,10 +192,6 @@ class MethodCache(BaseCache):
             with lock:
                 if key in cache:  # 再次检查，防止并发情况下的重复计算
                     return cache[key]
-                try:
-                    result = fn(self_instance, *args, **kwargs)
-                    cache[key] = result
-                except Exception as e:
-                    print(f"Error while calling function {fn.__name__}: {e}")
-                    raise
+                result = fn(self_instance, *args, **kwargs)
+                cache[key] = result
                 return cache.get(key)
