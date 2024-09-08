@@ -39,6 +39,7 @@ dependencies = [
     "pydantic-settings",
     "PyYAML",
     "toml",
+    "cachetools"
 ]
 version = "0.0.1"
 
@@ -69,8 +70,11 @@ managed = true
 dev-dependencies = [
     "colorama; sys_platform == 'win32'",
     "pytest",
+    "pytest-asyncio",
+    "pytest-mock",
     "ruff",
     "mypy",
+    "types-cachetools",
     "types-croniter",
     "types-requests",
     "types-python-dateutil",
@@ -87,10 +91,8 @@ dev-dependencies = [
 
 [tool.uv]
 dev-dependencies = ["setuptools>=70.0.0"]
-
-[tool.uv.indexes]
-tencent = "https://mirrors.tencent.com/pypi/simple"
-pypi = "https://pypi.org/simple"
+index-url = "https://mirrors.tencent.com/pypi/simple"
+extra-index-url = ["https://pypi.org/simple"]
 
 [tool.uv.pip]
 index-url = "https://mirrors.tencent.com/pypi/simple"

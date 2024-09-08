@@ -7,13 +7,14 @@
 #   all-features: false
 #   with-sources: false
 #   generate-hashes: false
+#   universal: true
 
 -e file:.
 aiofiles==24.1.0
     # via qd-core
-aiohappyeyeballs==2.3.7
+aiohappyeyeballs==2.4.0
     # via aiohttp
-aiohttp==3.10.4
+aiohttp==3.10.5
     # via qd-core
 aiosignal==1.3.1
     # via aiohttp
@@ -21,31 +22,33 @@ annotated-types==0.7.0
     # via pydantic
 anyio==4.4.0
     # via starlette
-async-timeout==4.0.3
+async-timeout==4.0.3 ; python_full_version < '3.11'
     # via aiohttp
 attrs==24.2.0
     # via aiohttp
-build==1.2.1
+build==1.2.2
     # via qd-core
-certifi==2024.7.4
+cachetools==5.5.0
+    # via qd-core
+certifi==2024.8.30
     # via requests
 charset-normalizer==3.3.2
     # via qd-core
     # via requests
-colorama==0.4.6
+colorama==0.4.6 ; os_name == 'nt'
     # via build
 croniter==3.0.3
     # via qd-core
-exceptiongroup==1.2.2
+exceptiongroup==1.2.2 ; python_full_version < '3.11'
     # via anyio
-faker==27.0.0
+faker==28.4.1
     # via qd-core
-fastapi-slim==0.112.1
+fastapi-slim==0.114.0
     # via qd-core
 frozenlist==1.4.1
     # via aiohttp
     # via aiosignal
-idna==3.7
+idna==3.8
     # via anyio
     # via requests
     # via yarl
@@ -70,11 +73,11 @@ pycryptodome==3.20.0
     # via qd-core
 pycurl==7.45.3
     # via qd-core
-pydantic==2.8.2
+pydantic==2.9.0
     # via fastapi-slim
     # via pydantic-settings
     # via qd-core
-pydantic-core==2.20.1
+pydantic-core==2.23.2
     # via pydantic
 pydantic-settings==2.4.0
     # via qd-core
@@ -97,12 +100,12 @@ six==1.16.0
     # via python-dateutil
 sniffio==1.3.1
     # via anyio
-starlette==0.38.2
+starlette==0.38.4
     # via fastapi-slim
     # via qd-core
 toml==0.10.2
     # via qd-core
-tomli==2.0.1
+tomli==2.0.1 ; python_full_version < '3.11'
     # via build
 tornado==6.4.1
     # via qd-core
@@ -112,10 +115,11 @@ typing-extensions==4.12.2
     # via pydantic
     # via pydantic-core
 tzdata==2024.1
+    # via pydantic
     # via qd-core
 u-msgpack-python==2.8.0
     # via qd-core
 urllib3==2.2.2
     # via requests
-yarl==1.9.4
+yarl==1.10.0
     # via aiohttp
