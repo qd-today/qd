@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
-# Author: A76yyyy<q981331502@163.com>
+# Author: A76yyyy<a76yyyy@gmail.com>
 #         http://www.a76yyyy.cn
 # Created on 2022-03-14 12:00:00
 

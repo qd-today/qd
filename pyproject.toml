@@ -2,7 +2,7 @@
 name = "qd"
 version = "0.1.0"
 description = "A web framework for HTTP timed task automation."
-authors = [{ name = "a76yyyy", email = "q981331502@163.com" }]
+authors = [{ name = "a76yyyy", email = "a76yyyy@gmail.com" }]
 dependencies = []
 readme = "README.md"
 requires-python = ">= 3.10"

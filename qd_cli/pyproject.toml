@@ -1,6 +1,6 @@
 [project]
 name = "qd-cli"
-authors = [{ name = "a76yyyy", email = "q981331502@163.com" }]
+authors = [{ name = "a76yyyy", email = "a76yyyy@gmail.com" }]
 description = "Command line tool based on qd-core for executing har templates."
 requires-python = ">=3.10"
 classifiers = [
