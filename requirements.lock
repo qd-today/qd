@@ -4,26 +4,24 @@
 # last locked with the following flags:
 #   pre: false
 #   features: []
-#   all-features: false
+#   all-features: true
 #   with-sources: false
 #   generate-hashes: false
 #   universal: true
 
--e file:.
+-e file:qd_core
 aiofiles==24.1.0
     # via qd-core
-aiohappyeyeballs==2.4.0
+aiohappyeyeballs==2.4.3
     # via aiohttp
-aiohttp==3.10.5
+aiohttp==3.10.8
     # via qd-core
 aiosignal==1.3.1
     # via aiohttp
 annotated-types==0.7.0
     # via pydantic
-anyio==4.4.0
+anyio==4.6.0
     # via starlette
-async-timeout==4.0.3 ; python_full_version < '3.11'
-    # via aiohttp
 attrs==24.2.0
     # via aiohttp
 build==1.2.2
@@ -37,18 +35,24 @@ charset-normalizer==3.3.2
     # via requests
 colorama==0.4.6 ; os_name == 'nt'
     # via build
+coloredlogs==15.0.1
+    # via onnxruntime
 croniter==3.0.3
     # via qd-core
-exceptiongroup==1.2.2 ; python_full_version < '3.11'
-    # via anyio
-faker==28.4.1
+ddddocr==1.5.5
     # via qd-core
-fastapi-slim==0.114.0
+faker==30.1.0
     # via qd-core
+fastapi-slim==0.115.0
+    # via qd-core
+flatbuffers==24.3.25
+    # via onnxruntime
 frozenlist==1.4.1
     # via aiohttp
     # via aiosignal
-idna==3.8
+humanfriendly==10.0
+    # via coloredlogs
+idna==3.10
     # via anyio
     # via requests
     # via yarl
@@ -56,33 +60,50 @@ jinja2==3.1.4
     # via qd-core
 markupsafe==2.1.5
     # via jinja2
-multidict==6.0.5
+mpmath==1.3.0
+    # via sympy
+multidict==6.1.0
     # via aiohttp
     # via yarl
+numpy==2.1.1
+    # via ddddocr
+    # via onnxruntime
+    # via opencv-python-headless
+onnxruntime==1.19.2
+    # via ddddocr
+opencv-python-headless==4.10.0.84
+    # via ddddocr
 packaging==24.1
     # via build
+    # via onnxruntime
 passlib==1.7.4
     # via qd-core
 pbkdf2==1.3
     # via qd-core
+pillow==10.4.0
+    # via ddddocr
 pip==24.2
     # via qd-core
 plux==1.11.1
     # via qd-core
-pycryptodome==3.20.0
+protobuf==5.28.2
+    # via onnxruntime
+pycryptodome==3.21.0
     # via qd-core
 pycurl==7.45.3
     # via qd-core
-pydantic==2.9.0
+pydantic==2.9.2
     # via fastapi-slim
     # via pydantic-settings
     # via qd-core
-pydantic-core==2.23.2
+pydantic-core==2.23.4
     # via pydantic
-pydantic-settings==2.4.0
+pydantic-settings==2.5.2
     # via qd-core
-pyproject-hooks==1.1.0
+pyproject-hooks==1.2.0
     # via build
+pyreadline3==3.5.4 ; sys_platform == 'win32'
+    # via humanfriendly
 pysocks==1.7.1
     # via qd-core
 python-dateutil==2.9.0.post0
@@ -90,7 +111,7 @@ python-dateutil==2.9.0.post0
     # via faker
 python-dotenv==1.0.1
     # via pydantic-settings
-pytz==2024.1
+pytz==2024.2
     # via croniter
 pyyaml==6.0.2
     # via qd-core
@@ -100,26 +121,25 @@ six==1.16.0
     # via python-dateutil
 sniffio==1.3.1
     # via anyio
-starlette==0.38.4
+starlette==0.38.6
     # via fastapi-slim
     # via qd-core
+sympy==1.13.3
+    # via onnxruntime
 toml==0.10.2
     # via qd-core
-tomli==2.0.1 ; python_full_version < '3.11'
-    # via build
 tornado==6.4.1
     # via qd-core
 typing-extensions==4.12.2
-    # via anyio
+    # via faker
     # via fastapi-slim
     # via pydantic
     # via pydantic-core
-tzdata==2024.1
-    # via pydantic
+tzdata==2024.2
     # via qd-core
 u-msgpack-python==2.8.0
     # via qd-core
-urllib3==2.2.2
+urllib3==2.2.3
     # via requests
-yarl==1.10.0
+yarl==1.13.1
     # via aiohttp

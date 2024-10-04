@@ -20,11 +20,12 @@ import signal
 import sys
 import threading
 import types
+from opcode import opmap, opname
 from types import CodeType
 
 # import multiprocessing
 import dateutil
-from opcode import opmap, opname
+
 from qd_core.config import get_settings
 from qd_core.utils.log import Log
 

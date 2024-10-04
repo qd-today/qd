@@ -3,6 +3,7 @@ import inspect
 import logging
 import threading
 from functools import wraps
+from typing import Any, Optional
 
 import umsgpack  # type: ignore
 from cachetools import FIFOCache, LRUCache, RRCache, TLRUCache, TTLCache
@@ -66,7 +67,7 @@ _cache_lock = threading.local()
 
 
 class FunctionCache:
-    def __init__(self, maxsize=1000, cache_type="LRU", ttl=None, ttu=None):
+    def __init__(self, maxsize: int = 1000, cache_type: str = "LRU", ttl: Optional[float] = None, ttu: Any = None):
         self.maxsize = maxsize
         self.cache_type = cache_type
         self.ttl = ttl
@@ -105,7 +106,7 @@ class FunctionCache:
             setattr(_cache_lock, "lock", lock)
         return lock
 
-    def get_or_create_cache(self, self_instance):
+    def get_or_create_cache(self, self_instance: Optional["FunctionCache"] = None):
         """获取或创建缓存"""
         return self._cache
 
@@ -154,7 +155,7 @@ class MethodCache(FunctionCache):
     def get_self_and_args(cls, args):
         return args[0], args[1:]
 
-    def get_or_create_cache(self, self_instance):
+    def get_or_create_cache(self, self_instance: Optional["FunctionCache"] = None):
         """获取或创建缓存"""
         if self_instance:
             if not hasattr(self_instance, "_cache"):

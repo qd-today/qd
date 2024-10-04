@@ -4,28 +4,26 @@
 # last locked with the following flags:
 #   pre: false
 #   features: []
-#   all-features: false
+#   all-features: true
 #   with-sources: false
 #   generate-hashes: false
 #   universal: true
 
--e file:.
+-e file:qd_core
 aiofiles==24.1.0
     # via qd-core
-aiohappyeyeballs==2.4.0
+aiohappyeyeballs==2.4.3
     # via aiohttp
-aiohttp==3.10.5
+aiohttp==3.10.8
     # via qd-core
 aiosignal==1.3.1
     # via aiohttp
 annotated-types==0.7.0
     # via pydantic
-anyio==4.4.0
+anyio==4.6.0
     # via starlette
-astroid==3.2.4
+astroid==3.3.4
     # via pylint
-async-timeout==4.0.3 ; python_full_version < '3.11'
-    # via aiohttp
 attrs==24.2.0
     # via aiohttp
 build==1.2.2
@@ -41,21 +39,26 @@ colorama==0.4.6 ; sys_platform == 'win32' or os_name == 'nt'
     # via build
     # via pylint
     # via pytest
+coloredlogs==15.0.1
+    # via onnxruntime
 croniter==3.0.3
     # via qd-core
-dill==0.3.8
+ddddocr==1.5.5
+    # via qd-core
+dill==0.3.9
     # via pylint
-exceptiongroup==1.2.2 ; python_full_version < '3.11'
-    # via anyio
-    # via pytest
-faker==28.4.1
+faker==30.1.0
     # via qd-core
-fastapi-slim==0.114.0
+fastapi-slim==0.115.0
     # via qd-core
+flatbuffers==24.3.25
+    # via onnxruntime
 frozenlist==1.4.1
     # via aiohttp
     # via aiosignal
-idna==3.8
+humanfriendly==10.0
+    # via coloredlogs
+idna==3.10
     # via anyio
     # via requests
     # via yarl
@@ -69,51 +72,68 @@ markupsafe==2.1.5
     # via jinja2
 mccabe==0.7.0
     # via pylint
-multidict==6.0.5
+mpmath==1.3.0
+    # via sympy
+multidict==6.1.0
     # via aiohttp
     # via yarl
 mypy==1.11.2
 mypy-extensions==1.0.0
     # via mypy
+numpy==2.1.1
+    # via ddddocr
+    # via onnxruntime
+    # via opencv-python-headless
+onnxruntime==1.19.2
+    # via ddddocr
+opencv-python-headless==4.10.0.84
+    # via ddddocr
 packaging==24.1
     # via build
+    # via onnxruntime
     # via pytest
 passlib==1.7.4
     # via qd-core
 pbkdf2==1.3
     # via qd-core
+pillow==10.4.0
+    # via ddddocr
 pip==24.2
     # via qd-core
-platformdirs==4.3.1
+platformdirs==4.3.6
     # via pylint
 pluggy==1.5.0
     # via pytest
 plux==1.11.1
     # via qd-core
-pycryptodome==3.20.0
+protobuf==5.28.2
+    # via onnxruntime
+pycryptodome==3.21.0
     # via qd-core
 pycurl==7.45.3
     # via qd-core
-pydantic==2.9.0
+pydantic==2.9.2
     # via fastapi-slim
     # via pydantic-settings
     # via pylint-pydantic
     # via qd-core
-pydantic-core==2.23.2
+pydantic-core==2.23.4
     # via pydantic
-pydantic-settings==2.4.0
+pydantic-settings==2.5.2
     # via qd-core
-pylint==3.2.7
+pylint==3.3.1
     # via pylint-plugin-utils
     # via pylint-pydantic
 pylint-plugin-utils==0.8.2
     # via pylint-pydantic
 pylint-pydantic==0.3.2
-pyproject-hooks==1.1.0
+pyproject-hooks==1.2.0
     # via build
+pyreadline3==3.5.4 ; sys_platform == 'win32'
+    # via humanfriendly
 pysocks==1.7.1
     # via qd-core
-pytest==8.3.2
+pytest==8.3.3
     # via pytest-asyncio
     # via pytest-mock
 pytest-asyncio==0.24.0
@@ -123,29 +143,26 @@ python-dateutil==2.9.0.post0
     # via faker
 python-dotenv==1.0.1
     # via pydantic-settings
-pytz==2024.1
+pytz==2024.2
     # via croniter
 pyyaml==6.0.2
     # via qd-core
 requests==2.32.3
     # via qd-core
-ruff==0.6.4
-setuptools==74.1.2
+ruff==0.6.8
+setuptools==75.1.0
 six==1.16.0
     # via python-dateutil
 sniffio==1.3.1
     # via anyio
 sqlalchemy2-stubs==0.0.2a38
-starlette==0.38.4
+starlette==0.38.6
     # via fastapi-slim
     # via qd-core
+sympy==1.13.3
+    # via onnxruntime
 toml==0.10.2
     # via qd-core
-tomli==2.0.1 ; python_full_version < '3.11'
-    # via build
-    # via mypy
-    # via pylint
-    # via pytest
 tomlkit==0.13.2
     # via pylint
 tornado==6.4.1
@@ -154,27 +171,25 @@ types-aiofiles==24.1.0.20240626
 types-cachetools==5.5.0.20240820
 types-croniter==3.0.3.20240731
 types-passlib==1.7.7.20240819
-types-python-dateutil==2.9.0.20240906
-types-pyyaml==6.0.12.20240808
-types-requests==2.32.0.20240907
-types-setuptools==74.1.0.20240907
+types-python-dateutil==2.9.0.20241003
+types-pyyaml==6.0.12.20240917
+types-requests==2.32.0.20240914
+types-setuptools==75.1.0.20240917
 types-toml==0.10.8.20240310
 typing-extensions==4.12.2
-    # via anyio
-    # via astroid
+    # via faker
     # via fastapi-slim
     # via mypy
     # via pydantic
     # via pydantic-core
     # via sqlalchemy2-stubs
-tzdata==2024.1
-    # via pydantic
+tzdata==2024.2
     # via qd-core
 u-msgpack-python==2.8.0
     # via qd-core
-urllib3==2.2.2
+urllib3==2.2.3
     # via requests
     # via types-requests
 wheel==0.44.0
-yarl==1.10.0
+yarl==1.13.1
     # via aiohttp
