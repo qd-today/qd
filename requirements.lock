@@ -9,7 +9,9 @@
 #   generate-hashes: false
 #   universal: true
 
+-e file:qd_cli
 -e file:qd_core
+    # via qd-cli
 aiofiles==24.1.0
     # via qd-core
 aiohappyeyeballs==2.4.3

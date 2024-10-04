@@ -69,10 +69,15 @@ QD_DEBUG=True
 ```
 
 ```shell
+cd qd
 rye sync --all-features
 cd ./qd_core
 rye run qd_plugins
 rye build
+cd ..
+cd ./qd_cli
+rye build
+cd ..
 ```
 
 请参阅 **[使用指南](https://qd-today.github.io/qd/zh_CN/)**

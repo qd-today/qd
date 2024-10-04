@@ -1,0 +1,44 @@
+[project]
+name = "qd-cli"
+authors = [{ name = "a76yyyy", email = "q981331502@163.com" }]
+description = "Command line tool based on qd-core for executing har templates."
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: MIT",
+]
+dependencies = [
+    "qd-core",
+]
+version = "0.0.1"
+
+[project.urls]
+Homepage = "https://qd-today.github.io/qd/"
+Documentation = "https://qd-today.github.io/qd/"
+Repository = "https://github.com/qd-today/qd"
+Issues = "https://github.com/qd-today/qd/issues"
+
+[project.optional-dependencies]
+ddddocr = ["qd-core[ddddocr]"]
+
+[project.scripts]
+qd = "qd_cli.cli:fetch_har_cli"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["qd_cli*"]
+exclude = ["test*"]
+
+[tool.rye]
+universal = true
+managed = true
+dev-dependencies = []
+
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"

@@ -49,7 +49,6 @@ Issues = "https://github.com/qd-today/qd/issues"
 ddddocr = ["ddddocr>=1.5.3"]
 
 [project.scripts]
-qd = "qd_core.cli.cli:fetch_har_cli"
 qd_plugins = "qd_core.plugins.base:entrypoints"
 
 [build-system]
