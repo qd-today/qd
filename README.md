@@ -69,15 +69,9 @@ QD_DEBUG=True
 ```
 
 ```shell
-cd qd
-rye sync --all-features
-cd ./qd_core
-rye run qd_plugins
-rye build
-cd ..
-cd ./qd_cli
-rye build
-cd ..
+uv sync --all-packages --all-extras --group dev --group lint
+uv run --directory qd-core qd_plugins
+uv build --all-packages
 ```
 
 请参阅 **[使用指南](https://qd-today.github.io/qd/zh_CN/)**

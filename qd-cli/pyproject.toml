@@ -10,10 +10,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "License :: MIT",
 ]
-dependencies = [
-    "qd-core",
-]
+dependencies = ["qd-core"]
 version = "0.0.1"
+readme = "README.md"
 
 [project.urls]
 Homepage = "https://qd-today.github.io/qd/"
@@ -35,10 +34,14 @@ where = ["src"]
 include = ["qd_cli*"]
 exclude = ["test*"]
 
-[tool.rye]
-universal = true
-managed = true
-dev-dependencies = []
+[tool.uv]
+package = true
+
+[dependency-groups]
+lint = [
+    "mypy>=1.13.0",
+]
+
 
 [tool.mypy]
 mypy_path = "$MYPY_CONFIG_FILE_DIR/src"

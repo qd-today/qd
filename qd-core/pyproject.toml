@@ -1,0 +1,104 @@
+[project]
+name = "qd-core"
+authors = [{ name = "a76yyyy", email = "a76yyyy@gmail.com" }]
+description = "The core library and runtime of QD"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: MIT",
+]
+version = "0.0.1"
+readme = "README.md"
+dependencies = [
+    "aiofiles>=24.1.0",
+    "aiohttp>=3.11.0",
+    "build>=1.2.2.post1",
+    "cachetools>=5.5.0",
+    "charset-normalizer>=3.4.0",
+    "croniter>=5.0.1",
+    "faker>=32.1.0",
+    "fastapi-slim>=0.115.5",
+    "jinja2>=3.1.4",
+    "passlib>=1.7.4",
+    "pbkdf2>=1.3",
+    "plux>=1.7",
+    "pycryptodome>=3.21.0",
+    "pycurl>=7.45.3",
+    "pydantic>=2.9.2",
+    "pydantic-settings>=2.6.1",
+    "pysocks>=1.7.1",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.3",
+    "starlette>=0.41.2",
+    "toml>=0.10.2",
+    "tornado>=6.4.1",
+    "tzdata>=2024.2",
+    "u-msgpack-python>=2.8.0",
+    "pip>=24.3.1",
+]
+
+[project.urls]
+Homepage = "https://qd-today.github.io/qd/"
+Documentation = "https://qd-today.github.io/qd/"
+Repository = "https://github.com/qd-today/qd"
+Issues = "https://github.com/qd-today/qd/issues"
+
+[project.optional-dependencies]
+ddddocr = ["ddddocr>=1.5.3"]
+
+[project.scripts]
+qd_plugins = "qd_core.plugins.base:entrypoints"
+
+[build-system]
+requires = ['setuptools', 'wheel', 'plux>=1.3.1']
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["qd_core*"]
+exclude = ["test*"]
+
+[tool.uv]
+package = true
+
+[dependency-groups]
+dev = [
+    "colorama>=0.4.6 ; sys_platform == 'win32'",
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "pytest-mock>=3.14.0",
+    "setuptools>=70.0.0",
+    "wheel>=0.45.0",
+]
+lint = [
+    "mypy>=1.13.0",
+    "pylint-pydantic>=0.3.2",
+    "ruff>=0.7.3",
+    "sqlalchemy2-stubs>=0.0.2a38",
+    "types-aiofiles>=24.1.0.20240626",
+    "types-cachetools>=5.5.0.20240820",
+    "types-croniter>=4.0.0.20241030",
+    "types-passlib>=1.7.7.20240819",
+    "types-python-dateutil>=2.9.0.20241003",
+    "types-pyyaml>=6.0.12.20240917",
+    "types-requests>=2.32.0.20241016",
+    "types-setuptools>=75.3.0.20241112",
+    "types-toml>=0.10.8.20240310",
+]
+
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
+
+[[tool.mypy.overrides]]
+module = "mypy-umsgpack.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "ddddocr-umsgpack.*"
+ignore_missing_imports = true

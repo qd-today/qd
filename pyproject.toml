@@ -3,40 +3,42 @@ name = "qd"
 version = "0.1.0"
 description = "A web framework for HTTP timed task automation."
 authors = [{ name = "a76yyyy", email = "a76yyyy@gmail.com" }]
-dependencies = []
 readme = "README.md"
-requires-python = ">= 3.10"
+requires-python = ">= 3.10, <= 3.12"
+dependencies = []
 
 
-[tool.rye]
-universal = true
-virtual = true
-managed = true
-dev-dependencies = [
-    "colorama; sys_platform == 'win32'",
-    "pytest",
-    "pytest-asyncio",
-    "pytest-mock",
-    "ruff",
-    "mypy",
-    "setuptools",
-    "wheel",
+[dependency-groups]
+dev = [
+    "colorama>=0.4.6 ; sys_platform == 'win32'",
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+    "pytest-mock>=3.14.0",
+    "setuptools>=70.0.0",
+    "wheel>=0.45.0",
+]
+lint = [
+    "mypy>=1.13.0",
+    "ruff>=0.7.3",
 ]
 
-[tool.rye.workspace]
-members = ["qd_*"]
+[[tool.uv.index]]
+name = "pypi"
+url = "https://pypi.org/simple"
 
-[[tool.rye.sources]]
-name = "default"
+[[tool.uv.index]]
+name = "tencent"
 url = "https://mirrors.tencent.com/pypi/simple"
 
-[tool.uv]
-dev-dependencies = ["setuptools>=70.0.0"]
-index-url = "https://mirrors.tencent.com/pypi/simple"
-extra-index-url = ["https://pypi.org/simple"]
+[[tool.uv.index]]
+name = "tuna"
+url = "https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple"
 
-[tool.uv.pip]
-index-url = "https://mirrors.tencent.com/pypi/simple"
+[tool.uv.workspace]
+members = ["qd-*"]
+
+[tool.uv.sources]
+qd-core = { workspace = true }
 
 [tool.mypy]
 mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
