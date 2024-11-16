@@ -6,6 +6,7 @@ import os
 import re
 import time
 import urllib
+from gettext import gettext
 from typing import Annotated, Any, Dict, Optional
 
 import aiohttp
@@ -24,8 +25,10 @@ try:
 except ImportError as e:
     if get_settings().log.display_import_warning:
         logger_plugins.warning(
-            'Import DdddOCR module falied: "%s". \n'
-            "Tips: This warning message is only for prompting, it will not affect running of QD framework.",
+            gettext(
+                'Import DdddOCR module falied: "%s". \n'
+                "Tips: This warning message is only for prompting, it will not affect running of QD framework."
+            ),
             e,
         )
     ddddocr = None
@@ -43,8 +46,9 @@ async def delay(
         Field(
             ...,
             description=(
-                f"seconds:延时指定时间, 大于{get_settings().client_request.delay_max_timeout}s"
-                "均视为延时{get_settings().client_request.delay_max_timeout}s"
+                gettext("seconds:延时指定时间, 大于 {delay_max_timeout}s 均视为延时 {delay_max_timeout}s").format(
+                    delay_max_timeout=get_settings().client_request.delay_max_timeout
+                )
             ),
         ),
     ] = 0.0,
@@ -52,12 +56,12 @@ async def delay(
     result = ""
     if seconds < 0.0:
         seconds = 0.0
-        result = "Error, seconds must be greater than 0.0, "
+        result = gettext("Error, seconds must be greater than 0.0, ")
     elif seconds > get_settings().client_request.delay_max_timeout:
         seconds = get_settings().client_request.delay_max_timeout
-        result = "Error, limited by delay_max_timeout, "
+        result = gettext("Error, limited by delay_max_timeout, ")
     await asyncio.sleep(seconds)
-    return result + f"delay {seconds} second."
+    return result + gettext("delay {seconds} second.")
 
 
 def yearday(year: int):
@@ -125,7 +129,9 @@ async def unicode(
     content: Annotated[str, Field("", description="要转码的内容")] = "",
     html_unescape: Annotated[
         bool,
-        Field(False, description="是否进行 html 反转义, 默认为 False, " "启用该参数需对 content 进行 urlencode 编码"),
+        Field(
+            False, description=gettext("是否进行 html 反转义, 默认为 False, 启用该参数需对 content 进行 urlencode 编码")
+        ),
     ] = False,
 ):
     rtv = {}
@@ -154,8 +160,10 @@ async def urldecode(
         Field(
             "",
             description=(
-                "要转码的 urlencoded 内容, "
-                "如果 content 为非 utf-8 编码的 urlencoded 字符串, 请再次进行 urlencode 编码后再传入"
+                gettext(
+                    "要转码的 urlencoded 内容, "
+                    "如果 content 为非 utf-8 编码的 urlencoded 字符串, 请再次进行 urlencode 编码后再传入"
+                )
             ),
         ),
     ] = "",
@@ -182,7 +190,7 @@ async def urldecode(
     path_list=["/gb2312"],
     method_list=[["GET", "POST"]],
 )
-async def gb2312(content: Annotated[str, Field("", description="要转码的内容")] = ""):
+async def gb2312(content: Annotated[str, Field("", description=gettext("要转码的内容"))] = ""):
     rtv = {}
     try:
         rtv["转换后"] = urllib.parse.unquote(content, encoding="gb2312")
@@ -199,8 +207,8 @@ async def gb2312(content: Annotated[str, Field("", description="要转码的内�
     method_list=[["GET", "POST"]],
 )
 async def regex(
-    data: Annotated[str, Field("", description="原始数据")] = "",
-    p: Annotated[str, Field("", description="正则表达式")] = "",
+    data: Annotated[str, Field("", description=gettext("原始数据"))] = "",
+    p: Annotated[str, Field("", description=gettext("正则表达式"))] = "",
 ):
     rtv: Dict[str, Any] = {}
     try:
@@ -222,10 +230,10 @@ async def regex(
     method_list=[["GET", "POST"]],
 )
 async def string_replace(
-    p: Annotated[str, Field("", description="正则表达式")] = "",
-    t: Annotated[str, Field("", description="要替换的内容")] = "",
-    s: Annotated[str, Field("", description="要替换的字符串")] = "",
-    r: Annotated[str, Field("", description="返回类型, text 或 json, 默认为 json")] = "",
+    p: Annotated[str, Field("", description=gettext("正则表达式"))] = "",
+    t: Annotated[str, Field("", description=gettext("要替换的内容"))] = "",
+    s: Annotated[str, Field("", description=gettext("要替换的字符串"))] = "",
+    r: Annotated[str, Field("", description=gettext("返回类型, text 或 json, 默认为 json"))] = "",
 ):
     rtv = {}
     try:
@@ -246,11 +254,13 @@ async def string_replace(
     method_list=[["GET", "POST"]],
 )
 async def rsa(
-    key: Annotated[str, Field("", description="RSA私钥")] = "",
-    data: Annotated[str, Field("", description="要加密或解密的数据")] = "",
-    f: Annotated[str, Field("", description="encode为加密,decode为解密")] = "",
-    rand_bytes_str: Annotated[Optional[str], Field(None, description="随机字节串,默认为None")] = None,
-    rand_bytes_encode: Annotated[str, Field("utf-8", description="随机字节串的编码方式,默认为utf-8")] = "utf-8",
+    key: Annotated[str, Field("", description=gettext("RSA私钥"))] = "",
+    data: Annotated[str, Field("", description=gettext("要加密或解密的数据"))] = "",
+    f: Annotated[str, Field("", description=gettext("encode为加密,decode为解密"))] = "",
+    rand_bytes_str: Annotated[Optional[str], Field(None, description=gettext("随机字节串,默认为None"))] = None,
+    rand_bytes_encode: Annotated[
+        str, Field("utf-8", description=gettext("随机字节串的编码方式,默认为utf-8"))
+    ] = "utf-8",
 ):
     try:
         if key and data and f:
@@ -276,9 +286,9 @@ async def rsa(
                 decrypt_text_str = decrypt_text.decode("utf8")
                 return decrypt_text_str
             else:
-                raise Exception("功能选择错误")
+                raise Exception(gettext("功能选择错误"))
         else:
-            return Exception("参数不完整，请确认")
+            return Exception(gettext("参数不完整，请确认"))
     except Exception as e:
         raise e
 
@@ -310,7 +320,7 @@ class DdddOcrServer:
                             f"{onnx_name}.json",
                         ),
                     )
-                    logger_plugins.info("成功加载自定义Onnx模型: %s.onnx", onnx_name)
+                    logger_plugins.info(gettext("成功加载自定义Onnx模型: %s.onnx"), onnx_name)
 
     def classification(self, img: bytes, old=False, extra_onnx_name=""):
         if extra_onnx_name:
@@ -330,7 +340,7 @@ class DdddOcrServer:
             try:
                 return self.slide.slide_match(imgtarget, imgbg)
             except Exception as e:
-                logger_plugins.debug("slide_match error: %s", e, exc_info=get_settings().log.traceback_print)
+                logger_plugins.debug(gettext("slide_match error: %s"), e, exc_info=get_settings().log.traceback_print)
         return self.slide.slide_match(imgtarget, imgbg, simple_target=True)
 
 
@@ -358,7 +368,9 @@ async def get_img(
             try:
                 return await get_img_from_url(img)
             except Exception as e:
-                logger_plugins.debug("get_img_from_url error: %s", e, exc_info=get_settings().log.traceback_print)
+                logger_plugins.debug(
+                    gettext("get_img_from_url error: %s"), e, exc_info=get_settings().log.traceback_print
+                )
                 return base64.b64decode(img)
         return base64.b64decode(img)
     elif imgurl:
@@ -374,10 +386,10 @@ async def get_img(
     method_list=[["GET", "POST"]],
 )
 async def dddd_ocr(
-    img: Annotated[str, Field("", description="要识别的Base64图片内容")] = "",
-    imgurl: Annotated[str, Field("", description="要识别的web图片Url地址")] = "",
-    old: Annotated[bool, Field(False, description="是否采用旧模型, 默认为False")] = False,
-    extra_onnx_name: Annotated[str, Field("", description="自定义Onnx文件名, 默认为空")] = "",
+    img: Annotated[str, Field("", description=gettext("要识别的Base64图片内容"))] = "",
+    imgurl: Annotated[str, Field("", description=gettext("要识别的web图片Url地址"))] = "",
+    old: Annotated[bool, Field(False, description=gettext("是否采用旧模型, 默认为False"))] = False,
+    extra_onnx_name: Annotated[str, Field("", description=gettext("自定义Onnx文件名, 默认为空"))] = "",
 ):
     rtv = {}
     try:
@@ -399,8 +411,8 @@ async def dddd_ocr(
     method_list=[["GET", "POST"]],
 )
 async def dddd_det(
-    img: Annotated[str, Field("", description="要检测的Base64图片内容")] = "",
-    imgurl: Annotated[str, Field("", description="要检测的web图片Url地址")] = "",
+    img: Annotated[str, Field("", description=gettext("要检测的Base64图片内容"))] = "",
+    imgurl: Annotated[str, Field("", description=gettext("要检测的web图片Url地址"))] = "",
 ):
     rtv = {}
     try:
@@ -422,11 +434,16 @@ async def dddd_det(
     method_list=[["GET", "POST"]],
 )
 async def dddd_slide(
-    imgtarget: Annotated[str, Field("", description="要识别的Base64图片内容")] = "",
-    imgbg: Annotated[str, Field("", description="要识别的web图片Url地址")] = "",
-    simple_target: Annotated[bool, Field(False, description="小滑块图片是否包含过多背景, 默认为False")] = False,
+    imgtarget: Annotated[str, Field("", description=gettext("要识别的Base64图片内容"))] = "",
+    imgbg: Annotated[str, Field("", description=gettext("要识别的web图片Url地址"))] = "",
+    simple_target: Annotated[
+        bool, Field(False, description=gettext("小滑块图片是否包含过多背景, 默认为False"))
+    ] = False,
     comparison: Annotated[
-        bool, Field(False, description="imgtarget是否不为小滑块, True表示为带坑位原图, False表示为小滑块, 默认为False")
+        bool,
+        Field(
+            False, description=gettext("imgtarget是否不为小滑块, True表示为带坑位原图, False表示为小滑块, 默认为False")
+        ),
     ] = False,
 ):
     rtv = {}

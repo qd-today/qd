@@ -2,6 +2,7 @@ import asyncio
 import importlib.metadata as importlib_metadata
 import sys
 import time
+from gettext import gettext
 from typing import Dict
 
 from pip._internal.req.constructors import install_req_from_line
@@ -37,7 +38,7 @@ class QDPluginManager:
             except importlib_metadata.PackageNotFoundError:
                 installed = False
             if installed:
-                logger_plugins.info("Plugin '%s' is already installed.", plugin_name)
+                logger_plugins.info(gettext("Plugin '%s' is already installed."), plugin_name)
                 return True
 
             # 异步安装模块并记录输出日志
@@ -47,14 +48,16 @@ class QDPluginManager:
 
             # 判断安装是否成功
             if return_code == 0:
-                logger_plugins.info("Plugin '%s' has been installed.", plugin_name)
+                logger_plugins.info(gettext("Plugin '%s' has been installed."), plugin_name)
                 return True
             else:
-                logger_plugins.error("Failed to install plugin '%s'. Return code: %d", plugin_name, return_code)
+                logger_plugins.error(
+                    gettext("Failed to install plugin '%s'. Return code: %d"), plugin_name, return_code
+                )
                 return False
 
         except Exception as e:
-            logger_plugins.error("Failed to install plugin '%s': %s", plugin_name, e)
+            logger_plugins.error(gettext("Failed to install plugin '%s': %s"), plugin_name, e)
             raise
 
     async def start_plugin(self, plugin_name):
@@ -69,15 +72,15 @@ class QDPluginManager:
             if hasattr(plugin, "start"):
                 plugin.start()  # 假设插件有一个 start 方法用于启动
             else:
-                logger_plugins.warning("Plugin '%s' does not have a start method.", plugin_name)
+                logger_plugins.warning(gettext("Plugin '%s' does not have a start method."), plugin_name)
         except Exception as e:
-            logger_plugins.error("Failed to start plugin '%s': %s", plugin_name, e)
+            logger_plugins.error(gettext("Failed to start plugin '%s': %s"), plugin_name, e)
             raise
 
     def enable_plugin(self, plugin_name, default=False):
         # 启用插件
         if plugin_name in self.enabled_plugins:
-            logger_plugins.info("Plugin '%s' is already enabled.", plugin_name)
+            logger_plugins.info(gettext("Plugin '%s' is already enabled."), plugin_name)
             return
 
         # 使用 plux 加载插件
@@ -87,28 +90,28 @@ class QDPluginManager:
             plugin = self.plugin_manager.load(plugin_name)
         if plugin:
             self.enabled_plugins[plugin_name] = plugin
-            logger_plugins.info("Plugin '%s' has been enabled.", plugin_name)
+            logger_plugins.info(gettext("Plugin '%s' has been enabled."), plugin_name)
         else:
-            logger_plugins.error("Failed to load plugin '%s'.", plugin_name)
-            raise Exception("Failed to load plugin '%s'.", plugin_name)
+            logger_plugins.error(gettext("Failed to load plugin '%s'."), plugin_name)
+            raise Exception(gettext("Failed to load plugin '%s'."), plugin_name)
 
     def disable_plugin(self, plugin_name):
         # 禁用插件
         if plugin_name not in self.enabled_plugins:
-            logger_plugins.info("Plugin '%s' is already disabled.", plugin_name)
+            logger_plugins.info(gettext("Plugin '%s' is already disabled."), plugin_name)
             return
         if self._is_default_plugin(plugin_name):
-            logger_plugins.error("Default plugin '%s' cannot be disabled.", plugin_name)
+            logger_plugins.error(gettext("Default plugin '%s' cannot be disabled."), plugin_name)
             return
 
         self.enabled_plugins.pop(plugin_name)
-        logger_plugins.info("Plugin '%s' has been disabled.", plugin_name)
+        logger_plugins.info(gettext("Plugin '%s' has been disabled."), plugin_name)
 
     async def uninstall_plugin(self, plugin_name):
         # 卸载插件
         if self._is_default_plugin(plugin_name):
-            logger_plugins.error("Default plugin '%s' cannot be uninstalled.", plugin_name)
-            raise Exception("Default plugin '%s' cannot be uninstalled.", plugin_name)
+            logger_plugins.error(gettext("Default plugin '%s' cannot be uninstalled."), plugin_name)
+            raise Exception(gettext("Default plugin '%s' cannot be uninstalled."), plugin_name)
 
         # 检查插件是否已安装
         try:
@@ -116,7 +119,7 @@ class QDPluginManager:
         except importlib_metadata.PackageNotFoundError:
             installed = False
         if not installed:
-            logger_plugins.info("Plugin '%s' is not installed.", plugin_name)
+            logger_plugins.info(gettext("Plugin '%s' is not installed."), plugin_name)
             return
 
         # 异步执行插件卸载并记录输出日志
@@ -126,9 +129,9 @@ class QDPluginManager:
 
         # 判断卸载是否成功
         if return_code == 0:
-            logger_plugins.info("Plugin '%s' has been uninstalled.", plugin_name)
+            logger_plugins.info(gettext("Plugin '%s' has been uninstalled."), plugin_name)
         else:
-            logger_plugins.error("Failed to uninstall plugin '%s'. Return code: %d", plugin_name, return_code)
+            logger_plugins.error(gettext("Failed to uninstall plugin '%s'. Return code: %d"), plugin_name, return_code)
 
 
 async def test_default():

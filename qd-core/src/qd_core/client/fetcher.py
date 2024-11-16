@@ -1,6 +1,7 @@
 import random
 import re
 import time
+from gettext import gettext
 from typing import Iterable, Tuple
 
 from qd_core.client.http.handler import HttpHandler
@@ -128,7 +129,7 @@ class Fetcher:
                     if isinstance(_from_var, str) and _from_var.startswith("list(") or _from_var.startswith("range("):
                         _from = safe_eval(_from_var, env.variables)
                     if not isinstance(_from, Iterable):
-                        raise Exception("for循环只支持可迭代类型及变量")
+                        raise Exception(gettext("for循环只支持可迭代类型及变量"))
                     support_enum = True
                 except Exception as e:
                     if get_settings().log.debug:
@@ -181,14 +182,29 @@ class Fetcher:
                         else:
                             str_e = str(e).replace("<class 'ValueError'>", "ValueError")
                             raise Exception(
-                                f"Failed at {block['idx']}/{tpl_length} while condition, \\r\\n"
-                                f"Error: {str_e}, \\r\\nBlock condition: {block['condition']}"
+                                gettext(
+                                    "Failed at {block_idx}/{tpl_length} while condition, \\r\\n"
+                                    "Error: {error}, \\r\\n"
+                                    "Block condition: {condition}"
+                                ).format(
+                                    block_idx=block["idx"],
+                                    tpl_length=tpl_length,
+                                    error=str_e,
+                                    condition=block["condition"],
+                                )
                             ) from e
                     except Exception as e:
                         raise Exception(
-                            f"Failed at {block['idx']}/{tpl_length} while condition, \\r\\n"
-                            f"Error: {e}, \\r\\n"
-                            f"Block condition: {block['condition']}"
+                            gettext(
+                                "Failed at {block_idx}/{tpl_length} while condition, \\r\\n"
+                                "Error: {error}, \\r\\n"
+                                "Block condition: {condition}"
+                            ).format(
+                                block_idx=block["idx"],
+                                tpl_length=tpl_length,
+                                error=e,
+                                condition=block["condition"],
+                            )
                         ) from e
                     if condition:
                         env, request_limit = await self.do_fetch(
@@ -196,14 +212,23 @@ class Fetcher:
                         )
                     else:
                         if get_settings().log.debug:
-                            logger_fetcher.debug("while loop break, time: %ss", time.perf_counter() - start_time)
+                            logger_fetcher.debug(
+                                gettext("while loop break, time: %ss"), time.perf_counter() - start_time
+                            )
                         break
                     while_idx += 1
                 else:
                     raise Exception(
-                        f"Failed at {block['idx']}/{tpl_length} while end, \\r\\n"
-                        f"Error: while loop timeout, time: {time.perf_counter() - start_time}s \\r\\n"
-                        f"Block condition: {block['condition']}"
+                        gettext(
+                            "Failed at {block_idx}/{tpl_length} while end, \\r\\n"
+                            "Error: while loop timeout, time: {elapsed_time}s \\r\\n"
+                            "Block condition: {condition}"
+                        ).format(
+                            block_idx=block["idx"],
+                            tpl_length=tpl_length,
+                            elapsed_time=time.perf_counter() - start_time,
+                            condition=block["condition"],
+                        )
                     )
                 env.variables["loop_depth"] = str(int(env.variables.get("loop_depth", "0")) - 1)
                 env.variables["loop_depth0"] = str(int(env.variables.get("loop_depth0", "-1")) - 1)
@@ -218,15 +243,29 @@ class Fetcher:
                     else:
                         str_e = str(e).replace("<class 'ValueError'>", "ValueError")
                         raise Exception(
-                            f"Failed at {block['idx']}/{tpl_length} if condition, \\r\\n"
-                            f"Error: {str_e}, \\r\\n"
-                            f"Block condition: {block['condition']}"
+                            gettext(
+                                "Failed at {block_idx}/{tpl_length} if condition, \\r\\n"
+                                "Error: {error}, \\r\\n"
+                                "Block condition: {condition}"
+                            ).format(
+                                block_idx=block["idx"],
+                                tpl_length=tpl_length,
+                                error=str_e,
+                                condition=block["condition"],
+                            )
                         ) from e
                 except Exception as e:
                     raise Exception(
-                        f"Failed at {block['idx']}/{tpl_length} if condition, \\r\\n"
-                        f"Error: {e}, \\r\\n"
-                        f"Block condition: {block['condition']}"
+                        gettext(
+                            "Failed at {block_idx}/{tpl_length} if condition, \\r\\n"
+                            "Error: {error}, \\r\\n"
+                            "Block condition: {condition}"
+                        ).format(
+                            block_idx=block["idx"],
+                            tpl_length=tpl_length,
+                            error=e,
+                            condition=block["condition"],
+                        )
                     ) from e
                 if condition:
                     _, request_limit = await self.do_fetch(
@@ -247,7 +286,7 @@ class Fetcher:
                     env = result.env
                     if result.success:
                         logger_fetcher.debug(
-                            "Success at %d/%d request, \r\nRequest URL: %s, \r\nResult: %s",
+                            gettext("Success at %d/%d request, \r\nRequest URL: %s, \r\nResult: %s"),
                             entry["idx"],
                             tpl_length,
                             entry["request"]["url"],
@@ -257,14 +296,29 @@ class Fetcher:
                     if get_settings().log.debug:
                         logger_fetcher.exception(e)
                     raise Exception(
-                        f"Failed at {entry['idx']}/{tpl_length} request, \\r\\n"
-                        f"Error: {e}, \\r\\n"
-                        f"Request URL: {entry['request']['url']}"
+                        gettext(
+                            "Failed at {block_idx}/{tpl_length} request, \\r\\n"
+                            "Error: {error}, \\r\\n"
+                            "Request URL: {request_url}"
+                        ).format(
+                            block_idx=entry["idx"],
+                            tpl_length=tpl_length,
+                            error=e,
+                            request_url=entry["request"]["url"],
+                        )
                     ) from e
                 if not result.success:
                     raise Exception(
-                        f"Failed at {entry['idx']}/{tpl_length} request, \\r\\n"
-                        f"{result.msg}, \\r\\n"
-                        f"Request URL: {entry['request']['url']}"
+                        gettext(
+                            "Failed at {block_idx}/{tpl_length} request, \\r\\n"
+                            "{result_msg}, \\r\\n"
+                            "Request URL: {request_url}"
+                        ).format(
+                            block_idx=entry["idx"],
+                            tpl_length=tpl_length,
+                            result_msg=result.msg,
+                            request_url=entry["request"]["url"],
+                        )
                     )
+
         return env, request_limit

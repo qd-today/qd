@@ -167,6 +167,15 @@ wheels = [
 ]
 
 [[package]]
+name = "babel"
+version = "2.16.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/2a/74/f1bc80f23eeba13393b7222b11d95ca3af2c1e28edca18af487137eefed9/babel-2.16.0.tar.gz", hash = "sha256:d1f3554ca26605fe173f3de0c65f750f5a42f924499bf134de6423582298e316", size = 9348104 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ed/20/bc79bc575ba2e2a7f70e8a1155618bb1301eaa5132a8271373a6903f73f8/babel-2.16.0-py3-none-any.whl", hash = "sha256:368b5b98b37c06b7daf6696391c3240c938b37767d4584413e8438c5c435fa8b", size = 9587599 },
+]
+
+[[package]]
 name = "build"
 version = "1.2.2.post1"
 source = { registry = "https://pypi.org/simple" }
@@ -1209,6 +1218,9 @@ wheels = [
 name = "qd"
 version = "0.1.0"
 source = { virtual = "." }
+dependencies = [
+    { name = "babel" },
+]
 
 [package.dev-dependencies]
 dev = [
@@ -1225,6 +1237,7 @@ lint = [
 ]
 
 [package.metadata]
+requires-dist = [{ name = "babel", specifier = ">=2.16.0" }]
 
 [package.metadata.requires-dev]
 dev = [

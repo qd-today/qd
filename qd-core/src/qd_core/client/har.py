@@ -2,6 +2,7 @@ import base64
 import json
 import urllib.parse as urlparse
 from datetime import datetime
+from gettext import gettext
 
 from tornado import httpclient
 from tornado.httputil import HTTPHeaders
@@ -48,7 +49,9 @@ class Response:
                 try:
                     _ = json.dumps(ret["postData"]["params"])
                 except UnicodeDecodeError as e:
-                    logger_fetcher.error("params encoding error: %s", e, exc_info=get_settings().log.traceback_print)
+                    logger_fetcher.error(
+                        gettext("params encoding error: %s"), e, exc_info=get_settings().log.traceback_print
+                    )
                     del ret["postData"]["params"]
 
         return ret
@@ -126,7 +129,9 @@ class Template:
                 try:
                     _ = json.dumps(request["postData"]["params"])
                 except UnicodeDecodeError as e:
-                    logger_fetcher.error("params encoding error: %s", e, exc_info=get_settings().log.traceback_print)
+                    logger_fetcher.error(
+                        gettext("params encoding error: %s"), e, exc_info=get_settings().log.traceback_print
+                    )
                     del request["postData"]["params"]
         return request
 

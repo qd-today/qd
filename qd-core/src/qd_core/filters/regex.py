@@ -1,4 +1,5 @@
 import re
+from gettext import gettext
 
 from qd_core.filters.convert import to_text
 
@@ -77,6 +78,6 @@ def regex_escape(value, re_type="python"):
     # but different from PCRE.  It's possible that re.escape would work here.
     # https://remram44.github.io/regex-cheatsheet/regex.html#programs
     elif re_type == "posix_extended":
-        raise Exception(f"Regex type ({re_type}) not yet implemented")
+        raise Exception(gettext("Regex type ({re_type}) not yet implemented").format(re_type=re_type))
     else:
-        raise Exception(f"Invalid regex type ({re_type})")
+        raise Exception(gettext("Invalid regex type ({re_type})").format(re_type=re_type))

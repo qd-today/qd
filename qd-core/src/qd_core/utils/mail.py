@@ -1,5 +1,6 @@
 import smtplib
 from email.mime.text import MIMEText
+from gettext import gettext
 from urllib import parse as urllib_parse
 
 from tornado import httpclient
@@ -31,7 +32,7 @@ async def _send_mail_by_smtp(to, subject, text=None, subtype="html"):
     msg["From"] = get_settings().mail.mail_from
     msg["To"] = to
 
-    logger_mail.info("send mail to %s", to)
+    logger_mail.info(gettext("send mail to %s", to))
     tls_established = False
 
     # Create SMTP connection according to the configuration
@@ -41,7 +42,7 @@ async def _send_mail_by_smtp(to, subject, text=None, subtype="html"):
             s.starttls()
             tls_established = True
         except smtplib.SMTPException as e:
-            logger_mail.error("smtp starttls failed: %s", e, exc_info=get_settings().log.traceback_print)
+            logger_mail.error(gettext("smtp starttls failed: %s"), e, exc_info=get_settings().log.traceback_print)
     if not tls_established:
         if get_settings().mail.mail_ssl:
             s = smtplib.SMTP_SSL(get_settings().mail.mail_smtp, get_settings().mail.mail_port or 465)
@@ -54,7 +55,7 @@ async def _send_mail_by_smtp(to, subject, text=None, subtype="html"):
             s.login(get_settings().mail.mail_user, get_settings().mail.mail_password)
         s.sendmail(get_settings().mail.mail_from, to, msg.as_string())
     except smtplib.SMTPException as e:
-        logger_mail.error("smtp sendmail error: %s", e, exc_info=get_settings().log.traceback_print)
+        logger_mail.error(gettext("smtp sendmail error: %s"), e, exc_info=get_settings().log.traceback_print)
     finally:
         # If sending fails, still close the connection
         s.quit()
@@ -68,7 +69,9 @@ async def _send_mail_by_mailgun(to, subject, text=None, html=None, shark=False):
         client = httpclient.HTTPClient()
 
     body = {
-        "from": to_bytes(f"QD提醒 <noreply@{get_settings().mail.mailgun_domain}>"),
+        "from": to_bytes(
+            gettext("QD提醒 <noreply@{mailgun_domain}>").format(mailgun_domain=get_settings().mail.mailgun_domain)
+        ),
         "to": to_bytes(to),
         "subject": to_bytes(subject),
     }
@@ -78,7 +81,7 @@ async def _send_mail_by_mailgun(to, subject, text=None, html=None, shark=False):
     elif html:
         body["html"] = to_bytes(html)
     else:
-        raise Exception("need text or html")
+        raise Exception(gettext("need text or html"))
 
     req = httpclient.HTTPRequest(
         method="POST",

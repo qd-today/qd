@@ -1,5 +1,6 @@
 import ipaddress
 import re
+from gettext import gettext
 
 from jinja2 import Undefined
 
@@ -55,6 +56,6 @@ def mandatory(value, msg=None):
 
         if msg is not None:
             raise Exception(to_native(msg))
-        raise Exception(f"Mandatory variable {name} not defined.")
+        raise Exception(gettext("Mandatory variable {name} not defined.").format(name=name))
 
     return value

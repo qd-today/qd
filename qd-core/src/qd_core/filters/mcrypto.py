@@ -12,6 +12,7 @@ import string
 import sys
 from binascii import a2b_hex, b2a_hex
 from collections import namedtuple
+from gettext import gettext
 from typing import Union
 
 import umsgpack  # type: ignore
@@ -251,12 +252,17 @@ class PasslibHash(BaseHash):
         super().__init__(algorithm)
 
         if not PASSLIB_AVAILABLE:
-            raise Exception(f"passlib must be installed and usable to hash with '{algorithm}'", orig_exc=PASSLIB_E)
+            raise Exception(
+                gettext("passlib must be installed and usable to hash with '{algorithm}'").format(algorithm=algorithm),
+                orig_exc=PASSLIB_E,
+            )
 
         try:
             self.crypt_algo = getattr(passlib.hash, algorithm)
         except Exception as e:
-            raise Exception(f"passlib does not support '{algorithm}' algorithm") from e
+            raise Exception(
+                gettext("passlib does not support '{algorithm}' algorithm").format(algorithm=algorithm)
+            ) from e
 
     def hash(self, secret, salt=None, salt_size=None, rounds=None, ident=None):
         salt = self._clean_salt(salt)
@@ -321,13 +327,17 @@ class PasslibHash(BaseHash):
         elif hasattr(self.crypt_algo, "encrypt"):
             result = self.crypt_algo.encrypt(secret, **settings)
         else:
-            raise Exception(f"installed passlib version {passlib.__version__} not supported")
+            raise Exception(
+                gettext("installed passlib version {passlib_version} not supported").format(
+                    passlib_version=passlib.__version__
+                )
+            )
 
         # passlib.hash should always return something or raise an exception.
         # Still ensure that there is always a result.
         # Otherwise an empty password might be assumed by some modules, like the user module.
         if not result:
-            raise Exception(f"failed to hash with algorithm '{self.algorithm}'")
+            raise Exception(gettext("failed to hash with algorithm '{algorithm}'").format(algorithm=self.algorithm))
 
         # Hashes from passlib.hash should be represented as ascii strings of hex
         # digits so this should not traceback.  If it's not representable as such
@@ -341,7 +351,7 @@ def passlib_or_crypt(secret, algorithm, salt=None, salt_size=None, rounds=None, 
         return PasslibHash(algorithm).hash(secret, salt=salt, salt_size=salt_size, rounds=rounds, ident=ident)
     if HAS_CRYPT:
         return CryptHash(algorithm).hash(secret, salt=salt, salt_size=salt_size, rounds=rounds, ident=ident)
-    raise Exception("Unable to encrypt nor hash, either crypt or passlib must be installed.", orig_exc=CRYPT_E)
+    raise Exception(gettext("Unable to encrypt nor hash, either crypt or passlib must be installed."), orig_exc=CRYPT_E)
 
 
 def get_encrypted_password(password, hashtype="sha512", salt=None, salt_size=None, rounds=None, ident=None):
@@ -381,7 +391,7 @@ def switch_mode(mode):
     elif mode == "EAX":
         return AES.MODE_EAX
     else:
-        raise Exception(f"Invalid AES mode: {mode}")
+        raise Exception(gettext("Invalid AES mode: {mode}").format(mode=mode))
 
 
 def _aes_encrypt(
@@ -395,7 +405,7 @@ def _aes_encrypt(
     no_packb=True,
 ):
     if key is None:
-        raise Exception("key is required")
+        raise Exception(gettext("key is required"))
     if isinstance(iv, str):
         iv = iv.encode("utf-8")
     mode = switch_mode(mode)

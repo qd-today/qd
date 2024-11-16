@@ -3,6 +3,7 @@ import inspect
 import logging
 import threading
 from functools import wraps
+from gettext import gettext
 from typing import Any, Optional
 
 import umsgpack  # type: ignore
@@ -88,7 +89,7 @@ class FunctionCache:
         elif self.cache_type == "TLRU":
             return TLRUCache(maxsize=self.maxsize, ttu=self.ttu)
         else:
-            raise ValueError("Unsupported cache type")
+            raise ValueError(gettext("Unsupported cache type"))
 
     def build_key(self, args, kwargs):
         """构建缓存键"""
@@ -110,7 +111,7 @@ class FunctionCache:
         """获取或创建缓存"""
         return self._cache
 
-    @log_and_raise_error(logger_decorator, "Caching Function Result Error: %s", log_level=logging.WARNING)
+    @log_and_raise_error(logger_decorator, gettext("Caching Function Result Error: %s"), log_level=logging.WARNING)
     def _wrapper(self, fn, *args, **kwargs):
         # 检查 kwargs 中是否有 sql_session
         if "sql_session" in kwargs and kwargs["sql_session"] is not None:
@@ -163,7 +164,7 @@ class MethodCache(FunctionCache):
             return self_instance._cache
         return super().get_or_create_cache(self_instance)  # 使用 super() 调用基类方法
 
-    @log_and_raise_error(logger_decorator, "Caching Class Method Result Error: %s", log_level=logging.WARNING)
+    @log_and_raise_error(logger_decorator, gettext("Caching Class Method Result Error: %s"), log_level=logging.WARNING)
     def _wrapper(self, fn, *args, **kwargs):
         # 检查 kwargs 中是否有 sql_session
         if "sql_session" in kwargs and kwargs["sql_session"] is not None:

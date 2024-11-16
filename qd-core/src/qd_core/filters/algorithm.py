@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import uuid
+from gettext import gettext
 from hashlib import sha1
 from typing import Callable, Union
 
@@ -29,7 +30,7 @@ def secure_hash_s(value: Union[str, bytes], hash_func: Callable = sha1) -> str:
 
 def md5string(value):
     if _md5 is None:
-        raise ValueError("MD5 not available. Possibly running in FIPS mode")
+        raise ValueError(gettext("MD5 not available. Possibly running in FIPS mode"))
     return secure_hash_s(value, _md5)
 
 

@@ -4,6 +4,7 @@ import ipaddress
 import socket
 import struct
 import sys
+from gettext import gettext
 from typing import Union
 
 _COMPOSED_ERROR_HANDLERS = frozenset((None, "surrogate_or_replace", "surrogate_or_strict", "surrogate_then_replace"))
@@ -129,9 +130,11 @@ def to_bytes(obj, encoding="utf-8", errors=None, nonstring="simplerepr"):
         # python2.4 doesn't have b''
         return to_bytes("")
     elif nonstring == "strict":
-        raise TypeError("obj must be a string type")
+        raise TypeError(gettext("obj must be a string type"))
     else:
-        raise TypeError(f"Invalid value {nonstring} for to_bytes' nonstring parameter")
+        raise TypeError(
+            gettext("Invalid value {nonstring} for to_bytes' nonstring parameter").format(nonstring=nonstring)
+        )
 
     return to_bytes(value, encoding, errors)
 
@@ -220,9 +223,9 @@ def to_text(obj, encoding="utf-8", errors=None, nonstring="simplerepr"):
     elif nonstring == "empty":
         return ""
     elif nonstring == "strict":
-        raise TypeError("obj must be a string type")
+        raise TypeError(gettext("obj must be a string type"))
     else:
-        raise TypeError(f"Invalid value {nonstring} for to_text's nonstring parameter")
+        raise TypeError(gettext("Invalid value {nonstring} for to_text's nonstring parameter").format(nonstring))
 
     return to_text(value, encoding, errors)
 
@@ -276,7 +279,7 @@ def ip2varbinary(addr: str, version: int):
         return socket.inet_aton(addr)
     if version == 6:
         return socket.inet_pton(socket.AF_INET6, addr)
-    raise ValueError(f"invalid ip version: {version}")
+    raise ValueError(gettext("invalid ip version: {version}").format(version=version))
 
 
 def int2ip(addr):
@@ -295,4 +298,4 @@ def varbinary2ip(addr: Union[bytes, int, str]):
         return socket.inet_ntop(socket.AF_INET, addr)
     if len(addr) == 16:
         return socket.inet_ntop(socket.AF_INET6, addr)
-    raise ValueError(f"invalid ip address: {addr!r}")
+    raise ValueError(gettext("invalid ip address: {addr}").format(addr=addr))

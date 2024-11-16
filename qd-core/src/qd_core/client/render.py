@@ -1,3 +1,4 @@
+from gettext import gettext
 from typing import Optional
 
 from jinja2.sandbox import SandboxedEnvironment as Environment
@@ -24,7 +25,9 @@ class Renderer:
             value = self.jinja_env.from_string(value).render(_cookies=_cookies, **env.variables)
             return value
         except Exception as e:
-            log_error = f"The error occurred when rendering template {key}: {value} \\r\\n {repr(e)}"
+            log_error = gettext("The error occurred when rendering template {key}: {value} \\r\\n {str_e}").format(
+                key=key, value=value, str_e=repr(e)
+            )
             raise httpclient.HTTPError(500, log_error)
 
     def render(self, request: Request, env: Env) -> Request:

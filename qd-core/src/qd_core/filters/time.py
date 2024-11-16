@@ -1,5 +1,6 @@
 import datetime
 import time
+from gettext import gettext
 
 
 def timestamp(type="int"):
@@ -33,7 +34,7 @@ def strftime(string_format, second=None):
         try:
             second = float(second)
         except Exception as e:
-            raise Exception(f"Invalid value for epoch value ({second})") from e
+            raise Exception(gettext("Invalid value for epoch value ({second})").format(second=second)) from e
     return time.strftime(string_format, time.localtime(second))
 
 
@@ -59,11 +60,11 @@ def format_date(date, gmt_offset=time.timezone / 60, relative=True, shorter=Fals
     local_yesterday = local_now - datetime.timedelta(hours=24)
     local_tomorrow = local_now + datetime.timedelta(hours=24)
     if date > now:
-        later = "后"
-        date, now = now, date
+        later = gettext("后")
+        difference = date - now
     else:
-        later = "前"
-    difference = now - date
+        later = gettext("前")
+        difference = now - date
     seconds = difference.seconds
     days = difference.days
 
@@ -71,25 +72,28 @@ def format_date(date, gmt_offset=time.timezone / 60, relative=True, shorter=Fals
     if not full_format:
         if relative and days == 0:
             if seconds < 50:
-                return f"{seconds} 秒" + later
+                return gettext("{seconds} 秒").format(seconds=seconds) + later
 
             if seconds < 50 * 60:
                 minutes = round(seconds / 60.0)
-                return f"{minutes} 分钟" + later
+                return gettext("{minutes} 分钟").format(minutes=minutes) + later
 
             hours = round(seconds / (60.0 * 60))
-            return f"{hours} 小时" + later
+            return gettext("{hours} 小时").format(hours=hours) + later
 
         if days == 0:
             format = "%(time)s"
-        elif days == 1 and local_date.day == local_yesterday.day and relative and later == "前":
-            format = "昨天" if shorter else "昨天 %(time)s"
-        elif days == 1 and local_date.day == local_tomorrow.day and relative and later == "后":
-            format = "明天" if shorter else "明天 %(time)s"
-        # elif days < 5:
-        # format = "%(weekday)s" if shorter else "%(weekday)s %(time)s"
-        elif days < 334:  # 11mo, since confusing for same month last year
-            format = "%(month_name)s-%(day)s" if shorter else "%(month_name)s-%(day)s %(time)s"
+        else:
+            if days == 1 and local_date.day == local_yesterday.day and relative and date <= now:
+                format = gettext("昨天")
+            elif days == 1 and local_date.day == local_tomorrow.day and relative and date > now:
+                format = gettext("明天")
+            # elif days < 5:
+            # format = "%(weekday)s" if shorter else "%(weekday)s %(time)s"
+            elif days < 334:  # 11mo, since confusing for same month last year
+                format = "%(month_name)s-%(day)s"
+            if format and shorter:
+                format += " %(time)s"
 
     if format is None:
         format = "%(year)s-%(month_name)s-%(day)s" if shorter else "%(year)s-%(month_name)s-%(day)s %(time)s"

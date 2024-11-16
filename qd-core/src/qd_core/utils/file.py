@@ -1,5 +1,6 @@
 import json
 import os
+from gettext import gettext
 from typing import Dict, Optional
 
 import toml
@@ -44,6 +45,8 @@ class FileSystem:
             with open(file_path) as file:
                 input_data = yaml.safe_load(file)
         else:
-            raise ValueError(f"Unsupported configuration file format: {file_extension}")
+            raise ValueError(
+                gettext("Unsupported configuration file format: {file_extension}").format(file_extension=file_extension)
+            )
 
         return input_data

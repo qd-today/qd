@@ -5,7 +5,9 @@ description = "A web framework for HTTP timed task automation."
 authors = [{ name = "a76yyyy", email = "a76yyyy@gmail.com" }]
 readme = "README.md"
 requires-python = ">= 3.10, <= 3.12"
-dependencies = []
+dependencies = [
+    "babel>=2.16.0",
+]
 
 
 [dependency-groups]

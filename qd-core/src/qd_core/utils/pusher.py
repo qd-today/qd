@@ -4,6 +4,7 @@
 
 import json
 import os
+from gettext import gettext
 from typing import Optional
 
 import aiohttp
@@ -18,13 +19,13 @@ logger_pusher = Log("QD.Core.Utils").getlogger()
 
 
 def error_message_format(provider: str) -> str:
-    return f"Push Message to {provider} error: %s"
+    return gettext("Push Message to {provider} error: %s").format(provider=provider)
 
 
 class Pusher:
     async def judge_res(self, res: aiohttp.ClientResponse):
         if res.status == 200:
-            return "Push Message Success"
+            return gettext("Push Message Success")
 
         text = await res.text()
         if text:
@@ -37,8 +38,8 @@ class Pusher:
                 raise Exception(_json)
             raise Exception(text)
         if res.reason:
-            raise Exception(f"Reason: {res.reason}")
-        raise Exception(f"status code: {res.status}")
+            raise Exception(gettext("Reason: {res_reason}").format(res_reason=res.reason))
+        raise Exception(gettext("status code: {res_status}").format(res_status=res.status))
 
     @log_and_raise_error(logger_pusher, error_message_format("Bark"))
     async def send2bark(self, barklink, title, content):
@@ -64,7 +65,7 @@ class Pusher:
                     link, json=d, verify_ssl=False, timeout=get_settings().client_request.request_timeout
                 ) as res:
                     return await self.judge_res(res)
-        raise Exception("skey is empty")
+        raise Exception(gettext("skey is empty"))
 
     @log_and_raise_error(logger_pusher, error_message_format("Telegram"))
     async def send2tg(self, tg_token, title, content):
@@ -115,7 +116,7 @@ class Pusher:
                 + "\n"
                 + '------<a href="'
                 + picurl
-                + '">QD提醒</a>------',
+                + gettext('">QD提醒</a>------'),
                 "disable_web_page_preview": "true",
                 "parse_mode": "HTML",
             }
@@ -129,7 +130,7 @@ class Pusher:
                     timeout=get_settings().client_request.request_timeout,
                 ) as res:
                     return await self.judge_res(res)
-        raise Exception("TG_TOKEN or TG_USERID is empty")
+        raise Exception(gettext("TG_TOKEN or TG_USERID is empty"))
 
     @log_and_raise_error(logger_pusher, error_message_format("DingDing"))
     async def send2dingding(self, dingding_token, title, content):
@@ -154,7 +155,7 @@ class Pusher:
                     if _json.get("errcode", "") != 0:
                         raise Exception(_json)
                     return r
-        raise Exception("DINGDING_TOKEN  is empty")
+        raise Exception(gettext("DINGDING_TOKEN  is empty"))
 
     @log_and_raise_error(logger_pusher, error_message_format("WxPusher"))
     async def send2wxpusher(self, wxpusher, content):
@@ -174,7 +175,7 @@ class Pusher:
                     if not _json.get("success", True):
                         raise Exception(_json)
                     return r
-        raise Exception("wxpusher_token or wxpusher_uid is empty")
+        raise Exception(gettext("wxpusher_token or wxpusher_uid is empty"))
 
     @log_and_raise_error(logger_pusher, error_message_format("DIY"))
     async def cus_pusher_send(self, diypusher, t, log):
@@ -228,7 +229,7 @@ class Pusher:
                     curltmp, verify_ssl=False, timeout=get_settings().client_request.request_timeout
                 ) as res:
                     return await self.judge_res(res)
-        raise Exception("模式未选择")
+        raise Exception(gettext("模式未选择"))
 
     # 获取Access_Token
     async def get_access_token(self, qywx: dict):
@@ -281,7 +282,7 @@ class Pusher:
             qywx["图片"] = tmp[3] if len(tmp) >= 4 else ""
             qywx["代理"] = tmp[4] if len(tmp) >= 5 else "https://qyapi.weixin.qq.com/"
         else:
-            raise Exception("企业微信Pusher获取AccessToken失败或参数不完整!")
+            raise Exception(gettext("企业微信Pusher获取AccessToken失败或参数不完整!"))
 
         if qywx["代理"][-1] != "/":
             qywx["代理"] = qywx["代理"] + "/"
@@ -311,7 +312,7 @@ class Pusher:
                             "title": title,
                             "digest": log.replace("\\r\\n", "\n"),
                             "content": log.replace("\\r\\n", "<br>"),
-                            "author": "QD框架",
+                            "author": gettext("QD框架"),
                             "content_source_url": domain,
                             "thumb_media_id": media_id,
                         }
@@ -331,7 +332,7 @@ class Pusher:
                     if _json.get("errmsg", "") != "ok" and _json.get("errcode", 0) != 0:
                         raise Exception(_json["errmsg"])
                     return r
-        raise Exception("企业微信Pusher获取AccessToken失败或参数不完整! ")
+        raise Exception(gettext("企业微信Pusher获取AccessToken失败或参数不完整!"))
 
     @log_and_raise_error(logger_pusher, error_message_format("QYWX_WebHook"))
     async def qywx_webhook_send(self, qywx_webhook, title: str, log: str):
@@ -340,7 +341,7 @@ class Pusher:
         if len(tmp) >= 1:
             qywx["Webhook"] = tmp[0]
         else:
-            raise Exception("企业微信WebHook获取AccessToken失败或参数不完整!")
+            raise Exception(gettext("企业微信WebHook获取AccessToken失败或参数不完整!"))
 
         log = log.replace("\\r\\n", "\n")
 
@@ -359,7 +360,7 @@ class Pusher:
     @log_and_raise_error(logger_pusher, error_message_format("Mail"))
     async def mail_send(self, email, title, content: str, domain: Optional[str] = None, check_domain=True):
         if check_domain and not domain:
-            r = "请配置框架域名 domain, 以启用邮箱推送功能!"
+            r = gettext("请配置框架域名 domain, 以启用邮箱推送功能!")
             logger_pusher.error("Send mail error: %s", r)
             return Exception(r)
 
@@ -367,4 +368,4 @@ class Pusher:
         if domain:
             title = f"{title} - {domain}"
         await send_mail(to=email, subject=title, text=content, shark=True)
-        return "Send Mail Success"
+        return gettext("Send Mail Success")

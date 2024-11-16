@@ -1,3 +1,4 @@
+from gettext import gettext
 from typing import Any, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field, InstanceOf
@@ -49,7 +50,7 @@ class Rule(BaseModel):
 
 
 class Env(BaseModel):
-    variables: dict[str, Any] = Field(description="用户设置 Task 变量")
+    variables: dict[str, Any] = Field(description=gettext("用户设置 Task 变量"))
     session: Union[List, InstanceOf[cookie_utils.CookieSession]]
 
 

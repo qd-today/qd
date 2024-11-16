@@ -20,6 +20,7 @@ import signal
 import sys
 import threading
 import types
+from gettext import gettext
 from opcode import opmap, opname
 from types import CodeType
 
@@ -335,7 +336,7 @@ def timeout(sec, raise_sec=1):
                     try:
                         res = func(*args, **kwargs)
                     except FuncTimeoutError:
-                        _logger.debug("Function %s timed out after %s seconds", func.__name__, sec)
+                        _logger.debug(gettext("Function %s timed out after %s seconds"), func.__name__, sec)
                     except Exception as e:
                         exception.append(e)
                     else:
@@ -416,7 +417,7 @@ def assert_no_dunder_name(code_obj, expr):
     """
     for name in code_obj.co_names:
         if "__" in name or name in _UNSAFE_ATTRIBUTES:
-            raise NameError(f"Access to forbidden name {name!r} ({expr!r})")
+            raise NameError(gettext("Access to forbidden name {name} ({expr})").format(name=name, expr=expr))
 
 
 def assert_valid_codeobj(allowed_codes, code_obj, expr):
@@ -442,7 +443,9 @@ def assert_valid_codeobj(allowed_codes, code_obj, expr):
     code_codes = {i.opcode for i in dis.get_instructions(code_obj)}
     if not allowed_codes >= code_codes:
         raise ValueError(
-            f"forbidden opcode(s) in {expr!r}: {', '.join(opname[x] for x in (code_codes - allowed_codes))}"
+            gettext("forbidden opcode(s) in {expr}: {opcodes}").format(
+                expr=expr, opcodes=", ".join(opname[x] for x in (code_codes - allowed_codes))
+            )
         )
 
     for const in code_obj.co_consts:
@@ -468,7 +471,7 @@ def test_expr(expr, allowed_codes, mode="eval", filename=None):
     except (SyntaxError, TypeError, ValueError):
         raise
     except Exception as e:
-        raise ValueError(f'"{e}" while compiling\n{expr!r}') from e
+        raise ValueError(gettext('"{e}" while compiling\n{expr}').format(e=e, expr=repr(expr))) from e
     assert_valid_codeobj(allowed_codes, code_obj, expr)
     return code_obj
 
@@ -592,8 +595,10 @@ def safe_eval(
             locals_dict is not None and not isinstance(locals_dict, dict)
         ):
             _logger.warning(
-                "Looks like you are trying to pass a dynamic environment, "
-                "you should probably pass nocopy=True to safe_eval()."
+                gettext(
+                    "Looks like you are trying to pass a dynamic environment, "
+                    "you should probably pass nocopy=True to safe_eval()."
+                )
             )
         if globals_dict is not None:
             globals_dict = dict(globals_dict)
@@ -632,7 +637,12 @@ def test_python_expr(expr, mode="eval"):
                 "offset": err.args[1][2],
                 "error_line": err.args[1][3],
             }
-            msg = f"{type(err).__name__} : {error['message']} at line {error['lineno']}\n{error['error_line']}"
+            msg = gettext("{err_type_name} : {err_msg} at line {err_lineno}\n{err_line}").format(
+                err_type_name=type(err).__name__,
+                err_msg=error["message"],
+                err_lineno=error["lineno"],
+                err_line=error["error_line"],
+            )
         else:
             msg = err
         return msg
@@ -644,13 +654,15 @@ def check_values(d):
         return d
     for v in d.values():
         if isinstance(v, types.ModuleType):
-            raise TypeError(f"""Module {v} can not be used in evaluation contexts
+            raise TypeError(
+                gettext("""Module {v} can not be used in evaluation contexts
 Prefer providing only the items necessary for your intended use.
 If a "module" is necessary for backwards compatibility, use
 `odoo.tools.safe_eval.wrap_module` to generate a wrapper recursively
 whitelisting allowed attributes.
 Pre-wrapped modules are provided as attributes of `odoo.tools.safe_eval`.
-""")
+""").format(v=v)
+            )
     return d
 
 
