@@ -1,22 +1,22 @@
-# English (United States) translations for qd-core.
-# Copyright (C) 2024 ORGANIZATION
-# This file is distributed under the same license as the qd-core project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: qd-core 0.0.1\n"
+"Project-Id-Version: qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-11-16 19:41+0800\n"
-"PO-Revision-Date: 2024-11-16 19:46+0800\n"
+"PO-Revision-Date: 2024-11-16 15:47\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
-"Language: en_US\n"
-"Language-Team: en_US <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language-Team: English\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Crowdin-Project: qd-today\n"
+"X-Crowdin-Project-ID: 737675\n"
+"X-Crowdin-Language: en\n"
+"X-Crowdin-File: /core/qd-core/locale/qd_core.po\n"
+"X-Crowdin-File-ID: 10\n"
+"Language: en_US\n"
 
 #: qd-core/src/qd_core/config.py:64
 msgid "是否启用 QD 框架 Debug"
@@ -55,9 +55,7 @@ msgid "unsafe_eval 执行最大时间限制（秒）"
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:117
-msgid ""
-"delay_max_timeout must be less than both "
-"request_timeout={request_timeout} and connect_timeout={connect_timeout}."
+msgid "delay_max_timeout must be less than both request_timeout={request_timeout} and connect_timeout={connect_timeout}."
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:129
@@ -81,27 +79,19 @@ msgid "通过 Curl 使用指定的 DNS 进行解析，仅在 Pycurl 环境下支
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:152
-msgid ""
-"是否允许使用 Curl 进行 Encoding 操作。当遇到 'Error 61 Unrecognized transfer encoding.'"
-" 错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Encoding 并尝试重试"
+msgid "是否允许使用 Curl 进行 Encoding 操作。当遇到 'Error 61 Unrecognized transfer encoding.' 错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Encoding 并尝试重试"
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:161
-msgid ""
-"是否允许 Curl 使用 Headers 中自定义的 Content-Length 请求。当遇到 'HTTP 400 Bad Request' "
-"错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Length 并尝试重试"
+msgid "是否允许 Curl 使用 Headers 中自定义的 Content-Length 请求。当遇到 'HTTP 400 Bad Request' 错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Length 并尝试重试"
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:195
-msgid ""
-"当满足启用 PyCurl、HTTP Error Code 不在这个列表中、任务代理为空，并且 `ALLOW_RETRY=True` "
-"时，本次请求将禁用 Pycurl 并尝试重试"
+msgid "当满足启用 PyCurl、HTTP Error Code 不在这个列表中、任务代理为空，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Pycurl 并尝试重试"
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:203
-msgid ""
-"启用后，在满足启用 PyCurl、返回 Response 为空、任务代理为空，并且 `ALLOW_RETRY=True` 的情况下，本次请求将禁用"
-" Pycurl 并尝试重试"
+msgid "启用后，在满足启用 PyCurl、返回 Response 为空、任务代理为空，并且 `ALLOW_RETRY=True` 的情况下，本次请求将禁用 Pycurl 并尝试重试"
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:217
@@ -109,30 +99,22 @@ msgid "全局代理域名列表，默认为空，表示不启用全局代理。�
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:224
-msgid ""
-"直连地址的匹配模式，默认为 'regexp'（正则表达式匹配）以过滤本地请求，可选输入：\n"
+msgid "直连地址的匹配模式，默认为 'regexp'（正则表达式匹配）以过滤本地请求，可选输入：\n"
 "- 'regexp': 正则表达式匹配模式；\n"
 "- 'url': 网址完全匹配模式；\n"
 "- None : 不启用全局代理黑名单"
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:232
-msgid ""
-"根据 `proxy_direct_mode` 的值，此字段可以是满足直连规则的正则表达式字符串（当 "
-"`proxy_direct_mode='regexp'`）或不通过代理请求的 URL 列表（当 "
-"`proxy_direct_mode='url'`）。默认不启用直连规则"
+msgid "根据 `proxy_direct_mode` 的值，此字段可以是满足直连规则的正则表达式字符串（当 `proxy_direct_mode='regexp'`）或不通过代理请求的 URL 列表（当 `proxy_direct_mode='url'`）。默认不启用直连规则"
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:255
-msgid ""
-"When proxy_direct_mode is 'regexp', proxy_direct should be a string or a "
-"list of strings."
+msgid "When proxy_direct_mode is 'regexp', proxy_direct should be a string or a list of strings."
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:263
-msgid ""
-"When proxy_direct_mode is 'url', proxy_direct should be a string or a "
-"list of URLs."
+msgid "When proxy_direct_mode is 'url', proxy_direct should be a string or a list of URLs."
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:273
@@ -225,9 +207,7 @@ msgstr ""
 
 #: qd-core/src/qd_core/client/fetcher.py:185
 #: qd-core/src/qd_core/client/fetcher.py:198
-msgid ""
-"Failed at {block_idx}/{tpl_length} while condition, \\r\\nError: {error},"
-" \\r\\nBlock condition: {condition}"
+msgid "Failed at {block_idx}/{tpl_length} while condition, \\r\\nError: {error}, \\r\\nBlock condition: {condition}"
 msgstr ""
 
 #: qd-core/src/qd_core/client/fetcher.py:216
@@ -236,36 +216,27 @@ msgid "while loop break, time: %ss"
 msgstr ""
 
 #: qd-core/src/qd_core/client/fetcher.py:222
-msgid ""
-"Failed at {block_idx}/{tpl_length} while end, \\r\\nError: while loop "
-"timeout, time: {elapsed_time}s \\r\\nBlock condition: {condition}"
+msgid "Failed at {block_idx}/{tpl_length} while end, \\r\\nError: while loop timeout, time: {elapsed_time}s \\r\\nBlock condition: {condition}"
 msgstr ""
 
 #: qd-core/src/qd_core/client/fetcher.py:246
 #: qd-core/src/qd_core/client/fetcher.py:259
-msgid ""
-"Failed at {block_idx}/{tpl_length} if condition, \\r\\nError: {error}, "
-"\\r\\nBlock condition: {condition}"
+msgid "Failed at {block_idx}/{tpl_length} if condition, \\r\\nError: {error}, \\r\\nBlock condition: {condition}"
 msgstr ""
 
 #: qd-core/src/qd_core/client/fetcher.py:289
 #, python-format
-msgid ""
-"Success at %d/%d request, \r\n"
+msgid "Success at %d/%d request, \r\n"
 "Request URL: %s, \r\n"
 "Result: %s"
 msgstr ""
 
 #: qd-core/src/qd_core/client/fetcher.py:299
-msgid ""
-"Failed at {block_idx}/{tpl_length} request, \\r\\nError: {error}, "
-"\\r\\nRequest URL: {request_url}"
+msgid "Failed at {block_idx}/{tpl_length} request, \\r\\nError: {error}, \\r\\nRequest URL: {request_url}"
 msgstr ""
 
 #: qd-core/src/qd_core/client/fetcher.py:312
-msgid ""
-"Failed at {block_idx}/{tpl_length} request, \\r\\n{result_msg}, "
-"\\r\\nRequest URL: {request_url}"
+msgid "Failed at {block_idx}/{tpl_length} request, \\r\\n{result_msg}, \\r\\nRequest URL: {request_url}"
 msgstr ""
 
 #: qd-core/src/qd_core/client/har.py:53 qd-core/src/qd_core/client/har.py:133
@@ -376,10 +347,8 @@ msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:28
 #, python-format
-msgid ""
-"Import DdddOCR module falied: \"%s\". \n"
-"Tips: This warning message is only for prompting, it will not affect "
-"running of QD framework."
+msgid "Import DdddOCR module falied: \"%s\". \n"
+"Tips: This warning message is only for prompting, it will not affect running of QD framework."
 msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:49
@@ -403,9 +372,7 @@ msgid "是否进行 html 反转义, 默认为 False, 启用该参数需对 conte
 msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:163
-msgid ""
-"要转码的 urlencoded 内容, 如果 content 为非 utf-8 编码的 urlencoded 字符串, 请再次进行 "
-"urlencode 编码后再传入"
+msgid "要转码的 urlencoded 内容, 如果 content 为非 utf-8 编码的 urlencoded 字符串, 请再次进行 urlencode 编码后再传入"
 msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:193
@@ -727,32 +694,26 @@ msgid "forbidden opcode(s) in {expr}: {opcodes}"
 msgstr ""
 
 #: qd-core/src/qd_core/utils/safe_eval.py:474
-msgid ""
-"\"{e}\" while compiling\n"
+msgid "\"{e}\" while compiling\n"
 "{expr}"
 msgstr ""
 
 #: qd-core/src/qd_core/utils/safe_eval.py:598
-msgid ""
-"Looks like you are trying to pass a dynamic environment, you should "
-"probably pass nocopy=True to safe_eval()."
+msgid "Looks like you are trying to pass a dynamic environment, you should probably pass nocopy=True to safe_eval()."
 msgstr ""
 
 #: qd-core/src/qd_core/utils/safe_eval.py:640
-msgid ""
-"{err_type_name} : {err_msg} at line {err_lineno}\n"
+msgid "{err_type_name} : {err_msg} at line {err_lineno}\n"
 "{err_line}"
 msgstr ""
 
 #: qd-core/src/qd_core/utils/safe_eval.py:658
-msgid ""
-"Module {v} can not be used in evaluation contexts\n"
+msgid "Module {v} can not be used in evaluation contexts\n"
 "Prefer providing only the items necessary for your intended use.\n"
 "If a \"module\" is necessary for backwards compatibility, use\n"
 "`odoo.tools.safe_eval.wrap_module` to generate a wrapper recursively\n"
 "whitelisting allowed attributes.\n"
-"Pre-wrapped modules are provided as attributes of `odoo.tools.safe_eval`."
-"\n"
+"Pre-wrapped modules are provided as attributes of `odoo.tools.safe_eval`.\n"
 msgstr ""
 
 #: qd-core/src/qd_core/utils/shell.py:32
