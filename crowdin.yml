@@ -1,0 +1,3 @@
+files:
+  - source: qd-core/locale/en_US/LC_MESSAGES/messages.po
+    translation: qd-core/locale/%locale%/LC_MESSAGES/messages.po
