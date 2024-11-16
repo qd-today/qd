@@ -1,0 +1,780 @@
+# Translations template for PROJECT.
+# Copyright (C) 2024 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: qd-core 0.0.1\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2024-11-16 19:41+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.16.0\n"
+
+#: qd-core/src/qd_core/config.py:64
+msgid "是否启用 QD 框架 Debug"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:65
+msgid "QD 框架日志等级"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:68
+msgid "是否启用在控制台日志中打印 Exception 的 TraceBack 信息"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:72
+msgid "是否在控制台输出导入警告信息"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:101
+msgid "允许用户单次请求下载的最大值，默认为 5MB"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:102
+msgid "HTTP Request 请求超时时间（秒）"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:103
+msgid "HTTP Request 连接超时时间（秒）"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:106
+msgid "延时API 最大时间限制（秒），请确保此值小于上述 timeout 配置，否则可能会导致 599 错误"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:109
+msgid "unsafe_eval 执行最大时间限制（秒）"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:117
+msgid ""
+"delay_max_timeout must be less than both "
+"request_timeout={request_timeout} and connect_timeout={connect_timeout}."
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:129
+msgid "任务运行中单个 While 循环最大运行时间, 单位为秒, 默认为15分钟"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:131
+msgid "任务运行中单个任务最大请求次数, 默认为 1500 次"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:138
+msgid "是否启用 Pycurl 模块，默认启用。当运行环境缺少 PyCurl 模块时，此设置无效"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:143
+msgid "在 Pycurl 环境下，若部分请求因某些错误导致失败时，是否自动修改冲突设置并重发请求"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:147
+msgid "通过 Curl 使用指定的 DNS 进行解析，仅在 Pycurl 环境下支持"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:152
+msgid ""
+"是否允许使用 Curl 进行 Encoding 操作。当遇到 'Error 61 Unrecognized transfer encoding.'"
+" 错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Encoding 并尝试重试"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:161
+msgid ""
+"是否允许 Curl 使用 Headers 中自定义的 Content-Length 请求。当遇到 'HTTP 400 Bad Request' "
+"错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Length 并尝试重试"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:195
+msgid ""
+"当满足启用 PyCurl、HTTP Error Code 不在这个列表中、任务代理为空，并且 `ALLOW_RETRY=True` "
+"时，本次请求将禁用 Pycurl 并尝试重试"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:203
+msgid ""
+"启用后，在满足启用 PyCurl、返回 Response 为空、任务代理为空，并且 `ALLOW_RETRY=True` 的情况下，本次请求将禁用"
+" Pycurl 并尝试重试"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:217
+msgid "全局代理域名列表，默认为空，表示不启用全局代理。代理格式应为 'scheme://username:password@host:port'"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:224
+msgid ""
+"直连地址的匹配模式，默认为 'regexp'（正则表达式匹配）以过滤本地请求，可选输入：\n"
+"- 'regexp': 正则表达式匹配模式；\n"
+"- 'url': 网址完全匹配模式；\n"
+"- None : 不启用全局代理黑名单"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:232
+msgid ""
+"根据 `proxy_direct_mode` 的值，此字段可以是满足直连规则的正则表达式字符串（当 "
+"`proxy_direct_mode='regexp'`）或不通过代理请求的 URL 列表（当 "
+"`proxy_direct_mode='url'`）。默认不启用直连规则"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:255
+msgid ""
+"When proxy_direct_mode is 'regexp', proxy_direct should be a string or a "
+"list of strings."
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:263
+msgid ""
+"When proxy_direct_mode is 'url', proxy_direct should be a string or a "
+"list of URLs."
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:273
+msgid "config 目录下自定义 ONNX 文件名列表（不含 '.onnx' 后缀）"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:279
+msgid "config 目录下自定义 ONNX 对应的自定义 `charsets.json` 文件名列表（不含 '.json' 后缀）"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:286
+msgid "邮箱 SMTP 服务器地址"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:287
+msgid "邮箱 SMTP 服务器端口"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:288
+msgid "是否使用 SSL 加密方式收发邮件"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:289
+msgid "是否使用 STARTTLS 加密方式收发邮件，默认不启用"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:290
+msgid "邮箱用户名"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:291
+msgid "邮箱密码"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:292
+msgid "发送时使用的邮箱，默认与 MAIL_USER 相同"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:294
+msgid "发送的邮件链接启用 HTTPS，默认为 False，若需要 HTTPS，请在外部设置反向代理"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:299
+msgid "Mailgun API Key，若不为空则优先使用 Mailgun 方式发送邮件"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:301
+msgid "Mailgun Domain，需要替换为实际的 Mailgun 域名"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:309
+msgid "推送图片 URL"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:314
+msgid "日志配置"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:317
+msgid "客户端请求配置"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:320
+msgid "任务配置"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:322
+msgid "pycurl 配置"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:324
+msgid "代理配置"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:326
+msgid "dddocr 配置"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:328
+msgid "邮件配置"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:330
+msgid "推送配置"
+msgstr ""
+
+#: qd-core/src/qd_core/client/fetcher.py:132
+msgid "for循环只支持可迭代类型及变量"
+msgstr ""
+
+#: qd-core/src/qd_core/client/fetcher.py:185
+#: qd-core/src/qd_core/client/fetcher.py:198
+msgid ""
+"Failed at {block_idx}/{tpl_length} while condition, \\r\\nError: {error},"
+" \\r\\nBlock condition: {condition}"
+msgstr ""
+
+#: qd-core/src/qd_core/client/fetcher.py:216
+#, python-format
+msgid "while loop break, time: %ss"
+msgstr ""
+
+#: qd-core/src/qd_core/client/fetcher.py:222
+msgid ""
+"Failed at {block_idx}/{tpl_length} while end, \\r\\nError: while loop "
+"timeout, time: {elapsed_time}s \\r\\nBlock condition: {condition}"
+msgstr ""
+
+#: qd-core/src/qd_core/client/fetcher.py:246
+#: qd-core/src/qd_core/client/fetcher.py:259
+msgid ""
+"Failed at {block_idx}/{tpl_length} if condition, \\r\\nError: {error}, "
+"\\r\\nBlock condition: {condition}"
+msgstr ""
+
+#: qd-core/src/qd_core/client/fetcher.py:289
+#, python-format
+msgid ""
+"Success at %d/%d request, \r\n"
+"Request URL: %s, \r\n"
+"Result: %s"
+msgstr ""
+
+#: qd-core/src/qd_core/client/fetcher.py:299
+msgid ""
+"Failed at {block_idx}/{tpl_length} request, \\r\\nError: {error}, "
+"\\r\\nRequest URL: {request_url}"
+msgstr ""
+
+#: qd-core/src/qd_core/client/fetcher.py:312
+msgid ""
+"Failed at {block_idx}/{tpl_length} request, \\r\\n{result_msg}, "
+"\\r\\nRequest URL: {request_url}"
+msgstr ""
+
+#: qd-core/src/qd_core/client/har.py:53 qd-core/src/qd_core/client/har.py:133
+#, python-format
+msgid "params encoding error: %s"
+msgstr ""
+
+#: qd-core/src/qd_core/client/render.py:28
+msgid "The error occurred when rendering template {key}: {value} \\r\\n {str_e}"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/algorithm.py:33
+msgid "MD5 not available. Possibly running in FIPS mode"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/convert.py:133
+#: qd-core/src/qd_core/filters/convert.py:226
+msgid "obj must be a string type"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/convert.py:136
+msgid "Invalid value {nonstring} for to_bytes' nonstring parameter"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/convert.py:228
+msgid "Invalid value {nonstring} for to_text's nonstring parameter"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/convert.py:282
+msgid "invalid ip version: {version}"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/convert.py:301
+msgid "invalid ip address: {addr}"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/judge.py:59
+msgid "Mandatory variable {name} not defined."
+msgstr ""
+
+#: qd-core/src/qd_core/filters/mcrypto.py:256
+msgid "passlib must be installed and usable to hash with '{algorithm}'"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/mcrypto.py:264
+msgid "passlib does not support '{algorithm}' algorithm"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/mcrypto.py:331
+msgid "installed passlib version {passlib_version} not supported"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/mcrypto.py:340
+msgid "failed to hash with algorithm '{algorithm}'"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/mcrypto.py:354
+msgid "Unable to encrypt nor hash, either crypt or passlib must be installed."
+msgstr ""
+
+#: qd-core/src/qd_core/filters/mcrypto.py:394
+msgid "Invalid AES mode: {mode}"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/mcrypto.py:408
+msgid "key is required"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/regex.py:81
+msgid "Regex type ({re_type}) not yet implemented"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/regex.py:83
+msgid "Invalid regex type ({re_type})"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/time.py:37
+msgid "Invalid value for epoch value ({second})"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/time.py:63
+msgid "后"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/time.py:66
+msgid "前"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/time.py:75
+msgid "{seconds} 秒"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/time.py:79
+msgid "{minutes} 分钟"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/time.py:82
+msgid "{hours} 小时"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/time.py:88
+msgid "昨天"
+msgstr ""
+
+#: qd-core/src/qd_core/filters/time.py:90
+msgid "明天"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:28
+#, python-format
+msgid ""
+"Import DdddOCR module falied: \"%s\". \n"
+"Tips: This warning message is only for prompting, it will not affect "
+"running of QD framework."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:49
+msgid "seconds:延时指定时间, 大于 {delay_max_timeout}s 均视为延时 {delay_max_timeout}s"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:59
+msgid "Error, seconds must be greater than 0.0, "
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:62
+msgid "Error, limited by delay_max_timeout, "
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:64
+msgid "delay {seconds} second."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:133
+msgid "是否进行 html 反转义, 默认为 False, 启用该参数需对 content 进行 urlencode 编码"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:163
+msgid ""
+"要转码的 urlencoded 内容, 如果 content 为非 utf-8 编码的 urlencoded 字符串, 请再次进行 "
+"urlencode 编码后再传入"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:193
+msgid "要转码的内容"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:210
+msgid "原始数据"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:211
+#: qd-core/src/qd_core/plugins/default.py:233
+msgid "正则表达式"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:234
+msgid "要替换的内容"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:235
+msgid "要替换的字符串"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:236
+msgid "返回类型, text 或 json, 默认为 json"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:257
+msgid "RSA私钥"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:258
+msgid "要加密或解密的数据"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:259
+msgid "encode为加密,decode为解密"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:260
+msgid "随机字节串,默认为None"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:262
+msgid "随机字节串的编码方式,默认为utf-8"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:289
+msgid "功能选择错误"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:291
+msgid "参数不完整，请确认"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:323
+#, python-format
+msgid "成功加载自定义Onnx模型: %s.onnx"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:343
+#, python-format
+msgid "slide_match error: %s"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:372
+#, python-format
+msgid "get_img_from_url error: %s"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:389
+#: qd-core/src/qd_core/plugins/default.py:437
+msgid "要识别的Base64图片内容"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:390
+#: qd-core/src/qd_core/plugins/default.py:438
+msgid "要识别的web图片Url地址"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:391
+msgid "是否采用旧模型, 默认为False"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:392
+msgid "自定义Onnx文件名, 默认为空"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:414
+msgid "要检测的Base64图片内容"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:415
+msgid "要检测的web图片Url地址"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:440
+msgid "小滑块图片是否包含过多背景, 默认为False"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/default.py:445
+msgid "imgtarget是否不为小滑块, True表示为带坑位原图, False表示为小滑块, 默认为False"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:41
+#, python-format
+msgid "Plugin '%s' is already installed."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:51
+#, python-format
+msgid "Plugin '%s' has been installed."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:55
+#, python-format
+msgid "Failed to install plugin '%s'. Return code: %d"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:60
+#, python-format
+msgid "Failed to install plugin '%s': %s"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:75
+#, python-format
+msgid "Plugin '%s' does not have a start method."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:77
+#, python-format
+msgid "Failed to start plugin '%s': %s"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:83
+#, python-format
+msgid "Plugin '%s' is already enabled."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:93
+#, python-format
+msgid "Plugin '%s' has been enabled."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:95
+#: qd-core/src/qd_core/plugins/manager.py:96
+#, python-format
+msgid "Failed to load plugin '%s'."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:101
+#, python-format
+msgid "Plugin '%s' is already disabled."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:104
+#, python-format
+msgid "Default plugin '%s' cannot be disabled."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:108
+#, python-format
+msgid "Plugin '%s' has been disabled."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:113
+#: qd-core/src/qd_core/plugins/manager.py:114
+#, python-format
+msgid "Default plugin '%s' cannot be uninstalled."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:122
+#, python-format
+msgid "Plugin '%s' is not installed."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:132
+#, python-format
+msgid "Plugin '%s' has been uninstalled."
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/manager.py:134
+#, python-format
+msgid "Failed to uninstall plugin '%s'. Return code: %d"
+msgstr ""
+
+#: qd-core/src/qd_core/schemas/har.py:53
+msgid "用户设置 Task 变量"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/decorator.py:92
+msgid "Unsupported cache type"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/decorator.py:114
+#, python-format
+msgid "Caching Function Result Error: %s"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/decorator.py:167
+#, python-format
+msgid "Caching Class Method Result Error: %s"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/file.py:49
+msgid "Unsupported configuration file format: {file_extension}"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/mail.py:35
+#, python-format
+msgid "send mail to %s"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/mail.py:45
+#, python-format
+msgid "smtp starttls failed: %s"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/mail.py:58
+#, python-format
+msgid "smtp sendmail error: %s"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/mail.py:73
+msgid "QD提醒 <noreply@{mailgun_domain}>"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/mail.py:84
+msgid "need text or html"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/next_time.py:26
+msgid "tz1 必须小于等于 tz2"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/next_time.py:42
+#: qd-core/src/qd_core/utils/next_time.py:54
+#, python-format
+msgid "Calculate Next Timestamp error: %s"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/next_time.py:73
+msgid "Unsupported environment class for timestamp calculation"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:22
+#, python-format
+msgid "Push Message to {provider} error: %s"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:28
+msgid "Push Message Success"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:41
+msgid "Reason: {res_reason}"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:42
+msgid "status code: {res_status}"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:68
+msgid "skey is empty"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:119
+msgid "\">QD提醒</a>------"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:133
+msgid "TG_TOKEN or TG_USERID is empty"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:158
+msgid "DINGDING_TOKEN  is empty"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:178
+msgid "wxpusher_token or wxpusher_uid is empty"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:232
+msgid "模式未选择"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:285
+#: qd-core/src/qd_core/utils/pusher.py:335
+msgid "企业微信Pusher获取AccessToken失败或参数不完整!"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:315
+msgid "QD框架"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:344
+msgid "企业微信WebHook获取AccessToken失败或参数不完整!"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:363
+msgid "请配置框架域名 domain, 以启用邮箱推送功能!"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/pusher.py:371
+msgid "Send Mail Success"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/safe_eval.py:339
+#, python-format
+msgid "Function %s timed out after %s seconds"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/safe_eval.py:420
+msgid "Access to forbidden name {name} ({expr})"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/safe_eval.py:446
+msgid "forbidden opcode(s) in {expr}: {opcodes}"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/safe_eval.py:474
+msgid ""
+"\"{e}\" while compiling\n"
+"{expr}"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/safe_eval.py:598
+msgid ""
+"Looks like you are trying to pass a dynamic environment, you should "
+"probably pass nocopy=True to safe_eval()."
+msgstr ""
+
+#: qd-core/src/qd_core/utils/safe_eval.py:640
+msgid ""
+"{err_type_name} : {err_msg} at line {err_lineno}\n"
+"{err_line}"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/safe_eval.py:658
+msgid ""
+"Module {v} can not be used in evaluation contexts\n"
+"Prefer providing only the items necessary for your intended use.\n"
+"If a \"module\" is necessary for backwards compatibility, use\n"
+"`odoo.tools.safe_eval.wrap_module` to generate a wrapper recursively\n"
+"whitelisting allowed attributes.\n"
+"Pre-wrapped modules are provided as attributes of `odoo.tools.safe_eval`."
+"\n"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/shell.py:32
+msgid "An error occurred during command execution: {e}"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/shell.py:43 qd-core/src/qd_core/utils/shell.py:44
+msgid "命令必须以列表形式提供。"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/shell.py:50 qd-core/src/qd_core/utils/shell.py:51
+msgid "环境变量必须以字典形式提供。"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/shell.py:52
+msgid "设置环境变量: {envs}"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/shell.py:59
+msgid "执行命令时发生OS错误: {e}"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/shell.py:62
+msgid "无效的命令或环境变量设置: {e}"
+msgstr ""
+
