@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-11-16 19:41+0800\n"
-"PO-Revision-Date: 2024-11-16 15:47\n"
+"PO-Revision-Date: 2024-11-17 12:53\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
 "Language-Team: English\n"
 "MIME-Version: 1.0\n"
@@ -36,19 +36,19 @@ msgstr ""
 
 #: qd-core/src/qd_core/config.py:101
 msgid "允许用户单次请求下载的最大值，默认为 5MB"
-msgstr ""
+msgstr "Maximum download size allowed for a single user request, default is 5MB"
 
 #: qd-core/src/qd_core/config.py:102
 msgid "HTTP Request 请求超时时间（秒）"
-msgstr ""
+msgstr "HTTP Request Timeout (seconds)"
 
 #: qd-core/src/qd_core/config.py:103
 msgid "HTTP Request 连接超时时间（秒）"
-msgstr ""
+msgstr "HTTP Request Connection Timeout (seconds)"
 
 #: qd-core/src/qd_core/config.py:106
 msgid "延时API 最大时间限制（秒），请确保此值小于上述 timeout 配置，否则可能会导致 599 错误"
-msgstr ""
+msgstr "Delay API Maximum time limit (seconds), make sure this value is less than the timeout configuration above, otherwise it may result in a 599 error"
 
 #: qd-core/src/qd_core/config.py:109
 msgid "unsafe_eval 执行最大时间限制（秒）"
