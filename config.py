@@ -144,10 +144,10 @@ class websocket:
 
 
 # 订阅加速方式或地址, 用于加速公共模板更新, 仅适用于 GitHub.
-# 可选 jsdelivr_cdn/jsdelivr_fastly/ghproxy/fastgit/自定义地址, 默认为: jsdelivr_cdn.
-# 自定义地址示例为: https://ghproxy.com/https://raw.githubusercontent.com/ 或 https://raw.fastgit.org/
+# 可选 jsdelivr_cdn/jsdelivr_fastly/ghproxy/fastgit/自定义地址, 默认为: ghproxy
+# 自定义地址示例为: https://ghp.ci/https://raw.githubusercontent.com/ 或 https://raw.fastgit.org/
 # 以直接替换 https://raw.githubusercontent.com/ 源文件地址.
-subscribe_accelerate_url = os.getenv('SUBSCRIBE_ACCELERATE_URL', 'jsdelivr_cdn')
+subscribe_accelerate_url = os.getenv('SUBSCRIBE_ACCELERATE_URL', 'ghproxy')
 
 # 全局代理域名列表相关设置
 ## proxies为全局代理域名列表, 默认为空[], 表示不启用全局代理;
