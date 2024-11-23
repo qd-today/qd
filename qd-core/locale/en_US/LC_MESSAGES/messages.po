@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-11-16 19:41+0800\n"
-"PO-Revision-Date: 2024-11-23 12:04\n"
+"PO-Revision-Date: 2024-11-23 13:34\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
 "Language-Team: English\n"
 "MIME-Version: 1.0\n"
@@ -64,50 +64,53 @@ msgstr "Maximum runtime for a single While loop in a task, in seconds, default i
 
 #: qd-core/src/qd_core/config.py:131
 msgid "任务运行中单个任务最大请求次数, 默认为 1500 次"
-msgstr ""
+msgstr "Maximum number of requests for a single task in a task run, default is 1500."
 
 #: qd-core/src/qd_core/config.py:138
 msgid "是否启用 Pycurl 模块，默认启用。当运行环境缺少 PyCurl 模块时，此设置无效"
-msgstr ""
+msgstr "Whether to enable the Pycurl module, enabled by default. This setting has no effect when the running environment is missing the PyCurl module"
 
 #: qd-core/src/qd_core/config.py:143
 msgid "在 Pycurl 环境下，若部分请求因某些错误导致失败时，是否自动修改冲突设置并重发请求"
-msgstr ""
+msgstr "In Pycurl environment, if some requests fail due to some errors, whether to automatically modify the conflict settings and resend the requests?  "
 
 #: qd-core/src/qd_core/config.py:147
 msgid "通过 Curl 使用指定的 DNS 进行解析，仅在 Pycurl 环境下支持"
-msgstr ""
+msgstr "Resolve by using the specified DNS through Curl, which is only supported in Pycurl environment. "
 
 #: qd-core/src/qd_core/config.py:152
 msgid "是否允许使用 Curl 进行 Encoding 操作。当遇到 'Error 61 Unrecognized transfer encoding.' 错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Encoding 并尝试重试"
-msgstr ""
+msgstr "Whether to allow Encoding operations with Curl. When an 'Error 61 Unrecognized transfer encoding.' error is encountered, and `ALLOW_RETRY=True`, this request will disable Content-Encoding in Headers and try again."
 
 #: qd-core/src/qd_core/config.py:161
 msgid "是否允许 Curl 使用 Headers 中自定义的 Content-Length 请求。当遇到 'HTTP 400 Bad Request' 错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Length 并尝试重试"
-msgstr ""
+msgstr "Whether Curl is allowed to use the custom Content-Length request in Headers. When an' HTTP 400 Bad Request' error is encountered and' ALLOW_RETRY=True', this request will disable the Content-Length in Headers and try again.  "
 
 #: qd-core/src/qd_core/config.py:195
 msgid "当满足启用 PyCurl、HTTP Error Code 不在这个列表中、任务代理为空，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Pycurl 并尝试重试"
-msgstr ""
+msgstr "When PyCurl is enabled, HTTP Error Code is not in this list, task agent is empty, and `allow _ retry = true', Pycurl will be disabled in this request and try again.  "
 
 #: qd-core/src/qd_core/config.py:203
 msgid "启用后，在满足启用 PyCurl、返回 Response 为空、任务代理为空，并且 `ALLOW_RETRY=True` 的情况下，本次请求将禁用 Pycurl 并尝试重试"
-msgstr ""
+msgstr "After enabling, if PyCurl is enabled, the Response returned is empty, the task agent is empty, and `allow _ retry = true', Pycurl will be disabled in this request and try again.  "
 
 #: qd-core/src/qd_core/config.py:217
 msgid "全局代理域名列表，默认为空，表示不启用全局代理。代理格式应为 'scheme://username:password@host:port'"
-msgstr ""
+msgstr "Global proxy domain name list, which is empty by default, indicating that global proxy is not enabled. The proxy format should be' scheme://username: password @ host: port'.  "
 
 #: qd-core/src/qd_core/config.py:224
 msgid "直连地址的匹配模式，默认为 'regexp'（正则表达式匹配）以过滤本地请求，可选输入：\n"
 "- 'regexp': 正则表达式匹配模式；\n"
 "- 'url': 网址完全匹配模式；\n"
 "- None : 不启用全局代理黑名单"
-msgstr ""
+msgstr "Matching mode of directly connected address, default is' regexp' (regular expression matching) to filter local requests, optional input: \n"
+" -'regexp': Regular expression matching pattern; \n"
+" -'url': the URL exactly matches the pattern; \n"
+" -None: global proxy blacklist is not enabled.  "
 
 #: qd-core/src/qd_core/config.py:232
 msgid "根据 `proxy_direct_mode` 的值，此字段可以是满足直连规则的正则表达式字符串（当 `proxy_direct_mode='regexp'`）或不通过代理请求的 URL 列表（当 `proxy_direct_mode='url'`）。默认不启用直连规则"
-msgstr ""
+msgstr "Depending on the value of' proxy_direct_mode', this field can be a regular expression string that satisfies the direct connection rule (when' proxy_direct_mode='regexp'') or a URL list that is not requested through the proxy (when' proxy_direct_mode='url''). Direct connection rules are not enabled by default.  "
 
 #: qd-core/src/qd_core/config.py:255
 msgid "When proxy_direct_mode is 'regexp', proxy_direct should be a string or a list of strings."
@@ -119,67 +122,67 @@ msgstr "When proxy_direct_mode is 'url', proxy_direct should be a string or a li
 
 #: qd-core/src/qd_core/config.py:273
 msgid "config 目录下自定义 ONNX 文件名列表（不含 '.onnx' 后缀）"
-msgstr ""
+msgstr "List of customized onnx file names in config directory (without'. ONNX' suffix)  "
 
 #: qd-core/src/qd_core/config.py:279
 msgid "config 目录下自定义 ONNX 对应的自定义 `charsets.json` 文件名列表（不含 '.json' 后缀）"
-msgstr ""
+msgstr "Customized `charsets.json` file name list corresponding to customized ONNX in the config directory (excluding '.json' suffix)"
 
 #: qd-core/src/qd_core/config.py:286
 msgid "邮箱 SMTP 服务器地址"
-msgstr ""
+msgstr "Mailbox SMTP server address"
 
 #: qd-core/src/qd_core/config.py:287
 msgid "邮箱 SMTP 服务器端口"
-msgstr ""
+msgstr "Mailbox SMTP server port  "
 
 #: qd-core/src/qd_core/config.py:288
 msgid "是否使用 SSL 加密方式收发邮件"
-msgstr ""
+msgstr "Whether to use SSL encryption to send and receive mail?  "
 
 #: qd-core/src/qd_core/config.py:289
 msgid "是否使用 STARTTLS 加密方式收发邮件，默认不启用"
-msgstr ""
+msgstr "Whether to use STARTTLS encryption to send and receive emails. It is not enabled by default."
 
 #: qd-core/src/qd_core/config.py:290
 msgid "邮箱用户名"
-msgstr ""
+msgstr "Mailbox user name"
 
 #: qd-core/src/qd_core/config.py:291
 msgid "邮箱密码"
-msgstr ""
+msgstr "Email password  "
 
 #: qd-core/src/qd_core/config.py:292
 msgid "发送时使用的邮箱，默认与 MAIL_USER 相同"
-msgstr ""
+msgstr "The mailbox used when sending is the same as MAIL_USER by default.  "
 
 #: qd-core/src/qd_core/config.py:294
 msgid "发送的邮件链接启用 HTTPS，默认为 False，若需要 HTTPS，请在外部设置反向代理"
-msgstr ""
+msgstr "HTTPS is enabled for the sent email link, and the default value is False. If HTTPS is needed, please set the reverse proxy externally.  "
 
 #: qd-core/src/qd_core/config.py:299
 msgid "Mailgun API Key，若不为空则优先使用 Mailgun 方式发送邮件"
-msgstr ""
+msgstr "Mailgun API Key, if it is not empty, mail gun mode is preferred to send mail.  "
 
 #: qd-core/src/qd_core/config.py:301
 msgid "Mailgun Domain，需要替换为实际的 Mailgun 域名"
-msgstr ""
+msgstr "Mailgun Domain, which needs to be replaced with the actual mailgun domain name.  "
 
 #: qd-core/src/qd_core/config.py:309
 msgid "推送图片 URL"
-msgstr ""
+msgstr "Push picture URL  "
 
 #: qd-core/src/qd_core/config.py:314
 msgid "日志配置"
-msgstr ""
+msgstr "Log configuration  "
 
 #: qd-core/src/qd_core/config.py:317
 msgid "客户端请求配置"
-msgstr ""
+msgstr "Client requests settings"
 
 #: qd-core/src/qd_core/config.py:320
 msgid "任务配置"
-msgstr ""
+msgstr "Task configuration  "
 
 #: qd-core/src/qd_core/config.py:322
 msgid "pycurl 配置"
@@ -187,23 +190,23 @@ msgstr "pycurl settings"
 
 #: qd-core/src/qd_core/config.py:324
 msgid "代理配置"
-msgstr ""
+msgstr "Agent configuration  "
 
 #: qd-core/src/qd_core/config.py:326
 msgid "dddocr 配置"
-msgstr ""
+msgstr "dddocr settings"
 
 #: qd-core/src/qd_core/config.py:328
 msgid "邮件配置"
-msgstr ""
+msgstr "Mail configuration  "
 
 #: qd-core/src/qd_core/config.py:330
 msgid "推送配置"
-msgstr ""
+msgstr "Push configuration  "
 
 #: qd-core/src/qd_core/client/fetcher.py:132
 msgid "for循环只支持可迭代类型及变量"
-msgstr ""
+msgstr "For loop only supports iterated types and variables.  "
 
 #: qd-core/src/qd_core/client/fetcher.py:185
 #: qd-core/src/qd_core/client/fetcher.py:198
@@ -355,7 +358,7 @@ msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:49
 msgid "seconds:延时指定时间, 大于 {delay_max_timeout}s 均视为延时 {delay_max_timeout}s"
-msgstr ""
+msgstr "秒数:延时指定时间,大于{延迟最大超时}秒均视为延时{延迟最大超时}秒"
 
 #: qd-core/src/qd_core/plugins/default.py:59
 msgid "Error, seconds must be greater than 0.0, "
@@ -363,7 +366,7 @@ msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:62
 msgid "Error, limited by delay_max_timeout, "
-msgstr ""
+msgstr "错误，受delay_max_timeout限制，"
 
 #: qd-core/src/qd_core/plugins/default.py:64
 msgid "delay {seconds} second."
@@ -371,11 +374,11 @@ msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:133
 msgid "是否进行 html 反转义, 默认为 False, 启用该参数需对 content 进行 urlencode 编码"
-msgstr ""
+msgstr "Whether to perform html escaping, the default is False, and the content needs to be urlencoded to enable this parameter"
 
 #: qd-core/src/qd_core/plugins/default.py:163
 msgid "要转码的 urlencoded 内容, 如果 content 为非 utf-8 编码的 urlencoded 字符串, 请再次进行 urlencode 编码后再传入"
-msgstr ""
+msgstr "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please urlencode it again before passing it in."
 
 #: qd-core/src/qd_core/plugins/default.py:193
 msgid "要转码的内容"
