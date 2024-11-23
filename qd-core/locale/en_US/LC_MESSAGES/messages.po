@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-11-16 19:41+0800\n"
-"PO-Revision-Date: 2024-11-23 14:42\n"
+"PO-Revision-Date: 2024-11-23 15:56\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
 "Language-Team: English\n"
 "MIME-Version: 1.0\n"
@@ -110,7 +110,7 @@ msgstr "Matching mode of directly connected address, default is' regexp'(regular
 
 #: qd-core/src/qd_core/config.py:232
 msgid "根据 `proxy_direct_mode` 的值，此字段可以是满足直连规则的正则表达式字符串（当 `proxy_direct_mode='regexp'`）或不通过代理请求的 URL 列表（当 `proxy_direct_mode='url'`）。默认不启用直连规则"
-msgstr "Depending on the value of' proxy_direct_mode', this field can be a regular expression string that satisfies the direct connection rule(when' proxy_direct_mode='regexp'') or a URL list that is not requested through the proxy(when' proxy_direct_mode='url''). Direct connection rules are not enabled by default"
+msgstr "Depending on the value of `proxy_direct_mode`, this field can be a regular expression string that satisfies the direct connection rule (when `proxy_direct_mode='regexp'`) or a list of URLs that are not requested through the proxy (when `proxy_direct_mode='url'`). Direct rules are not enabled by default"
 
 #: qd-core/src/qd_core/config.py:255
 msgid "When proxy_direct_mode is 'regexp', proxy_direct should be a string or a list of strings."
@@ -122,7 +122,7 @@ msgstr "When proxy_direct_mode is 'url', proxy_direct should be a string or a li
 
 #: qd-core/src/qd_core/config.py:273
 msgid "config 目录下自定义 ONNX 文件名列表（不含 '.onnx' 后缀）"
-msgstr "Customized ONNX file name list in the config directory(excluding '.onnx' suffix)"
+msgstr "Customized ONNX filename list in the config directory(excluding '.onnx' suffix)"
 
 #: qd-core/src/qd_core/config.py:279
 msgid "config 目录下自定义 ONNX 对应的自定义 `charsets.json` 文件名列表（不含 '.json' 后缀）"
