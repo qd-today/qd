@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-11-16 19:41+0800\n"
-"PO-Revision-Date: 2024-11-23 15:56\n"
+"PO-Revision-Date: 2024-11-23 17:01\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
 "Language-Team: English\n"
 "MIME-Version: 1.0\n"
@@ -40,11 +40,11 @@ msgstr "Maximum download size allowed for a single user request, default is 5MB"
 
 #: qd-core/src/qd_core/config.py:102
 msgid "HTTP Request 请求超时时间（秒）"
-msgstr "HTTP Request Timeout(seconds)"
+msgstr "HTTP request timeout (seconds)"
 
 #: qd-core/src/qd_core/config.py:103
 msgid "HTTP Request 连接超时时间（秒）"
-msgstr "HTTP Request Connection Timeout(seconds)"
+msgstr "HTTP request connection timeout (seconds)"
 
 #: qd-core/src/qd_core/config.py:106
 msgid "延时API 最大时间限制（秒），请确保此值小于上述 timeout 配置，否则可能会导致 599 错误"
@@ -52,7 +52,7 @@ msgstr "Delay API Maximum time limit (seconds), make sure this value is less tha
 
 #: qd-core/src/qd_core/config.py:109
 msgid "unsafe_eval 执行最大时间限制（秒）"
-msgstr "unsafe_eval Maximum time limit for execution(seconds)"
+msgstr "unsafe_eval maximum time limit for execution (seconds)"
 
 #: qd-core/src/qd_core/config.py:117
 msgid "delay_max_timeout must be less than both request_timeout={request_timeout} and connect_timeout={connect_timeout}."
@@ -122,7 +122,7 @@ msgstr "When proxy_direct_mode is 'url', proxy_direct should be a string or a li
 
 #: qd-core/src/qd_core/config.py:273
 msgid "config 目录下自定义 ONNX 文件名列表（不含 '.onnx' 后缀）"
-msgstr "Customized ONNX filename list in the config directory(excluding '.onnx' suffix)"
+msgstr "Customized ONNX filename list in the config directory (excluding '.onnx' suffix)"
 
 #: qd-core/src/qd_core/config.py:279
 msgid "config 目录下自定义 ONNX 对应的自定义 `charsets.json` 文件名列表（不含 '.json' 后缀）"
