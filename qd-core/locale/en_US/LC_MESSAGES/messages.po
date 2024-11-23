@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-11-16 19:41+0800\n"
-"PO-Revision-Date: 2024-11-17 12:53\n"
+"PO-Revision-Date: 2024-11-23 12:04\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
 "Language-Team: English\n"
 "MIME-Version: 1.0\n"
@@ -20,19 +20,19 @@ msgstr ""
 
 #: qd-core/src/qd_core/config.py:64
 msgid "是否启用 QD 框架 Debug"
-msgstr ""
+msgstr "Whether to enable QD Framework Debug"
 
 #: qd-core/src/qd_core/config.py:65
 msgid "QD 框架日志等级"
-msgstr ""
+msgstr "QD framework log level"
 
 #: qd-core/src/qd_core/config.py:68
 msgid "是否启用在控制台日志中打印 Exception 的 TraceBack 信息"
-msgstr ""
+msgstr "Whether to enable printing of TraceBack information for Exception in the console output"
 
 #: qd-core/src/qd_core/config.py:72
 msgid "是否在控制台输出导入警告信息"
-msgstr ""
+msgstr "Whether to import warning messages in the console output"
 
 #: qd-core/src/qd_core/config.py:101
 msgid "允许用户单次请求下载的最大值，默认为 5MB"
@@ -52,15 +52,15 @@ msgstr "Delay API Maximum time limit (seconds), make sure this value is less tha
 
 #: qd-core/src/qd_core/config.py:109
 msgid "unsafe_eval 执行最大时间限制（秒）"
-msgstr ""
+msgstr "unsafe_eval Maximum time limit for execution (seconds)"
 
 #: qd-core/src/qd_core/config.py:117
 msgid "delay_max_timeout must be less than both request_timeout={request_timeout} and connect_timeout={connect_timeout}."
-msgstr ""
+msgstr "delay_max_timeout must be less than both request_timeout={request_timeout} and connect_timeout={connect_timeout}."
 
 #: qd-core/src/qd_core/config.py:129
 msgid "任务运行中单个 While 循环最大运行时间, 单位为秒, 默认为15分钟"
-msgstr ""
+msgstr "Maximum runtime for a single While loop in a task, in seconds, default is 15 minutes"
 
 #: qd-core/src/qd_core/config.py:131
 msgid "任务运行中单个任务最大请求次数, 默认为 1500 次"
@@ -111,11 +111,11 @@ msgstr ""
 
 #: qd-core/src/qd_core/config.py:255
 msgid "When proxy_direct_mode is 'regexp', proxy_direct should be a string or a list of strings."
-msgstr ""
+msgstr "When proxy_direct_mode is 'regexp', proxy_direct should be a string or a list of strings."
 
 #: qd-core/src/qd_core/config.py:263
 msgid "When proxy_direct_mode is 'url', proxy_direct should be a string or a list of URLs."
-msgstr ""
+msgstr "When proxy_direct_mode is 'url', proxy_direct should be a string or a list of URLs."
 
 #: qd-core/src/qd_core/config.py:273
 msgid "config 目录下自定义 ONNX 文件名列表（不含 '.onnx' 后缀）"
@@ -183,7 +183,7 @@ msgstr ""
 
 #: qd-core/src/qd_core/config.py:322
 msgid "pycurl 配置"
-msgstr ""
+msgstr "pycurl settings"
 
 #: qd-core/src/qd_core/config.py:324
 msgid "代理配置"
@@ -208,62 +208,64 @@ msgstr ""
 #: qd-core/src/qd_core/client/fetcher.py:185
 #: qd-core/src/qd_core/client/fetcher.py:198
 msgid "Failed at {block_idx}/{tpl_length} while condition, \\r\\nError: {error}, \\r\\nBlock condition: {condition}"
-msgstr ""
+msgstr "Failed at {block_idx}/{tpl_length} while condition, \\r\\nError: {error}, \\r\\nBlock condition: {condition}"
 
 #: qd-core/src/qd_core/client/fetcher.py:216
 #, python-format
 msgid "while loop break, time: %ss"
-msgstr ""
+msgstr "While loop break, time: %ss"
 
 #: qd-core/src/qd_core/client/fetcher.py:222
 msgid "Failed at {block_idx}/{tpl_length} while end, \\r\\nError: while loop timeout, time: {elapsed_time}s \\r\\nBlock condition: {condition}"
-msgstr ""
+msgstr "Failed at {block_idx}/{tpl_length} while end, \\r\\nError: while loop timeout, time: {elapsed_time}s \\r\\nBlock condition: {condition}"
 
 #: qd-core/src/qd_core/client/fetcher.py:246
 #: qd-core/src/qd_core/client/fetcher.py:259
 msgid "Failed at {block_idx}/{tpl_length} if condition, \\r\\nError: {error}, \\r\\nBlock condition: {condition}"
-msgstr ""
+msgstr "Failed at {block_idx}/{tpl_length} if condition, \\r\\nError: {error}, \\r\\nBlock condition: {condition}"
 
 #: qd-core/src/qd_core/client/fetcher.py:289
 #, python-format
 msgid "Success at %d/%d request, \r\n"
 "Request URL: %s, \r\n"
 "Result: %s"
-msgstr ""
+msgstr "Success at %d/%d request, \r\n"
+"Request URL: %s, \r\n"
+"Result: %s"
 
 #: qd-core/src/qd_core/client/fetcher.py:299
 msgid "Failed at {block_idx}/{tpl_length} request, \\r\\nError: {error}, \\r\\nRequest URL: {request_url}"
-msgstr ""
+msgstr "Failed at {block_idx}/{tpl_length} request, \\r\\nError: {error}, \\r\\nRequest URL: {request_url}"
 
 #: qd-core/src/qd_core/client/fetcher.py:312
 msgid "Failed at {block_idx}/{tpl_length} request, \\r\\n{result_msg}, \\r\\nRequest URL: {request_url}"
-msgstr ""
+msgstr "Failed at {block_idx}/{tpl_length} request, \\r\\n{result_msg}, \\r\\nRequest URL: {request_url}"
 
 #: qd-core/src/qd_core/client/har.py:53 qd-core/src/qd_core/client/har.py:133
 #, python-format
 msgid "params encoding error: %s"
-msgstr ""
+msgstr "Parameters encoding error: %s"
 
 #: qd-core/src/qd_core/client/render.py:28
 msgid "The error occurred when rendering template {key}: {value} \\r\\n {str_e}"
-msgstr ""
+msgstr "The error occurred when rendering template {key}: {value} \\r\\n {str_e}"
 
 #: qd-core/src/qd_core/filters/algorithm.py:33
 msgid "MD5 not available. Possibly running in FIPS mode"
-msgstr ""
+msgstr "MD5 not available. Possibly running in FIPS mode"
 
 #: qd-core/src/qd_core/filters/convert.py:133
 #: qd-core/src/qd_core/filters/convert.py:226
 msgid "obj must be a string type"
-msgstr ""
+msgstr "Obj must be a string type"
 
 #: qd-core/src/qd_core/filters/convert.py:136
 msgid "Invalid value {nonstring} for to_bytes' nonstring parameter"
-msgstr ""
+msgstr "Invalid value {nonstring} for to_bytes' nonstring parameter"
 
 #: qd-core/src/qd_core/filters/convert.py:228
 msgid "Invalid value {nonstring} for to_text's nonstring parameter"
-msgstr ""
+msgstr "Invalid value {nonstring} for to_text's nonstring parameter"
 
 #: qd-core/src/qd_core/filters/convert.py:282
 msgid "invalid ip version: {version}"
@@ -271,15 +273,15 @@ msgstr ""
 
 #: qd-core/src/qd_core/filters/convert.py:301
 msgid "invalid ip address: {addr}"
-msgstr ""
+msgstr "Invalid IP address: {addr}"
 
 #: qd-core/src/qd_core/filters/judge.py:59
 msgid "Mandatory variable {name} not defined."
-msgstr ""
+msgstr "Mandatory variable {name} not defined."
 
 #: qd-core/src/qd_core/filters/mcrypto.py:256
 msgid "passlib must be installed and usable to hash with '{algorithm}'"
-msgstr ""
+msgstr "Passlib must be installed and usable to hash with '{algorithm}'{algorithm}"
 
 #: qd-core/src/qd_core/filters/mcrypto.py:264
 msgid "passlib does not support '{algorithm}' algorithm"
@@ -319,31 +321,31 @@ msgstr ""
 
 #: qd-core/src/qd_core/filters/time.py:63
 msgid "后"
-msgstr ""
+msgstr "later"
 
 #: qd-core/src/qd_core/filters/time.py:66
 msgid "前"
-msgstr ""
+msgstr "ago"
 
 #: qd-core/src/qd_core/filters/time.py:75
 msgid "{seconds} 秒"
-msgstr ""
+msgstr "{seconds} s"
 
 #: qd-core/src/qd_core/filters/time.py:79
 msgid "{minutes} 分钟"
-msgstr ""
+msgstr "{minutes} min"
 
 #: qd-core/src/qd_core/filters/time.py:82
 msgid "{hours} 小时"
-msgstr ""
+msgstr "{hours} h"
 
 #: qd-core/src/qd_core/filters/time.py:88
 msgid "昨天"
-msgstr ""
+msgstr "yesterday"
 
 #: qd-core/src/qd_core/filters/time.py:90
 msgid "明天"
-msgstr ""
+msgstr "tomorrow"
 
 #: qd-core/src/qd_core/plugins/default.py:28
 #, python-format
@@ -561,7 +563,7 @@ msgstr ""
 
 #: qd-core/src/qd_core/schemas/har.py:53
 msgid "用户设置 Task 变量"
-msgstr ""
+msgstr "User-set Task variables"
 
 #: qd-core/src/qd_core/utils/decorator.py:92
 msgid "Unsupported cache type"
@@ -598,7 +600,7 @@ msgstr ""
 
 #: qd-core/src/qd_core/utils/mail.py:73
 msgid "QD提醒 <noreply@{mailgun_domain}>"
-msgstr ""
+msgstr "QD Remind <noreply@{mailgun_domain}>"
 
 #: qd-core/src/qd_core/utils/mail.py:84
 msgid "need text or html"
@@ -606,7 +608,7 @@ msgstr ""
 
 #: qd-core/src/qd_core/utils/next_time.py:26
 msgid "tz1 必须小于等于 tz2"
-msgstr ""
+msgstr "tz1 must be less than or equal to tz2"
 
 #: qd-core/src/qd_core/utils/next_time.py:42
 #: qd-core/src/qd_core/utils/next_time.py:54
@@ -641,7 +643,7 @@ msgstr ""
 
 #: qd-core/src/qd_core/utils/pusher.py:119
 msgid "\">QD提醒</a>------"
-msgstr ""
+msgstr "\">QD Remind</a>------"
 
 #: qd-core/src/qd_core/utils/pusher.py:133
 msgid "TG_TOKEN or TG_USERID is empty"
@@ -657,7 +659,7 @@ msgstr ""
 
 #: qd-core/src/qd_core/utils/pusher.py:232
 msgid "模式未选择"
-msgstr ""
+msgstr "Mode not selected"
 
 #: qd-core/src/qd_core/utils/pusher.py:285
 #: qd-core/src/qd_core/utils/pusher.py:335
