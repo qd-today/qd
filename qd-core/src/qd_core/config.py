@@ -8,13 +8,14 @@
 # flake8: noqa: F401,F403
 
 import json
+import os
 import re
 from functools import lru_cache
 from gettext import gettext
 from pathlib import Path
 from typing import List, Literal, Optional, Union
 
-from pydantic import BaseModel, Field, ValidationInfo, field_validator
+from pydantic import Field, ValidationInfo, field_validator
 from pydantic_core import Url
 from pydantic_settings import BaseSettings, JsonConfigSettingsSource, PydanticBaseSettingsSource, SettingsConfigDict
 
@@ -310,6 +311,29 @@ class PushSettings(QDBaseSettings):
     )
 
 
+class I18nSettings(QDBaseSettings):
+    """多语言设置类"""
+
+    locale_dir: str = Field(
+        default_factory=lambda: os.path.join(os.path.dirname(__file__), "locale"),
+        description=gettext("Multi-language directory, default is {locale_dir}").format(
+            locale_dir=os.path.join(os.path.dirname(__file__), "locale")
+        ),
+    )
+    locale: str = Field(
+        default="zh_CN",
+        description=gettext("Locale, default is zh_CN"),
+    )
+    fallback_locale: str = Field(
+        default="en_US",
+        description=gettext("Default locale, default is en_US"),
+    )
+    domain: str = Field(
+        default="messages",
+        description=gettext("Multilingual domain, default is messages"),
+    )
+
+
 class QDCoreSettings(QDBaseSettings):
     log: LogSettings = Field(default_factory=LogSettings, description=gettext("日志配置"))
 
@@ -329,6 +353,8 @@ class QDCoreSettings(QDBaseSettings):
 
     push: PushSettings = Field(default_factory=PushSettings, description=gettext("推送配置"))
 
+    i18n: I18nSettings = Field(default_factory=I18nSettings, description=gettext("多语言配置"))
+
 
 @lru_cache
 def get_settings() -> QDCoreSettings:
@@ -347,3 +373,7 @@ def export_settings_to_json() -> None:
     json_file.write_text(
         json.dumps(settings.model_dump(mode="json", by_alias=True), indent=4), encoding=json_file_encoding
     )
+
+
+if __name__ == "__main__":
+    export_settings_to_json()
