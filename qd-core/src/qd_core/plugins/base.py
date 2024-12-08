@@ -8,6 +8,8 @@ from plux import FunctionPlugin, PluginSpec  # type: ignore
 from pydantic import validate_call
 from pydantic_settings import BaseSettings
 
+from qd_core.utils.i18n import gettext
+
 # from pydantic.config import ConfigDict
 from qd_core.utils.log import Log
 from qd_core.utils.shell import set_env_variable_and_run_command
@@ -30,7 +32,7 @@ def add_api_routes(
     target_router = custom_router or router
     for path, methods in zip(path_list, method_list):
         target_router.add_api_route(path, function, methods=methods, **router_kwargs)
-        logger_plugins.debug(f"Added API route: {path} {methods}")
+        logger_plugins.debug(gettext("Added API route: {path} {methods}").format(path=path, methods=methods))
     if custom_router:
         router.include_router(custom_router, **router_inclusion_kwargs)
 

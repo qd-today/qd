@@ -4,8 +4,9 @@ import ipaddress
 import socket
 import struct
 import sys
-from gettext import gettext
 from typing import Union
+
+from qd_core.utils.i18n import gettext
 
 _COMPOSED_ERROR_HANDLERS = frozenset((None, "surrogate_or_replace", "surrogate_or_strict", "surrogate_then_replace"))
 PY3 = sys.version_info[0] == 3

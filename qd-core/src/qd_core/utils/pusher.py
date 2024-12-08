@@ -4,7 +4,6 @@
 
 import json
 import os
-from gettext import gettext
 from typing import Optional
 
 import aiohttp
@@ -12,6 +11,7 @@ import aiohttp
 from qd_core.config import get_settings
 from qd_core.filters.parse_url import domain_match, url_match_with_limit
 from qd_core.utils.decorator import log_and_raise_error
+from qd_core.utils.i18n import gettext
 from qd_core.utils.log import Log
 from qd_core.utils.mail import send_mail
 

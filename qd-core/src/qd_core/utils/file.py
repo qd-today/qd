@@ -1,10 +1,11 @@
 import json
 import os
-from gettext import gettext
 from typing import Dict, Optional
 
 import toml
 import yaml
+
+from qd_core.utils.i18n import gettext
 
 
 class FileSystem:

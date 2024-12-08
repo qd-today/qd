@@ -2,13 +2,13 @@ import asyncio
 import importlib.metadata as importlib_metadata
 import sys
 import time
-from gettext import gettext
 from typing import Dict
 
 from pip._internal.req.constructors import install_req_from_line
 from plux import Plugin, PluginManager  # type: ignore
 
 from qd_core.plugins.base import logger_plugins
+from qd_core.utils.i18n import gettext
 from qd_core.utils.shell import run_command_and_log_output_async
 
 

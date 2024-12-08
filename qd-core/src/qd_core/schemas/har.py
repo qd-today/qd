@@ -1,10 +1,10 @@
-from gettext import gettext
 from typing import Any, List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field, InstanceOf
 from tornado.httpclient import HTTPResponse
 
 from qd_core.client import cookie_utils
+from qd_core.utils.i18n import gettext
 
 
 class Cookie(BaseModel):

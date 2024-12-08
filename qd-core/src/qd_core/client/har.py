@@ -2,7 +2,6 @@ import base64
 import json
 import urllib.parse as urlparse
 from datetime import datetime
-from gettext import gettext
 
 from tornado import httpclient
 from tornado.httputil import HTTPHeaders
@@ -11,6 +10,7 @@ from qd_core.client import cookie_utils
 from qd_core.client.fetcher import logger_fetcher
 from qd_core.config import get_settings
 from qd_core.filters.codecs import decode, find_encoding
+from qd_core.utils.i18n import gettext
 
 
 class Response:

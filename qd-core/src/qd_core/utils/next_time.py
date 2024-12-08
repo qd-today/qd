@@ -1,13 +1,13 @@
 import datetime
 import random
 import time
-from gettext import gettext
 from typing import Literal, Union
 
 import croniter
 from pydantic import BaseModel, Field, field_validator
 
 from qd_core.utils.decorator import log_and_raise_error
+from qd_core.utils.i18n import gettext
 from qd_core.utils.log import Log
 
 logger_nexttime = Log("QD.Core.Utils").getlogger()

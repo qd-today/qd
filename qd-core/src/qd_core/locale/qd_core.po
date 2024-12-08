@@ -1,6 +1,6 @@
-# Translations template for PROJECT.
+# Translations template for qd-core.
 # Copyright (C) 2024 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
+# This file is distributed under the same license as the qd-core project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
 #
 #, fuzzy
@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qd-core 0.0.1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-11-16 19:41+0800\n"
+"POT-Creation-Date: 2024-12-09 00:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,97 +17,97 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
 
-#: qd-core/src/qd_core/config.py:64
+#: qd-core/src/qd_core/config.py:65
 msgid "是否启用 QD 框架 Debug"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:65
+#: qd-core/src/qd_core/config.py:66
 msgid "QD 框架日志等级"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:68
+#: qd-core/src/qd_core/config.py:69
 msgid "是否启用在控制台日志中打印 Exception 的 TraceBack 信息"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:72
+#: qd-core/src/qd_core/config.py:73
 msgid "是否在控制台输出导入警告信息"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:101
+#: qd-core/src/qd_core/config.py:102
 msgid "允许用户单次请求下载的最大值，默认为 5MB"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:102
+#: qd-core/src/qd_core/config.py:103
 msgid "HTTP Request 请求超时时间（秒）"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:103
+#: qd-core/src/qd_core/config.py:104
 msgid "HTTP Request 连接超时时间（秒）"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:106
+#: qd-core/src/qd_core/config.py:107
 msgid "延时API 最大时间限制（秒），请确保此值小于上述 timeout 配置，否则可能会导致 599 错误"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:109
+#: qd-core/src/qd_core/config.py:110
 msgid "unsafe_eval 执行最大时间限制（秒）"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:117
+#: qd-core/src/qd_core/config.py:118
 msgid ""
 "delay_max_timeout must be less than both "
 "request_timeout={request_timeout} and connect_timeout={connect_timeout}."
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:129
+#: qd-core/src/qd_core/config.py:130
 msgid "任务运行中单个 While 循环最大运行时间, 单位为秒, 默认为15分钟"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:131
+#: qd-core/src/qd_core/config.py:132
 msgid "任务运行中单个任务最大请求次数, 默认为 1500 次"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:138
+#: qd-core/src/qd_core/config.py:139
 msgid "是否启用 Pycurl 模块，默认启用。当运行环境缺少 PyCurl 模块时，此设置无效"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:143
+#: qd-core/src/qd_core/config.py:144
 msgid "在 Pycurl 环境下，若部分请求因某些错误导致失败时，是否自动修改冲突设置并重发请求"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:147
+#: qd-core/src/qd_core/config.py:148
 msgid "通过 Curl 使用指定的 DNS 进行解析，仅在 Pycurl 环境下支持"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:152
+#: qd-core/src/qd_core/config.py:153
 msgid ""
 "是否允许使用 Curl 进行 Encoding 操作。当遇到 'Error 61 Unrecognized transfer encoding.'"
 " 错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Encoding 并尝试重试"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:161
+#: qd-core/src/qd_core/config.py:162
 msgid ""
 "是否允许 Curl 使用 Headers 中自定义的 Content-Length 请求。当遇到 'HTTP 400 Bad Request' "
 "错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Length 并尝试重试"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:195
+#: qd-core/src/qd_core/config.py:196
 msgid ""
 "当满足启用 PyCurl、HTTP Error Code 不在这个列表中、任务代理为空，并且 `ALLOW_RETRY=True` "
 "时，本次请求将禁用 Pycurl 并尝试重试"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:203
+#: qd-core/src/qd_core/config.py:204
 msgid ""
 "启用后，在满足启用 PyCurl、返回 Response 为空、任务代理为空，并且 `ALLOW_RETRY=True` 的情况下，本次请求将禁用"
 " Pycurl 并尝试重试"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:217
+#: qd-core/src/qd_core/config.py:218
 msgid "全局代理域名列表，默认为空，表示不启用全局代理。代理格式应为 'scheme://username:password@host:port'"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:224
+#: qd-core/src/qd_core/config.py:225
 msgid ""
 "直连地址的匹配模式，默认为 'regexp'（正则表达式匹配）以过滤本地请求，可选输入：\n"
 "- 'regexp': 正则表达式匹配模式；\n"
@@ -115,107 +115,127 @@ msgid ""
 "- None : 不启用全局代理黑名单"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:232
+#: qd-core/src/qd_core/config.py:233
 msgid ""
 "根据 `proxy_direct_mode` 的值，此字段可以是满足直连规则的正则表达式字符串（当 "
 "`proxy_direct_mode='regexp'`）或不通过代理请求的 URL 列表（当 "
 "`proxy_direct_mode='url'`）。默认不启用直连规则"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:255
+#: qd-core/src/qd_core/config.py:256
 msgid ""
 "When proxy_direct_mode is 'regexp', proxy_direct should be a string or a "
 "list of strings."
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:263
+#: qd-core/src/qd_core/config.py:264
 msgid ""
 "When proxy_direct_mode is 'url', proxy_direct should be a string or a "
 "list of URLs."
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:273
+#: qd-core/src/qd_core/config.py:274
 msgid "config 目录下自定义 ONNX 文件名列表（不含 '.onnx' 后缀）"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:279
+#: qd-core/src/qd_core/config.py:280
 msgid "config 目录下自定义 ONNX 对应的自定义 `charsets.json` 文件名列表（不含 '.json' 后缀）"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:286
+#: qd-core/src/qd_core/config.py:287
 msgid "邮箱 SMTP 服务器地址"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:287
+#: qd-core/src/qd_core/config.py:288
 msgid "邮箱 SMTP 服务器端口"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:288
+#: qd-core/src/qd_core/config.py:289
 msgid "是否使用 SSL 加密方式收发邮件"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:289
+#: qd-core/src/qd_core/config.py:290
 msgid "是否使用 STARTTLS 加密方式收发邮件，默认不启用"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:290
+#: qd-core/src/qd_core/config.py:291
 msgid "邮箱用户名"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:291
+#: qd-core/src/qd_core/config.py:292
 msgid "邮箱密码"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:292
+#: qd-core/src/qd_core/config.py:293
 msgid "发送时使用的邮箱，默认与 MAIL_USER 相同"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:294
+#: qd-core/src/qd_core/config.py:295
 msgid "发送的邮件链接启用 HTTPS，默认为 False，若需要 HTTPS，请在外部设置反向代理"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:299
+#: qd-core/src/qd_core/config.py:300
 msgid "Mailgun API Key，若不为空则优先使用 Mailgun 方式发送邮件"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:301
+#: qd-core/src/qd_core/config.py:302
 msgid "Mailgun Domain，需要替换为实际的 Mailgun 域名"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:309
+#: qd-core/src/qd_core/config.py:310
 msgid "推送图片 URL"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:314
+#: qd-core/src/qd_core/config.py:319
+msgid "Multi-language directory, default is {locale_dir}"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:325
+msgid "Locale, default is zh_CN"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:329
+msgid "Default locale, default is en_US"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:333
+msgid "Multilingual domain, default is messages"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:338
 msgid "日志配置"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:317
+#: qd-core/src/qd_core/config.py:341
 msgid "客户端请求配置"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:320
+#: qd-core/src/qd_core/config.py:344
 msgid "任务配置"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:322
+#: qd-core/src/qd_core/config.py:346
 msgid "pycurl 配置"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:324
+#: qd-core/src/qd_core/config.py:348
 msgid "代理配置"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:326
+#: qd-core/src/qd_core/config.py:350
 msgid "dddocr 配置"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:328
+#: qd-core/src/qd_core/config.py:352
 msgid "邮件配置"
 msgstr ""
 
-#: qd-core/src/qd_core/config.py:330
+#: qd-core/src/qd_core/config.py:354
 msgid "推送配置"
+msgstr ""
+
+#: qd-core/src/qd_core/config.py:356
+msgid "多语言配置"
 msgstr ""
 
 #: qd-core/src/qd_core/client/fetcher.py:132
@@ -280,24 +300,24 @@ msgstr ""
 msgid "MD5 not available. Possibly running in FIPS mode"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/convert.py:133
-#: qd-core/src/qd_core/filters/convert.py:226
+#: qd-core/src/qd_core/filters/convert.py:134
+#: qd-core/src/qd_core/filters/convert.py:227
 msgid "obj must be a string type"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/convert.py:136
+#: qd-core/src/qd_core/filters/convert.py:137
 msgid "Invalid value {nonstring} for to_bytes' nonstring parameter"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/convert.py:228
+#: qd-core/src/qd_core/filters/convert.py:229
 msgid "Invalid value {nonstring} for to_text's nonstring parameter"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/convert.py:282
+#: qd-core/src/qd_core/filters/convert.py:283
 msgid "invalid ip version: {version}"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/convert.py:301
+#: qd-core/src/qd_core/filters/convert.py:302
 msgid "invalid ip address: {addr}"
 msgstr ""
 
@@ -341,36 +361,40 @@ msgstr ""
 msgid "Invalid regex type ({re_type})"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/time.py:37
+#: qd-core/src/qd_core/filters/time.py:38
 msgid "Invalid value for epoch value ({second})"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/time.py:63
+#: qd-core/src/qd_core/filters/time.py:64
 msgid "后"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/time.py:66
+#: qd-core/src/qd_core/filters/time.py:67
 msgid "前"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/time.py:75
+#: qd-core/src/qd_core/filters/time.py:76
 msgid "{seconds} 秒"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/time.py:79
+#: qd-core/src/qd_core/filters/time.py:80
 msgid "{minutes} 分钟"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/time.py:82
+#: qd-core/src/qd_core/filters/time.py:83
 msgid "{hours} 小时"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/time.py:88
+#: qd-core/src/qd_core/filters/time.py:89
 msgid "昨天"
 msgstr ""
 
-#: qd-core/src/qd_core/filters/time.py:90
+#: qd-core/src/qd_core/filters/time.py:91
 msgid "明天"
+msgstr ""
+
+#: qd-core/src/qd_core/plugins/base.py:35
+msgid "Added API route: {path} {methods}"
 msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:28
@@ -609,7 +633,7 @@ msgstr ""
 msgid "Caching Class Method Result Error: %s"
 msgstr ""
 
-#: qd-core/src/qd_core/utils/file.py:49
+#: qd-core/src/qd_core/utils/file.py:50
 msgid "Unsupported configuration file format: {file_extension}"
 msgstr ""
 
@@ -754,27 +778,32 @@ msgid ""
 "\n"
 msgstr ""
 
-#: qd-core/src/qd_core/utils/shell.py:32
+#: qd-core/src/qd_core/utils/shell.py:13
+#, python-format
+msgid "Running command: %s %s"
+msgstr ""
+
+#: qd-core/src/qd_core/utils/shell.py:33
 msgid "An error occurred during command execution: {e}"
 msgstr ""
 
-#: qd-core/src/qd_core/utils/shell.py:43 qd-core/src/qd_core/utils/shell.py:44
+#: qd-core/src/qd_core/utils/shell.py:44 qd-core/src/qd_core/utils/shell.py:45
 msgid "命令必须以列表形式提供。"
 msgstr ""
 
-#: qd-core/src/qd_core/utils/shell.py:50 qd-core/src/qd_core/utils/shell.py:51
+#: qd-core/src/qd_core/utils/shell.py:51 qd-core/src/qd_core/utils/shell.py:52
 msgid "环境变量必须以字典形式提供。"
 msgstr ""
 
-#: qd-core/src/qd_core/utils/shell.py:52
+#: qd-core/src/qd_core/utils/shell.py:53
 msgid "设置环境变量: {envs}"
 msgstr ""
 
-#: qd-core/src/qd_core/utils/shell.py:59
+#: qd-core/src/qd_core/utils/shell.py:60
 msgid "执行命令时发生OS错误: {e}"
 msgstr ""
 
-#: qd-core/src/qd_core/utils/shell.py:62
+#: qd-core/src/qd_core/utils/shell.py:63
 msgid "无效的命令或环境变量设置: {e}"
 msgstr ""
 

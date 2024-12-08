@@ -3,13 +3,13 @@ import inspect
 import logging
 import threading
 from functools import wraps
-from gettext import gettext
 from typing import Any, Optional
 
 import umsgpack  # type: ignore
 from cachetools import FIFOCache, LRUCache, RRCache, TLRUCache, TTLCache
 
 from qd_core.config import get_settings
+from qd_core.utils.i18n import gettext
 from qd_core.utils.log import Log
 
 logger_decorator = Log("QD.Core.Utils").getlogger()

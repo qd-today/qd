@@ -12,7 +12,6 @@ import string
 import sys
 from binascii import a2b_hex, b2a_hex
 from collections import namedtuple
-from gettext import gettext
 from typing import Union
 
 import umsgpack  # type: ignore
@@ -22,6 +21,7 @@ from Crypto.Util.Padding import pad, unpad
 from pbkdf2 import PBKDF2  # type: ignore
 
 from qd_core.filters.convert import to_bytes, to_text
+from qd_core.utils.i18n import gettext
 
 Crypto_random = Random.new()
 

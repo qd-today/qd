@@ -1,12 +1,12 @@
 import random
 import re
 import time
-from gettext import gettext
 from typing import Iterable, Tuple
 
 from qd_core.client.http.handler import HttpHandler
 from qd_core.config import get_settings
 from qd_core.schemas.har import HAR, Env
+from qd_core.utils.i18n import gettext
 from qd_core.utils.log import Log
 from qd_core.utils.safe_eval import safe_eval
 

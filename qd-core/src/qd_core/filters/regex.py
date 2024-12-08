@@ -1,7 +1,7 @@
 import re
-from gettext import gettext
 
 from qd_core.filters.convert import to_text
+from qd_core.utils.i18n import gettext
 
 
 def regex_replace(value="", pattern="", replacement="", count=0, ignorecase=False, multiline=False):

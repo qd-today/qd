@@ -1,4 +1,3 @@
-from gettext import gettext
 from typing import Optional
 
 from jinja2.sandbox import SandboxedEnvironment as Environment
@@ -9,6 +8,7 @@ from qd_core.client import cookie_utils
 from qd_core.config import get_settings
 from qd_core.filters.codecs import quote_chinese
 from qd_core.schemas.har import Env, Request
+from qd_core.utils.i18n import gettext
 
 
 class Renderer:

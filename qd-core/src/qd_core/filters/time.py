@@ -1,6 +1,7 @@
 import datetime
 import time
-from gettext import gettext
+
+from qd_core.utils.i18n import gettext
 
 
 def timestamp(type="int"):

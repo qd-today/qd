@@ -1,10 +1,10 @@
 import ipaddress
 import re
-from gettext import gettext
 
 from jinja2 import Undefined
 
 from qd_core.filters.convert import to_native, to_text
+from qd_core.utils.i18n import gettext
 
 
 def is_lan(ip):

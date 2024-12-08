@@ -1,8 +1,8 @@
 import asyncio
 import os
-from gettext import gettext
 from typing import Dict, List, Optional
 
+from qd_core.utils.i18n import gettext
 from qd_core.utils.log import Log
 
 logger = Log("QD.Core.Utils").getlogger()
@@ -10,6 +10,7 @@ logger = Log("QD.Core.Utils").getlogger()
 
 async def run_command_and_log_output_async(command, *args, **kwargs):
     try:
+        logger.info(gettext("Running command: %s %s"), command, " ".join(args))
         process = await asyncio.create_subprocess_exec(
             command,
             *args,

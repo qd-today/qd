@@ -1,11 +1,11 @@
 import base64
 import hashlib
 import uuid
-from gettext import gettext
 from hashlib import sha1
 from typing import Callable, Union
 
 from qd_core.filters.convert import to_bytes, to_native, to_text
+from qd_core.utils.i18n import gettext
 
 try:
     from hashlib import md5 as _md5  # pylint: disable=ungrouped-imports

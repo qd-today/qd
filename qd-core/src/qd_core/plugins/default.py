@@ -6,7 +6,6 @@ import os
 import re
 import time
 import urllib
-from gettext import gettext
 from typing import Annotated, Any, Dict, Optional
 
 import aiohttp
@@ -19,6 +18,7 @@ from zoneinfo import ZoneInfo
 
 from qd_core.config import get_settings
 from qd_core.plugins.base import api_function_plugin, logger_plugins
+from qd_core.utils.i18n import gettext
 
 try:
     import ddddocr  # type: ignore
@@ -61,7 +61,7 @@ async def delay(
         seconds = get_settings().client_request.delay_max_timeout
         result = gettext("Error, limited by delay_max_timeout, ")
     await asyncio.sleep(seconds)
-    return result + gettext("delay {seconds} second.")
+    return result + gettext("delay {seconds} second.").format(seconds=seconds)
 
 
 def yearday(year: int):

@@ -20,7 +20,6 @@ import signal
 import sys
 import threading
 import types
-from gettext import gettext
 from opcode import opmap, opname
 from types import CodeType
 
@@ -28,6 +27,7 @@ from types import CodeType
 import dateutil
 
 from qd_core.config import get_settings
+from qd_core.utils.i18n import gettext
 from qd_core.utils.log import Log
 
 __all__ = ["test_expr", "safe_eval", "const_eval"]
