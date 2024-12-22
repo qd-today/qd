@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version:  qd-today\n"
+"Project-Id-Version: qd-core 0.0.1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-12-22 17:43+0800\n"
 "PO-Revision-Date: 2024-12-22 09:03+0000\n"
@@ -773,7 +773,7 @@ msgstr ""
 #: qd-core/src/qd_core/utils/shell.py:13
 #, python-format
 msgid "Running command: %s %s"
-msgstr "运行中命令: %s %s"
+msgstr "运行命令: %s %s"
 
 #: qd-core/src/qd_core/utils/shell.py:33
 msgid "An error occurred during command execution: {e}"
