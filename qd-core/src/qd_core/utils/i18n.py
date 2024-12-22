@@ -87,7 +87,7 @@ def get_translation(
     logger.debug("Selected locales: %s", selected_locales)
 
     translation = Translations.load(locale_dir, selected_locales, domain)
-    logger.info("Loaded translations: %r", translation)
+    logger.debug("Loaded translations from %s", locale_dir)
     translation.install(names=names)
     return translation
 
