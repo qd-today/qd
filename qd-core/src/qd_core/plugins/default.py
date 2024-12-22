@@ -168,7 +168,7 @@ async def urldecode(
                 gettext(
                     "The urlencoded content to be transcoded. "
                     "If content is a non-utf-8 encoded urlencoded string, "
-                    "please uuencode it again before passing it in"
+                    "please urlencode it again before passing it in"
                 )
             ),
         ),
@@ -176,7 +176,12 @@ async def urldecode(
     encoding: Annotated[str, Field("utf-8", description=gettext("Specified encoding, default is utf-8"))] = "utf-8",
     unquote_plus: Annotated[
         bool,
-        Field(False, description=gettext("Whether to decode plus(+) to space( ), only valid when encoding is utf-8")),
+        Field(
+            False,
+            description=gettext(
+                "Whether to decode plus(+) to space( ), only valid when encoding is utf-8, default is False"
+            ),
+        ),
     ] = False,
 ):
     rtv = {}

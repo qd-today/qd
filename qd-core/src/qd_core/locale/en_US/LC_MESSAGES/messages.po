@@ -1,22 +1,18 @@
+
 msgid ""
 msgstr ""
-"Project-Id-Version: qd-today\n"
+"Project-Id-Version:  qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-12-22 16:21+0800\n"
-"PO-Revision-Date: 2024-12-22 09:03\n"
+"POT-Creation-Date: 2024-12-22 17:43+0800\n"
+"PO-Revision-Date: 2024-12-22 09:03+0000\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
+"Language: en_US\n"
 "Language-Team: English\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Crowdin-Project: qd-today\n"
-"X-Crowdin-Project-ID: 737675\n"
-"X-Crowdin-Language: en\n"
-"X-Crowdin-File: /core/qd-core/src/qd_core/locale/qd_core.po\n"
-"X-Crowdin-File-ID: 18\n"
-"Language: en_US\n"
 
 #: qd-core/src/qd_core/config.py:65
 msgid "Whether to enable QD Framework Debug"
@@ -99,11 +95,13 @@ msgid "Global proxy domain name list, which is empty by default, indicating that
 msgstr "Global proxy domain name list, which is empty by default, indicating that global proxy is not enabled. The proxy format should be 'scheme://username:password@host:port'"
 
 #: qd-core/src/qd_core/config.py:251
-msgid "Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
+msgid ""
+"Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
 "- 'regexp': Regular expression matching pattern;\n"
 "- 'url': the URL exactly matches the pattern;\n"
 "- None: global proxy blacklist is not enabled"
-msgstr "Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
+msgstr ""
+"Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
 "- 'regexp': Regular expression matching pattern;\n"
 "- 'url': the URL exactly matches the pattern;\n"
 "- None: global proxy blacklist is not enabled"
@@ -249,10 +247,12 @@ msgstr "Failed at {block_idx}/{tpl_length} if condition, \\r\\nError: {error}, \
 
 #: qd-core/src/qd_core/client/fetcher.py:289
 #, python-format
-msgid "Success at %d/%d request, \r\n"
+msgid ""
+"Success at %d/%d request, \r\n"
 "Request URL: %s, \r\n"
 "Result: %s"
-msgstr "Success at %d/%d request, \r\n"
+msgstr ""
+"Success at %d/%d request, \r\n"
 "Request URL: %s, \r\n"
 "Result: %s"
 
@@ -376,9 +376,11 @@ msgstr "Added API route: {path} {methods}"
 
 #: qd-core/src/qd_core/plugins/default.py:28
 #, python-format
-msgid "Import DdddOCR module falied: \"%s\". \n"
+msgid ""
+"Import DdddOCR module falied: \"%s\". \n"
 "Tips: This warning message is only for prompting, it will not affect running of QD framework."
-msgstr "Import DdddOCR module failed: \"%s\".\n"
+msgstr ""
+"Import DdddOCR module failed: \"%s\".\n"
 "Tips: This warning message is only for prompting, it will not affect running of QD framework."
 
 #: qd-core/src/qd_core/plugins/default.py:49
@@ -398,7 +400,7 @@ msgid "delay {seconds} second."
 msgstr "Delay {seconds} second."
 
 #: qd-core/src/qd_core/plugins/default.py:130
-#: qd-core/src/qd_core/plugins/default.py:200
+#: qd-core/src/qd_core/plugins/default.py:205
 msgid "Content to be transcoded"
 msgstr "Content to be transcoded"
 
@@ -407,112 +409,112 @@ msgid "Whether to perform HTML escaping, the default is False, and the content n
 msgstr "Whether to perform HTML escaping, the default is False, and the content needs to be urlencoded to enable this parameter"
 
 #: qd-core/src/qd_core/plugins/default.py:168
-msgid "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please uuencode it again before passing it in"
-msgstr "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please uuencode it again before passing it in"
+msgid "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please urlencode it again before passing it in"
+msgstr "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please urlencode it again before passing it in"
 
 #: qd-core/src/qd_core/plugins/default.py:176
 msgid "Specified encoding, default is utf-8"
 msgstr "Specified encoding, default is utf-8"
 
-#: qd-core/src/qd_core/plugins/default.py:179
-msgid "Whether to decode plus(+) to space( ), only valid when encoding is utf-8"
-msgstr "Whether to decode plus(+) to space( ), only valid when encoding is utf-8"
+#: qd-core/src/qd_core/plugins/default.py:181
+msgid "Whether to decode plus(+) to space( ), only valid when encoding is utf-8, default is False"
+msgstr "Whether to decode plus(+) to space( ), only valid when encoding is utf-8, default is False"
 
-#: qd-core/src/qd_core/plugins/default.py:217
+#: qd-core/src/qd_core/plugins/default.py:222
 msgid "Raw data"
 msgstr "Raw data"
 
-#: qd-core/src/qd_core/plugins/default.py:218
-#: qd-core/src/qd_core/plugins/default.py:240
+#: qd-core/src/qd_core/plugins/default.py:223
+#: qd-core/src/qd_core/plugins/default.py:245
 msgid "Regular expression"
 msgstr "Regular expression"
 
-#: qd-core/src/qd_core/plugins/default.py:241
+#: qd-core/src/qd_core/plugins/default.py:246
 msgid "Content to be replaced"
 msgstr "Content to be replaced"
 
-#: qd-core/src/qd_core/plugins/default.py:242
+#: qd-core/src/qd_core/plugins/default.py:247
 msgid "String to be replaced"
 msgstr "String to be replaced"
 
-#: qd-core/src/qd_core/plugins/default.py:243
+#: qd-core/src/qd_core/plugins/default.py:248
 msgid "Return type, 'text' or 'json', default is json"
 msgstr "Return type, 'text' or 'json', default is json"
 
-#: qd-core/src/qd_core/plugins/default.py:264
+#: qd-core/src/qd_core/plugins/default.py:269
 msgid "RSA private key"
 msgstr "RSA private key"
 
-#: qd-core/src/qd_core/plugins/default.py:265
+#: qd-core/src/qd_core/plugins/default.py:270
 msgid "Data to be encrypted or decrypted"
 msgstr "Data to be encrypted or decrypted"
 
-#: qd-core/src/qd_core/plugins/default.py:266
+#: qd-core/src/qd_core/plugins/default.py:271
 msgid "'encode' is encryption, 'decode' is decryption"
 msgstr "'encode' is encryption, 'decode' is decryption"
 
-#: qd-core/src/qd_core/plugins/default.py:268
+#: qd-core/src/qd_core/plugins/default.py:273
 msgid "Random byte string, default is None"
 msgstr "Random byte string, default is None"
 
-#: qd-core/src/qd_core/plugins/default.py:271
+#: qd-core/src/qd_core/plugins/default.py:276
 msgid "The encoding method of the random byte string, default is utf-8"
 msgstr "The encoding method of the random byte string, default is utf-8"
 
-#: qd-core/src/qd_core/plugins/default.py:298
+#: qd-core/src/qd_core/plugins/default.py:303
 msgid "Function Selection Error"
 msgstr "Function Selection Error"
 
-#: qd-core/src/qd_core/plugins/default.py:300
+#: qd-core/src/qd_core/plugins/default.py:305
 msgid "Incomplete parameters, please confirm"
 msgstr "Incomplete parameters, please confirm"
 
-#: qd-core/src/qd_core/plugins/default.py:332
+#: qd-core/src/qd_core/plugins/default.py:337
 #, python-format
 msgid "Successfully loaded custom ONNX model: %s.onnx"
 msgstr "Successfully loaded custom ONNX model: %s.onnx"
 
-#: qd-core/src/qd_core/plugins/default.py:352
+#: qd-core/src/qd_core/plugins/default.py:357
 #, python-format
 msgid "slide_match error: %s"
 msgstr "slide_match error: %s"
 
-#: qd-core/src/qd_core/plugins/default.py:381
+#: qd-core/src/qd_core/plugins/default.py:386
 #, python-format
 msgid "get_img_from_url error: %s"
 msgstr "get_img_from_url error: %s"
 
-#: qd-core/src/qd_core/plugins/default.py:398
-#: qd-core/src/qd_core/plugins/default.py:450
+#: qd-core/src/qd_core/plugins/default.py:403
+#: qd-core/src/qd_core/plugins/default.py:455
 msgid "Content of the Base64 image to be recognized"
 msgstr "Content of the Base64 image to be recognized"
 
-#: qd-core/src/qd_core/plugins/default.py:399
-#: qd-core/src/qd_core/plugins/default.py:451
+#: qd-core/src/qd_core/plugins/default.py:404
+#: qd-core/src/qd_core/plugins/default.py:456
 msgid "URL address of the web image to be identified"
 msgstr "URL address of the web image to be identified"
 
-#: qd-core/src/qd_core/plugins/default.py:401
+#: qd-core/src/qd_core/plugins/default.py:406
 msgid "Whether to use the old model, the default is False"
 msgstr "Whether to use the old model, the default is False"
 
-#: qd-core/src/qd_core/plugins/default.py:404
+#: qd-core/src/qd_core/plugins/default.py:409
 msgid "Customize ONNX filename, the default is None"
 msgstr "Customize ONNX filename, the default is None"
 
-#: qd-core/src/qd_core/plugins/default.py:427
+#: qd-core/src/qd_core/plugins/default.py:432
 msgid "Content of the Base64 image to be detected"
 msgstr "Content of the Base64 image to be detected"
 
-#: qd-core/src/qd_core/plugins/default.py:428
+#: qd-core/src/qd_core/plugins/default.py:433
 msgid "URL address of the web image to be detected"
 msgstr "URL address of the web image to be detected"
 
-#: qd-core/src/qd_core/plugins/default.py:455
+#: qd-core/src/qd_core/plugins/default.py:460
 msgid "Whether the small slider image contains too much background, default is False"
 msgstr "Whether the small slider image contains too much background, default is False"
 
-#: qd-core/src/qd_core/plugins/default.py:462
+#: qd-core/src/qd_core/plugins/default.py:467
 msgid "Whether `imgtarget` is not a small slider, True means the original image with pits, False means a small slider, the default is False"
 msgstr "Whether `imgtarget` is not a small slider, True means the original image with pits, False means a small slider, the default is False"
 
@@ -733,9 +735,11 @@ msgid "forbidden opcode(s) in {expr}: {opcodes}"
 msgstr "Forbidden opcode(s) in {expr}: {opcodes}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:474
-msgid "\"{e}\" while compiling\n"
+msgid ""
+"\"{e}\" while compiling\n"
 "{expr}"
-msgstr "\"{e}\" while compiling\n"
+msgstr ""
+"\"{e}\" while compiling\n"
 "{expr}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:598
@@ -743,19 +747,23 @@ msgid "Looks like you are trying to pass a dynamic environment, you should proba
 msgstr "Looks like you are trying to pass a dynamic environment, you should probably pass nocopy=True to safe_eval()."
 
 #: qd-core/src/qd_core/utils/safe_eval.py:640
-msgid "{err_type_name} : {err_msg} at line {err_lineno}\n"
+msgid ""
+"{err_type_name} : {err_msg} at line {err_lineno}\n"
 "{err_line}"
-msgstr "{err_type_name} : {err_msg} at line {err_lineno}\n"
+msgstr ""
+"{err_type_name} : {err_msg} at line {err_lineno}\n"
 "{err_line}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:658
-msgid "Module {v} can not be used in evaluation contexts\n"
+msgid ""
+"Module {v} can not be used in evaluation contexts\n"
 "Prefer providing only the items necessary for your intended use.\n"
 "If a \"module\" is necessary for backwards compatibility, use\n"
 "`odoo.tools.safe_eval.wrap_module` to generate a wrapper recursively\n"
 "whitelisting allowed attributes.\n"
 "Pre-wrapped modules are provided as attributes of `odoo.tools.safe_eval`.\n"
-msgstr "Module {v} can not be used in evaluation contexts\n"
+msgstr ""
+"Module {v} can not be used in evaluation contexts\n"
 "Prefer providing only the items necessary for your intended use.\n"
 "If a \"module\" is necessary for backwards compatibility, use\n"
 "`odoo.tools.safe_eval.wrap_module` to generate a wrapper recursively\n"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: qd-core 0.0.1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-12-22 16:21+0800\n"
+"POT-Creation-Date: 2024-12-22 17:43+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -394,7 +394,7 @@ msgid "delay {seconds} second."
 msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:130
-#: qd-core/src/qd_core/plugins/default.py:200
+#: qd-core/src/qd_core/plugins/default.py:205
 msgid "Content to be transcoded"
 msgstr ""
 
@@ -403,112 +403,112 @@ msgid "Whether to perform HTML escaping, the default is False, and the content n
 msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:168
-msgid "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please uuencode it again before passing it in"
+msgid "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please urlencode it again before passing it in"
 msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:176
 msgid "Specified encoding, default is utf-8"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:179
-msgid "Whether to decode plus(+) to space( ), only valid when encoding is utf-8"
+#: qd-core/src/qd_core/plugins/default.py:181
+msgid "Whether to decode plus(+) to space( ), only valid when encoding is utf-8, default is False"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:217
+#: qd-core/src/qd_core/plugins/default.py:222
 msgid "Raw data"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:218
-#: qd-core/src/qd_core/plugins/default.py:240
+#: qd-core/src/qd_core/plugins/default.py:223
+#: qd-core/src/qd_core/plugins/default.py:245
 msgid "Regular expression"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:241
+#: qd-core/src/qd_core/plugins/default.py:246
 msgid "Content to be replaced"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:242
+#: qd-core/src/qd_core/plugins/default.py:247
 msgid "String to be replaced"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:243
+#: qd-core/src/qd_core/plugins/default.py:248
 msgid "Return type, 'text' or 'json', default is json"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:264
+#: qd-core/src/qd_core/plugins/default.py:269
 msgid "RSA private key"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:265
+#: qd-core/src/qd_core/plugins/default.py:270
 msgid "Data to be encrypted or decrypted"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:266
+#: qd-core/src/qd_core/plugins/default.py:271
 msgid "'encode' is encryption, 'decode' is decryption"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:268
+#: qd-core/src/qd_core/plugins/default.py:273
 msgid "Random byte string, default is None"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:271
+#: qd-core/src/qd_core/plugins/default.py:276
 msgid "The encoding method of the random byte string, default is utf-8"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:298
+#: qd-core/src/qd_core/plugins/default.py:303
 msgid "Function Selection Error"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:300
+#: qd-core/src/qd_core/plugins/default.py:305
 msgid "Incomplete parameters, please confirm"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:332
+#: qd-core/src/qd_core/plugins/default.py:337
 #, python-format
 msgid "Successfully loaded custom ONNX model: %s.onnx"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:352
+#: qd-core/src/qd_core/plugins/default.py:357
 #, python-format
 msgid "slide_match error: %s"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:381
+#: qd-core/src/qd_core/plugins/default.py:386
 #, python-format
 msgid "get_img_from_url error: %s"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:398
-#: qd-core/src/qd_core/plugins/default.py:450
+#: qd-core/src/qd_core/plugins/default.py:403
+#: qd-core/src/qd_core/plugins/default.py:455
 msgid "Content of the Base64 image to be recognized"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:399
-#: qd-core/src/qd_core/plugins/default.py:451
+#: qd-core/src/qd_core/plugins/default.py:404
+#: qd-core/src/qd_core/plugins/default.py:456
 msgid "URL address of the web image to be identified"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:401
+#: qd-core/src/qd_core/plugins/default.py:406
 msgid "Whether to use the old model, the default is False"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:404
+#: qd-core/src/qd_core/plugins/default.py:409
 msgid "Customize ONNX filename, the default is None"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:427
+#: qd-core/src/qd_core/plugins/default.py:432
 msgid "Content of the Base64 image to be detected"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:428
+#: qd-core/src/qd_core/plugins/default.py:433
 msgid "URL address of the web image to be detected"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:455
+#: qd-core/src/qd_core/plugins/default.py:460
 msgid "Whether the small slider image contains too much background, default is False"
 msgstr ""
 
-#: qd-core/src/qd_core/plugins/default.py:462
+#: qd-core/src/qd_core/plugins/default.py:467
 msgid "Whether `imgtarget` is not a small slider, True means the original image with pits, False means a small slider, the default is False"
 msgstr ""
 
