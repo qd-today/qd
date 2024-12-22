@@ -1,18 +1,22 @@
-
 msgid ""
 msgstr ""
-"Project-Id-Version:  qd-today\n"
+"Project-Id-Version: qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-12-22 17:43+0800\n"
-"PO-Revision-Date: 2024-12-22 09:03+0000\n"
+"PO-Revision-Date: 2024-12-22 10:25\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
-"Language: en_US\n"
 "Language-Team: English\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Crowdin-Project: qd-today\n"
+"X-Crowdin-Project-ID: 737675\n"
+"X-Crowdin-Language: en\n"
+"X-Crowdin-File: /core/qd-core/src/qd_core/locale/qd_core.po\n"
+"X-Crowdin-File-ID: 18\n"
+"Language: en_US\n"
 
 #: qd-core/src/qd_core/config.py:65
 msgid "Whether to enable QD Framework Debug"
@@ -95,13 +99,11 @@ msgid "Global proxy domain name list, which is empty by default, indicating that
 msgstr "Global proxy domain name list, which is empty by default, indicating that global proxy is not enabled. The proxy format should be 'scheme://username:password@host:port'"
 
 #: qd-core/src/qd_core/config.py:251
-msgid ""
-"Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
+msgid "Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
 "- 'regexp': Regular expression matching pattern;\n"
 "- 'url': the URL exactly matches the pattern;\n"
 "- None: global proxy blacklist is not enabled"
-msgstr ""
-"Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
+msgstr "Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
 "- 'regexp': Regular expression matching pattern;\n"
 "- 'url': the URL exactly matches the pattern;\n"
 "- None: global proxy blacklist is not enabled"
@@ -247,12 +249,10 @@ msgstr "Failed at {block_idx}/{tpl_length} if condition, \\r\\nError: {error}, \
 
 #: qd-core/src/qd_core/client/fetcher.py:289
 #, python-format
-msgid ""
-"Success at %d/%d request, \r\n"
+msgid "Success at %d/%d request, \r\n"
 "Request URL: %s, \r\n"
 "Result: %s"
-msgstr ""
-"Success at %d/%d request, \r\n"
+msgstr "Success at %d/%d request, \r\n"
 "Request URL: %s, \r\n"
 "Result: %s"
 
@@ -376,11 +376,9 @@ msgstr "Added API route: {path} {methods}"
 
 #: qd-core/src/qd_core/plugins/default.py:28
 #, python-format
-msgid ""
-"Import DdddOCR module falied: \"%s\". \n"
+msgid "Import DdddOCR module falied: \"%s\". \n"
 "Tips: This warning message is only for prompting, it will not affect running of QD framework."
-msgstr ""
-"Import DdddOCR module failed: \"%s\".\n"
+msgstr "Import DdddOCR module failed: \"%s\".\n"
 "Tips: This warning message is only for prompting, it will not affect running of QD framework."
 
 #: qd-core/src/qd_core/plugins/default.py:49
@@ -410,7 +408,7 @@ msgstr "Whether to perform HTML escaping, the default is False, and the content 
 
 #: qd-core/src/qd_core/plugins/default.py:168
 msgid "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please urlencode it again before passing it in"
-msgstr "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please urlencode it again before passing it in"
+msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:176
 msgid "Specified encoding, default is utf-8"
@@ -418,7 +416,7 @@ msgstr "Specified encoding, default is utf-8"
 
 #: qd-core/src/qd_core/plugins/default.py:181
 msgid "Whether to decode plus(+) to space( ), only valid when encoding is utf-8, default is False"
-msgstr "Whether to decode plus(+) to space( ), only valid when encoding is utf-8, default is False"
+msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:222
 msgid "Raw data"
@@ -735,11 +733,9 @@ msgid "forbidden opcode(s) in {expr}: {opcodes}"
 msgstr "Forbidden opcode(s) in {expr}: {opcodes}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:474
-msgid ""
-"\"{e}\" while compiling\n"
+msgid "\"{e}\" while compiling\n"
 "{expr}"
-msgstr ""
-"\"{e}\" while compiling\n"
+msgstr "\"{e}\" while compiling\n"
 "{expr}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:598
@@ -747,23 +743,19 @@ msgid "Looks like you are trying to pass a dynamic environment, you should proba
 msgstr "Looks like you are trying to pass a dynamic environment, you should probably pass nocopy=True to safe_eval()."
 
 #: qd-core/src/qd_core/utils/safe_eval.py:640
-msgid ""
-"{err_type_name} : {err_msg} at line {err_lineno}\n"
+msgid "{err_type_name} : {err_msg} at line {err_lineno}\n"
 "{err_line}"
-msgstr ""
-"{err_type_name} : {err_msg} at line {err_lineno}\n"
+msgstr "{err_type_name} : {err_msg} at line {err_lineno}\n"
 "{err_line}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:658
-msgid ""
-"Module {v} can not be used in evaluation contexts\n"
+msgid "Module {v} can not be used in evaluation contexts\n"
 "Prefer providing only the items necessary for your intended use.\n"
 "If a \"module\" is necessary for backwards compatibility, use\n"
 "`odoo.tools.safe_eval.wrap_module` to generate a wrapper recursively\n"
 "whitelisting allowed attributes.\n"
 "Pre-wrapped modules are provided as attributes of `odoo.tools.safe_eval`.\n"
-msgstr ""
-"Module {v} can not be used in evaluation contexts\n"
+msgstr "Module {v} can not be used in evaluation contexts\n"
 "Prefer providing only the items necessary for your intended use.\n"
 "If a \"module\" is necessary for backwards compatibility, use\n"
 "`odoo.tools.safe_eval.wrap_module` to generate a wrapper recursively\n"
