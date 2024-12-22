@@ -27,12 +27,15 @@ ddddocr = ["qd-core[ddddocr]"]
 qd = "qd_cli.cli:fetch_har_cli"
 
 [tool.setuptools]
-include-package-data = false
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["qd_cli*"]
 exclude = ["test*"]
+
+[tool.setuptools.package-data]
+"qd_cli.locale" = ["**/*.po", "**/*.mo", "**/*.pot"]
 
 [tool.uv]
 package = true

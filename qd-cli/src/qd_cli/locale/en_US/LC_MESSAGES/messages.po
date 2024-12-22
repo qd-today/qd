@@ -1,0 +1,90 @@
+# English (United States) translations for qd-cli.
+# Copyright (C) 2024 ORGANIZATION
+# This file is distributed under the same license as the qd-cli project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: qd-cli 0.0.1\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2024-12-22 18:36+0800\n"
+"PO-Revision-Date: 2024-12-22 18:06+0800\n"
+"Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
+"Language: en_US\n"
+"Language-Team: en_US <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.16.0\n"
+
+#: qd-cli/src/qd_cli/cli.py:21
+#, fuzzy
+msgid "Loading QD plugins..."
+msgstr "Loading QD plugins..."
+
+#: qd-cli/src/qd_cli/cli.py:27
+#, python-format
+msgid "Loading plugins completed in %.3f seconds."
+msgstr "Loading plugins completed in %.3f seconds."
+
+#: qd-cli/src/qd_cli/cli.py:42
+msgid "File not found: {file_path}"
+msgstr "File not found: {file_path}"
+
+#: qd-cli/src/qd_cli/cli.py:48
+msgid "Unable to parse JSON: {file_path}"
+msgstr "Unable to parse JSON: {file_path}"
+
+#: qd-cli/src/qd_cli/cli.py:64
+#, python-format
+msgid "QD execution failed: %s"
+msgstr "QD execution failed: %s"
+
+#: qd-cli/src/qd_cli/cli.py:70
+#, python-format
+msgid ""
+"QD execution succeeded! Result:\n"
+" %s"
+msgstr ""
+"QD execution succeeded! Result:\n"
+" %s"
+
+#: qd-cli/src/qd_cli/cli.py:75
+msgid "Execute HAR template requests using QD."
+msgstr "Execute HAR template requests using QD."
+
+#: qd-cli/src/qd_cli/cli.py:80
+msgid ""
+"HAR template file path.\n"
+"Example: ./example.tpl.har"
+msgstr ""
+"HAR template file path.\n"
+"Example: ./example.tpl.har"
+
+#: qd-cli/src/qd_cli/cli.py:87
+msgid ""
+"Template variable configuration JSON file path (optional).\n"
+"Example: ./env_config.json"
+msgstr ""
+"Template variable configuration JSON file path (optional).\n"
+"Example: ./env_config.json"
+
+#: qd-cli/src/qd_cli/cli.py:96
+msgid ""
+"Extra key-value pairs for adding or updating template variable values (optional).\n"
+"Support adding multiple template variable key-value pairs.\n"
+"Example: -k Cookie \"session=123456; token=abcdef\" --variable ENDPOINT https://api.example.com"
+msgstr ""
+"Extra key-value pairs for adding or updating template variable values (optional).\n"
+"Support adding multiple template variable key-value pairs.\n"
+"Example: -k Cookie \"session=123456; token=abcdef\" --variable ENDPOINT https://api.example.com"
+
+#: qd-cli/src/qd_cli/cli.py:106
+msgid "Character encoding of HAR template file (optional), default is utf-8."
+msgstr "Character encoding of HAR template file (optional), default is utf-8."
+
+#: qd-cli/src/qd_cli/cli.py:112
+msgid "Character encoding of template variable configuration JSON file (optional), default is utf-8."
+msgstr "Character encoding of template variable configuration JSON file (optional), default is utf-8."
+
