@@ -1,0 +1,76 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: qd-today\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2024-12-22 18:36+0800\n"
+"PO-Revision-Date: 2024-12-22 11:12\n"
+"Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
+"Language-Team: English\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.16.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Crowdin-Project: qd-today\n"
+"X-Crowdin-Project-ID: 737675\n"
+"X-Crowdin-Language: en\n"
+"X-Crowdin-File: /core/qd-cli/src/qd_cli/locale/qd_cli.po\n"
+"X-Crowdin-File-ID: 28\n"
+"Language: en_US\n"
+
+#: qd-cli/src/qd_cli/cli.py:21
+msgid "Loading QD plugins..."
+msgstr ""
+
+#: qd-cli/src/qd_cli/cli.py:27
+#, python-format
+msgid "Loading plugins completed in %.3f seconds."
+msgstr ""
+
+#: qd-cli/src/qd_cli/cli.py:42
+msgid "File not found: {file_path}"
+msgstr ""
+
+#: qd-cli/src/qd_cli/cli.py:48
+msgid "Unable to parse JSON: {file_path}"
+msgstr ""
+
+#: qd-cli/src/qd_cli/cli.py:64
+#, python-format
+msgid "QD execution failed: %s"
+msgstr ""
+
+#: qd-cli/src/qd_cli/cli.py:70
+#, python-format
+msgid "QD execution succeeded! Result:\n"
+" %s"
+msgstr ""
+
+#: qd-cli/src/qd_cli/cli.py:75
+msgid "Execute HAR template requests using QD."
+msgstr ""
+
+#: qd-cli/src/qd_cli/cli.py:80
+msgid "HAR template file path.\n"
+"Example: ./example.tpl.har"
+msgstr ""
+
+#: qd-cli/src/qd_cli/cli.py:87
+msgid "Template variable configuration JSON file path (optional).\n"
+"Example: ./env_config.json"
+msgstr ""
+
+#: qd-cli/src/qd_cli/cli.py:96
+msgid "Extra key-value pairs for adding or updating template variable values (optional).\n"
+"Support adding multiple template variable key-value pairs.\n"
+"Example: -k Cookie \"session=123456; token=abcdef\" --variable ENDPOINT https://api.example.com"
+msgstr ""
+
+#: qd-cli/src/qd_cli/cli.py:106
+msgid "Character encoding of HAR template file (optional), default is utf-8."
+msgstr ""
+
+#: qd-cli/src/qd_cli/cli.py:112
+msgid "Character encoding of template variable configuration JSON file (optional), default is utf-8."
+msgstr ""
+
