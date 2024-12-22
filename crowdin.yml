@@ -1,3 +1,8 @@
+pull_request_title: "Change(i18n): 📝 New Crowdin updates"
+pull_request_labels:
+  - "crowdin"
+  - "l10n"
+
 files:
   - source: /qd-core/src/qd_core/locale/qd_core.po
     translation: /qd-core/src/qd_core/locale/%locale_with_underscore%/LC_MESSAGES/messages.po
