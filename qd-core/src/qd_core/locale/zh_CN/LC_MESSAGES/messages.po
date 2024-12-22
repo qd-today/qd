@@ -1,18 +1,22 @@
-
 msgid ""
 msgstr ""
-"Project-Id-Version: qd-core 0.0.1\n"
+"Project-Id-Version: qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-12-22 17:43+0800\n"
-"PO-Revision-Date: 2024-12-22 09:03+0000\n"
+"PO-Revision-Date: 2024-12-22 11:08\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
-"Language: zh_CN\n"
 "Language-Team: Chinese Simplified\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Crowdin-Project: qd-today\n"
+"X-Crowdin-Project-ID: 737675\n"
+"X-Crowdin-Language: zh-CN\n"
+"X-Crowdin-File: /core/qd-core/src/qd_core/locale/qd_core.po\n"
+"X-Crowdin-File-ID: 18\n"
+"Language: zh_CN\n"
 
 #: qd-core/src/qd_core/config.py:65
 msgid "Whether to enable QD Framework Debug"
@@ -95,13 +99,11 @@ msgid "Global proxy domain name list, which is empty by default, indicating that
 msgstr "全局代理域名列表,默认为空,表示不启用全局代理。代理格式应为 'scheme://username:password@host:port'"
 
 #: qd-core/src/qd_core/config.py:251
-msgid ""
-"Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
+msgid "Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
 "- 'regexp': Regular expression matching pattern;\n"
 "- 'url': the URL exactly matches the pattern;\n"
 "- None: global proxy blacklist is not enabled"
-msgstr ""
-"直连地址的匹配模式,默认为 'regexp' (正则表达式匹配) 以过滤本地请求,可选输入：\n"
+msgstr "直连地址的匹配模式,默认为 'regexp' (正则表达式匹配) 以过滤本地请求,可选输入：\n"
 "- 'regexp': 正则表达式匹配模式;\n"
 "- 'url': 网址完全匹配模式;\n"
 "- None : 不启用全局代理黑名单"
@@ -247,12 +249,10 @@ msgstr "{block_idx}/{tpl_length} 处 if 条件表达式执行失败, \\r\\n错�
 
 #: qd-core/src/qd_core/client/fetcher.py:289
 #, python-format
-msgid ""
-"Success at %d/%d request, \r\n"
+msgid "Success at %d/%d request, \r\n"
 "Request URL: %s, \r\n"
 "Result: %s"
-msgstr ""
-"%d/%d 处请求成功, \r\n"
+msgstr "%d/%d 处请求成功, \r\n"
 "请求 URL: %s, \r\n"
 "结果: %s"
 
@@ -376,11 +376,9 @@ msgstr "已添加 API 路由: {path} {methods}"
 
 #: qd-core/src/qd_core/plugins/default.py:28
 #, python-format
-msgid ""
-"Import DdddOCR module falied: \"%s\". \n"
+msgid "Import DdddOCR module falied: \"%s\". \n"
 "Tips: This warning message is only for prompting, it will not affect running of QD framework."
-msgstr ""
-"导入 DdddOCR 模块失败: \"%s\".\n"
+msgstr "导入 DdddOCR 模块失败: \"%s\".\n"
 "提示: 这个警告消息只是为了提示, 它不会影响 QD 框架运行。"
 
 #: qd-core/src/qd_core/plugins/default.py:49
@@ -735,11 +733,9 @@ msgid "forbidden opcode(s) in {expr}: {opcodes}"
 msgstr "禁止 {expr} 中的操作码：{opcodes}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:474
-msgid ""
-"\"{e}\" while compiling\n"
+msgid "\"{e}\" while compiling\n"
 "{expr}"
-msgstr ""
-"编译表达式时发生错误 \"{e}\" \n"
+msgstr "编译表达式时发生错误 \"{e}\" \n"
 "{expr}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:598
@@ -747,23 +743,19 @@ msgid "Looks like you are trying to pass a dynamic environment, you should proba
 msgstr "看起来你试图传递一个动态环境, 你或许应该在 safe_eval() 中传递 nocopy=True."
 
 #: qd-core/src/qd_core/utils/safe_eval.py:640
-msgid ""
-"{err_type_name} : {err_msg} at line {err_lineno}\n"
+msgid "{err_type_name} : {err_msg} at line {err_lineno}\n"
 "{err_line}"
-msgstr ""
-"{err_type_name} : {err_msg} 发生在 {err_lineno} 行处\n"
+msgstr "{err_type_name} : {err_msg} 发生在 {err_lineno} 行处\n"
 "{err_line}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:658
-msgid ""
-"Module {v} can not be used in evaluation contexts\n"
+msgid "Module {v} can not be used in evaluation contexts\n"
 "Prefer providing only the items necessary for your intended use.\n"
 "If a \"module\" is necessary for backwards compatibility, use\n"
 "`odoo.tools.safe_eval.wrap_module` to generate a wrapper recursively\n"
 "whitelisting allowed attributes.\n"
 "Pre-wrapped modules are provided as attributes of `odoo.tools.safe_eval`.\n"
-msgstr ""
-"模块 {v} 不能在评估上下文中使用\n"
+msgstr "模块 {v} 不能在评估上下文中使用\n"
 "最好只提供预期用途所需项.\n"
 "如果模块对于向后兼容是必需的，请使用\n"
 "'odoo.tools.safe_eval.wrap_module' 递归生成包装\n"
