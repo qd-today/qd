@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-12-09 00:47+0800\n"
-"PO-Revision-Date: 2024-12-08 16:53\n"
+"PO-Revision-Date: 2024-12-22 07:04\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
 "Language-Team: English\n"
 "MIME-Version: 1.0\n"
@@ -174,19 +174,19 @@ msgstr "Push picture URL"
 
 #: qd-core/src/qd_core/config.py:319
 msgid "Multi-language directory, default is {locale_dir}"
-msgstr ""
+msgstr "Multi-language directory, default is {locale_dir}"
 
 #: qd-core/src/qd_core/config.py:325
 msgid "Locale, default is zh_CN"
-msgstr ""
+msgstr "Locale, default is zh_CN"
 
 #: qd-core/src/qd_core/config.py:329
 msgid "Default locale, default is en_US"
-msgstr ""
+msgstr "Default locale, default is en_US"
 
 #: qd-core/src/qd_core/config.py:333
 msgid "Multilingual domain, default is messages"
-msgstr ""
+msgstr "Multilingual domain, default is messages"
 
 #: qd-core/src/qd_core/config.py:338
 msgid "日志配置"
@@ -222,7 +222,7 @@ msgstr "Push settings"
 
 #: qd-core/src/qd_core/config.py:356
 msgid "多语言配置"
-msgstr ""
+msgstr "Multi-language settings"
 
 #: qd-core/src/qd_core/client/fetcher.py:132
 msgid "for循环只支持可迭代类型及变量"
@@ -372,7 +372,7 @@ msgstr "tomorrow"
 
 #: qd-core/src/qd_core/plugins/base.py:35
 msgid "Added API route: {path} {methods}"
-msgstr ""
+msgstr "Added API route: {path} {methods}"
 
 #: qd-core/src/qd_core/plugins/default.py:28
 #, python-format
@@ -756,7 +756,7 @@ msgstr "Module {v} can not be used in evaluation contexts\n"
 #: qd-core/src/qd_core/utils/shell.py:13
 #, python-format
 msgid "Running command: %s %s"
-msgstr ""
+msgstr "Running command: %s %s"
 
 #: qd-core/src/qd_core/utils/shell.py:33
 msgid "An error occurred during command execution: {e}"
