@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-12-22 17:43+0800\n"
-"PO-Revision-Date: 2024-12-22 10:25\n"
+"PO-Revision-Date: 2024-12-22 11:17\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
 "Language-Team: English\n"
 "MIME-Version: 1.0\n"
@@ -408,7 +408,7 @@ msgstr "Whether to perform HTML escaping, the default is False, and the content 
 
 #: qd-core/src/qd_core/plugins/default.py:168
 msgid "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please urlencode it again before passing it in"
-msgstr ""
+msgstr "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please urlencode it again before passing it in"
 
 #: qd-core/src/qd_core/plugins/default.py:176
 msgid "Specified encoding, default is utf-8"
@@ -416,7 +416,7 @@ msgstr "Specified encoding, default is utf-8"
 
 #: qd-core/src/qd_core/plugins/default.py:181
 msgid "Whether to decode plus(+) to space( ), only valid when encoding is utf-8, default is False"
-msgstr ""
+msgstr "Whether to decode plus (+) to space ( ), only valid when encoding is utf-8, default is False"
 
 #: qd-core/src/qd_core/plugins/default.py:222
 msgid "Raw data"
