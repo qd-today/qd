@@ -1,18 +1,22 @@
-
 msgid ""
 msgstr ""
-"Project-Id-Version:  qd-today\n"
+"Project-Id-Version: qd-today\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-12-22 16:21+0800\n"
-"PO-Revision-Date: 2024-12-22 07:04+0000\n"
+"PO-Revision-Date: 2024-12-22 08:26\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
-"Language: en_US\n"
 "Language-Team: English\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Crowdin-Project: qd-today\n"
+"X-Crowdin-Project-ID: 737675\n"
+"X-Crowdin-Language: en\n"
+"X-Crowdin-File: /core/qd-core/src/qd_core/locale/qd_core.po\n"
+"X-Crowdin-File-ID: 18\n"
+"Language: en_US\n"
 
 #: qd-core/src/qd_core/config.py:65
 msgid "Whether to enable QD Framework Debug"
@@ -95,8 +99,7 @@ msgid "Global proxy domain name list, which is empty by default, indicating that
 msgstr ""
 
 #: qd-core/src/qd_core/config.py:251
-msgid ""
-"Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
+msgid "Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input:\n"
 "- 'regexp': Regular expression matching pattern;\n"
 "- 'url': the URL exactly matches the pattern;\n"
 "- None: global proxy blacklist is not enabled"
@@ -243,12 +246,10 @@ msgstr "Failed at {block_idx}/{tpl_length} if condition, \\r\\nError: {error}, \
 
 #: qd-core/src/qd_core/client/fetcher.py:289
 #, python-format
-msgid ""
-"Success at %d/%d request, \r\n"
+msgid "Success at %d/%d request, \r\n"
 "Request URL: %s, \r\n"
 "Result: %s"
-msgstr ""
-"Success at %d/%d request, \r\n"
+msgstr "Success at %d/%d request, \r\n"
 "Request URL: %s, \r\n"
 "Result: %s"
 
@@ -347,19 +348,16 @@ msgid "ago"
 msgstr ""
 
 #: qd-core/src/qd_core/filters/time.py:76
-#, fuzzy
 msgid "{seconds} seconds "
-msgstr "Delay {seconds} second."
+msgstr ""
 
 #: qd-core/src/qd_core/filters/time.py:80
-#, fuzzy
 msgid "{minutes} minutes "
-msgstr "{minutes} min"
+msgstr ""
 
 #: qd-core/src/qd_core/filters/time.py:83
-#, fuzzy
 msgid "{hours} hours"
-msgstr "{hours} h"
+msgstr ""
 
 #: qd-core/src/qd_core/filters/time.py:89
 msgid "yesterday"
@@ -375,11 +373,9 @@ msgstr "Added API route: {path} {methods}"
 
 #: qd-core/src/qd_core/plugins/default.py:28
 #, python-format
-msgid ""
-"Import DdddOCR module falied: \"%s\". \n"
+msgid "Import DdddOCR module falied: \"%s\". \n"
 "Tips: This warning message is only for prompting, it will not affect running of QD framework."
-msgstr ""
-"Import DdddOCR module failed: \"%s\".\n"
+msgstr "Import DdddOCR module failed: \"%s\".\n"
 "Tips: This warning message is only for prompting, it will not affect running of QD framework."
 
 #: qd-core/src/qd_core/plugins/default.py:49
@@ -461,9 +457,8 @@ msgid "The encoding method of the random byte string, default is utf-8"
 msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:298
-#, fuzzy, python-format
 msgid "Function Selection Error"
-msgstr "Caching Function Result Error: %s"
+msgstr ""
 
 #: qd-core/src/qd_core/plugins/default.py:300
 msgid "Incomplete parameters, please confirm"
@@ -638,9 +633,8 @@ msgid "smtp sendmail error: %s"
 msgstr "SMTP send mail error: %s"
 
 #: qd-core/src/qd_core/utils/mail.py:73
-#, fuzzy
 msgid "QD Notification <noreply@{mailgun_domain}>"
-msgstr "QD Remind <noreply@{mailgun_domain}>"
+msgstr ""
 
 #: qd-core/src/qd_core/utils/mail.py:86
 msgid "need text or html"
@@ -682,9 +676,8 @@ msgid "skey is empty"
 msgstr "skey is empty"
 
 #: qd-core/src/qd_core/utils/pusher.py:119
-#, fuzzy
 msgid "\">QD Notification </a>------"
-msgstr "\">QD Remind</a>------"
+msgstr ""
 
 #: qd-core/src/qd_core/utils/pusher.py:133
 msgid "TG_TOKEN or TG_USERID is empty"
@@ -737,11 +730,9 @@ msgid "forbidden opcode(s) in {expr}: {opcodes}"
 msgstr "Forbidden opcode(s) in {expr}: {opcodes}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:474
-msgid ""
-"\"{e}\" while compiling\n"
+msgid "\"{e}\" while compiling\n"
 "{expr}"
-msgstr ""
-"\"{e}\" while compiling\n"
+msgstr "\"{e}\" while compiling\n"
 "{expr}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:598
@@ -749,23 +740,19 @@ msgid "Looks like you are trying to pass a dynamic environment, you should proba
 msgstr "Looks like you are trying to pass a dynamic environment, you should probably pass nocopy=True to safe_eval()."
 
 #: qd-core/src/qd_core/utils/safe_eval.py:640
-msgid ""
-"{err_type_name} : {err_msg} at line {err_lineno}\n"
+msgid "{err_type_name} : {err_msg} at line {err_lineno}\n"
 "{err_line}"
-msgstr ""
-"{err_type_name} : {err_msg} at line {err_lineno}\n"
+msgstr "{err_type_name} : {err_msg} at line {err_lineno}\n"
 "{err_line}"
 
 #: qd-core/src/qd_core/utils/safe_eval.py:658
-msgid ""
-"Module {v} can not be used in evaluation contexts\n"
+msgid "Module {v} can not be used in evaluation contexts\n"
 "Prefer providing only the items necessary for your intended use.\n"
 "If a \"module\" is necessary for backwards compatibility, use\n"
 "`odoo.tools.safe_eval.wrap_module` to generate a wrapper recursively\n"
 "whitelisting allowed attributes.\n"
 "Pre-wrapped modules are provided as attributes of `odoo.tools.safe_eval`.\n"
-msgstr ""
-"Module {v} can not be used in evaluation contexts\n"
+msgstr "Module {v} can not be used in evaluation contexts\n"
 "Prefer providing only the items necessary for your intended use.\n"
 "If a \"module\" is necessary for backwards compatibility, use\n"
 "`odoo.tools.safe_eval.wrap_module` to generate a wrapper recursively\n"
@@ -794,277 +781,10 @@ msgid "Setting environment variables: {envs}"
 msgstr ""
 
 #: qd-core/src/qd_core/utils/shell.py:60
-#, fuzzy
 msgid "OS error occurred while executing command: {e}"
-msgstr "An error occurred during command execution: {e}"
+msgstr ""
 
 #: qd-core/src/qd_core/utils/shell.py:63
 msgid "Invalid command or environment variable setting: {e}"
 msgstr ""
-
-#~ msgid "是否启用 QD 框架 Debug"
-#~ msgstr "Whether to enable QD Framework Debug"
-
-#~ msgid "QD 框架日志等级"
-#~ msgstr "QD framework log level"
-
-#~ msgid "是否启用在控制台日志中打印 Exception 的 TraceBack 信息"
-#~ msgstr "Whether to enable printing of TraceBack information for Exception in the console output"
-
-#~ msgid "是否在控制台输出导入警告信息"
-#~ msgstr "Whether to import warning messages in the console output"
-
-#~ msgid "允许用户单次请求下载的最大值，默认为 5MB"
-#~ msgstr "Maximum download size allowed for a single user request, default is 5MB"
-
-#~ msgid "HTTP Request 请求超时时间（秒）"
-#~ msgstr "HTTP request timeout (seconds)"
-
-#~ msgid "HTTP Request 连接超时时间（秒）"
-#~ msgstr "HTTP request connection timeout (seconds)"
-
-#~ msgid "延时API 最大时间限制（秒），请确保此值小于上述 timeout 配置，否则可能会导致 599 错误"
-#~ msgstr "Delay API Maximum time limit (seconds), make sure this value is less than the timeout configuration above, otherwise it may result in 599 error"
-
-#~ msgid "unsafe_eval 执行最大时间限制（秒）"
-#~ msgstr "unsafe_eval maximum time limit for execution (seconds)"
-
-#~ msgid "任务运行中单个 While 循环最大运行时间, 单位为秒, 默认为15分钟"
-#~ msgstr "Maximum runtime for a single While loop in a task, in seconds, default is 15 minutes"
-
-#~ msgid "任务运行中单个任务最大请求次数, 默认为 1500 次"
-#~ msgstr "Maximum number of requests for a single task in a task run, default is 1500"
-
-#~ msgid "是否启用 Pycurl 模块，默认启用。当运行环境缺少 PyCurl 模块时，此设置无效"
-#~ msgstr "Whether to enable the PyCurl module, enabled by default. This setting has no effect when the running environment is missing the PyCurl module"
-
-#~ msgid "在 Pycurl 环境下，若部分请求因某些错误导致失败时，是否自动修改冲突设置并重发请求"
-#~ msgstr "In PyCurl environment, if some requests fail due to some errors, whether to automatically modify the conflict settings and resend the requests"
-
-#~ msgid "通过 Curl 使用指定的 DNS 进行解析，仅在 Pycurl 环境下支持"
-#~ msgstr "Resolve by using the specified DNS through Curl, which is only supported in PyCurl environment"
-
-#~ msgid "是否允许使用 Curl 进行 Encoding 操作。当遇到 'Error 61 Unrecognized transfer encoding.' 错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Encoding 并尝试重试"
-#~ msgstr "Whether to allow Encoding operations with Curl. When an 'Error 61 Unrecognized transfer encoding.' error is encountered, and `ALLOW_RETRY=True`, this request will disable Content-Encoding in Headers and try again"
-
-#~ msgid "是否允许 Curl 使用 Headers 中自定义的 Content-Length 请求。当遇到 'HTTP 400 Bad Request' 错误，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Length 并尝试重试"
-#~ msgstr "Whether Curl is allowed to use the custom Content-Length request in Headers. When an' HTTP 400 Bad Request' error is encountered and' ALLOW_RETRY=True', this request will disable the Content-Length in Headers and try again"
-
-#~ msgid "当满足启用 PyCurl、HTTP Error Code 不在这个列表中、任务代理为空，并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Pycurl 并尝试重试"
-#~ msgstr "If PyCurl is enabled, HTTP Error Code is not in this list, the task proxy is empty, and `ALLOW_RETRY=True` is met, PyCurl will be disabled for this request and attempts will be retried"
-
-#~ msgid "启用后，在满足启用 PyCurl、返回 Response 为空、任务代理为空，并且 `ALLOW_RETRY=True` 的情况下，本次请求将禁用 Pycurl 并尝试重试"
-#~ msgstr "If PyCurl is enabled, the returned Response is empty, the task agent is empty, and `ALLOW_RETRY=True`, this request will disable PyCurl and try again"
-
-#~ msgid "全局代理域名列表，默认为空，表示不启用全局代理。代理格式应为 'scheme://username:password@host:port'"
-#~ msgstr "Global proxy domain name list, which is empty by default, indicating that global proxy is not enabled. The proxy format should be 'scheme://username:password@host:port'"
-
-#~ msgid ""
-#~ "直连地址的匹配模式，默认为 'regexp'（正则表达式匹配）以过滤本地请求，可选输入：\n"
-#~ "- 'regexp': 正则表达式匹配模式；\n"
-#~ "- 'url': 网址完全匹配模式；\n"
-#~ "- None : 不启用全局代理黑名单"
-#~ msgstr ""
-#~ "Matching mode of directly connected address, default is' regexp'(regular expression matching) to filter local requests, optional input: \n"
-#~ "- 'regexp': Regular expression matching pattern;\n"
-#~ "- 'url': the URL exactly matches the pattern;\n"
-#~ "- None: global proxy blacklist is not enabled"
-
-#~ msgid "根据 `proxy_direct_mode` 的值，此字段可以是满足直连规则的正则表达式字符串（当 `proxy_direct_mode='regexp'`）或不通过代理请求的 URL 列表（当 `proxy_direct_mode='url'`）。默认不启用直连规则"
-#~ msgstr "Depending on the value of `proxy_direct_mode`, this field can be a regular expression string that satisfies the direct connection rule (when `proxy_direct_mode='regexp'`) or a list of URLs that are not requested through the proxy (when `proxy_direct_mode='url'`). Direct rules are not enabled by default"
-
-#~ msgid "config 目录下自定义 ONNX 文件名列表（不含 '.onnx' 后缀）"
-#~ msgstr "Customized ONNX filename list in the config directory (excluding '.onnx' suffix)"
-
-#~ msgid "config 目录下自定义 ONNX 对应的自定义 `charsets.json` 文件名列表（不含 '.json' 后缀）"
-#~ msgstr "Customized `charsets.json` filename list corresponding to customized ONNX in the config directory (excluding '.json' suffix)"
-
-#~ msgid "邮箱 SMTP 服务器地址"
-#~ msgstr "Mailbox SMTP server address"
-
-#~ msgid "邮箱 SMTP 服务器端口"
-#~ msgstr "Mailbox SMTP server port"
-
-#~ msgid "是否使用 SSL 加密方式收发邮件"
-#~ msgstr "Whether to use SSL encryption to send and receive mail"
-
-#~ msgid "是否使用 STARTTLS 加密方式收发邮件，默认不启用"
-#~ msgstr "Whether to use STARTTLS encryption to send and receive emails. It is not enabled by default"
-
-#~ msgid "邮箱用户名"
-#~ msgstr "Mailbox username"
-
-#~ msgid "邮箱密码"
-#~ msgstr "Email password"
-
-#~ msgid "发送时使用的邮箱，默认与 MAIL_USER 相同"
-#~ msgstr "The mailbox used when sending is the same as MAIL_USER by default"
-
-#~ msgid "发送的邮件链接启用 HTTPS，默认为 False，若需要 HTTPS，请在外部设置反向代理"
-#~ msgstr "Whether to enable HTTPS for the sent email link, the default is False, if you need HTTPS, please set the reverse proxy externally"
-
-#~ msgid "Mailgun API Key，若不为空则优先使用 Mailgun 方式发送邮件"
-#~ msgstr "Mailgun API Key. If it is not empty, Mailgun will be used first to send emails"
-
-#~ msgid "Mailgun Domain，需要替换为实际的 Mailgun 域名"
-#~ msgstr "Mailgun Domain, which needs to be replaced with the actual Mailgun domain name"
-
-#~ msgid "推送图片 URL"
-#~ msgstr "Push picture URL"
-
-#~ msgid "日志配置"
-#~ msgstr "Log settings"
-
-#~ msgid "客户端请求配置"
-#~ msgstr "Client requests settings"
-
-#~ msgid "任务配置"
-#~ msgstr "Task settings"
-
-#~ msgid "pycurl 配置"
-#~ msgstr "PyCurl settings"
-
-#~ msgid "代理配置"
-#~ msgstr "Proxy settings"
-
-#~ msgid "dddocr 配置"
-#~ msgstr "DdddOCR settings"
-
-#~ msgid "邮件配置"
-#~ msgstr "Mail settings"
-
-#~ msgid "推送配置"
-#~ msgstr "Push settings"
-
-#~ msgid "多语言配置"
-#~ msgstr "Multi-language settings"
-
-#~ msgid "for循环只支持可迭代类型及变量"
-#~ msgstr "For loop only supports iterated types and variables"
-
-#~ msgid "后"
-#~ msgstr "later"
-
-#~ msgid "前"
-#~ msgstr "ago"
-
-#~ msgid "{seconds} 秒"
-#~ msgstr "{seconds} s"
-
-#~ msgid "昨天"
-#~ msgstr "yesterday"
-
-#~ msgid "明天"
-#~ msgstr "tomorrow"
-
-#~ msgid "seconds:延时指定时间, 大于 {delay_max_timeout}s 均视为延时 {delay_max_timeout}s"
-#~ msgstr "seconds: delay the specified time, greater than {delay_max_timeout}s are considered as delay {delay_max_timeout}s"
-
-#~ msgid "是否进行 html 反转义, 默认为 False, 启用该参数需对 content 进行 urlencode 编码"
-#~ msgstr "Whether to perform HTML escaping, the default is False, and the content needs to be urlencoded to enable this parameter"
-
-#~ msgid "要转码的 urlencoded 内容, 如果 content 为非 utf-8 编码的 urlencoded 字符串, 请再次进行 urlencode 编码后再传入"
-#~ msgstr "The urlencoded content to be transcoded. If content is a non-utf-8 encoded urlencoded string, please uuencode it again before passing it in"
-
-#~ msgid "要转码的内容"
-#~ msgstr "Content to be transcoded"
-
-#~ msgid "原始数据"
-#~ msgstr "raw data"
-
-#~ msgid "正则表达式"
-#~ msgstr "regular expression"
-
-#~ msgid "要替换的内容"
-#~ msgstr "Content to be replaced"
-
-#~ msgid "要替换的字符串"
-#~ msgstr "String to be replaced"
-
-#~ msgid "返回类型, text 或 json, 默认为 json"
-#~ msgstr "Return type, text or json, default is json"
-
-#~ msgid "RSA私钥"
-#~ msgstr "RSA private key"
-
-#~ msgid "要加密或解密的数据"
-#~ msgstr "Data to be encrypted or decrypted"
-
-#~ msgid "encode为加密,decode为解密"
-#~ msgstr "encode is encryption, decode is decryption"
-
-#~ msgid "随机字节串,默认为None"
-#~ msgstr "Random byte string, default is None"
-
-#~ msgid "随机字节串的编码方式,默认为utf-8"
-#~ msgstr "The encoding method of the random byte string, default is utf-8"
-
-#~ msgid "功能选择错误"
-#~ msgstr "Function Selection Error"
-
-#~ msgid "参数不完整，请确认"
-#~ msgstr "Incomplete parameters, please confirm"
-
-#~ msgid "成功加载自定义Onnx模型: %s.onnx"
-#~ msgstr "Successfully loaded custom ONNX model: %s.onnx"
-
-#~ msgid "要识别的Base64图片内容"
-#~ msgstr "Content of the Base64 image to be recognized"
-
-#~ msgid "要识别的web图片Url地址"
-#~ msgstr "URL address of the web image to be identified"
-
-#~ msgid "是否采用旧模型, 默认为False"
-#~ msgstr "Whether to use the old model, the default is False"
-
-#~ msgid "自定义Onnx文件名, 默认为空"
-#~ msgstr "Customize ONNX filename, the default is None"
-
-#~ msgid "要检测的Base64图片内容"
-#~ msgstr "Content of the Base64 image to be detected"
-
-#~ msgid "要检测的web图片Url地址"
-#~ msgstr "URL address of the web image to be detected"
-
-#~ msgid "小滑块图片是否包含过多背景, 默认为False"
-#~ msgstr "Whether the small slider image contains too much background, the default is False"
-
-#~ msgid "imgtarget是否不为小滑块, True表示为带坑位原图, False表示为小滑块, 默认为False"
-#~ msgstr "Whether imgtarget is not a small slider, True means the original image with pits, False means a small slider, the default is False"
-
-#~ msgid "用户设置 Task 变量"
-#~ msgstr "User-set Task variables"
-
-#~ msgid "tz1 必须小于等于 tz2"
-#~ msgstr "tz1 must be less than or equal to tz2"
-
-#~ msgid "模式未选择"
-#~ msgstr "Mode not selected"
-
-#~ msgid "企业微信Pusher获取AccessToken失败或参数不完整!"
-#~ msgstr "WeCom pusher fails to obtain AccessToken or the parameters are incomplete!"
-
-#~ msgid "QD框架"
-#~ msgstr "QD Framework"
-
-#~ msgid "企业微信WebHook获取AccessToken失败或参数不完整!"
-#~ msgstr "WeCom webhook fails to obtain Accession or the parameters are incomplete!"
-
-#~ msgid "请配置框架域名 domain, 以启用邮箱推送功能!"
-#~ msgstr "Please configure the framework domain to enable the email push function!"
-
-#~ msgid "命令必须以列表形式提供。"
-#~ msgstr "The commands must be provided as a List"
-
-#~ msgid "环境变量必须以字典形式提供。"
-#~ msgstr "Environment variables must be provided as a Dict"
-
-#~ msgid "设置环境变量: {envs}"
-#~ msgstr "Setting environment variables: {envs}"
-
-#~ msgid "执行命令时发生OS错误: {e}"
-#~ msgstr "OS error occurred while executing command: {e}"
-
-#~ msgid "无效的命令或环境变量设置: {e}"
-#~ msgstr "Invalid command or environment variable setting: {e}"
 
