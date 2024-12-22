@@ -62,15 +62,17 @@ class QDBaseSettings(BaseSettings):
 class LogSettings(QDBaseSettings):
     """日志设置类"""
 
-    debug: bool = Field(default=False, alias="qd_debug", description=gettext("是否启用 QD 框架 Debug"))
-    level: str = Field(default=None, description=gettext("QD 框架日志等级"), validate_default=True)
+    debug: bool = Field(default=False, alias="qd_debug", description=gettext("Whether to enable QD Framework Debug"))
+    level: str = Field(default=None, description=gettext("QD framework log level"), validate_default=True)
     traceback_print: bool = Field(
         default=None,
-        description=gettext("是否启用在控制台日志中打印 Exception 的 TraceBack 信息"),
+        description=gettext("Whether to enable printing of TraceBack information for Exception in the console output"),
         validate_default=True,
     )
     display_import_warning: bool = Field(
-        default=None, description=gettext("是否在控制台输出导入警告信息"), validate_default=True
+        default=None,
+        description=gettext("Whether to import warning messages in the console output"),
+        validate_default=True,
     )
 
     @field_validator("level", mode="before")
@@ -99,15 +101,23 @@ class LogSettings(QDBaseSettings):
 class ClientRequestSettings(QDBaseSettings):
     """客户端请求设置类"""
 
-    download_size_limit: int = Field(default=5242880, description=gettext("允许用户单次请求下载的最大值，默认为 5MB"))
-    request_timeout: float = Field(default=30.0, description=gettext("HTTP Request 请求超时时间（秒）"))
-    connect_timeout: float = Field(default=30.0, description=gettext("HTTP Request 连接超时时间（秒）"))
+    download_size_limit: int = Field(
+        default=5242880, description=gettext("Maximum download size allowed for a single user request, default is 5MB")
+    )
+    request_timeout: float = Field(default=30.0, description=gettext("HTTP request timeout (seconds)"))
+    connect_timeout: float = Field(default=30.0, description=gettext("HTTP request connection timeout (seconds)"))
     delay_max_timeout: float = Field(
         default=29.9,
-        description=gettext("延时API 最大时间限制（秒），请确保此值小于上述 timeout 配置，否则可能会导致 599 错误"),
+        description=gettext(
+            "Delay API Maximum time limit (seconds), "
+            "make sure this value is less than the timeout configuration above, "
+            "otherwise it may result in 599 error"
+        ),
         validate_default=True,
     )
-    unsafe_eval_timeout: float = Field(default=3.0, description=gettext("unsafe_eval 执行最大时间限制（秒）"))
+    unsafe_eval_timeout: float = Field(
+        default=3.0, description=gettext("Maximum time limit for unsafe_eval execution (seconds)")
+    )
 
     @field_validator("delay_max_timeout", mode="after")
     @classmethod
@@ -127,32 +137,46 @@ class TaskSettings(QDBaseSettings):
     """任务设置类"""
 
     task_while_loop_timeout: int = Field(
-        default=900, description=gettext("任务运行中单个 While 循环最大运行时间, 单位为秒, 默认为15分钟")
+        default=900,
+        description=gettext("Maximum runtime for a single While loop in a task, in seconds, default is 15 minutes"),
     )
-    task_request_limit: int = Field(default=1500, description=gettext("任务运行中单个任务最大请求次数, 默认为 1500 次"))
+    task_request_limit: int = Field(
+        default=1500, description=gettext("Maximum number of requests for a single task in a task run, default is 1500")
+    )
 
 
 class CurlSettings(QDBaseSettings):
     """Pycurl 相关设置"""
 
     use_pycurl: bool = Field(
-        default=True, description=gettext("是否启用 Pycurl 模块，默认启用。当运行环境缺少 PyCurl 模块时，此设置无效")
+        default=True,
+        description=gettext(
+            "Whether to enable the PyCurl module, enabled by default. "
+            "This setting has no effect when the running environment is missing the PyCurl module"
+        ),
     )
 
     allow_retry: bool = Field(
         default=True,
-        description=gettext("在 Pycurl 环境下，若部分请求因某些错误导致失败时，是否自动修改冲突设置并重发请求"),
+        description=gettext(
+            "In PyCurl environment, if some requests fail due to some errors, "
+            "whether to automatically modify the conflict settings and resend the requests"
+        ),
     )
 
     dns_server: str = Field(
-        default="", description=gettext("通过 Curl 使用指定的 DNS 进行解析，仅在 Pycurl 环境下支持")
+        default="",
+        description=gettext(
+            "Resolve by using the specified DNS through Curl, which is only supported in PyCurl environment"
+        ),
     )
 
     curl_encoding: bool = Field(
         default=True,
         description=gettext(
-            "是否允许使用 Curl 进行 Encoding 操作。当遇到 'Error 61 Unrecognized transfer encoding.' 错误，"
-            "并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Encoding 并尝试重试"
+            "Whether to allow Encoding operations with Curl. "
+            "When an 'Error 61 Unrecognized transfer encoding.' error is encountered, "
+            "and `ALLOW_RETRY=True`, this request will disable Content-Encoding in Headers and try again"
         ),
     )
 
@@ -160,8 +184,9 @@ class CurlSettings(QDBaseSettings):
         default=True,
         alias="CURL_CONTENT_LENGTH",
         description=gettext(
-            "是否允许 Curl 使用 Headers 中自定义的 Content-Length 请求。当遇到 'HTTP 400 Bad Request' 错误，"
-            "并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Headers 中的 Content-Length 并尝试重试"
+            "Whether Curl is allowed to use the custom Content-Length request in Headers. "
+            "When an' HTTP 400 Bad Request' error is encountered and' ALLOW_RETRY=True', "
+            "this request will disable the Content-Length in Headers and try again"
         ),
     )
 
@@ -194,16 +219,16 @@ class CurlSettings(QDBaseSettings):
             599,
         ],
         description=gettext(
-            "当满足启用 PyCurl、HTTP Error Code 不在这个列表中、任务代理为空，"
-            "并且 `ALLOW_RETRY=True` 时，本次请求将禁用 Pycurl 并尝试重试"
+            "If PyCurl is enabled, HTTP Error Code is not in this list, the task proxy is empty, "
+            "and `ALLOW_RETRY=True` is met, PyCurl will be disabled for this request and attempts will be retried"
         ),
     )
 
     empty_retry: bool = Field(
         default=True,
         description=gettext(
-            "启用后，在满足启用 PyCurl、返回 Response 为空、任务代理为空，"
-            "并且 `ALLOW_RETRY=True` 的情况下，本次请求将禁用 Pycurl 并尝试重试"
+            "If PyCurl is enabled, the returned Response is empty, the task agent is empty, "
+            "and `ALLOW_RETRY=True`, this request will disable PyCurl and try again"
         ),
     )
 
@@ -216,24 +241,29 @@ class ProxySettings(QDBaseSettings):
     proxies: List[str] = Field(
         default=[],
         description=gettext(
-            "全局代理域名列表，默认为空，表示不启用全局代理。代理格式应为 'scheme://username:password@host:port'"
+            "Global proxy domain name list, which is empty by default, indicating that global proxy is not enabled. "
+            "The proxy format should be 'scheme://username:password@host:port'"
         ),
     )
 
     proxy_direct_mode: Optional[Literal["regexp", "url"]] = Field(
         default="regexp",
-        description=gettext("""直连地址的匹配模式，默认为 'regexp'（正则表达式匹配）以过滤本地请求，可选输入：
-- 'regexp': 正则表达式匹配模式；
-- 'url': 网址完全匹配模式；
-- None : 不启用全局代理黑名单"""),
+        description=gettext(
+            "Matching mode of directly connected address, "
+            """default is' regexp'(regular expression matching) to filter local requests, optional input:
+- 'regexp': Regular expression matching pattern;
+- 'url': the URL exactly matches the pattern;
+- None: global proxy blacklist is not enabled"""
+        ),
     )
 
     proxy_direct: Union[List[Union[str, re.Pattern[str]]]] = Field(
         default=r"(?xi)\A([a-z][a-z0-9+\-.]*://)?(0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])(:[0-9]+)?",
         description=gettext(
-            "根据 `proxy_direct_mode` 的值，此字段可以是满足直连规则的正则表达式字符串"
-            "（当 `proxy_direct_mode='regexp'`）或不通过代理请求的 URL 列表（当 `proxy_direct_mode='url'`）。"
-            "默认不启用直连规则"
+            "Depending on the value of `proxy_direct_mode`, this field can be a regular expression string "
+            "that satisfies the direct connection rule (when `proxy_direct_mode='regexp'`) "
+            "or a list of URLs that are not requested through the proxy (when `proxy_direct_mode='url'`). "
+            "Direct rules are not enabled by default"
         ),
         validate_default=True,
     )
@@ -271,35 +301,54 @@ class DdddOcrSettings(QDBaseSettings):
 
     # 自定义 ONNX 文件名列表
     extra_onnx_name: List[str] = Field(
-        default=[""], description=gettext("config 目录下自定义 ONNX 文件名列表（不含 '.onnx' 后缀）")
+        default=[""],
+        description=gettext("Customized ONNX filename list in the config directory (excluding '.onnx' suffix)"),
     )
 
     # 自定义字符集 JSON 文件名列表
     extra_charsets_name: List[str] = Field(
         default=[""],
-        description=gettext("config 目录下自定义 ONNX 对应的自定义 `charsets.json` 文件名列表（不含 '.json' 后缀）"),
+        description=gettext(
+            "Customized `charsets.json` filename list corresponding to customized ONNX "
+            "in the config directory (excluding '.json' suffix)"
+        ),
     )
 
 
 class MailSettings(QDBaseSettings):
     """邮件发送相关配置类"""
 
-    mail_smtp: str = Field(default="", description=gettext("邮箱 SMTP 服务器地址"))
-    mail_port: int = Field(default=465, description=gettext("邮箱 SMTP 服务器端口"))
-    mail_ssl: bool = Field(default=True, description=gettext("是否使用 SSL 加密方式收发邮件"))
-    mail_starttls: bool = Field(default=False, description=gettext("是否使用 STARTTLS 加密方式收发邮件，默认不启用"))
-    mail_user: str = Field(default="", description=gettext("邮箱用户名"))
-    mail_password: str = Field(default="", description=gettext("邮箱密码"))
-    mail_from: str = Field(default="", description=gettext("发送时使用的邮箱，默认与 MAIL_USER 相同"))
+    mail_smtp: str = Field(default="", description=gettext("Mailbox SMTP server address"))
+    mail_port: int = Field(default=465, description=gettext("Mailbox SMTP server port"))
+    mail_ssl: bool = Field(default=True, description=gettext("Whether to use SSL encryption to send and receive mail"))
+    mail_starttls: bool = Field(
+        default=False,
+        description=gettext(
+            "Whether to use STARTTLS encryption to send and receive emails. It is not enabled by default"
+        ),
+    )
+    mail_user: str = Field(default="", description=gettext("Mailbox username"))
+    mail_password: str = Field(default="", description=gettext("Mailbox password"))
+    mail_from: str = Field(
+        default="", description=gettext("The mailbox used when sending is the same as MAIL_USER by default")
+    )
     mail_domain_https: bool = Field(
-        default=False, description=gettext("发送的邮件链接启用 HTTPS，默认为 False，若需要 HTTPS，请在外部设置反向代理")
+        default=False,
+        description=gettext(
+            "Whether to enable HTTPS for the sent email link, the default is False. "
+            "If you need HTTPS, please set the reverse proxy externally"
+        ),
     )
 
     # Mailgun 邮件发送方式配置
     mailgun_key: str = Field(
-        default="", description=gettext("Mailgun API Key，若不为空则优先使用 Mailgun 方式发送邮件")
+        default="",
+        description=gettext("Mailgun API Key. If it is not empty, Mailgun will be used first to send emails"),
     )
-    mailgun_domain: str = Field(default="", description=gettext("Mailgun Domain，需要替换为实际的 Mailgun 域名"))
+    mailgun_domain: str = Field(
+        default="",
+        description=gettext("Mailgun Domain, which needs to be replaced with the actual Mailgun domain name"),
+    )
 
 
 class PushSettings(QDBaseSettings):
@@ -307,7 +356,7 @@ class PushSettings(QDBaseSettings):
 
     push_pic_url: Url = Field(
         default="https://gitee.com/qd-today/qd/raw/master/web/static/img/push_pic.png",
-        description=gettext("推送图片 URL"),
+        description=gettext("Picture URL for push notification"),
     )
 
 
@@ -335,25 +384,25 @@ class I18nSettings(QDBaseSettings):
 
 
 class QDCoreSettings(QDBaseSettings):
-    log: LogSettings = Field(default_factory=LogSettings, description=gettext("日志配置"))
+    log: LogSettings = Field(default_factory=LogSettings, description=gettext("Log settings"))
 
     client_request: ClientRequestSettings = Field(
-        default_factory=ClientRequestSettings, description=gettext("客户端请求配置")
+        default_factory=ClientRequestSettings, description=gettext("Client requests settings")
     )
 
-    task: TaskSettings = Field(default_factory=TaskSettings, description=gettext("任务配置"))
+    task: TaskSettings = Field(default_factory=TaskSettings, description=gettext("Task settings"))
 
-    curl: CurlSettings = Field(default_factory=CurlSettings, description=gettext("pycurl 配置"))
+    curl: CurlSettings = Field(default_factory=CurlSettings, description=gettext("PyCurl settings"))
 
-    proxy: ProxySettings = Field(default_factory=ProxySettings, description=gettext("代理配置"))
+    proxy: ProxySettings = Field(default_factory=ProxySettings, description=gettext("Proxy settings"))
 
-    ddddocr: DdddOcrSettings = Field(default_factory=DdddOcrSettings, description=gettext("dddocr 配置"))
+    ddddocr: DdddOcrSettings = Field(default_factory=DdddOcrSettings, description=gettext("DdddOCR settings"))
 
-    mail: MailSettings = Field(default_factory=MailSettings, description=gettext("邮件配置"))
+    mail: MailSettings = Field(default_factory=MailSettings, description=gettext("Mail settings"))
 
-    push: PushSettings = Field(default_factory=PushSettings, description=gettext("推送配置"))
+    push: PushSettings = Field(default_factory=PushSettings, description=gettext("Push settings"))
 
-    i18n: I18nSettings = Field(default_factory=I18nSettings, description=gettext("多语言配置"))
+    i18n: I18nSettings = Field(default_factory=I18nSettings, description=gettext("Multi-language settings"))
 
 
 @lru_cache

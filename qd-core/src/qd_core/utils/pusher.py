@@ -116,7 +116,7 @@ class Pusher:
                 + "\n"
                 + '------<a href="'
                 + picurl
-                + gettext('">QD提醒</a>------'),
+                + gettext('">QD Notification </a>------'),
                 "disable_web_page_preview": "true",
                 "parse_mode": "HTML",
             }
@@ -229,7 +229,7 @@ class Pusher:
                     curltmp, verify_ssl=False, timeout=get_settings().client_request.request_timeout
                 ) as res:
                     return await self.judge_res(res)
-        raise Exception(gettext("模式未选择"))
+        raise Exception(gettext("Mode not selected"))
 
     # 获取Access_Token
     async def get_access_token(self, qywx: dict):
@@ -282,7 +282,7 @@ class Pusher:
             qywx["图片"] = tmp[3] if len(tmp) >= 4 else ""
             qywx["代理"] = tmp[4] if len(tmp) >= 5 else "https://qyapi.weixin.qq.com/"
         else:
-            raise Exception(gettext("企业微信Pusher获取AccessToken失败或参数不完整!"))
+            raise Exception(gettext("WeCom pusher fails to obtain AccessToken or the parameters are incomplete!"))
 
         if qywx["代理"][-1] != "/":
             qywx["代理"] = qywx["代理"] + "/"
@@ -312,7 +312,7 @@ class Pusher:
                             "title": title,
                             "digest": log.replace("\\r\\n", "\n"),
                             "content": log.replace("\\r\\n", "<br>"),
-                            "author": gettext("QD框架"),
+                            "author": gettext("QD Framework"),
                             "content_source_url": domain,
                             "thumb_media_id": media_id,
                         }
@@ -332,7 +332,7 @@ class Pusher:
                     if _json.get("errmsg", "") != "ok" and _json.get("errcode", 0) != 0:
                         raise Exception(_json["errmsg"])
                     return r
-        raise Exception(gettext("企业微信Pusher获取AccessToken失败或参数不完整!"))
+        raise Exception(gettext("WeCom pusher fails to obtain AccessToken or the parameters are incomplete!"))
 
     @log_and_raise_error(logger_pusher, error_message_format("QYWX_WebHook"))
     async def qywx_webhook_send(self, qywx_webhook, title: str, log: str):
@@ -341,7 +341,7 @@ class Pusher:
         if len(tmp) >= 1:
             qywx["Webhook"] = tmp[0]
         else:
-            raise Exception(gettext("企业微信WebHook获取AccessToken失败或参数不完整!"))
+            raise Exception(gettext("WeCom webhook fails to obtain Accession or the parameters are incomplete!"))
 
         log = log.replace("\\r\\n", "\n")
 
@@ -360,7 +360,7 @@ class Pusher:
     @log_and_raise_error(logger_pusher, error_message_format("Mail"))
     async def mail_send(self, email, title, content: str, domain: Optional[str] = None, check_domain=True):
         if check_domain and not domain:
-            r = gettext("请配置框架域名 domain, 以启用邮箱推送功能!")
+            r = gettext("Please configure the framework domain to enable the email push function!")
             logger_pusher.error("Send mail error: %s", r)
             return Exception(r)
 

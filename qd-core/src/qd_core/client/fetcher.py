@@ -129,7 +129,7 @@ class Fetcher:
                     if isinstance(_from_var, str) and _from_var.startswith("list(") or _from_var.startswith("range("):
                         _from = safe_eval(_from_var, env.variables)
                     if not isinstance(_from, Iterable):
-                        raise Exception(gettext("for循环只支持可迭代类型及变量"))
+                        raise Exception(gettext("'For' loop only supports iterated types and variables"))
                     support_enum = True
                 except Exception as e:
                     if get_settings().log.debug:

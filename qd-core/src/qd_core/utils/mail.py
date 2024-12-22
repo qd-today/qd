@@ -70,7 +70,9 @@ async def _send_mail_by_mailgun(to, subject, text=None, html=None, shark=False):
 
     body = {
         "from": to_bytes(
-            gettext("QD提醒 <noreply@{mailgun_domain}>").format(mailgun_domain=get_settings().mail.mailgun_domain)
+            gettext("QD Notification <noreply@{mailgun_domain}>").format(
+                mailgun_domain=get_settings().mail.mailgun_domain
+            )
         ),
         "to": to_bytes(to),
         "subject": to_bytes(subject),

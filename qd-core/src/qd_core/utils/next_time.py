@@ -23,7 +23,7 @@ class NextTsBase(BaseModel):
     @classmethod
     def validate_tz(cls, v, values):
         if values["randsw"] and values["sw"] and (v is not None and values["tz1"] > values["tz2"]):
-            raise ValueError(gettext("tz1 必须小于等于 tz2"))
+            raise ValueError(gettext("tz1 must be less than or equal to tz2"))
         return v
 
 

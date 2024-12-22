@@ -50,7 +50,7 @@ class Rule(BaseModel):
 
 
 class Env(BaseModel):
-    variables: dict[str, Any] = Field(description=gettext("用户设置 Task 变量"))
+    variables: dict[str, Any] = Field(description=gettext("User-set Task variables"))
     session: Union[List, InstanceOf[cookie_utils.CookieSession]]
 
 

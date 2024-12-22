@@ -46,9 +46,10 @@ async def delay(
         Field(
             ...,
             description=(
-                gettext("seconds:延时指定时间, 大于 {delay_max_timeout}s 均视为延时 {delay_max_timeout}s").format(
-                    delay_max_timeout=get_settings().client_request.delay_max_timeout
-                )
+                gettext(
+                    "seconds: delay the specified time, greater than {delay_max_timeout}s "
+                    "are considered as delay {delay_max_timeout}s"
+                ).format(delay_max_timeout=get_settings().client_request.delay_max_timeout)
             ),
         ),
     ] = 0.0,
@@ -126,11 +127,15 @@ async def timestamp(
     method_list=[["GET", "POST"]],
 )
 async def unicode(
-    content: Annotated[str, Field("", description="要转码的内容")] = "",
+    content: Annotated[str, Field("", description=gettext("Content to be transcoded"))] = "",
     html_unescape: Annotated[
         bool,
         Field(
-            False, description=gettext("是否进行 html 反转义, 默认为 False, 启用该参数需对 content 进行 urlencode 编码")
+            False,
+            description=gettext(
+                "Whether to perform HTML escaping, the default is False, "
+                "and the content needs to be urlencoded to enable this parameter"
+            ),
         ),
     ] = False,
 ):
@@ -161,15 +166,17 @@ async def urldecode(
             "",
             description=(
                 gettext(
-                    "要转码的 urlencoded 内容, "
-                    "如果 content 为非 utf-8 编码的 urlencoded 字符串, 请再次进行 urlencode 编码后再传入"
+                    "The urlencoded content to be transcoded. "
+                    "If content is a non-utf-8 encoded urlencoded string, "
+                    "please uuencode it again before passing it in"
                 )
             ),
         ),
     ] = "",
-    encoding: Annotated[str, Field("utf-8", description="指定编码, 默认为 utf-8")] = "utf-8",
+    encoding: Annotated[str, Field("utf-8", description=gettext("Specified encoding, default is utf-8"))] = "utf-8",
     unquote_plus: Annotated[
-        bool, Field(False, description=("是否将加号(+)解码为空格( ), 仅在 encoding 为 utf-8 时生效, 默认为 False."))
+        bool,
+        Field(False, description=gettext("Whether to decode plus(+) to space( ), only valid when encoding is utf-8")),
     ] = False,
 ):
     rtv = {}
@@ -190,7 +197,7 @@ async def urldecode(
     path_list=["/gb2312"],
     method_list=[["GET", "POST"]],
 )
-async def gb2312(content: Annotated[str, Field("", description=gettext("要转码的内容"))] = ""):
+async def gb2312(content: Annotated[str, Field("", description=gettext("Content to be transcoded"))] = ""):
     rtv = {}
     try:
         rtv["转换后"] = urllib.parse.unquote(content, encoding="gb2312")
@@ -207,8 +214,8 @@ async def gb2312(content: Annotated[str, Field("", description=gettext("要转�
     method_list=[["GET", "POST"]],
 )
 async def regex(
-    data: Annotated[str, Field("", description=gettext("原始数据"))] = "",
-    p: Annotated[str, Field("", description=gettext("正则表达式"))] = "",
+    data: Annotated[str, Field("", description=gettext("Raw data"))] = "",
+    p: Annotated[str, Field("", description=gettext("Regular expression"))] = "",
 ):
     rtv: Dict[str, Any] = {}
     try:
@@ -230,10 +237,10 @@ async def regex(
     method_list=[["GET", "POST"]],
 )
 async def string_replace(
-    p: Annotated[str, Field("", description=gettext("正则表达式"))] = "",
-    t: Annotated[str, Field("", description=gettext("要替换的内容"))] = "",
-    s: Annotated[str, Field("", description=gettext("要替换的字符串"))] = "",
-    r: Annotated[str, Field("", description=gettext("返回类型, text 或 json, 默认为 json"))] = "",
+    p: Annotated[str, Field("", description=gettext("Regular expression"))] = "",
+    t: Annotated[str, Field("", description=gettext("Content to be replaced"))] = "",
+    s: Annotated[str, Field("", description=gettext("String to be replaced"))] = "",
+    r: Annotated[str, Field("", description=gettext("Return type, 'text' or 'json', default is json"))] = "",
 ):
     rtv = {}
     try:
@@ -254,12 +261,14 @@ async def string_replace(
     method_list=[["GET", "POST"]],
 )
 async def rsa(
-    key: Annotated[str, Field("", description=gettext("RSA私钥"))] = "",
-    data: Annotated[str, Field("", description=gettext("要加密或解密的数据"))] = "",
-    f: Annotated[str, Field("", description=gettext("encode为加密,decode为解密"))] = "",
-    rand_bytes_str: Annotated[Optional[str], Field(None, description=gettext("随机字节串,默认为None"))] = None,
+    key: Annotated[str, Field("", description=gettext("RSA private key"))] = "",
+    data: Annotated[str, Field("", description=gettext("Data to be encrypted or decrypted"))] = "",
+    f: Annotated[str, Field("", description=gettext("'encode' is encryption, 'decode' is decryption"))] = "",
+    rand_bytes_str: Annotated[
+        Optional[str], Field(None, description=gettext("Random byte string, default is None"))
+    ] = None,
     rand_bytes_encode: Annotated[
-        str, Field("utf-8", description=gettext("随机字节串的编码方式,默认为utf-8"))
+        str, Field("utf-8", description=gettext("The encoding method of the random byte string, default is utf-8"))
     ] = "utf-8",
 ):
     try:
@@ -286,9 +295,9 @@ async def rsa(
                 decrypt_text_str = decrypt_text.decode("utf8")
                 return decrypt_text_str
             else:
-                raise Exception(gettext("功能选择错误"))
+                raise Exception(gettext("Function Selection Error"))
         else:
-            return Exception(gettext("参数不完整，请确认"))
+            return Exception(gettext("Incomplete parameters, please confirm"))
     except Exception as e:
         raise e
 
@@ -320,7 +329,7 @@ class DdddOcrServer:
                             f"{onnx_name}.json",
                         ),
                     )
-                    logger_plugins.info(gettext("成功加载自定义Onnx模型: %s.onnx"), onnx_name)
+                    logger_plugins.info(gettext("Successfully loaded custom ONNX model: %s.onnx"), onnx_name)
 
     def classification(self, img: bytes, old=False, extra_onnx_name=""):
         if extra_onnx_name:
@@ -386,10 +395,14 @@ async def get_img(
     method_list=[["GET", "POST"]],
 )
 async def dddd_ocr(
-    img: Annotated[str, Field("", description=gettext("要识别的Base64图片内容"))] = "",
-    imgurl: Annotated[str, Field("", description=gettext("要识别的web图片Url地址"))] = "",
-    old: Annotated[bool, Field(False, description=gettext("是否采用旧模型, 默认为False"))] = False,
-    extra_onnx_name: Annotated[str, Field("", description=gettext("自定义Onnx文件名, 默认为空"))] = "",
+    img: Annotated[str, Field("", description=gettext("Content of the Base64 image to be recognized"))] = "",
+    imgurl: Annotated[str, Field("", description=gettext("URL address of the web image to be identified"))] = "",
+    old: Annotated[
+        bool, Field(False, description=gettext("Whether to use the old model, the default is False"))
+    ] = False,
+    extra_onnx_name: Annotated[
+        str, Field("", description=gettext("Customize ONNX filename, the default is None"))
+    ] = "",
 ):
     rtv = {}
     try:
@@ -411,8 +424,8 @@ async def dddd_ocr(
     method_list=[["GET", "POST"]],
 )
 async def dddd_det(
-    img: Annotated[str, Field("", description=gettext("要检测的Base64图片内容"))] = "",
-    imgurl: Annotated[str, Field("", description=gettext("要检测的web图片Url地址"))] = "",
+    img: Annotated[str, Field("", description=gettext("Content of the Base64 image to be detected"))] = "",
+    imgurl: Annotated[str, Field("", description=gettext("URL address of the web image to be detected"))] = "",
 ):
     rtv = {}
     try:
@@ -434,15 +447,22 @@ async def dddd_det(
     method_list=[["GET", "POST"]],
 )
 async def dddd_slide(
-    imgtarget: Annotated[str, Field("", description=gettext("要识别的Base64图片内容"))] = "",
-    imgbg: Annotated[str, Field("", description=gettext("要识别的web图片Url地址"))] = "",
+    imgtarget: Annotated[str, Field("", description=gettext("Content of the Base64 image to be recognized"))] = "",
+    imgbg: Annotated[str, Field("", description=gettext("URL address of the web image to be identified"))] = "",
     simple_target: Annotated[
-        bool, Field(False, description=gettext("小滑块图片是否包含过多背景, 默认为False"))
+        bool,
+        Field(
+            False, description=gettext("Whether the small slider image contains too much background, default is False")
+        ),
     ] = False,
     comparison: Annotated[
         bool,
         Field(
-            False, description=gettext("imgtarget是否不为小滑块, True表示为带坑位原图, False表示为小滑块, 默认为False")
+            False,
+            description=gettext(
+                "Whether `imgtarget` is not a small slider, True means the original image with pits, "
+                "False means a small slider, the default is False"
+            ),
         ),
     ] = False,
 ):
