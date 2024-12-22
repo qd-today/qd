@@ -84,10 +84,10 @@ def get_translation(
     if selected_locale is not None:
         selected_locales.append(selected_locale)
     selected_locales.append(fallback_locale)
-    logger.info("Selected locales: %s", selected_locales)
+    logger.debug("Selected locales: %s", selected_locales)
 
     translation = Translations.load(locale_dir, selected_locales, domain)
-    logger.info("Loaded translations: %s", translation)
+    logger.info("Loaded translations: %r", translation)
     translation.install(names=names)
     return translation
 

@@ -1,22 +1,22 @@
+# Chinese (Simplified, China) translations for qd-cli.
+# Copyright (C) 2024 ORGANIZATION
+# This file is distributed under the same license as the qd-cli project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2024.
+#
 msgid ""
 msgstr ""
-"Project-Id-Version: qd-today\n"
+"Project-Id-Version: qd-cli 0.0.1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-12-22 18:36+0800\n"
-"PO-Revision-Date: 2024-12-22 11:12\n"
+"PO-Revision-Date: 2024-12-22 18:06+0800\n"
 "Last-Translator: a76yyyy <a76yyyy@gmail.com>\n"
-"Language-Team: Chinese Simplified\n"
+"Language: zh_Hans_CN\n"
+"Language-Team: zh_Hans_CN <LL@li.org>\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.16.0\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
-"X-Crowdin-Project: qd-today\n"
-"X-Crowdin-Project-ID: 737675\n"
-"X-Crowdin-Language: zh-CN\n"
-"X-Crowdin-File: /core/qd-cli/src/qd_cli/locale/qd_cli.po\n"
-"X-Crowdin-File-ID: 28\n"
-"Language: zh_CN\n"
 
 #: qd-cli/src/qd_cli/cli.py:21
 msgid "Loading QD plugins..."
@@ -42,9 +42,11 @@ msgstr "QD 执行失败: %s"
 
 #: qd-cli/src/qd_cli/cli.py:70
 #, python-format
-msgid "QD execution succeeded! Result:\n"
+msgid ""
+"QD execution succeeded! Result:\n"
 " %s"
-msgstr "QD 执行成功! 结果:\n"
+msgstr ""
+"QD 执行成功! 结果:\n"
 " %s"
 
 #: qd-cli/src/qd_cli/cli.py:75
@@ -52,22 +54,28 @@ msgid "Execute HAR template requests using QD."
 msgstr "使用 QD 执行 HAR 模板请求."
 
 #: qd-cli/src/qd_cli/cli.py:80
-msgid "HAR template file path.\n"
+msgid ""
+"HAR template file path.\n"
 "Example: ./example.tpl.har"
-msgstr "HAR 模板文件路径.\n"
+msgstr ""
+"HAR 模板文件路径.\n"
 "示例: ./example.tpl.har"
 
 #: qd-cli/src/qd_cli/cli.py:87
-msgid "Template variable configuration JSON file path (optional).\n"
+msgid ""
+"Template variable configuration JSON file path (optional).\n"
 "Example: ./env_config.json"
-msgstr "模板变量配置 JSON 文件路径 (可选).\n"
+msgstr ""
+"模板变量配置 JSON 文件路径 (可选).\n"
 "示例: ./env_config.json"
 
 #: qd-cli/src/qd_cli/cli.py:96
-msgid "Extra key-value pairs for adding or updating template variable values (optional).\n"
+msgid ""
+"Extra key-value pairs for adding or updating template variable values (optional).\n"
 "Support adding multiple template variable key-value pairs.\n"
 "Example: -k Cookie \"session=123456; token=abcdef\" --variable ENDPOINT https://api.example.com"
-msgstr "额外的键值对，用于添加或更新模板变量值(可选)。\n"
+msgstr ""
+"额外的键值对，用于添加或更新模板变量值(可选)。\n"
 "支持添加多个模板变量键值对。\n"
 "示例: -k Cookie \"session=123456; token=abcdef\" --variable ENDPOINT https://api.example.com"
 

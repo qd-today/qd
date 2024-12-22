@@ -65,7 +65,7 @@ include = ["qd_core*"]
 exclude = ["test*"]
 
 [tool.setuptools.package-data]
-"qd_core.locale" = ["*.po", "*.mo", "*.pot"]
+"qd_core.locale" = ["**/*.po", "**/*.mo", "**/*.pot"]
 
 [tool.uv]
 package = true

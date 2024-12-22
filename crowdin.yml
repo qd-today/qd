@@ -1,3 +1,5 @@
 files:
   - source: /qd-core/src/qd_core/locale/qd_core.po
     translation: /qd-core/src/qd_core/locale/%locale_with_underscore%/LC_MESSAGES/messages.po
+  - source: /qd-cli/src/qd_cli/locale/qd_cli.po
+    translation: /qd-cli/src/qd_cli/locale/%locale_with_underscore%/LC_MESSAGES/messages.po

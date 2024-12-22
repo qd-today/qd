@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: qd-today\n"
+"Project-Id-Version: qd-core 0.0.1\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2024-12-22 17:43+0800\n"
 "PO-Revision-Date: 2024-12-22 11:17\n"
