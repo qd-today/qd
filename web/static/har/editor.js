@@ -73,10 +73,13 @@
             console.log('没有获得cookie, 您是否已经登录?');
             return;
           }
-        }else if(cookie.info=='get-cookieModReady'){cookie_str="get-cookie扩展已就绪"}
+        }else if(cookie.info=='get-cookieModReady'){
+          cookie_str="get-cookie扩展已就绪";
+        }
         if (cookie_input != null) {
           cookie_input.val(cookie_str);
-        }      return cookie_input != null ? cookie_input.scope().$parent.var.value = cookie_str : void 0;
+        }
+        return cookie_input != null ? cookie_input.scope().$parent.var.value = cookie_str : void 0;
     });
     editor = angular.module('HAREditor', ['editablelist', 'upload_ctrl', 'entry_list', 'entry_editor']);
     return {

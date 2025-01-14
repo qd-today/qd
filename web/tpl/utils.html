@@ -191,7 +191,9 @@ $(function() {
         // alert('没有获得cookie，您是否已经登录？');
         return;
       }
-    }else if(cookie.info=='get-cookieModReady'){cookie_str="get-cookie扩展已就绪"};
+    }else if(cookie.info=='get-cookieModReady'){
+      cookie_str="get-cookie扩展已就绪";
+    }
     $('#input-cookie').val(cookie_str);
   }, false);
 })
