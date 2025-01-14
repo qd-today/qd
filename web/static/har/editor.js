@@ -65,21 +65,21 @@
       if (!cookie.info){return};
       //if (!cookie.info){cookie_str=="你可能在使用旧版get-cookies插件,请获取更新"};
       if (cookie.info=='cookieRaw'){
-          for (key in cookie.data) {
-            value = cookie.data[key];
-            cookie_str += key + '=' + value + '; ';
-          }
-          if (cookie_str === '') {
-            console.log('没有获得cookie, 您是否已经登录?');
-            return;
-          }
-        }else if(cookie.info=='get-cookieModReady'){
-          cookie_str="get-cookie扩展已就绪";
+        for (key in cookie.data) {
+          value = cookie.data[key];
+          cookie_str += key + '=' + value + '; ';
         }
-        if (cookie_input != null) {
-          cookie_input.val(cookie_str);
+        if (cookie_str === '') {
+          console.log('没有获得cookie, 您是否已经登录?');
+          return;
         }
-        return cookie_input != null ? cookie_input.scope().$parent.var.value = cookie_str : void 0;
+      }else if(cookie.info=='get-cookieModReady'){
+        cookie_str="get-cookie扩展已就绪";
+      }
+      if (cookie_input != null) {
+        cookie_input.val(cookie_str);
+      }
+      return cookie_input != null ? cookie_input.scope().$parent.var.value = cookie_str : void 0;
     });
     editor = angular.module('HAREditor', ['editablelist', 'upload_ctrl', 'entry_list', 'entry_editor']);
     return {
