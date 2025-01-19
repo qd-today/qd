@@ -83,7 +83,6 @@ lint = [
     "mypy>=1.13.0",
     "pylint-pydantic>=0.3.2",
     "ruff>=0.7.3",
-    "sqlalchemy2-stubs>=0.0.2a38",
     "types-aiofiles>=24.1.0.20240626",
     "types-cachetools>=5.5.0.20240820",
     "types-croniter>=4.0.0.20241030",

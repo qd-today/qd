@@ -4,8 +4,7 @@
 #         http://binux.me
 # Created on 2014-07-30 12:21:48
 # Modified on 2023-06-13 18:12:35
-# pylint: disable=invalid-name, wildcard-import
-# flake8: noqa: F401,F403
+
 
 import json
 import os
@@ -20,9 +19,10 @@ from pydantic_core import Url
 from pydantic_settings import BaseSettings, JsonConfigSettingsSource, PydanticBaseSettingsSource, SettingsConfigDict
 
 # from qd_core.filters.parse_url import UrlInfo, parse_url
-DEFAULT_JSON_FILE = "config/settings.json"
+DEFAULT_CONFIG_DIR = Path("config")
+DEFAULT_JSON_FILE = DEFAULT_CONFIG_DIR.joinpath("settings.json")
 DEFAULT_JSON_ENCODING = "utf-8"
-DEFAULT_ENV_FILE = "config/.env"
+DEFAULT_ENV_FILE = DEFAULT_CONFIG_DIR.joinpath(".env")
 DEFAULT_ENV_ENCODING = "utf-8"
 
 
@@ -34,7 +34,7 @@ class QDBaseSettings(BaseSettings):
         json_file=Path(DEFAULT_JSON_FILE),
         json_file_encoding=DEFAULT_JSON_ENCODING,
         str_strip_whitespace=True,
-        extra="allow",
+        extra="ignore",
     )
 
     @classmethod
@@ -52,7 +52,7 @@ class QDBaseSettings(BaseSettings):
             dotenv_settings,
             file_secret_settings,
             JsonConfigSettingsSource(
-                settings_cls,
+                settings_cls=cls,
                 json_file=cls.model_config.get("json_file") or DEFAULT_JSON_FILE,
                 json_file_encoding=cls.model_config.get("json_file_encoding") or DEFAULT_JSON_ENCODING,
             ),
@@ -63,13 +63,13 @@ class LogSettings(QDBaseSettings):
     """日志设置类"""
 
     debug: bool = Field(default=False, alias="qd_debug", description=gettext("Whether to enable QD Framework Debug"))
-    level: str = Field(default=None, description=gettext("QD framework log level"), validate_default=True)
-    traceback_print: bool = Field(
+    level: Optional[str] = Field(default=None, description=gettext("QD framework log level"), validate_default=True)
+    traceback_print: Optional[bool] = Field(
         default=None,
         description=gettext("Whether to enable printing of TraceBack information for Exception in the console output"),
         validate_default=True,
     )
-    display_import_warning: bool = Field(
+    display_import_warning: Optional[bool] = Field(
         default=None,
         description=gettext("Whether to import warning messages in the console output"),
         validate_default=True,
@@ -257,7 +257,7 @@ class ProxySettings(QDBaseSettings):
         ),
     )
 
-    proxy_direct: Union[List[Union[str, re.Pattern[str]]]] = Field(
+    proxy_direct: Union[str, List[Union[str, re.Pattern[str]]]] = Field(
         default=r"(?xi)\A([a-z][a-z0-9+\-.]*://)?(0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])(:[0-9]+)?",
         description=gettext(
             "Depending on the value of `proxy_direct_mode`, this field can be a regular expression string "
@@ -355,7 +355,7 @@ class PushSettings(QDBaseSettings):
     """推送设置类"""
 
     push_pic_url: Url = Field(
-        default="https://gitee.com/qd-today/qd/raw/master/web/static/img/push_pic.png",
+        default_factory=lambda: Url("https://gitee.com/qd-today/qd/raw/master/web/static/img/push_pic.png"),
         description=gettext("Picture URL for push notification"),
     )
 
@@ -410,8 +410,7 @@ def get_settings() -> QDCoreSettings:
     return QDCoreSettings()
 
 
-def export_settings_to_json() -> None:
-    settings = get_settings()
+def export_settings_to_json(settings: QDCoreSettings) -> None:
     json_file = settings.model_config.get("json_file") or DEFAULT_JSON_FILE
     json_file_encoding = settings.model_config.get("json_file_encoding") or DEFAULT_JSON_ENCODING
     if isinstance(json_file, Path):
@@ -425,4 +424,5 @@ def export_settings_to_json() -> None:
 
 
 if __name__ == "__main__":
-    export_settings_to_json()
+    settings = get_settings()
+    export_settings_to_json(settings=settings)
