@@ -55,26 +55,27 @@
     });
     // deepcode ignore InsufficientPostmessageValidation: the event.origin is checked
     window.addEventListener("message", function(ev) {
-      var cookie, cookie_str, key, value;
+      var cookie, cookie_str, key, ref, value;
       if (event.origin !== window.location.origin) {
         return;
       }
       cookie = ev.data;
       cookie_str = "";
-      //排除未带特定key的postMessage
-      if (!cookie.info){return};
-      //if (!cookie.info){cookie_str=="你可能在使用旧版get-cookies插件,请获取更新"};
-      if (cookie.info=='cookieRaw'){
-        for (key in cookie.data) {
-          value = cookie.data[key];
+      if (!cookie.info) {
+        return;
+      }
+      if (cookie.info === 'cookieRaw') {
+        ref = cookie.data;
+        for (key in ref) {
+          value = ref[key];
           cookie_str += key + '=' + value + '; ';
         }
         if (cookie_str === '') {
           console.log('没有获得cookie, 您是否已经登录?');
           return;
         }
-      }else if(cookie.info=='get-cookieModReady'){
-        cookie_str="get-cookie扩展已就绪";
+      } else if (cookie.info === 'get-cookieModReady') {
+        cookie_str = "get-cookie扩展已就绪";
       }
       if (cookie_input != null) {
         cookie_input.val(cookie_str);

@@ -61,13 +61,13 @@ define (require, exports, module) ->
     if !cookie.info
       return
     if cookie.info == 'cookieRaw'
-      for key, value of cookie
+      for key, value of cookie.data
         cookie_str += key + '=' + value + '; '
       if cookie_str == ''
         console.log('没有获得cookie, 您是否已经登录?')
         return
     else if cookie.info == 'get-cookieModReady'
-      cookie_str="get-cookie扩展已就绪"
+      cookie_str = "get-cookie扩展已就绪"
     cookie_input?.val(cookie_str)
     cookie_input?.scope().$parent.var.value = cookie_str
   )
@@ -79,4 +79,6 @@ define (require, exports, module) ->
     'entry_editor'
   ])
 
-  init: -> angular.bootstrap(document.body, ['HAREditor'])
+  { init: ->
+    angular.bootstrap(document.body, ['HAREditor'])
+  }
