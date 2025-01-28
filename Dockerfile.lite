@@ -13,6 +13,8 @@ WORKDIR /usr/src/app
 
 # QD & Pip install modules
 RUN sed -i 's/mirrors.ustc.edu.cn/dl-cdn.alpinelinux.org/g' /etc/apk/repositories && \
+    sed -i 's/edge/v3.19/g' /etc/apk/repositories && \
+    sed -i '/testing/d' /etc/apk/repositories && \
     # ln -s /usr/bin/python3 /usr/bin/python && \
     apk update && apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist py3-multidict py3-charset-normalizer py3-aiohttp py3-typing-extensions py3-yarl py3-cffi && \
     chmod 600 /root/.ssh/id_rsa && \
