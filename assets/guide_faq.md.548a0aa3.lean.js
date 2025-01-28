@@ -1,1 +1,0 @@
-import{_ as s,o as e,c as a,V as o}from"./chunks/framework.feaf5d10.js";const D=JSON.parse('{"title":"FAQ","description":"","frontmatter":{},"headers":[],"relativePath":"guide/faq.md","filePath":"guide/faq.md"}'),n={name:"guide/faq.md"},l=o("",40),t=[l];function r(p,c,i,d,y,h){return e(),a("div",null,t)}const B=s(n,[["render",r]]);export{D as __pageData,B as default};
