@@ -512,7 +512,7 @@
             return results;
           })(),
           [(ref = entry.request.postData) != null ? ref.text : void 0]
-        ].map(function(list) {
+        ].forEach((list) => {
           var each, j, len, results, string;
           results = [];
           for (j = 0, len = list.length; j < len; j++) {

@@ -268,7 +268,7 @@ define (require, exports, module) ->
         (c.name for c in entry.request.cookies when c.checked)
         (c.value for c in entry.request.cookies when c.checked)
         [entry.request.postData?.text, ]
-      ].map((list) ->
+      ].forEach((list) =>
         for string in list
           for each in exports.variables(string)
             if each? not in result
