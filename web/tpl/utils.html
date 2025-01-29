@@ -175,18 +175,29 @@ $(function() {
     }
   });
   window.addEventListener("message", function(event) {
+    var cookie, cookie_str, key, ref, value;
     if (event.origin != window.location.origin) {
       return ;
     }
-
-    var cookie = event.data;
-    var cookie_str = "";
-    for (key in cookie) {
-      cookie_str += key+'='+cookie[key]+'; '
-    }
-    if (cookie_str == '') {
-      // alert('没有获得cookie，您是否已经登录？');
+    cookie = event.data;
+    cookie_str = "";
+    //排除未带特定key的postMessage
+    if (!cookie.info) {
       return;
+    }
+    //if (!cookie.info){cookie_str=="你可能在使用旧版get-cookies插件,请获取更新"};
+    if (cookie.info === 'cookieRaw') {
+      ref = cookie.data;
+      for (key in ref) {
+        value = ref[key];
+        cookie_str += key + '=' + value + '; ';
+      }
+      if (cookie_str === '') {
+        console.warn('没有获得cookie, 您是否已经登录?');
+        return;
+      }
+    } else if (cookie.info === 'get-cookieModReady') {
+      cookie_str = "get-cookie扩展已就绪";
     }
     $('#input-cookie').val(cookie_str);
   }, false);

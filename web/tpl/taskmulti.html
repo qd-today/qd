@@ -145,11 +145,11 @@
           // 'cron_sec' : $('#cron_sec')[0].value,
         }
         data['settime'] = JSON.stringify(settime_tmp);
-        if (settime_tmp['randtimezone1'] >= settime_tmp['randtimezone2']){
+        if (parseInt(settime_tmp['randtimezone1']) >= parseInt(settime_tmp['randtimezone2'])){
           $('#run-result').html("<h1 class=\"alert alert-danger text-center\">随机值错误</h1><div><pre>开启随机时tz1 需大于 tz2</pre></div>").show();
           return false;
         }
-        if (settime_tmp['randtimezone1'] > 604800 || settime_tmp['randtimezone2'] > 604800){
+        if (parseInt(settime_tmp['randtimezone1']) > 604800 || parseInt(settime_tmp['randtimezone2']) > 604800){
           $('#run-result').html("<h1 class=\"alert alert-danger text-center\">随机值错误</h1><div><pre>随机值不能大于604800</pre></div>").show();
           return false;
         }

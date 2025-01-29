@@ -14,6 +14,8 @@ WORKDIR /usr/src/app
 
 # QD && Pip install modules
 RUN sed -i 's/mirrors.ustc.edu.cn/dl-cdn.alpinelinux.org/g' /etc/apk/repositories && \
+    sed -i 's/edge/v3.19/g' /etc/apk/repositories && \
+    sed -i '/testing/d' /etc/apk/repositories && \
     apk update && apk add --update --no-cache openssh-client && \
     chmod 600 /root/.ssh/id_rsa && \
     ssh-keyscan gitee.com > /root/.ssh/known_hosts && \

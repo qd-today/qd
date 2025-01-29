@@ -170,6 +170,11 @@
       $scope.variables_wrapper = function(string, place_holder = '') {
         var re;
         string = (string || place_holder).toString();
+        string = string.replace(/&/g, '&amp;');
+        string = string.replace(/</g, '&lt;');
+        string = string.replace(/>/g, '&gt;');
+        string = string.replace(/"/g, '&quot;');
+        string = string.replace(/'/g, '&#x27;');
         re = /{{\s*([\w]+)[^}]*?\s*}}/g;
         return $sce.trustAsHtml(string.replace(re, '<span class="label label-primary">$&</span>'));
       };

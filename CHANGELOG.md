@@ -6,7 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-Nothing right now.
+### Fixed
+
+1. Bugfix(web): 🐛修复变量包装器以防止HTML注入
+
+### Changed
+
+1. chore(ci): 🛠️ 更新CodeQL分析配置
+2. style(qd): ✨ 优化端口检查超时设置
+3. refactor(web): 🔧 优化数据处理逻辑, 使用forEach替代map并添加parseInt以确保类型安全
+
+## [20250128] - 2025.01.28 更新
+
+### Fixed
+
+1. Bugfix(worker): 🐛 模板成功失败数的修改独立至任务执行之外 fixed qd-today/qd#511
+2. Bugfix(task_multi): 🐛 修复多任务定时随机值错误 fixed qd-today/qd#515
+3. Bugfix(cookies): 🐛 增加框架中与getcookies扩展的通信数据标记 fixed qd-today/qd#571 by @ckx000 qd-today/qd#572
+
+### Changed
+
+1. Chore: 更新加速镜像 qd-today/qd#557
+2. chore(depends): 🐳更新依赖项
 
 ## [20240210] - 2024.02.10 更新
 
