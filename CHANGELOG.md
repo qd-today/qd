@@ -6,7 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-Nothing right now.
+### Fixed
+
+1. Bugfix(web): 🐛修复变量包装器以防止HTML注入
+
+### Changed
+
+1. chore(ci): 🛠️ 更新CodeQL分析配置
+2. style(qd): ✨ 优化端口检查超时设置
+3. refactor(web): 🔧 优化数据处理逻辑, 使用forEach替代map并添加parseInt以确保类型安全
 
 ## [20250128] - 2025.01.28 更新
 
