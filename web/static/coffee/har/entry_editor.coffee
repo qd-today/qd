@@ -138,6 +138,11 @@ define (require, exports, module) ->
     # variables template
     $scope.variables_wrapper = (string, place_holder = '') ->
       string = (string or place_holder).toString()
+      string = string.replace(/&/g, '&amp;')
+      string = string.replace(/</g, '&lt;')
+      string = string.replace(/>/g, '&gt;')
+      string = string.replace(/"/g, '&quot;')
+      string = string.replace(/'/g, '&#x27;')
       re = /{{\s*([\w]+)[^}]*?\s*}}/g
       $sce.trustAsHtml(string.replace(re, '<span class="label label-primary">$&</span>'))
 
