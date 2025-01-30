@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+Nothing right now.
+
+## [20250129] - 2025.01.29 更新
+
 ### Fixed
 
 1. Bugfix(web): 🐛修复变量包装器以防止HTML注入
