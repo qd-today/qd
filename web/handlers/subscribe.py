@@ -90,9 +90,9 @@ class SubscribeUpdatingHandler(BaseWebSocketHandler):
                             elif config.subscribe_accelerate_url == 'jsdelivr_fastly':
                                 url = f"{repo['repourl'].replace('https://github.com/', 'https://fastly.jsdelivr.net/gh/')}@{repo['repobranch']}"
                             elif config.subscribe_accelerate_url == 'ghproxy':
-                                url = f"{repo['repourl'].replace('https://github.com/', 'https://ghp.ci/https://raw.githubusercontent.com/')}/{repo['repobranch']}"
-                            elif config.subscribe_accelerate_url == 'fastgit':
-                                url = f"{repo['repourl'].replace('https://github.com/', 'https://raw.fastgit.org/')}/{repo['repobranch']}"
+                                url = f"{repo['repourl'].replace('https://github.com/', 'https://ghfast.top/https://raw.githubusercontent.com/')}/{repo['repobranch']}"
+                            elif config.subscribe_accelerate_url == 'qd-ph':
+                                url = f"{repo['repourl'].replace('https://github.com/', 'https://qd-gh.crossg.us.kg/https://raw.githubusercontent.com/')}/{repo['repobranch']}"
                             else:
                                 if config.subscribe_accelerate_url.endswith('/'):
                                     url = f"{repo['repourl'].replace('https://github.com/', config.subscribe_accelerate_url)}/{repo['repobranch']}"

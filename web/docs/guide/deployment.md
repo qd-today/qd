@@ -186,6 +186,6 @@ python ./chrole.py your@email.address admin
 |WS_MAX_MESSAGE_SIZE|No|10485760|WebSocket maximum message size, the default is 10485760 bytes|
 |WS_MAX_QUEUE_SIZE|No|100|WebSocket maximum queue size, the default is 100|
 |WS_MAX_CONNECTIONS_SUBSCRIBE|No|30|WebSocket subscribe page maximum number of connections, the default is 30|
-|SUBSCRIBE_ACCELERATE_URL|No|ghproxy|Subscribe page acceleration URL, the default is ghproxy, <br>[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|
+|SUBSCRIBE_ACCELERATE_URL|No|qd-ph|Subscribe page acceleration URL, the default is qd-ph, <br>[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|
 
 > For details, please refer to [config.py](https://github.com/qd-today/qd/blob/master/config.py)
