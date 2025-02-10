@@ -143,3 +143,14 @@ QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycur
 >     }
 > }
 > ```
+
+## 错误代码：4006
+> 提示错误信息为："更新失败，原因：Cannot connect to host xxx.xxx:443ssl:False"
+
+报错原因：github/或github加速源无法连接。
+
+解决方法1：挂代理
+
+解决方法2：更换github加速源
+容器的环境变量中增加/修改`SUBSCRIBE_ACCELERATE_URL=https://xxx.xxx/https://raw.githubusercontent.com/`
+`https://xxx.xxx/`替换为可用的加速源，找不到加速源的可以参考 https://ghproxy.link/中发布的加速源
