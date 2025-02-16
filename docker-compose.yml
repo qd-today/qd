@@ -73,7 +73,7 @@ services:
       # - WS_MAX_MESSAGE_SIZE=10485760
       # - WS_MAX_QUEUE_SIZE=100
       # - WS_MAX_CONNECTIONS_SUBSCRIBE=30
-      # - SUBSCRIBE_ACCELERATE_URL=ghproxy
+      # - SUBSCRIBE_ACCELERATE_URL=qd-ph
       # - PROXIES=
       # - PROXY_DIRECT_MODE=regexp
       # - PROXY_DIRECT=(?xi)\A([a-z][a-z0-9+\-.]*://)?(0(.0){3}|127(.0){2}.1|localhost|\[::([\d]+)?\])(:[0-9]+)?
