@@ -13,7 +13,9 @@
 {%- set var_lower = var.lower() %}
 {%- if var_lower == 'username' %}用户名
 {%- elif var_lower == 'password' %}密码
-{%- elif var_lower == 'cookie' or var_lower == 'cookies' %}<span>Cookies</span>{% if tpl.siteurl %}<a href="javascript:void(0)" class="control-helper" data-toggle="get-cookie" data-site="{{ asurl(tpl.siteurl) }}" data-cookie="">点击获取</a>{% endif %}
+{%- elif var_lower == 'cookie' or var_lower == 'cookies' %}<span>Cookies</span>{% if tpl.siteurl %}<a
+  href="javascript:void(0)" class="control-helper" data-toggle="get-cookie" data-site="{{ asurl(tpl.siteurl) }}"
+  data-cookie="">点击获取</a>{% endif %}
 {%- else %}{{ var }}
 {%- endif -%}
 {% endmacro %}
@@ -23,35 +25,39 @@
 
 {%if task and task.init_env %}
 {% for env in init_env %}
-  <div class="form-group">
-    <label class="control-label" for="input-{{ env.name }}">{{ varname_format(env.name) }}</label>
-    <input type="text" class="form-control" name="{{ env.name }}" id="input-{{ env.name }}" value="{{ env.value }}">
-    {% if env.value %}
-      前值：<div class="autowrap showbut" id="pvar-{{ env.name }}">{{ env.value }}
-        <div class="btn hljs-button" data-clipboard-target="#pvar-{{ env.name }}" style="vertical-align:top">复制</div>
-      </div>
-    {% endif %}
-    <!-- 未登录首页-加图标 -->
-    <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
-    {{ var_tips(env.name) }}
+{% if env.name != '_proxy' %}
+<div class="form-group">
+  <label class="control-label" for="input-{{ env.name }}">{{ varname_format(env.name) }}</label>
+  <input type="text" class="form-control" name="{{ env.name }}" id="input-{{ env.name }}" value="{{ env.value }}">
+  {% if env.value %}
+  前值：<div class="autowrap showbut" id="pvar-{{ env.name }}">{{ env.value }}
+    <div class="btn hljs-button" data-clipboard-target="#pvar-{{ env.name }}" style="vertical-align:top">复制</div>
   </div>
+  {% endif %}
+  <!-- 未登录首页-加图标 -->
+  <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
+  {{ var_tips(env.name) }}
+</div>
+{% endif %}
 {% endfor %}
 {% else %}
 {% for var in variables %}
+{% if var != '_proxy' %}
 <div class="form-group">
   <label class="control-label" for="input-{{ var }}">{{ varname_format(var) }}</label>
   {% if init_env.get(var, '') %}
-    <input type="text" class="form-control" name="{{ var }}" id="input-{{ var }}" value="{{ init_env.get(var, '') }}">
-    默认值：<div class="autowrap showbut" id="pvar-{{ var }}">{{ init_env.get(var, '') }}
-      <div class="btn hljs-button" data-clipboard-target="#pvar-{{ var }}" style="vertical-align:top">复制</div>
-    </div>
+  <input type="text" class="form-control" name="{{ var }}" id="input-{{ var }}" value="{{ init_env.get(var, '') }}">
+  默认值：<div class="autowrap showbut" id="pvar-{{ var }}">{{ init_env.get(var, '') }}
+    <div class="btn hljs-button" data-clipboard-target="#pvar-{{ var }}" style="vertical-align:top">复制</div>
+  </div>
   {% else %}
-    <input type="text" class="form-control" name="{{ var }}" id="input-{{ var }}" placeholder="请输入 {{var}}">
+  <input type="text" class="form-control" name="{{ var }}" id="input-{{ var }}" placeholder="请输入 {{var}}">
   {% endif %}
   <!-- 未登录首页-加图标 -->
   <span class="glyphicon glyphicon-file form-control-feedback" aria-hidden="true"></span>
   {{ var_tips(var) }}
 </div>
+{% endif %}
 {% endfor %}
 {% endif %}
 <script>
