@@ -125,15 +125,14 @@ class HARTest(BaseHandler):
         except Exception as e:
             logger_web_handler.debug("HARTest Replace error: %s", e)
         data: json_typing.HARTest = json.loads(self.request.body)
+        url = data["request"]["url"].strip()
         FOR_START = re.compile(
-            r"{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}"
-        ).match(data["request"]["url"])  # pylint: disable=invalid-name
-        WHILE_START = re.compile(r"{%\s*while\s+([\s\S]*)\s*%}").match(
-            data["request"]["url"]
-        )  # pylint: disable=invalid-name
-        IF_START = re.compile(r"{%\s*if\s+(.+)\s*%}").match(data["request"]["url"])  # pylint: disable=invalid-name
-        ELSE_START = re.compile(r"{%\s*else\s*%}").match(data["request"]["url"])  # pylint: disable=invalid-name
-        PARSE_END = re.compile(r"{%\s*end(for|if)\s*%}").match(data["request"]["url"])  # pylint: disable=invalid-name
+            r"^{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}"
+        ).match(url)  # pylint: disable=invalid-name
+        WHILE_START = re.compile(r"^{%\s*while\s+([\s\S]*)\s*%}").match(url)  # pylint: disable=invalid-name
+        IF_START = re.compile(r"^{%\s*if\s+(.+)\s*%}").match(url)  # pylint: disable=invalid-name
+        ELSE_START = re.compile(r"^{%\s*else\s*%}").match(url)  # pylint: disable=invalid-name
+        PARSE_END = re.compile(r"^{%\s*end(for|if)\s*%}").match(url)  # pylint: disable=invalid-name
         if FOR_START or WHILE_START or IF_START or ELSE_START or PARSE_END:
             tmp = {"env": data["env"], "rule": data["rule"]}
             tmp["request"] = {
