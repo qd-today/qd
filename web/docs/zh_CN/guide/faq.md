@@ -29,7 +29,7 @@ docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --ENV
 
 ## 如何查看当前框架支持的 API 和 Jinja2 模板变量?
 
-请进入框架首页，然后点击左上角的 `常用 API/过滤器` 按钮，可以查看当前框架支持的API和Jinja2模板变量。
+请进入框架首页，然后点击左上角的 `常用 API/过滤器` 按钮，可以查看当前框架支持的 API 和 Jinja2 模板变量。
 
 ## 如何提交 bug 问题?
 
@@ -49,7 +49,7 @@ docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --ENV
 
 为了帮助用户发起请求，终究需要记录用户名和密码。这只能靠服务器维护人员的自律来保证后端数据的安全。但在框架设计中，每个用户在存储时都使用安全密钥进行加密。使用密钥对用户数据进行加密，可以保证仅获取数据库就无法解密用户数据。（加密的用户数据包括用户上传的模板、用户为任务设置的变量等）
 
-如果还是不放心，可以自己搭建QD框架，下载模板在自己的服务器上运行。
+如果还是不放心，可以自己搭建 QD 框架，下载模板在自己的服务器上运行。
 
 ## 提示错误信息 `PermissionError: [Errno 1] Operation not permitted`?
 
@@ -72,11 +72,10 @@ docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --ENV
    >
    > - [https://github.com/Taxel/PlexTraktSync/pull/474](https://github.com/Taxel/PlexTraktSync/pull/474)
    > - [https://stackoverflow.com/questions/70195968/dockerfile-raspberry-pi-python-pip-install-permissionerror-errno-1-operation](https://stackoverflow.com/questions/70195968/dockerfile-raspberry-pi-python-pip-install-permissionerror-errno-1-operation)
-   >
+
 2. 请检查是否将容器内的 `/usr/src/app` 目录映射至容器外部.
 
    > 请注意框架仅需映射 `/usr/src/app/config` 目录即可.
-   >
 
 ## 提示警告信息: `Connect Redis falied: Error 10061`
 
@@ -100,9 +99,9 @@ QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycur
 
 然而，`pycurl` 在框架中并不是必须的，如果你不需要使用 `Proxy` 功能，可以忽略该警告信息。
 
-> `pycurl` 模块在 Windows 系统上安装比较麻烦，需要安装 `libcurl` 库，具体安装方法请参考 [pycurl官方文档](http://pycurl.io/docs/latest/install.html)。
+> `pycurl` 模块在 Windows 系统上安装比较麻烦，需要安装 `libcurl` 库，具体安装方法请参考 [pycurl 官方文档](http://pycurl.io/docs/latest/install.html)。
 >
-> 建议使用容器或 linux 系统部署 QD 框架, Docker 容器已预装Curl环境, 默认安装pycurl模组。
+> 建议使用容器或 linux 系统部署 QD 框架, Docker 容器已预装 Curl 环境, 默认安装 pycurl 模组。
 
 ## 如何注册推送方式
 
@@ -116,7 +115,7 @@ QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycur
 
 > 公共模板更新页面提示错误代码为 undefined, 或者控制台显示 WebSocket 连接 failed 但不显示错误原因
 
-请检查反向代理相关配置是否正确, 参考 [Nginx反向代理WebSocket服务连接报错](https://blog.csdn.net/tiven_/article/details/126126442)
+请检查反向代理相关配置是否正确, 参考 [Nginx 反向代理 WebSocket 服务连接报错](https://blog.csdn.net/tiven_/article/details/126126442)
 
 > 参考配置如下:
 >
@@ -145,12 +144,14 @@ QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycur
 > ```
 
 ## 错误代码：4006
-> 提示错误信息为："更新失败，原因：Cannot connect to host xxx.xxx:443ssl:False"
 
-报错原因：github/或github加速源无法连接。
+> 提示错误信息为："更新失败，原因：Cannot connect to host xxx.xxx:443 ssl:False"
 
-解决方法1：挂代理
+报错原因：Github 或 GitHub 加速源无法连接。
 
-解决方法2：更换github加速源
-容器的环境变量中增加/修改`SUBSCRIBE_ACCELERATE_URL=https://xxx.xxx/https://raw.githubusercontent.com/`
-`https://xxx.xxx/`替换为可用的加速源，找不到加速源的可以参考 https://ghproxy.link/中发布的加速源
+解决方法 1：使用代理
+
+解决方法 2：更换 Github 加速源
+
+容器的环境变量中增加/修改 `SUBSCRIBE_ACCELERATE_URL=https://xxx.xxx/https://raw.githubusercontent.com/`
+`https://xxx.xxx/` 替换为可用的加速源，找不到加速源的可以参考 <https://ghproxy.link> 或 <https://gh-proxy.com> 中发布的加速源

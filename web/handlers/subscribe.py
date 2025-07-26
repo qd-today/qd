@@ -724,6 +724,76 @@ class UnsubscribeReposHandler(BaseHandler):
         return
 
 
+class ToggleRepoAccHandler(BaseHandler):
+    @authenticated
+    async def post(self, userid):
+        try:
+            user = self.current_user
+            if (user["id"] == int(userid)) and (user["role"] == "admin"):
+                repo_id = self.get_argument("repo_id", "")
+                repo_acc = self.get_argument("repo_acc", "").lower() == "true"
+
+                if repo_id == "":
+                    raise Exception("仓库ID为空")
+
+                async with self.db.transaction() as sql_session:
+                    repos = json.loads(
+                        (
+                            await self.db.site.get(
+                                1, fields=("repos",), sql_session=sql_session
+                            )
+                        )["repos"]
+                    )
+
+                    try:
+                        repo_id = int(repo_id)
+                        if repo_id < 0 or repo_id >= len(repos["repos"]):
+                            raise ValueError("仓库ID超出范围")
+
+                        # 获取仓库名称
+                        repo_name = repos["repos"][repo_id]["reponame"]
+
+                        # 更新加速状态
+                        repos["repos"][repo_id]["repoacc"] = repo_acc
+
+                        # 保存更改
+                        await self.db.site.mod(
+                            1,
+                            repos=json.dumps(repos, ensure_ascii=False, indent=4),
+                            sql_session=sql_session,
+                        )
+
+                        msg = f"已成功{('开启' if repo_acc else '关闭')}仓库 {repo_name} 的加速"
+                        logger_web_handler.info(
+                            "UserID: %s toggle repo '%s' accelerate to '%s' success",
+                            userid,
+                            repo_name,
+                            "on" if repo_acc else "off",
+                        )
+                        await self.render(
+                            "utils_run_result.html",
+                            log=msg,
+                            title="设置成功",
+                            flg="success",
+                        )
+                        return
+                    except (ValueError, IndexError) as e:
+                        raise Exception(f"操作失败: {str(e)}")
+            else:
+                raise Exception("非管理员用户，不可设置")
+        except Exception as e:
+            logger_web_handler.error(
+                "UserID: %s toggle repo accelerate failed! Reason: %s",
+                userid,
+                str(e).replace("\\r\\n", "\r\n"),
+                exc_info=config.traceback_print,
+            )
+            await self.render(
+                "utils_run_result.html", log=str(e), title="设置失败", flg="danger"
+            )
+            return
+
+
 handlers = [
     (r"/subscribe/(\d+)/", SubscribeHandler),
     (r"/subscribe/(\d+)/updating/", SubscribeUpdatingHandler),
@@ -731,4 +801,5 @@ handlers = [
     (r"/subscribe/signup_repos/(\d+)/", SubscribSignupReposHandler),
     (r"/subscribe/(\d+)/get_reposinfo", GetReposInfoHandler),
     (r"/subscribe/unsubscribe_repos/(\d+)/", UnsubscribeReposHandler),
+    (r"/subscribe/toggle_acc/(\d+)/", ToggleRepoAccHandler),
 ]
