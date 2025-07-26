@@ -164,7 +164,7 @@
             $btn.addClass(newAcc ? 'btn-success' : 'btn-default');
             $btn.text(newAcc ? '开启' : '关闭');
             $btn.attr('title', newAcc ? '点击关闭加速' : '点击开启加速');
-            $btn.attr('href', `/subscribe/toggle_acc/{{userid}}/?repo_id=${btnRepoId}&repo_acc=${currentAcc ? 'true' : 'false'}`);
+            $btn.attr('href', `/subscribe/toggle_acc/{{userid}}/?repo_id=${encodeURIComponent(btnRepoId)}&repo_acc=${currentAcc ? 'true' : 'false'}`);
           }
         });
       }
