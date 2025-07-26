@@ -125,7 +125,8 @@ class HARTest(BaseHandler):
         except Exception as e:
             logger_web_handler.debug("HARTest Replace error: %s", e)
         data: json_typing.HARTest = json.loads(self.request.body)
-        url = data["request"]["url"].strip()
+        # 限制URL长度，避免过长的URL导致正则匹配问题
+        url = data["request"]["url"].strip()[:1200]
         FOR_START = re.compile(
             r"^{%\s*for\s+(\w+)\s+in\s+(\w+|list\([\s\S]*\)|range\([\s\S]*\))\s*%}"
         ).match(url)  # pylint: disable=invalid-name
