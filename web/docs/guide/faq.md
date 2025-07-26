@@ -4,7 +4,7 @@
 
 QD uses **sqlite3** as the framework database by default, and the `database.db` file is saved in `config` directory. When deploying with a Docker container, you can use the `docker cp` command to back up the database file, and then use the `docker cp` command to restore the database file in the new container.
 
-``` sh
+```sh
 # database backup
 docker cp container_name:/usr/src/app/config/database.db .
 # Database recovery
@@ -13,13 +13,13 @@ docker cp database.db container_name:/usr/src/app/config/
 
 ## how to configure the email server in Docker?
 
-``` sh
+```sh
 docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --env MAIL_SMTP=$STMP_Server_ --env MAIL_PORT=$Mailbox_server_port --env MAIL_USER=$Username --env MAIL_PASSWORD=$Password --env DOMAIN=$Domain qdtoday/qd
 ```
 
 ## how to use MySQL in Docker?
 
-``` sh
+```sh
 docker run -d --name qd -p 8923:80 -v $(pwd)/qd/config:/usr/src/app/config --ENV DB_TYPE=mysql --ENV JAWSDB_MARIA_URL=mysql://$username:$password@$hostname:$port/$database_name?auth_plugin= qdtoday/qd
 ```
 
@@ -55,33 +55,33 @@ If you are still worried, you can build the QD framework by yourself, download t
 
 1. If it is an ARM32 Debian system, please check whether the `Docker` version is less than `20.10.0`, and whether the `libseccomp` version is less than `2.4.4`. If so, please upgrade the above components.
 
-    Update `libseccomp` reference operation:
+   Update `libseccomp` reference operation:
 
-    ```sh
-    # Get signing keys to verify the new packages, otherwise they will not install
-    sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC 648ACFD622F3D138
+   ```sh
+   # Get signing keys to verify the new packages, otherwise they will not install
+   sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 04EE7237B7D453EC 648ACFD622F3D138
 
-    # Add the Buster backport repository to apt sources.list
-    echo 'deb http://httpredir.debian.org/debian buster-backports main contrib non-free' | sudo tee -a /etc/apt/sources.list.d/debian-backports.list
+   # Add the Buster backport repository to apt sources.list
+   echo 'deb http://httpredir.debian.org/debian buster-backports main contrib non-free' | sudo tee -a /etc/apt/sources.list.d/debian-backports.list
 
-    sudo apt update
-    sudo apt install libseccomp2 -t buster-backports
-    ```
+   sudo apt update
+   sudo apt install libseccomp2 -t buster-backports
+   ```
 
-    > Source:
-    >
-    > - <https://github.com/Taxel/PlexTraktSync/pull/474>
-    > - <https://stackoverflow.com/questions/70195968/dockerfile-raspberry-pi-python-pip-install-permissionerror-errno-1-operation>
+   > Source:
+   >
+   > - <https://github.com/Taxel/PlexTraktSync/pull/474>
+   > - <https://stackoverflow.com/questions/70195968/dockerfile-raspberry-pi-python-pip-install-permissionerror-errno-1-operation>
 
 2. Check if the `/usr/src/app` directory inside the container is mapped to the outside of the container.
 
-    > Note that the framework only needs to map the `/usr/src/app/config` directory.
+   > Note that the framework only needs to map the `/usr/src/app/config` directory.
 
 ## Prompt warning message: `Connect Redis falied: Error 10061`
 
 QD uses `redis` as a flow limiting tool. If the `redis` service is not installed, the framework will prompt the following warning message.
 
-``` sh
+```sh
 [W xxxxxx xx:xx:xx QD.RedisDB redisdb:28] Connect Redis falied: Error 10061 connecting to localhost:6379. No connection could be made because the target machine actively refused it.
 ```
 
@@ -93,7 +93,7 @@ However, `redis` is not required in this framework, if you don't need to use the
 
 QD uses the `pycurl` module to send HTTP proxy requests. If the `pycurl` module is not installed, the framework will prompt the following warning message:
 
-``` sh
+```sh
 [W xxxxxx xx:xx:xx QD.Http.Fetcher fetcher:34] Import PyCurl module falied: No module named 'pycurl'
 ```
 
@@ -119,7 +119,7 @@ Please check if the "reverse proxy" configuration is correct, refer to [Nginx re
 
 > Reference configuration is as follows:
 >
-> ``` Nginx
+> ```Nginx
 > server {
 >     listen 80;
 >     # Modify server_name  by yourself
@@ -140,3 +140,16 @@ Please check if the "reverse proxy" configuration is correct, refer to [Nginx re
 >     }
 > }
 > ```
+
+## Error Code: 4006
+
+> Error message: "Update failed, reason: Cannot connect to host xxx.xxx:443 ssl:False"
+
+Cause: Unable to connect to Github or GitHub acceleration source.
+
+Solution 1: Use a proxy
+
+Solution 2: Change the GitHub acceleration source
+
+Add/modify the environment variable in the container: `SUBSCRIBE_ACCELERATE_URL=https://xxx.xxx/https://raw.githubusercontent.com/`
+Replace `https://xxx.xxx/` with an available acceleration source. If you can't find an acceleration source, you can refer to <https://ghproxy.link/> or <https://gh-proxy.com> for published acceleration sources.
