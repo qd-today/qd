@@ -6,8 +6,8 @@ on:
       - master
       - webdoc
     paths:
-      - '.github/workflows/deploy-webdoc.yml'
-      - 'web/**'
+      - ".github/workflows/deploy-webdoc.yml"
+      - "web/**"
 
 jobs:
   deploy:
@@ -17,16 +17,16 @@ jobs:
       run:
         working-directory: ./web
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v4
         with:
-          version: 7.24.2
-      - uses: actions/setup-node@v3
+          version: 10
+      - uses: actions/setup-node@v4
         with:
-          node-version: 16
-          cache: 'pnpm'
+          node-version: 24
+          cache: "pnpm"
           cache-dependency-path: web/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
 
@@ -34,7 +34,7 @@ jobs:
         run: pnpm docs:build
 
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: web/docs/.vitepress/dist
