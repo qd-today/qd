@@ -4,49 +4,48 @@
 #
 #    pipenv requirements
 #
-
 -i https://mirrors.cloud.tencent.com/pypi/simple/
 --extra-index-url https://pypi.org/simple
 aiofiles==24.1.0; python_version >= '3.8'
-aiohappyeyeballs==2.4.4; python_version >= '3.8'
-aiohttp==3.11.11; python_version >= '3.9'
+aiohappyeyeballs==2.6.1; python_version >= '3.9'
+aiohttp==3.12.15; python_version >= '3.9'
 aiomysql==0.2.0; python_version >= '3.7'
-aiosignal==1.3.2; python_version >= '3.9'
-aiosqlite==0.20.0; python_version >= '3.8'
-attrs==25.1.0; python_version >= '3.8'
-certifi==2024.12.14; python_version >= '3.6'
+aiosignal==1.4.0; python_version >= '3.9'
+aiosqlite==0.21.0; python_version >= '3.9'
+attrs==25.3.0; python_version >= '3.8'
+certifi==2025.8.3; python_version >= '3.7'
 cffi==1.17.1; python_version >= '3.8'
-charset-normalizer==3.4.1; python_version >= '3.7'
+charset-normalizer==3.4.2; python_version >= '3.7'
 colorama; sys_platform == 'win32'
 croniter==6.0.0; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
-cryptography==44.0.0; python_version >= '3.7' and python_full_version not in '3.9.0, 3.9.1'
-faker==35.0.0; python_version >= '3.8'
-frozenlist==1.5.0; python_version >= '3.8'
-greenlet==3.1.1; python_version >= '3.7'
+cryptography==45.0.5; python_version >= '3.7' and python_full_version not in '3.9.0, 3.9.1'
+faker==37.5.3; python_version >= '3.9'
+frozenlist==1.7.0; python_version >= '3.9'
+greenlet==3.2.3; python_version >= '3.9'
 idna==3.10; python_version >= '3.6'
 incremental==24.7.2; python_version >= '3.8'
-jinja2==3.1.5; python_version >= '3.7'
+jinja2==3.1.6; python_version >= '3.7'
 markupsafe==3.0.2; python_version >= '3.9'
-multidict==6.1.0; python_version >= '3.8'
+multidict==6.6.3; python_version >= '3.9'
 passlib==1.7.4
 pbkdf2==1.3
-propcache==0.2.1; python_version >= '3.9'
+propcache==0.3.2; python_version >= '3.9'
 pycparser==2.22; python_version >= '3.8'
-pycryptodome==3.21.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
+pycryptodome==3.23.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6'
+pycurl==7.45.6; python_version >= '3.5'
 pymysql==1.1.1; python_version >= '3.7'
 pysocks==1.7.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 python-dateutil==2.9.0.post0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'
-pytz==2024.2
-redis==5.2.1; python_version >= '3.8'
-requests==2.32.3; python_version >= '3.8'
-setuptools==75.8.0; python_version >= '3.9'
+pytz==2025.2
+redis==6.2.0; python_version >= '3.9'
+requests==2.32.4; python_version >= '3.8'
+setuptools==80.9.0; python_version >= '3.9'
 six==1.17.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'
 sqlalchemy[asyncio]==1.4.54; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4, 3.5'
-tornado==6.4.2; python_version >= '3.8'
-typing-extensions==4.12.2; python_version >= '3.8'
-tzdata==2025.1; python_version >= '2'
+tornado==6.5.1; python_version >= '3.9'
+typing-extensions==4.14.1; python_version >= '3.9'
+tzdata==2025.2; python_version >= '2'
 u-msgpack-python==2.8.0
-urllib3==2.3.0; python_version >= '3.9'
-yarl==1.18.3; python_version >= '3.9'
-# ddddocr==1.4.7
-# pycurl==7.45.2
+urllib3==2.5.0; python_version >= '3.9'
+yarl==1.20.1; python_version >= '3.9'
+# ddddocr>=1.4.7

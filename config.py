@@ -240,8 +240,8 @@ class websocket:
         os.getenv("WS_PING_INTERVAL", "5")
     )  # WebSocket ping 间隔, 单位为秒, 默认为 5s
     ping_timeout = int(
-        os.getenv("WS_PING_TIMEOUT", "30")
-    )  # WebSocket ping超时时间, 单位为秒, 默认为 30s
+        os.getenv("WS_PING_TIMEOUT", "5")
+    )  # WebSocket ping超时时间, 单位为秒, 默认为 5s
     max_message_size = int(
         os.getenv("WS_MAX_MESSAGE_SIZE", "10485760")
     )  # WebSocket 单次接收最大消息大小, 默认为 10MB
