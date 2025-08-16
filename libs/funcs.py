@@ -8,6 +8,7 @@ import os
 import random
 import time
 import traceback
+import re
 
 import aiohttp
 import croniter
@@ -134,7 +135,14 @@ class Pusher:
         r = 'False'
         if skey != "":
             try:
-                link = f"https://sctapi.ftqq.com/{skey.replace('.send', '')}.send"
+                match = re.match(r'^sctp(\d+)t', skey)
+                
+                if match:
+                    sc3uid = match.group(1)
+                    link = f"https://{sc3uid}.push.ft07.com/send/{skey.replace('.send', '')}.send?tags=QD"
+                else:
+                    link = f"https://sctapi.ftqq.com/{skey.replace('.send', '')}.send"
+                
                 content = content.replace('\\r\\n', '\n\n')
                 d = {'text': title, 'desp': content}
                 async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
@@ -146,6 +154,7 @@ class Pusher:
                 logger_funcs.error('Sent to ServerChan error: %s', e, exc_info=config.traceback_print)
                 return e
         return r
+
 
     async def send2tg(self, tg_token, title, content):
         r = 'False'
