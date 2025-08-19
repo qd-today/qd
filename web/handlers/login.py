@@ -25,11 +25,41 @@ class ForbiddenHandler(BaseHandler):
 
 class LoginHandler(BaseHandler):
     async def get(self):
+        try:
+            email = self.get_argument('email')
+            password = self.get_argument('password')
+        except Exception as e:
+            email = None
+            password = None
+        if email and password:
+            print("Now login with email: {}, password: {}".format(email, password))
+            async with self.db.transaction() as sql_session:
+                siteconfig = await self.db.site.get(1, fields=('MustVerifyEmailEn',), sql_session=sql_session)
+                if await self.db.user.challenge(email, password, sql_session=sql_session):
+                    user = await self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role', 'email_verified'), sql_session=sql_session)
+                    if user and not (siteconfig['MustVerifyEmailEn'] != 0) and (user['email_verified'] == 0):
+                        setcookie = dict(
+                            expires_days=config.cookie_days,
+                            httponly=True,
+                        )
+                        if config.cookie_secure_mode:
+                            setcookie['secure'] = True
+                        self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
+                        await self.db.user.mod(user['id'], atime=time.time(), aip=self.ip2varbinary, sql_session=sql_session)
+                        # 如果用户MD5不一致就更新MD5
+                        user = await self.db.user.get(email=email, fields=('id', 'password', 'password_md5'), sql_session=sql_session)
+                        hash = MD5.new()
+                        hash.update(password.encode('utf-8'))
+                        tmp = crypto.password_hash(hash.hexdigest(), await self.db.user.decrypt(user['id'], user['password'], sql_session=sql_session))
+                        if user['password_md5'] != tmp:
+                            await self.db.user.mod(user['id'], password_md5=tmp, sql_session=sql_session)
+                        self.redirect('/my/')
+                else:
+                    self.evil(+5)
         if (self.current_user) and (await self.db.user.get(self.current_user['id'], fields=('id',))):
             self.redirect('/my/')
             return
         reg_flg = False if (await self.db.site.get(1, fields=('regEn',)))['regEn'] == 0 else True
-
         return await self.render('login.html', regFlg=reg_flg)
 
     async def post(self):
