@@ -8,6 +8,7 @@
     var cookie_input, editor;
     require('/static/har/contenteditable');
     require('/static/har/upload_ctrl');
+    require('/static/har/ai_ctrl');
     require('/static/har/entry_list');
     require('/static/har/entry_editor');
     // contentedit-wrapper
@@ -82,7 +83,7 @@
       }
       return cookie_input != null ? cookie_input.scope().$parent.var.value = cookie_str : void 0;
     });
-    editor = angular.module('HAREditor', ['editablelist', 'upload_ctrl', 'entry_list', 'entry_editor']);
+    editor = angular.module('HAREditor', ['editablelist', 'upload_ctrl', 'ai_ctrl', 'entry_list', 'entry_editor']);
     return {
       init: function() {
         return angular.bootstrap(document.body, ['HAREditor']);

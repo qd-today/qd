@@ -26,6 +26,30 @@ if sys.getdefaultencoding() != 'utf-8':
     importlib.reload(sys)
 
 
+def _check_default_secrets(logger):
+    """启动时检查关键密钥是否仍为默认值，是则醒目告警。
+
+    生产部署（特别是 Docker 镜像）极易忘记覆盖默认 Cookie/AES 密钥，
+    本检查不会阻止启动，但会输出 WARNING 提示用户。
+    """
+    import hashlib
+    default_secret = hashlib.sha256(b'binux').digest()
+    if config.cookie_secret == default_secret:
+        logger.warning(
+            "[安全] COOKIE_SECRET 未设置, 当前为默认值 'binux'。"
+            "强烈建议通过环境变量覆盖, 例如: -e COOKIE_SECRET=$(openssl rand -hex 32)"
+        )
+    if config.aes_key == default_secret:
+        logger.warning(
+            "[安全] AES_KEY 未设置, 当前为默认值 'binux'。"
+            "已存储的加密数据可被任何人解密, 建议生产环境覆盖该变量。"
+        )
+    if not config.domain:
+        logger.warning(
+            "[配置] DOMAIN 未设置, 邮件链接、推送链接将无法生成正确域名。"
+        )
+
+
 def start_server():
     # init logging
     logger = Log().getlogger()
@@ -53,13 +77,15 @@ def start_server():
     if config.multiprocess and config.autoreload:
         config.autoreload = False
 
+    _check_default_secrets(logger_qd)
+
     try:
         database = DB()
         converter = db_converter.DBconverter(database)
         asyncio.run(converter.convert_new_type(database))
 
         with open(os.path.join(os.path.dirname(__file__), 'version.json'), 'r', encoding='utf-8') as _f:
-        default_version = json.load(_f)['version']
+            default_version = json.load(_f)['version']
         app = Application(database, default_version)
         http_server = HTTPServer(app, xheaders=True)
         http_server.bind(port, config.bind)

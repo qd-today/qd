@@ -332,6 +332,18 @@ ga_key = os.getenv("GA_KEY", "")  # Google Analytics (GA) 密钥, 为空则不�
 # GA 密钥格式为 G-XXXXXXXXXX,
 # 如果为 UA-XXXXXXXXX-X, 请前往GA后台获取新版密钥
 
+# AI 辅助签到设置
+# 兼容 OpenAI Chat Completions 协议的任意服务（OpenAI、DeepSeek、通义、Moonshot、本地 Ollama 等）
+ai_api_key = os.getenv("AI_API_KEY", "")  # 模型服务 API Key, 为空则禁用 AI 功能
+ai_base_url = os.getenv(
+    "AI_BASE_URL", "https://api.openai.com/v1"
+)  # 模型服务 Base URL, 需兼容 OpenAI Chat Completions 协议
+ai_model = os.getenv("AI_MODEL", "gpt-4o-mini")  # 使用的模型名称
+ai_timeout = int(os.getenv("AI_TIMEOUT", "60"))  # AI 请求超时时间(秒)
+ai_max_har_entries = int(
+    os.getenv("AI_MAX_HAR_ENTRIES", "60")
+)  # AI 分析时单个 HAR 文件最多保留的请求数, 防止 token 超限
+
 try:
     from local_config import *  # 修改 `local_config.py` 文件的内容不受通过 Git 更新源码的影响
 

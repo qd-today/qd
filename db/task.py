@@ -104,7 +104,11 @@ class Task(BaseDB, AlchemyMixin):
             smtm = smtm.where(Task.next <= scan_time)
 
         for key, value in kwargs.items():
-            smtm = smtm.where(getattr(Task, key) == value)
+            col = getattr(Task, key)
+            if isinstance(value, (list, tuple, set)):
+                smtm = smtm.where(col.in_(list(value)))
+            else:
+                smtm = smtm.where(col == value)
 
         if limit:
             smtm = smtm.limit(limit)

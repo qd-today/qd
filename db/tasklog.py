@@ -47,7 +47,11 @@ class Tasklog(BaseDB, AlchemyMixin):
         smtm = select(_fields)
 
         for key, value in kwargs.items():
-            smtm = smtm.where(getattr(Tasklog, key) == value)
+            col = getattr(Tasklog, key)
+            if isinstance(value, (list, tuple, set)):
+                smtm = smtm.where(col.in_(list(value)))
+            else:
+                smtm = smtm.where(col == value)
 
         if limit:
             smtm = smtm.limit(limit)
@@ -58,4 +62,11 @@ class Tasklog(BaseDB, AlchemyMixin):
         return result
 
     def delete(self, id, sql_session=None):
+        if isinstance(id, (list, tuple, set)):
+            ids = list(id)
+            if not ids:
+                return None
+            return self._delete(
+                delete(Tasklog).where(Tasklog.id.in_(ids)), sql_session=sql_session
+            )
         return self._delete(delete(Tasklog).where(Tasklog.id == id), sql_session=sql_session)

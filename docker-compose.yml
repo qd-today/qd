@@ -89,6 +89,13 @@ services:
       # - MAILGUN_KEY=
       # - MAILGUN_DOMAIN=${DOMAIN}
       # - GA_KEY=
+      # AI 辅助签到模板生成（兼容 OpenAI Chat Completions 协议）
+      # 设置 AI_API_KEY 后，HAR 编辑器右上角会出现 "AI 智能识别签到" 按钮
+      # - AI_API_KEY=
+      # - AI_BASE_URL=https://api.openai.com/v1
+      # - AI_MODEL=gpt-4o-mini
+      # - AI_TIMEOUT=60
+      # - AI_MAX_HAR_ENTRIES=60
 
   redis:
     image: redis:alpine

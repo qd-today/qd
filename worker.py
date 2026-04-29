@@ -33,6 +33,7 @@ class BaseWorker:
         self.fetcher = Fetcher()
 
     async def clear_log(self, taskid, sql_session=None):
+        """清理单个 task 过期日志，使用批量删除。"""
         log_day = int(
             (await self.db.site.get(
                 1,
@@ -40,89 +41,155 @@ class BaseWorker:
                 sql_session=sql_session
             ))['logDay']
         )
-        for log in await self.db.tasklog.list(
+        cutoff = time.time() - log_day * 24 * 60 * 60
+        logs = await self.db.tasklog.list(
             taskid=taskid,
             fields=('id', 'ctime'),
-            sql_session=sql_session
-        ):
-            if (time.time() - log['ctime']) > (log_day * 24 * 60 * 60):
-                await self.db.tasklog.delete(
-                    log['id'],
-                    sql_session=sql_session
-                )
+            sql_session=sql_session,
+        )
+        expired_ids = [log['id'] for log in logs if log['ctime'] < cutoff]
+        if expired_ids:
+            await self.db.tasklog.delete(expired_ids, sql_session=sql_session)
 
     async def push_batch(self):
+        """定期推送任务日志。
+
+        优化：原实现存在 N+1 查询——每个 task 单独查 tasklog、每个 tplid 单独查 tpl。
+        现在按用户聚合后一次性批量查询，时间复杂度由 O(任务数 × 数据库往返) 降为
+        O(用户数 × 数据库往返)。
+        """
         try:
             async with self.db.transaction() as sql_session:
                 userlist = await self.db.user.list(
                     fields=('id', 'email', 'status', 'push_batch'),
                     sql_session=sql_session
                 )
+                if not userlist:
+                    return
                 pushtool = Pusher(self.db, sql_session=sql_session)
-                if userlist:
-                    for user in userlist:
-                        userid = user['id']
-                        push_batch = json.loads(user['push_batch'])
-                        if user['status'] == "Enable" and push_batch.get('sw') and isinstance(push_batch.get('time'), (float, int)) and time.time() >= push_batch['time']:  # noqa: E501
-                            logger_worker.debug(
-                                'User %d check push_batch task, waiting...',
-                                userid
-                            )
-                            title = "QD任务日志定期推送"
-                            delta = push_batch.get("delta", 86400)
-                            logtemp = time.strftime(
-                                "%Y-%m-%d %H:%M:%S", time.localtime(push_batch['time']))
-                            tmpdict = {}
-                            tmp = ""
-                            numlog = 0
-                            task_list = await self.db.task.list(
-                                userid=userid,
-                                fields=(
-                                    'id', 'tplid', 'note', 'disabled',
-                                    'last_success', 'last_failed', 'pushsw'
-                                ),
-                                sql_session=sql_session
-                            )
-                            for task in task_list:
-                                pushsw = json.loads(task['pushsw'])
-                                if pushsw["pushen"] and (task["disabled"] == 0 or (task.get("last_success", 0) and task.get("last_success", 0) >= push_batch['time'] - delta) or (task.get("last_failed", 0) and task.get("last_failed", 0) >= push_batch['time'] - delta)):
-                                    tmp0 = ""
-                                    tasklog_list = await self.db.tasklog.list(taskid=task["id"], fields=('success', 'ctime', 'msg'), sql_session=sql_session)
-                                    for log in tasklog_list:
-                                        if (push_batch['time'] - delta) < log['ctime'] <= push_batch['time']:
-                                            c_time = time.strftime(
-                                                "%Y-%m-%d %H:%M:%S", time.localtime(log['ctime']))
-                                            tmp0 += f"\\r\\n时间: {c_time}\\r\\n日志: {log['msg']}"
-                                            numlog += 1
-                                    tmplist = tmpdict.get(task['tplid'], [])
-                                    if tmp0:
-                                        tmplist.append(
-                                            f"\\r\\n-----任务{len(tmplist) + 1}-{task['note']}-----{tmp0}\\r\\n")
-                                    else:
-                                        tmplist.append(
-                                            f"\\r\\n-----任务{len(tmplist) + 1}-{task['note']}-----\\r\\n记录期间未执行定时任务，请检查任务! \\r\\n")
-                                    tmpdict[task['tplid']] = tmplist
-
-                            for tmpkey, tmpval in tmpdict.items():
-                                tmp_sitename = await self.db.tpl.get(tmpkey, fields=('sitename',), sql_session=sql_session)
-                                if tmp_sitename:
-                                    tmp = f"\\r\\n\\r\\n=====QD: {tmp_sitename['sitename']}====="
-                                    tmp += ''.join(tmpval)
-                                    logtemp += tmp
-                            push_batch["time"] = push_batch['time'] + delta
-                            if tmp and numlog:
-                                user_email = user.get('email', 'Unkown')
-                                logger_worker.debug(
-                                    "Start push batch log for user %s, email:%s", userid, user_email)
-                                await pushtool.pusher(userid, {"pushen": bool(push_batch.get("sw", False))}, 4080, title, logtemp)
-                                logger_worker.info(
-                                    "Complete push batch log for user %s, email:%s", userid, user_email)
-                            else:
-                                logger_worker.debug(
-                                    'User %s does not need to perform push_batch task, stop.', userid)
-                            await self.db.user.mod(userid, push_batch=json.dumps(push_batch), sql_session=sql_session)
+                now = time.time()
+                for user in userlist:
+                    push_batch = json.loads(user['push_batch'])
+                    if not (
+                        user['status'] == "Enable"
+                        and push_batch.get('sw')
+                        and isinstance(push_batch.get('time'), (float, int))
+                        and now >= push_batch['time']
+                    ):
+                        continue
+                    await self._push_batch_for_user(
+                        user, push_batch, pushtool, sql_session
+                    )
         except Exception as e:
             logger_worker.error('Push batch task failed: %s', e, exc_info=config.traceback_print)
+
+    async def _push_batch_for_user(self, user, push_batch, pushtool, sql_session):
+        userid = user['id']
+        logger_worker.debug('User %d check push_batch task, waiting...', userid)
+        title = "QD任务日志定期推送"
+        delta = push_batch.get("delta", 86400)
+        window_start = push_batch['time'] - delta
+        window_end = push_batch['time']
+        logtemp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(window_end))
+
+        task_list = await self.db.task.list(
+            userid=userid,
+            fields=(
+                'id', 'tplid', 'note', 'disabled',
+                'last_success', 'last_failed', 'pushsw'
+            ),
+            sql_session=sql_session,
+        )
+
+        active_tasks = []
+        for task in task_list:
+            pushsw = json.loads(task['pushsw'])
+            if not pushsw.get("pushen"):
+                continue
+            if (
+                task["disabled"] == 0
+                or (task.get("last_success", 0) and task['last_success'] >= window_start)
+                or (task.get("last_failed", 0) and task['last_failed'] >= window_start)
+            ):
+                active_tasks.append(task)
+
+        # 一次性批量查询，避免 N+1
+        task_ids = [t["id"] for t in active_tasks]
+        tpl_ids = list({t["tplid"] for t in active_tasks})
+        all_logs = (
+            await self.db.tasklog.list(
+                taskid=task_ids,
+                fields=('taskid', 'success', 'ctime', 'msg'),
+                sql_session=sql_session,
+                limit=None,
+            )
+            if task_ids
+            else []
+        )
+        tpl_map: Dict[int, dict] = {}
+        if tpl_ids:
+            tpl_rows = await self.db.tpl.list(
+                id=tpl_ids,
+                fields=('id', 'sitename'),
+                sql_session=sql_session,
+            )
+            tpl_map = {row['id']: row for row in tpl_rows}
+
+        logs_by_task: Dict[int, list] = {}
+        for log in all_logs:
+            if window_start < log['ctime'] <= window_end:
+                logs_by_task.setdefault(log['taskid'], []).append(log)
+
+        tmpdict: Dict[int, list] = {}
+        numlog = 0
+        for task in active_tasks:
+            tmp0 = ""
+            for log in logs_by_task.get(task["id"], []):
+                c_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(log['ctime']))
+                tmp0 += f"\\r\\n时间: {c_time}\\r\\n日志: {log['msg']}"
+                numlog += 1
+            tmplist = tmpdict.get(task['tplid'], [])
+            if tmp0:
+                tmplist.append(
+                    f"\\r\\n-----任务{len(tmplist) + 1}-{task['note']}-----{tmp0}\\r\\n"
+                )
+            else:
+                tmplist.append(
+                    f"\\r\\n-----任务{len(tmplist) + 1}-{task['note']}-----\\r\\n记录期间未执行定时任务，请检查任务! \\r\\n"
+                )
+            tmpdict[task['tplid']] = tmplist
+
+        tmp = ""
+        for tmpkey, tmpval in tmpdict.items():
+            tpl_row = tpl_map.get(tmpkey)
+            if tpl_row:
+                tmp = f"\\r\\n\\r\\n=====QD: {tpl_row['sitename']}====="
+                tmp += ''.join(tmpval)
+                logtemp += tmp
+
+        push_batch["time"] = push_batch['time'] + delta
+        if tmp and numlog:
+            user_email = user.get('email', 'Unkown')
+            logger_worker.debug(
+                "Start push batch log for user %s, email:%s", userid, user_email
+            )
+            await pushtool.pusher(
+                userid,
+                {"pushen": bool(push_batch.get("sw", False))},
+                4080,
+                title,
+                logtemp,
+            )
+            logger_worker.info(
+                "Complete push batch log for user %s, email:%s", userid, user_email
+            )
+        else:
+            logger_worker.debug(
+                'User %s does not need to perform push_batch task, stop.', userid
+            )
+        await self.db.user.mod(
+            userid, push_batch=json.dumps(push_batch), sql_session=sql_session
+        )
 
     @staticmethod
     def failed_count_to_time(last_failed_count, retry_count=config.task_max_retry_count, retry_interval=None, interval=None):

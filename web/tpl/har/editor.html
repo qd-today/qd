@@ -148,6 +148,7 @@
 
       <div class="text-right">
         <button class="btn btn-default" data-toggle="modal" data-target="#upload-har" >追加HAR</button>
+        <button class="btn btn-default" data-toggle="modal" data-target="#ai-analyze" ng-click="ai_open()">AI 智能识别签到</button>
         <a id="download-har" target="_blank" class="btn btn-default" ng-click="download()">下载</a>
         <button class="btn btn-default" data-toggle="modal" data-target="#test-har" ng-click="pre_save()">测试</button>
         <button ng-if="!readonly" class="btn btn-primary" data-toggle="modal" data-target="#save-har" ng-click="pre_save()">保存</button>
@@ -267,6 +268,43 @@
 {% endraw %}
 {% include "har/entry_editor.html" %}
 {% raw %}
+
+  <!-- AI analyze modal -->
+  <div class="modal fade" id="ai-analyze" ng-controller="AIAnalyzeCtrl">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title">AI 智能识别签到请求</h4>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-warning" ng-if="!ai_enabled" role="alert">
+            AI 功能未启用：请管理员设置环境变量 <code>AI_API_KEY</code>（兼容 OpenAI 协议的服务）后重启 QD。
+          </div>
+          <div class="alert alert-info" ng-if="ai_enabled" role="alert">
+            当前模型：<strong>{{ ai_model }}</strong>。AI 将分析当前 HAR 中的请求，自动挑出签到接口并替换为最小可执行模板。建议在导入完整 HAR 后使用。
+          </div>
+          <div class="alert alert-danger" ng-if="error" role="alert">{{ error }}</div>
+          <div class="form-horizontal" role="form">
+            <div class="form-group">
+              <label class="col-sm-3 control-label">提示词（可选）</label>
+              <div class="col-sm-9">
+                <input ng-model="hint" placeholder="例：'每日签到' 或 '积分领取'，留空则交给 AI 自动判断">
+              </div>
+            </div>
+          </div>
+          <div ng-if="result" style="margin-top:10px">
+            <strong>AI 分析结果：</strong>
+            <pre style="max-height:240px;overflow:auto">{{ result_text }}</pre>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" data-loading-text="分析中..." ng-disabled="!ai_enabled" ng-click="run()">开始分析</button>
+          <button type="button" class="btn btn-success" ng-if="result" ng-click="apply()">应用为当前模板</button>
+        </div>
+      </div>
+    </div>
+  </div><!-- /.ai modal -->
 
   <!-- upload modal -->
   <div class="modal fade" id="upload-har" ng-controller="UploadCtrl">

@@ -18,7 +18,7 @@ from jinja2.nodes import Filter, Name
 from tornado import httpclient
 
 import config
-from libs import json_typing, utils
+from libs import ai_client, json_typing, utils
 from libs.fetcher import Fetcher
 from libs.parse_url import parse_url
 from libs.safe_eval import safe_eval
@@ -521,10 +521,101 @@ class HARSave(BaseHandler):
         await self.finish({"id": id})
 
 
+class HARAIAnalyze(BaseHandler):
+    """根据用户提供的 HAR 抓包数据，调用 AI 提取签到请求并返回最小化 HAR。
+
+    请求体（JSON）：
+        {"har": <HAR JSON>, "hint": "可选的提示，例如 '签到接口'"}
+    响应体：
+        {"ok": true, "har": <精简 HAR>, "result": <AI 原始结果>}
+        或
+        {"ok": false, "error": "错误信息"}
+    """
+
+    @tornado.web.authenticated
+    async def post(self) -> None:
+        self.evil(+1)
+        client = ai_client.AIClient()
+        if not client.enabled:
+            self.set_status(503)
+            await self.finish(
+                {
+                    "ok": False,
+                    "error": "AI 功能未启用，请管理员设置环境变量 AI_API_KEY",
+                }
+            )
+            return
+
+        try:
+            payload = json.loads(self.request.body or b"{}")
+        except json.JSONDecodeError as e:
+            self.set_status(400)
+            await self.finish({"ok": False, "error": f"请求体不是合法 JSON: {e}"})
+            return
+
+        har = payload.get("har")
+        hint = payload.get("hint", "") or ""
+        if not isinstance(har, dict) or "log" not in har:
+            self.set_status(400)
+            await self.finish(
+                {"ok": False, "error": "har 字段缺失或格式不正确，需为 HAR JSON"}
+            )
+            return
+
+        try:
+            slim = ai_client.preprocess_har(har, config.ai_max_har_entries)
+            if not slim:
+                self.set_status(400)
+                await self.finish(
+                    {"ok": False, "error": "HAR 中未找到可分析的请求（可能均被过滤）"}
+                )
+                return
+            messages = ai_client.build_messages(slim, hint=hint)
+            content = await client.chat(messages, temperature=0.1)
+            result = ai_client.parse_ai_response(content)
+            har_out = ai_client.ai_result_to_har(result)
+        except ai_client.AIClientError as e:
+            logger_web_handler.warning("AI 分析失败: %s", e)
+            self.set_status(502)
+            await self.finish({"ok": False, "error": str(e)})
+            return
+        except Exception as e:
+            logger_web_handler.error(
+                "AI 分析异常: %s", e, exc_info=config.traceback_print
+            )
+            self.set_status(500)
+            await self.finish({"ok": False, "error": f"内部错误: {e}"})
+            return
+
+        await self.finish(
+            {
+                "ok": True,
+                "har": har_out,
+                "result": result,
+                "stats": {"input_entries": len(slim)},
+            }
+        )
+
+
+class HARAIStatus(BaseHandler):
+    """供前端查询 AI 功能是否可用。"""
+
+    async def get(self) -> None:
+        client = ai_client.AIClient()
+        await self.finish(
+            {
+                "enabled": client.enabled,
+                "model": client.model if client.enabled else "",
+            }
+        )
+
+
 handlers = [
     (r"/tpl/(\d+)/edit", HAREditor),
     (r"/tpl/(\d+)/save", HARSave),
     (r"/har/edit", HAREditor),
     (r"/har/save/?(\d+)?", HARSave),
     (r"/har/test", HARTest),
+    (r"/har/ai_analyze", HARAIAnalyze),
+    (r"/har/ai_status", HARAIStatus),
 ]

@@ -106,7 +106,11 @@ class Tpl(BaseDB, AlchemyMixin):
         smtm = select(_fields)
 
         for key, value in kwargs.items():
-            smtm = smtm.where(getattr(Tpl, key) == value)
+            col = getattr(Tpl, key)
+            if isinstance(value, (list, tuple, set)):
+                smtm = smtm.where(col.in_(list(value)))
+            else:
+                smtm = smtm.where(col == value)
 
         if limit:
             smtm = smtm.limit(limit)
