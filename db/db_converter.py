@@ -170,13 +170,14 @@ class DBconverter:
                     `qywx_webhook` VARCHAR(1024) NOT NULL DEFAULT '',
                     `tg_token` VARCHAR(1024) NOT NULL DEFAULT '',
                     `dingding_token` VARCHAR(1024) NOT NULL DEFAULT '',
+                    `wxpusher_spt` VARCHAR(1024) NOT NULL DEFAULT '',
                     `push_batch` VARCHAR(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
                     );"""
                     % autokey,
                     sql_session=sql_session,
                 )
                 await exec_shell(
-                    "INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`qywx_webhook`,`tg_token`,`dingding_token`,`push_batch` FROM `userold` ",
+                    "INSERT INTO `user` SELECT `id`,`email`,`email_verified`,`password`,`password_md5`,`userkey`,`nickname`,`role`,`ctime`,`mtime`,`atime`,`cip`,`mip`,`aip`,`skey`,`barkurl`,`wxpusher`,`noticeflg`,`logtime`,`status`,`diypusher`,`qywx_token`,`qywx_webhook`,`tg_token`,`dingding_token`,`wxpusher_spt`,`push_batch` FROM `userold` ",
                     sql_session=sql_session,
                 )
                 await exec_shell("DROP TABLE `userold` ", sql_session=sql_session)
@@ -214,6 +215,7 @@ class DBconverter:
             `qywx_webhook` VARCHAR(1024) NOT NULL DEFAULT '',
             `tg_token` VARCHAR(1024) NOT NULL DEFAULT '',
             `dingding_token` VARCHAR(1024) NOT NULL DEFAULT '',
+            `wxpusher_spt` VARCHAR(1024) NOT NULL DEFAULT '',
             `push_batch` VARCHAR(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
             );"""
                 % autokey
@@ -588,6 +590,14 @@ class DBconverter:
             logger_db_converter.debug(e)
             await exec_shell(
                 "ALTER TABLE `user` ADD `dingding_token`  VARCHAR(1024) NOT NULL DEFAULT '' "
+            )
+
+        try:
+            await self.db.user.list(limit=1, fields=("wxpusher_spt",))
+        except Exception as e:
+            logger_db_converter.debug(e)
+            await exec_shell(
+                "ALTER TABLE `user` ADD `wxpusher_spt`  VARCHAR(1024) NOT NULL DEFAULT '' "
             )
 
         if config.db_type == "sqlite3":
