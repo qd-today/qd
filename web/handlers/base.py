@@ -16,6 +16,7 @@ from tornado.web import HTTPError
 
 import config
 from db import DB
+from db.basedb import async_session
 from libs import fetcher, utils
 from libs.log import Log
 
@@ -113,6 +114,15 @@ class BaseHandler(_BaseHandler):
             userid = user['id']
         if self.db.redis.is_evil(self.ip, userid):
             raise HTTPError(403)
+
+    async def _execute(self, transforms, *args, **kwargs):
+        # 修复 web handler session 泄漏:每个 HTTP 请求是一个 asyncio task,
+        # async_session() 用 current_task 作 scope,handler 结束时不清除则
+        # session 永久留在 registry 中,导致内存持续增长。
+        try:
+            return await super()._execute(transforms, *args, **kwargs)
+        finally:
+            await async_session.remove()
 
     def check_permission(self, obj, mode='r'):
         if not obj:

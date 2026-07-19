@@ -18,6 +18,7 @@ from tornado.concurrent import Future
 
 import config
 from db import DB
+from db.basedb import async_session
 from libs.fetcher import Fetcher
 from libs.funcs import Cal, Pusher
 from libs.log import Log
@@ -173,6 +174,16 @@ class BaseWorker:
         return next
 
     async def do(self, task):
+        # 修复 async_scoped_session 内存泄漏: 每个 asyncio task 结束时
+        # 必须调用 async_session.remove() 清理 registry 中残留的 session,
+        # 否则 session 及其 identity map (expire_on_commit=False) 永不释放,
+        # 长期运行导致内存持续增长。
+        try:
+            return await self._do(task)
+        finally:
+            await async_session.remove()
+
+    async def _do(self, task):
         is_success = False
         should_push = 0
         userid = None
@@ -450,6 +461,8 @@ class BatchWorker(BaseWorker):
                 await self.push_batch()
         except Exception as e:
             logger_worker.exception(e)
+        finally:
+            await async_session.remove()
         return (success, failed)
 
 
