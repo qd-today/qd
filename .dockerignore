@@ -1,0 +1,29 @@
+# 构建上下文瘦身：这些内容不进镜像
+# （qd 的 Dockerfile 用 COPY . 取代码，不排除会把 235MB 的 node_modules 等打进去）
+.git
+.github
+docs
+web/docs
+*.md
+*.png
+*.yml
+*.yaml
+
+# 依赖与缓存
+node_modules
+web/node_modules
+web/bower_components
+.webassets-cache
+__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+
+# 部署私钥（Dockerfile 已不再需要它）
+ssh
+
+# 本地配置与编辑器产物
+.idea
+.vscode
+.DS_Store

@@ -1,0 +1,413 @@
+name: _Image (reusable)
+
+# 三个变体（latest / ja3 / lite）共用的构建-冒烟-发布流水线。
+# 变体差异全部由 inputs 表达，避免三份 workflow 各抄一遍逻辑后逐渐漂移
+# （此前就是三份独立 workflow：同一批 QEMU/缓存/冒烟改动要改三次）。
+#
+# 阶段划分：
+#   1) build  ：按架构组并行构建；发布模式按 digest 推到 ghcr（不产中间 tag）
+#   2) smoke  ：从 build 写下的层缓存重建单平台镜像，逐平台真跑
+#               （import run + pycurl 版本/补丁校验——历史上正是缺这一步，
+#                 pip 把基座里打过补丁的 pycurl 覆盖成 vanilla 版本都没人发现）
+#   3) publish：全部构建 + 全部冒烟通过后，用 imagetools 把各 digest 合并成正式 tag，
+#               并断言 manifest 平台集合与计划一致
+on:
+  workflow_call:
+    inputs:
+      variant:
+        description: '变体标识，仅用于缓存 scope 与日志命名'
+        type: string
+        required: true
+      dockerfile:
+        description: '该变体的 Dockerfile'
+        type: string
+        required: true
+      default_platforms:
+        description: '该变体的默认平台集合（逗号分隔）'
+        type: string
+        required: true
+      check_impersonate:
+        description: '冒烟是否校验 pycurl.IMPERSONATE（ja3 线为 true）'
+        type: boolean
+        default: false
+      platforms:
+        description: '平台子集（空 = 用 default_platforms）'
+        type: string
+        default: ''
+      force:
+        description: '强制重新构建（默认会跳过「仅文档改动」或「该 commit 已验证过」的重复运行）'
+        type: boolean
+        default: false
+      native_arm:
+        description: '是否用原生 arm64 runner 构建 arm64'
+        type: boolean
+        default: true
+    secrets:
+      GHCR_TOKEN:
+        required: false
+      DOCKER_USERNAME:
+        required: false
+      DOCKER_PASSWORD:
+        required: false
+      QD_DOCKER_USERNAME:
+        required: false
+      QD_DOCKER_PASSWORD:
+        required: false
+
+env:
+  PUBLISH: ${{ inputs.force == false && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
+  GHCR_IMAGE: ghcr.io/qd-today/qd
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    name: Plan
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      smoke_matrix: ${{ steps.plan.outputs.smoke_matrix }}
+      expected: ${{ steps.plan.outputs.expected }}
+      full: ${{ steps.plan.outputs.full }}
+      skip: ${{ steps.changes.outputs.skip }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Decide whether a rebuild is needed
+        id: changes
+        # 只在 workflow_dispatch 下生效：master 推送与 tag 发布必须全量。
+        # 基准取「该分支上本 workflow 最近一次成功运行的 commit」，用
+        # git diff 看改动是否命中影响镜像的路径；没命中则整体跳过
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKERFILE: ${{ inputs.dockerfile }}
+        run: |
+          set -euo pipefail
+          case "${{ github.event_name }}" in
+            workflow_dispatch) ;;
+            *) echo "skip=false" >> "$GITHUB_OUTPUT"; echo "reason=release-event"; exit 0 ;;
+          esac
+          if [ "${{ inputs.force }}" = "true" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"; echo "reason=forced"; exit 0
+          fi
+          base=$(gh run list --workflow "${GITHUB_WORKFLOW}" --branch "${GITHUB_REF_NAME}" \
+                   --status success --limit 1 --json headSha --jq '.[0].headSha' 2>/dev/null || true)
+          if [ -z "$base" ] || [ "$base" = "null" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"; echo "reason=no-previous-success"; exit 0
+          fi
+          changed=$(git diff --name-only "$base" "$GITHUB_SHA" || true)
+          echo "基准 ${base}..${GITHUB_SHA} 的改动："
+          if [ -z "$changed" ]; then
+            echo "  （无改动，该 commit 已验证过）"
+            echo "skip=true" >> "$GITHUB_OUTPUT"; echo "reason=already-verified"; exit 0
+          fi
+          echo "$changed" | sed 's/^/  /'
+          relevant=0
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            case "$f" in
+              Dockerfile|Dockerfile.ja3|Dockerfile.lite|.dockerignore|requirements.txt|Pipfile|Pipfile.lock|libs/*|web/*|db/*|config/*|worker*|qd.py|run.py|backup.py|chrole.py)
+                relevant=1 ;;
+            esac
+          done <<EOF
+          $changed
+          EOF
+          if [ "$relevant" = "1" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"; echo "reason=app-inputs-changed"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"; echo "reason=unrelated-to-image"
+          fi
+      - name: Verify derived Dockerfile only differs in BASE_IMAGE
+        if: inputs.dockerfile != 'Dockerfile'
+        run: |
+          set -eu
+          check() {
+            a=$(sed 's|^ARG BASE_IMAGE=.*|ARG BASE_IMAGE=<base>|' "$1")
+            b=$(sed 's|^ARG BASE_IMAGE=.*|ARG BASE_IMAGE=<base>|' "$2")
+            if [ "$a" != "$b" ]; then
+              echo "::error::$1 与 $2 除 BASE_IMAGE 外不一致（派生文件已漂移）"
+              exit 1
+            fi
+          }
+          check "${{ inputs.dockerfile }}" "Dockerfile"
+      - name: Compute matrices
+        id: plan
+        env:
+          PLATFORM_INPUT: ${{ inputs.platforms }}
+          DEFAULT_PLATFORMS: ${{ inputs.default_platforms }}
+          NATIVE_ARM: ${{ inputs.native_arm && 'true' || 'false' }}
+        run: |
+          python3 - <<'PY' > /tmp/plan.out
+          import json, os, sys
+
+          default = [p.strip() for p in os.environ["DEFAULT_PLATFORMS"].split(",") if p.strip()]
+          raw = (os.environ.get("PLATFORM_INPUT") or "").strip()
+          plats = [p.strip() for p in raw.split(",") if p.strip()] if raw else default
+
+          allowed = {"linux/amd64", "linux/386", "linux/arm64", "linux/arm/v7",
+                     "linux/arm/v6", "linux/ppc64le", "linux/riscv64", "linux/s390x",
+                     "linux/loong64"}
+          bad = [p for p in plats if p not in allowed]
+          if bad:
+              sys.exit("::error::未知平台: %s（可选: %s）" % (",".join(bad), ",".join(sorted(allowed))))
+
+          native = (os.environ.get("NATIVE_ARM") != "false")
+          arm_runner = "ubuntu-24.04-arm" if native else "ubuntu-latest"
+
+          # 按「是否本机原生 + 编译量级」分组；组间完全并行
+          # ppc64le 与 s390x 各自成组：两者都要在 QEMU 下装依赖，合组会串行累加
+          GROUPS = [
+              ("x86",     "ubuntu-latest", ["linux/amd64", "linux/386"]),
+              ("arm",     arm_runner,      ["linux/arm64", "linux/arm/v7", "linux/arm/v6"]),
+              ("ppc64le", "ubuntu-latest", ["linux/ppc64le"]),
+              ("s390x",   "ubuntu-latest", ["linux/s390x"]),
+              ("riscv64", "ubuntu-latest", ["linux/riscv64"]),
+              ("loong64", "ubuntu-latest", ["linux/loong64"]),
+          ]
+          include = []
+          for name, runner, group_plats in GROUPS:
+              sel = [p for p in group_plats if p in plats]
+              if sel:
+                  include.append({"group": name, "runner": runner, "platforms": ",".join(sel)})
+          if not include:
+              sys.exit("::error::没有可构建的平台")
+
+          GROUP_OF = {
+              "linux/amd64": "x86", "linux/386": "x86",
+              "linux/arm64": "arm", "linux/arm/v7": "arm", "linux/arm/v6": "arm",
+              "linux/ppc64le": "ppc64le", "linux/s390x": "s390x",
+              "linux/riscv64": "riscv64", "linux/loong64": "loong64",
+          }
+          smoke = []
+          for p in plats:
+              smoke.append({
+                  "platform": p,
+                  "group": GROUP_OF[p],
+                  "runner": arm_runner if p == "linux/arm64" else "ubuntu-latest",
+              })
+
+          print("matrix=" + json.dumps({"include": include}))
+          print("smoke_matrix=" + json.dumps({"include": smoke}))
+          print("expected=" + ",".join(sorted(plats)))
+          print("full=%s" % str(sorted(plats) == sorted(default)).lower())
+          PY
+          echo "--- 构建分组 ---"
+          sed -n 's/^matrix=//p' /tmp/plan.out | python3 -m json.tool
+          echo "--- 冒烟矩阵 ---"
+          sed -n 's/^smoke_matrix=//p' /tmp/plan.out | python3 -m json.tool
+
+  build:
+    needs: plan
+    name: Build ${{ matrix.group }} (${{ matrix.platforms }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 300
+    if: ${{ needs.plan.outputs.skip != 'true' }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        if: env.PUBLISH == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_TOKEN || github.actor }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+      - name: Build
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./${{ inputs.dockerfile }}
+          platforms: ${{ matrix.platforms }}
+          # 发布模式按 digest 推送：各架构组并行构建，用 digest 传递产物不必协调 tag 命名，
+          # 也不在 tag 列表里留下可被拉取的一次性中间产物
+          push: ${{ env.PUBLISH == 'true' }}
+          outputs: ${{ env.PUBLISH == 'true' && format('type=image,name={0},push-by-digest=true,name-canonical=true', env.GHCR_IMAGE) || '' }}
+          provenance: false
+          cache-from: type=gha,scope=qd-${{ inputs.variant }}-${{ matrix.group }}
+          cache-to: type=gha,mode=max,scope=qd-${{ inputs.variant }}-${{ matrix.group }},ignore-error=true
+      - name: Export digest
+        if: env.PUBLISH == 'true'
+        run: |
+          set -eu
+          mkdir -p /tmp/digests
+          echo "${{ steps.build.outputs.digest }}" > "/tmp/digests/${{ matrix.group }}.digest"
+      - name: Upload digest
+        if: env.PUBLISH == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ inputs.variant }}-${{ matrix.group }}
+          path: /tmp/digests/*.digest
+          retention-days: 1
+          if-no-files-found: error
+
+  smoke:
+    needs: [plan, build]
+    name: Smoke ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    if: ${{ needs.plan.outputs.skip != 'true' && needs.build.result == 'success' }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.smoke_matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Materialize image from cache (${{ matrix.platform }})
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./${{ inputs.dockerfile }}
+          platforms: ${{ matrix.platform }}
+          load: true
+          push: false
+          tags: qd-smoke:test
+          provenance: false
+          # build-args 必须与 build 阶段一致，否则缓存不命中会退化成全量重建
+          cache-from: type=gha,scope=qd-${{ inputs.variant }}-${{ matrix.group }}
+      - name: Run smoke
+        run: |
+          set -eu
+          IMPERSONATE="${{ inputs.check_impersonate }}"
+          docker run --rm -i --platform ${{ matrix.platform }} --entrypoint sh qd-smoke:test -s <<'EOF'
+          set -eu
+          cd /usr/src/app
+          # 入口可导入：覆盖 tornado / aiohttp / db / web / worker 全链路 import
+          timeout 120 python3 -c "import run" 2>&1 | grep -v cpuid_info || true
+          timeout 120 python3 -c "import run"
+          # pycurl 必须来自基座（版本不被 pip 覆盖）；ja3 线还必须有 IMPERSONATE 补丁
+          timeout 60 python3 - <<'PY'
+          import pycurl
+          print("pycurl", pycurl.version.split()[0])
+          want = "${IMPERSONATE}"
+          has = hasattr(pycurl, "IMPERSONATE")
+          if want == "true" and not has:
+              raise SystemExit("ja3 线缺少 pycurl.IMPERSONATE：基座补丁被覆盖")
+          if want == "false" and has:
+              print("note: 非 ja3 线也带 IMPERSONATE（基座变更？）")
+          PY
+          echo "smoke(${{ inputs.variant }}/${{ matrix.platform }}): PASS"
+          EOF
+
+  publish:
+    needs: [plan, build, smoke]
+    name: Merge digests and publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # 闸门：① 有发布意图 ② 无任何失败 ③ 平台集合完整
+    if: ${{ env.PUBLISH == 'true' && !cancelled() && !contains(needs.*.result, 'failure') && needs.plan.outputs.full == 'true' }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-${{ inputs.variant }}-*
+          path: /tmp/digests
+          merge-multiple: true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_TOKEN || github.actor }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+      - name: Login to qdtoday DockerHub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.QD_DOCKER_USERNAME }}
+          password: ${{ secrets.QD_DOCKER_PASSWORD }}
+      - name: Login to a76yyyy DockerHub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Create multi-arch manifests
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          set -euo pipefail
+          SRCS=""
+          for f in /tmp/digests/*.digest; do
+            SRCS="$SRCS ghcr.io/qd-today/qd@$(cat "$f")"
+          done
+          echo "聚合来源:${SRCS}"
+
+          # 与历史发布保持一致：
+          #   master 推送 → ghcr:latest、qdtoday/qd:dev、a76yyyy/qiandao:dev
+          #   tag 推送    → ghcr:latest+版本、qdtoday/qd:latest+版本、a76yyyy/qiandao:latest+版本
+          GHCR_TAGS="latest"
+          QD_TAGS="dev"
+          A76_TAGS="dev"
+          if [ "$IS_TAG" = "true" ]; then
+            GHCR_TAGS="latest $REF_NAME"
+            QD_TAGS="latest $REF_NAME"
+            A76_TAGS="latest $REF_NAME"
+          fi
+          for T in $GHCR_TAGS; do
+            echo "::group::ghcr.io/qd-today/qd:${T}"
+            docker buildx imagetools create -t "ghcr.io/qd-today/qd:${T}" $SRCS
+            echo "::endgroup::"
+          done
+          for T in $QD_TAGS; do
+            echo "::group::docker.io/qdtoday/qd:${T}"
+            docker buildx imagetools create -t "docker.io/qdtoday/qd:${T}" $SRCS
+            echo "::endgroup::"
+          done
+          for T in $A76_TAGS; do
+            echo "::group::docker.io/a76yyyy/qiandao:${T}"
+            docker buildx imagetools create -t "docker.io/a76yyyy/qiandao:${T}" $SRCS
+            echo "::endgroup::"
+          done
+      - name: Verify manifest platform completeness
+        env:
+          EXPECTED: ${{ needs.plan.outputs.expected }}
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, os, subprocess, sys
+          expected = set(os.environ["EXPECTED"].split(","))
+          tags = ["ghcr.io/qd-today/qd:latest"]
+          if os.environ.get("IS_TAG") == "true":
+              tags = ["ghcr.io/qd-today/qd:latest", "ghcr.io/qd-today/qd:" + os.environ["REF_NAME"]]
+          for tag in tags:
+              out = subprocess.run(["docker", "buildx", "imagetools", "inspect", tag, "--raw"],
+                                   capture_output=True, text=True, check=True).stdout
+              idx = json.loads(out)
+              got = set()
+              for m in idx.get("manifests", []):
+                  p = m.get("platform", {})
+                  if not p:
+                      continue
+                  arch, variant = p.get("architecture"), p.get("variant")
+                  plat = "linux/" + arch + (("/" + variant) if variant else "")
+                  got.add(plat)
+              missing, extra = expected - got, got - expected
+              if missing or extra:
+                  print("::error::%s 平台集合与计划不一致：缺 %s，多 %s" % (tag, missing or "无", extra or "无"))
+                  sys.exit(1)
+              print("%s 平台集合一致：%s" % (tag, ", ".join(sorted(got))))
+          PY

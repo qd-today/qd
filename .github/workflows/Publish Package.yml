@@ -1,6 +1,19 @@
 name: Publish Latest Package
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: '要构建的平台列表，逗号分隔不要空格，如 linux/amd64,linux/arm64；留空=该变体默认平台'
+        type: string
+        default: ''
+      native_arm:
+        description: '用 GitHub 原生 arm64 runner 构建 arm64（比 QEMU 快数倍）；该 runner 不可用时取消勾选回退 QEMU'
+        type: boolean
+        default: true
+      force:
+        description: '强制重新构建（默认会跳过「仅文档改动」或「该 commit 已验证过」的重复运行）'
+        type: boolean
+        default: false
   push:
     paths-ignore:
       - 'docs/**'
@@ -12,76 +25,16 @@ on:
     tags: ["*"]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    name: Publish Latest Package job
-    if: startsWith(github.repository, 'qd-today/qd') # 仓库名
-
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v2
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ghcr.io
-        username: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
-        password: ${{ secrets.GITHUB_TOKEN }} # dockerServer Token
-    - name: login to qdtoday DockerHub
-      uses: docker/login-action@v2
-      with:
-        registry: docker.io
-        username: ${{ secrets.QD_DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=QD_DOCKER_USERNAME  value=dockerid
-        password: ${{ secrets.QD_DOCKER_PASSWORD }} # dockerServer Token 在setting创建secrets name=QD_DOCKER_PASSWORD  value=dockerToken
-    - name: Publish Latest Package
-      uses: docker/build-push-action@v4
-      if: github.ref == 'refs/heads/master'
-      with:
-        context: .
-        file: ./Dockerfile
-        platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
-        push: true
-        tags: ghcr.io/qd-today/qd:latest,docker.io/qdtoday/qd:dev
-    - name: Login to a76yyyy DockerHub
-      uses: docker/login-action@v2
-      if: github.ref == 'refs/heads/master'
-      with:
-        registry: docker.io
-        username: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
-        password: ${{ secrets.DOCKER_PASSWORD }} # dockerServer Token 在setting创建secrets name=DOCKER_PASSWORD  value=dockerToken
-    - name: Push image to a76yyyy DockerHub
-      if: github.ref == 'refs/heads/master'
-      run: |
-        docker buildx imagetools create \
-          --tag docker.io/a76yyyy/qiandao:dev \
-          docker.io/qdtoday/qd:dev
-    - name: Get version
-      id: get_version
-      if: startsWith(github.ref, 'refs/tags/')
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-    - name: Build Latest Package
-      uses: docker/build-push-action@v4
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        context: .
-        file: ./Dockerfile
-        platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
-        push: true
-        tags: docker.io/qdtoday/qd:latest,docker.io/qdtoday/qd:${{ steps.get_version.outputs.VERSION }}
-    - name: Login to a76yyyy DockerHub
-      uses: docker/login-action@v2
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        registry: docker.io
-        username: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
-        password: ${{ secrets.DOCKER_PASSWORD }} # dockerServer Token 在setting创建secrets name=DOCKER_PASSWORD  value=dockerToken
-    - name: Push image to a76yyyy DockerHub
-      if: startsWith(github.ref, 'refs/tags/')
-      run: |
-        docker buildx imagetools create \
-          --tag docker.io/a76yyyy/qiandao:latest \
-          --tag docker.io/a76yyyy/qiandao:${{ steps.get_version.outputs.VERSION }} \
-          docker.io/qdtoday/qd:${{ steps.get_version.outputs.VERSION }}
+  # 三个变体共用 .github/workflows/_image.yml：plan -> build(架构组矩阵) -> smoke(每平台一个 job) -> publish
+  # 变体差异全部通过 with 传入，避免三份 workflow 重复维护后逐渐漂移
+  image:
+    uses: ./.github/workflows/_image.yml
+    secrets: inherit
+    with:
+      variant: latest
+      dockerfile: Dockerfile
+      default_platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7,linux/ppc64le,linux/riscv64,linux/s390x,linux/loong64
+      check_impersonate: false
+      platforms: ${{ github.event.inputs.platforms || '' }}
+      native_arm: ${{ github.event.inputs.native_arm != 'false' }}
+      force: ${{ github.event.inputs.force == 'true' }}
