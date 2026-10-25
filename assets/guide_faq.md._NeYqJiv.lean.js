@@ -1,0 +1,1 @@
+import{_ as e,o as i,c as a,a2 as t}from"./chunks/framework.DXgf8DX-.js";const c=JSON.parse('{"title":"FAQ","description":"","frontmatter":{},"headers":[],"relativePath":"guide/faq.md","filePath":"guide/faq.md"}'),n={name:"guide/faq.md"};function r(o,s,l,h,p,d){return i(),a("div",null,[...s[0]||(s[0]=[t("",46)])])}const u=e(n,[["render",r]]);export{c as __pageData,u as default};
