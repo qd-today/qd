@@ -311,7 +311,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # 闸门：① 有发布意图 ② 无任何失败 ③ 平台集合完整
-    if: ${{ env.PUBLISH == 'true' && !cancelled() && !contains(needs.*.result, 'failure') && needs.plan.outputs.full == 'true' }}
+    if: ${{ (inputs.force == false && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))) && !cancelled() && !contains(needs.*.result, 'failure') && needs.plan.outputs.full == 'true' }}
     permissions:
       contents: read
       packages: write
