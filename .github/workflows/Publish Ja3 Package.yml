@@ -35,6 +35,7 @@ jobs:
       dockerfile: Dockerfile.ja3
       default_platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7,linux/riscv64
       check_impersonate: true
+      tag_prefix: 'ja3-'
       platforms: ${{ github.event.inputs.platforms || '' }}
       native_arm: ${{ github.event.inputs.native_arm != 'false' }}
       force: ${{ github.event.inputs.force == 'true' }}

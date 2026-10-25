@@ -30,6 +30,10 @@ on:
         description: '冒烟是否校验 pycurl.IMPERSONATE（ja3 线为 true）'
         type: boolean
         default: false
+      tag_prefix:
+        description: 'tag 前缀：latest 线为空串，ja3 / lite 为 ja3- / lite-'
+        type: string
+        default: ''
       platforms:
         description: '平台子集（空 = 用 default_platforms）'
         type: string
@@ -350,6 +354,7 @@ jobs:
         env:
           REF_NAME: ${{ github.ref_name }}
           IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+          TAG_PREFIX: ${{ inputs.tag_prefix }}
         run: |
           set -euo pipefail
           SRCS=""
@@ -358,16 +363,18 @@ jobs:
           done
           echo "聚合来源:${SRCS}"
 
-          # 与历史发布保持一致：
-          #   master 推送 → ghcr:latest、qdtoday/qd:dev、a76yyyy/qiandao:dev
-          #   tag 推送    → ghcr:latest+版本、qdtoday/qd:latest+版本、a76yyyy/qiandao:latest+版本
-          GHCR_TAGS="latest"
-          QD_TAGS="dev"
-          A76_TAGS="dev"
+          # 与历史发布保持一致（P=${TAG_PREFIX}）：
+          #   master 推送 → ghcr:P-latest、qdtoday/qd:P-dev、a76yyyy/qiandao:P-dev
+          #   tag 推送    → qdtoday/qd:P-latest+P-版本、a76yyyy/qiandao:P-latest+P-版本
+          #                 （ghcr 历史上只在 master 推送时更新，保持不变）
+          # 前缀必须带：三个变体共用同一个 ghcr 仓库，不加前缀会互相覆盖 manifest
+          P="${TAG_PREFIX}"
+          GHCR_TAGS="${P}latest"
+          QD_TAGS="${P}dev"
+          A76_TAGS="${P}dev"
           if [ "$IS_TAG" = "true" ]; then
-            GHCR_TAGS="latest $REF_NAME"
-            QD_TAGS="latest $REF_NAME"
-            A76_TAGS="latest $REF_NAME"
+            QD_TAGS="${P}latest ${P}${REF_NAME}"
+            A76_TAGS="${P}latest ${P}${REF_NAME}"
           fi
           for T in $GHCR_TAGS; do
             echo "::group::ghcr.io/qd-today/qd:${T}"
@@ -389,14 +396,14 @@ jobs:
           EXPECTED: ${{ needs.plan.outputs.expected }}
           IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
           REF_NAME: ${{ github.ref_name }}
+          TAG_PREFIX: ${{ inputs.tag_prefix }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
           import json, os, subprocess, sys
           expected = set(os.environ["EXPECTED"].split(","))
-          tags = ["ghcr.io/qd-today/qd:latest"]
-          if os.environ.get("IS_TAG") == "true":
-              tags = ["ghcr.io/qd-today/qd:latest", "ghcr.io/qd-today/qd:" + os.environ["REF_NAME"]]
+          prefix = os.environ.get("TAG_PREFIX", "")
+          tags = ["ghcr.io/qd-today/qd:" + prefix + "latest"]
           for tag in tags:
               out = subprocess.run(["docker", "buildx", "imagetools", "inspect", tag, "--raw"],
                                    capture_output=True, text=True, check=True).stdout
