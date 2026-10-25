@@ -195,6 +195,10 @@ jobs:
           sed -n 's/^matrix=//p' /tmp/plan.out | python3 -m json.tool
           echo "--- 冒烟矩阵 ---"
           sed -n 's/^smoke_matrix=//p' /tmp/plan.out | python3 -m json.tool
+          echo "--- 其余 ---"
+          grep -Ev '^(matrix|smoke_matrix)=' /tmp/plan.out
+          # /tmp/plan.out 的每一行都是 key=value，直接追加到 $GITHUB_OUTPUT
+          cat /tmp/plan.out >> "$GITHUB_OUTPUT"
 
   build:
     needs: plan
