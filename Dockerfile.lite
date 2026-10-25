@@ -34,8 +34,10 @@ RUN set -eu && \
         py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist \
         py3-multidict py3-charset-normalizer py3-aiohttp \
         py3-typing-extensions py3-yarl py3-cffi && \
-    # 与上面的 apk 清单、基座提供的包保持一致；改依赖时同步这两处
-    grep -vE '^(pycurl|aiohttp|aiosignal|async-timeout|attrs|charset-normalizer|cffi|cryptography|ddddocr|frozenlist|greenlet|markupsafe|multidict|numpy|opencv-python|packaging|pillow|pycryptodome|six|tornado|typing-extensions|urllib3|wrapt|yarl)[=<>~]' \
+    # 这份名单必须与 requirements.txt 里「>=」那一组完全一致：
+    # 那些包由基座或 Alpine 源提供，pip 再装一遍会把编译好的版本覆盖成 PyPI 版
+    # （ja3 的 IMPERSONATE 补丁当年就是这么丢的）
+    grep -vE '^(aiohappyeyeballs|aiohttp|aiosignal|async-timeout|attrs|cffi|charset-normalizer|cparser|cryptography|ddddocr|frozenlist|greenlet|idna|markupsafe|multidict|numpy|onnxruntime|packaging|pillow|propcache|pycparser|pycryptodome|pycurl|six|tornado|typing-extensions|urllib3|wrapt|yarl)[=<>~]' \
         /tmp/requirements.txt > /tmp/req.docker.txt && \
     { [ -z "$PIP_MIRROR" ] || export PIP_INDEX_URL="$PIP_MIRROR"; } && \
     pip install --no-cache-dir --break-system-packages -r /tmp/req.docker.txt && \
