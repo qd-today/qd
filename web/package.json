@@ -1,7 +1,7 @@
 {
   "name": "qd",
   "version": "1.0.0",
-  "description": "QD - \u4e00\u4e2a HTTP \u8bf7\u6c42\u5b9a\u65f6\u4efb\u52a1\u81ea\u52a8\u6267\u884c\u6846\u67b6 base on HAR Editor and Tornado Server",
+  "description": "QD - 一个 HTTP 请求定时任务自动执行框架 base on HAR Editor and Tornado Server",
   "main": "webpack.config.js",
   "scripts": {
     "docs:dev": "vitepress dev docs",
@@ -34,28 +34,25 @@
     "url": "^0.11.4"
   },
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">=20"
   },
   "devDependencies": {
-    "@types/tough-cookie": "^4.0.5",
-    "bower": "^1.8.14",
-    "coffeescript": "^2.7.1",
-    "grunt": "^1.6.3",
-    "grunt-bower-task": "^0.6.2",
-    "grunt-contrib-clean": "^2.0.1",
-    "grunt-contrib-concat": "^2.1.0",
-    "grunt-contrib-jshint": "^3.2.0",
-    "grunt-contrib-uglify": "^5.2.2",
-    "grunt-contrib-watch": "^1.1.0",
     "process": "^0.11.10",
     "terser-webpack-plugin": "^5.6.1",
-    "ts-loader": "^9.6.2",
-    "tslib": "^2.8.1",
-    "typescript": "^4.9.5",
     "util": "^0.12.5",
     "vitepress": "^1.6.4",
-    "vue": "^3.5.44",
     "webpack": "^5.112.2",
     "webpack-cli": "^5.1.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": "^8.5.23",
+      "nanoid": "^3.3.18",
+      "source-map-js": "^1.2.2",
+      "preact": "^10.27.3",
+      "ajv": "^8.20.0",
+      "fast-uri": "^3.1.9",
+      "vite": "^6.4.4"
+    }
   }
 }

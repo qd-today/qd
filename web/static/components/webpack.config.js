@@ -13,6 +13,13 @@ module.exports = {
         filename: '[name].js', //输出文件名
         path: path.resolve(__dirname) //输出文件夹
     },
+    // webpack 5 不再自动 polyfill Node 内置模块：tough-cookie 依赖 util.deprecate，
+    // 不显式 fallback 会打出缺少垫片的 bundle（运行时 curl→har 转换会坏）
+    resolve: {
+        fallback: {
+            util: require.resolve('util/'),
+        },
+    },
     plugins: [
         // fix "process is not defined" error:
         // (do "npm install process" before running the build)
