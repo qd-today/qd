@@ -26,10 +26,12 @@ COPY requirements.txt /tmp/requirements.txt
 RUN set -eu && \
     { [ -z "$APK_MIRROR" ] || sed -i "s|https://dl-cdn.alpinelinux.org|$APK_MIRROR|g" /etc/apk/repositories; } && \
     apk update && \
+    # 不再安装 openssh-client：构建期已不从 gitee clone，update.sh 走 https 归档包；
+    # 若使用者在带 .git 的环境里跑 update.sh，脚本自身会按需安装
     # py3-pip 保留在运行时：pip 只装 Alpine 源里没有的纯 Python 包，
     # 留着也方便使用者在容器内补装（基座本身不带 pip）
     apk add --update --no-cache \
-        openssh-client python3 py3-pip py3-six py3-markupsafe py3-pycryptodome py3-tornado \
+        python3 py3-pip py3-six py3-markupsafe py3-pycryptodome py3-tornado \
         py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography \
         py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist \
         py3-multidict py3-charset-normalizer py3-aiohttp \

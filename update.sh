@@ -212,7 +212,50 @@ update_version() {
     fi
 }
 
+# 镜像用 COPY 构建（不带 .git），此时走 tarball 更新；带 .git 时保持原逻辑
+have_git() {
+    git rev-parse --is-inside-work-tree >/dev/null 2>&1
+}
+
+# 列出远端版本 tag：有 .git 用 git，否则查 gitee API（公共仓库，无需 token）
+list_remote_tags() {
+    if have_git; then
+        git ls-remote --tags origin | grep -o 'refs/tags/[0-9]*' | grep -o '[^\/]*$'
+    else
+        wget -qO- "https://gitee.com/api/v5/repos/qd-today/qd/tags?per_page=100" \
+            | grep -o '"name": *"[0-9][0-9.]*"' | grep -o '[0-9][0-9.]*'
+    fi
+}
+
+# 无 .git 时的代码更新：下载归档包覆盖代码，config/ 是挂载点不能动
+update_tarball() {
+    uri="https://gitee.com/qd-today/qd/repository/archive/${remoteversion}.tar.gz"
+    tmp=$(mktemp -d)
+    echo "Info: 下载 ${uri}"
+    if ! wget -qO- "${uri}" | tar xz -C "${tmp}" 2>/dev/null; then
+        echo "Error: 下载或解压失败: ${uri}"
+        rm -rf "${tmp}"
+        return 1
+    fi
+    src=$(find "${tmp}" -maxdepth 1 -mindepth 1 -type d | head -n 1)
+    if [ -z "${src}" ]; then
+        echo "Error: 归档内容为空"
+        rm -rf "${tmp}"
+        return 1
+    fi
+    # config/ 是 VOLUME 挂载点：既不能删（Resource busy）也不该被归档覆盖，
+    # 归档里的 config 只有 .gitkeep，直接丢弃，用户的配置原样保留
+    rm -rf "${src}/config"
+    cp -a "${src}/." /usr/src/app/
+    chmod +x /usr/src/app/update.sh 2>/dev/null || true
+    rm -rf "${tmp}"
+}
+
 update_git() {
+    if ! have_git; then
+        update_tarball
+        return
+    fi
     if [ "${remoteversion}" = ${source_branch} ];then
         git fetch --all && \
         git reset --hard origin/"${remoteversion}" && \
@@ -239,7 +282,7 @@ update() {
             echo -e "Info: 更新完成! \nInfo: 当前版本: ${remoteversion}" && \
             echo_auto_reload
         else
-            if git ls-remote --tags origin | grep -o 'refs/tags/[0-9]*' | grep -o '[^\/]*$' | grep -q -w "$1"
+            if list_remote_tags | grep -q -w "$1"
             then
                 remoteversion="$1"
                 if [ "$(echo "$localversion" "$remoteversion" | awk '$1>$2 {print 0} $1=<$2 {print 1}')" == 0 ];then
@@ -281,7 +324,7 @@ update() {
         fi
     else
         # 默认更新至最新Tag版本
-        remoteversion=$(git ls-remote --tags origin | grep -o 'refs/tags/[0-9]*' | sort -r | head -n 1 | grep -o '[^\/]*$')
+        remoteversion=$(list_remote_tags | sort -r | head -n 1)
         if [ "$(echo "$localversion" "$remoteversion" | awk '$1>=$2 {print 0} $1<$2 {print 1}')" == 1 ];then
             echo -e "Info: 当前版本: $localversion \nInfo: 新版本: $remoteversion \nInfo: 正在更新中, 请稍候..."
             update_version "${remoteversion}" && \
