@@ -1,0 +1,75 @@
+[project]
+name = "qd"
+version = "0.0.0"
+description = "QD 定时签到框架的运行依赖"
+requires-python = ">=3.14"
+
+# 依赖口径：
+#   - 全部用 `>=` 下限，精确版本由 uv.lock 冻结
+#   - 基座镜像（a76yyyy/pycurl）与 apk 已装的包也列在这里：一来 Docker 构建要靠这份
+#     清单判断「哪些不用装」，二来非 Docker 用户 pip install . 时才有完整的依赖声明
+#   - Docker 构建会在镜像内推导「基座已有哪些包」并把它们从安装清单里剔除，
+#     所以这里写 `>=` 不会导致基座里的自编版本被 PyPI 版覆盖
+dependencies = [
+    # ---- 基座镜像 / Alpine 源提供的（Docker 构建时自动跳过）----
+    "aiohappyeyeballs>=2.6.1",
+    "aiohttp>=3.13.5,<4",
+    "aiosignal>=1.4.0",
+    "async-timeout>=4.0.3",
+    "attrs>=26.1.0",
+    "charset-normalizer>=3.4.9",
+    "frozenlist>=1.8.0",
+    "greenlet>=3.5.0",
+    "idna>=3.16",
+    "markupsafe>=3.0.3",
+    "multidict>=6.7.1",
+    "packaging>=26.2",
+    "propcache>=0.5.2",
+    "pycryptodome>=3.23.0",
+    "pycurl>=7.48.0",
+    "six>=1.17.0",
+    "tornado>=6.5.5,<7",
+    "typing-extensions>=4.15.0",
+    "urllib3>=2.7.0,<3",
+    "wrapt>=2.1.2",
+    "yarl>=1.24.2",
+
+    # ---- 纯 Python，从 PyPI 安装 ----
+    "aiofiles>=25.1.0",
+    "aiomysql>=0.3.2",
+    "aiosqlite>=0.22.1",
+    "certifi>=2026.10.23",
+    "colorama>=0.4.6; sys_platform == 'win32'",
+    "croniter>=6.2.4",
+    "faker>=40.43.0",
+    "incremental>=24.11.0",
+    "jinja2>=3.1.6",
+    "passlib>=1.7.4",
+    "pbkdf2>=1.3",
+    "pymysql>=1.2.3",
+    "pysocks>=1.7.1",
+    "python-dateutil>=3.0.0",
+    "pytz>=2026.5",
+    "redis>=8.1.0",
+    "requests>=2.34.2",
+    "setuptools>=84.2.1",
+    # 1.4 的最后一个版本：2.x 是破坏性迁移，db/ 层还是 1.4 写法，需单独一轮改造
+    "sqlalchemy[asyncio]==1.4.54",
+    "tzdata>=2026.5",
+    "u-msgpack-python>=2.8.0",
+]
+
+[project.optional-dependencies]
+# OCR 栈：基座镜像（a76yyyy/pycurl 的 latest / ja3 线）已提供，Docker 构建时会被跳过；
+# 声明成 extra 是因为 lite 线（纯 Alpine 基座）**故意不带**它——runtime 用 QIANDAO_LITE
+# 关闭相关功能。非 Docker 用户想用 OCR 就 pip install .[ocr]。
+ocr = [
+    "ddddocr>=1.6.1",
+    "numpy>=2.4.6",
+    "onnxruntime>=1.24.4",
+    "pillow>=12.2.0",
+]
+
+[tool.uv]
+# 本项目不发布、也没有 build-system：Docker 里只 export 依赖清单，不装 qd 自身
+package = false
