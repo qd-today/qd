@@ -1,7 +1,7 @@
 # QD 运行环境。
 # 基座 a76yyyy/pycurl 已提供 pycurl（含 ja3 补丁）、ddddocr、OpenCV、onnxruntime，
 # 本文件只安装 QD 自身的依赖并放入代码。
-ARG BASE_IMAGE=a76yyyy/pycurl:1.5.0
+ARG BASE_IMAGE=a76yyyy/pycurl:1.5.1
 FROM ${BASE_IMAGE}
 
 # FROM 之前的 ARG 在 FROM 之后即失效，这里重新声明以供 LABEL 使用
