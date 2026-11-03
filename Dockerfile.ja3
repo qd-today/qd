@@ -31,9 +31,14 @@ COPY pyproject.toml uv.lock /usr/src/app/
 ENV UV_NO_CACHE=1
 # 不去自动下载 Python：镜像里的 alpine python3 就是目标解释器
 ENV UV_PYTHON_DOWNLOADS=never
-# 索引顺序：默认索引（PyPI 或镜像）是兜底，wheelhouse 各自一个 --extra-index-url。
-# 这里用 uv pip install 而不是 uv sync —— 两者对多索引的选择行为不同：实测 sync 会
-# 绕过 wheel 去编 pycurl 的 sdist，pip 接口则能正确命中 wheelhouse 里的 musllinux 轮子。
+# 为什么走 export + pip install 而不是 uv sync：
+# uv.lock 里每个包都记了下载地址（source = { registry = "https://pypi.org/simple" }）
+# 与具体的 sdist/wheel URL。`uv sync` 的语义是「从 lockfile 装」，它照着那些 URL 取，
+# 不再解析索引——于是 pycurl 只会拿到 PyPI 的 sdist（PyPI 没有它的 musllinux 轮子），
+# 当场因为缺 curl-config 编译失败，--extra-index-url 完全用不上。
+# `uv export --no-hashes` 产出的只有 `pycurl==7.49.0` 这种版本约束、没有任何 URL，
+# 于是安装时按下面的索引重新解析，命中 wheelhouse 里的 musllinux 轮子。
+# 版本一致性仍由 lock 保证（export 的版本就是 lock 冻的版本）。
 ENV UV_PYTHON=/usr/bin/python3
 
 # 编译期工具：greenlet / markupsafe / tornado / pycryptodome 在部分架构没有 musllinux
