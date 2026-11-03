@@ -121,19 +121,34 @@ jobs:
           else
             echo "skip=true" >> "$GITHUB_OUTPUT"; echo "reason=unrelated-to-image"
           fi
-      - name: Verify derived Dockerfile only differs in BASE_IMAGE
+      - name: Verify derived Dockerfile consistency
         if: inputs.dockerfile != 'Dockerfile'
         run: |
           set -eu
-          check() {
-            a=$(sed 's|^ARG BASE_IMAGE=.*|ARG BASE_IMAGE=<base>|' "$1")
-            b=$(sed 's|^ARG BASE_IMAGE=.*|ARG BASE_IMAGE=<base>|' "$2")
-            if [ "$a" != "$b" ]; then
-              echo "::error::$1 与 $2 除 BASE_IMAGE 外不一致（派生文件已漂移）"
-              exit 1
-            fi
+          # ja3 与 main 只允许两处差异：pycurl 的 wheelhouse tag、ja3 独有的 IMPERSONATE 断言。
+          # 归一化掉这两处后必须逐字一致，防止改了 main 忘了同步 ja3。
+          # lite 结构性不同（不带 OCR、少挂两个 wheelhouse），全文件比对没意义，改成语义检查。
+          norm() {
+            sed -e 's|a76yyyy/pycurl:[a-zA-Z0-9._-]*|a76yyyy/pycurl:<wh>|g' -e '/IMPERSONATE/d' "$1"
           }
-          check "${{ inputs.dockerfile }}" "Dockerfile"
+          case "${{ inputs.dockerfile }}" in
+            Dockerfile.ja3)
+              if ! diff <(norm Dockerfile) <(norm Dockerfile.ja3) > /tmp/df.diff; then
+                echo "::error::Dockerfile.ja3 与 Dockerfile 除 pycurl wheelhouse 与 IMPERSONATE 断言外不一致"
+                head -40 /tmp/df.diff
+                exit 1
+              fi
+              ;;
+            Dockerfile.lite)
+              grep -q 'uv pip sync' Dockerfile.lite || { echo "::error::Dockerfile.lite 缺少 uv pip sync"; exit 1; }
+              if grep -q -- '--extra ocr' Dockerfile.lite; then
+                echo "::error::Dockerfile.lite 不应安装 ocr extra"; exit 1
+              fi
+              if grep -q 'ddddocr:' Dockerfile.lite || grep -q 'onnxruntime:' Dockerfile.lite; then
+                echo "::error::Dockerfile.lite 不应挂 ddddocr / onnxruntime 的 wheelhouse"; exit 1
+              fi
+              ;;
+          esac
       - name: Compute matrices
         id: plan
         env:
