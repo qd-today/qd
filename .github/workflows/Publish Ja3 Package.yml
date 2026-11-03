@@ -25,9 +25,10 @@ on:
     tags: ["*"]
 
 jobs:
-  # 三个变体共用 .github/workflows/_image.yml：plan -> build(架构组矩阵) -> smoke(每平台一个 job) -> publish
-  # 变体差异全部通过 with 传入，避免三份 workflow 重复维护后逐渐漂移
-  image:
+  # 与 Publish Package 同理：ja3（带 OCR）只有 4 个平台可用——pycurl 的 ja3 线本身只发
+  # 6 个平台，去掉 386 / arm/v6 后与 ddddocr / onnxruntime 的交集就是 4 个。
+  # ja3-lite（无 OCR）能覆盖 6 个，于是用它补上 386 与 arm/v6。
+  ja3:
     uses: ./.github/workflows/_image.yml
     secrets: inherit
     with:
@@ -39,3 +40,145 @@ jobs:
       platforms: ${{ github.event.inputs.platforms || '' }}
       native_arm: ${{ github.event.inputs.native_arm != 'false' }}
       force: ${{ github.event.inputs.force == 'true' }}
+      digest_only: true
+
+  ja3-lite:
+    uses: ./.github/workflows/_image.yml
+    secrets: inherit
+    with:
+      variant: ja3-lite
+      dockerfile: Dockerfile.ja3-lite
+      default_platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7,linux/riscv64
+      check_impersonate: true
+      tag_prefix: 'ja3-lite-'
+      platforms: ${{ github.event.inputs.platforms || '' }}
+      native_arm: ${{ github.event.inputs.native_arm != 'false' }}
+      force: ${{ github.event.inputs.force == 'true' }}
+      digest_only: true
+
+  merge:
+    needs: [ja3, ja3-lite]
+    name: Merge ja3 + ja3-lite digests and publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.event.inputs.platforms == '' && github.event.inputs.force != 'true' }}
+    permissions:
+      contents: read
+      packages: write
+    env:
+      JA3_GROUPS: x86 arm riscv64
+      JA3_LITE_ONLY_GROUPS: x86-32 armv6
+      ALL_JA3_LITE_GROUPS: x86 x86-32 arm armv6 riscv64
+    steps:
+      - name: Download ja3 digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-ja3-*
+          path: /tmp/d/ja3
+      - name: Download ja3-lite digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-ja3-lite-*
+          path: /tmp/d/ja3-lite
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_TOKEN || github.actor }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+      - name: Login to qdtoday DockerHub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.QD_DOCKER_USERNAME }}
+          password: ${{ secrets.QD_DOCKER_PASSWORD }}
+      - name: Login to a76yyyy DockerHub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Create manifests
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          set -euo pipefail
+          dg() {
+            local f="/tmp/d/$1/digests-$1-$2/$2.digest"
+            [ -f "$f" ] || { echo "::error::缺少 digest: $f"; exit 1; }
+            tr -d '[:space:]' < "$f"
+          }
+          srcs() {
+            local variant=$1; shift
+            for g in "$@"; do printf ' ghcr.io/qd-today/qd@%s' "$(dg "$variant" "$g")"; done
+          }
+
+          SRCS_JA3="$(srcs ja3 $JA3_GROUPS)$(srcs ja3-lite $JA3_LITE_ONLY_GROUPS)"
+          SRCS_JA3_LITE="$(srcs ja3-lite $ALL_JA3_LITE_GROUPS)"
+          echo "ja3 来源:${SRCS_JA3}"
+          echo "ja3-lite 来源:${SRCS_JA3_LITE}"
+
+          JA3_TAGS="ja3-dev"; JA3_LITE_TAGS="ja3-lite-dev"
+          if [ "$IS_TAG" = "true" ]; then
+            JA3_TAGS="ja3-latest ja3-${REF_NAME} ja3-dev"
+            JA3_LITE_TAGS="ja3-lite-latest ja3-lite-${REF_NAME} ja3-lite-dev"
+          fi
+
+          publish() {
+            local img=$1 tags=$2 srcs=$3
+            for t in $tags; do
+              echo "::group::${img}:${t}"
+              docker buildx imagetools create -t "${img}:${t}" $srcs
+              echo "::endgroup::"
+            done
+          }
+
+          publish ghcr.io/qd-today/qd "ja3-latest" "$SRCS_JA3"
+          publish ghcr.io/qd-today/qd "ja3-lite-latest" "$SRCS_JA3_LITE"
+          publish docker.io/qdtoday/qd "$JA3_TAGS" "$SRCS_JA3"
+          publish docker.io/qdtoday/qd "$JA3_LITE_TAGS" "$SRCS_JA3_LITE"
+          publish docker.io/a76yyyy/qiandao "$JA3_TAGS" "$SRCS_JA3"
+          publish docker.io/a76yyyy/qiandao "$JA3_LITE_TAGS" "$SRCS_JA3_LITE"
+      - name: Verify manifest platform completeness
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json, subprocess, sys
+
+          EXPECT = {
+              "ghcr.io/qd-today/qd:ja3-latest": {
+                  "linux/amd64", "linux/arm64", "linux/arm/v7", "linux/riscv64",
+                  "linux/386", "linux/arm/v6",
+              },
+              "ghcr.io/qd-today/qd:ja3-lite-latest": {
+                  "linux/amd64", "linux/arm64", "linux/arm/v7", "linux/riscv64",
+                  "linux/386", "linux/arm/v6",
+              },
+          }
+
+          def platforms(tag):
+              out = subprocess.run(["docker", "buildx", "imagetools", "inspect", tag, "--raw"],
+                                   capture_output=True, text=True, check=True).stdout
+              got = set()
+              for m in json.loads(out).get("manifests", []):
+                  p = m.get("platform") or {}
+                  if not p:
+                      continue
+                  arch, variant = p.get("architecture"), p.get("variant")
+                  got.add("linux/" + arch + (("/" + variant) if variant else ""))
+              return got
+
+          failed = False
+          for tag, expect in EXPECT.items():
+              got = platforms(tag)
+              missing, extra = expect - got, got - expect
+              if missing or extra:
+                  print(f"::error::{tag} 平台集合不一致：缺 {missing or '无'}，多 {extra or '无'}")
+                  failed = True
+              else:
+                  print(f"{tag} 平台集合一致：{', '.join(sorted(got))}")
+          sys.exit(1 if failed else 0)
+          PY

@@ -46,6 +46,10 @@ on:
         description: '是否用原生 arm64 runner 构建 arm64'
         type: boolean
         default: true
+      digest_only:
+        description: '只构建并上传 digest，不合并发布 tag（供上层 merge job 汇总）'
+        type: boolean
+        default: false
     secrets:
       GHCR_TOKEN:
         required: false
@@ -59,7 +63,8 @@ on:
         required: false
 
 env:
-  PUBLISH: ${{ inputs.force == false && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
+  # digest_only 时即使不在 master/tag 上也要推 digest——上层 merge job 要用
+  PUBLISH: ${{ inputs.digest_only || (inputs.force == false && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))) }}
   GHCR_IMAGE: ghcr.io/qd-today/qd
 
 jobs:
@@ -175,9 +180,21 @@ jobs:
 
           # 按「是否本机原生 + 编译量级」分组；组间完全并行
           # ppc64le 与 s390x 各自成组：两者都要在 QEMU 下装依赖，合组会串行累加
+          # 分组粒度决定 merge 时能否按组挑选：386 与 arm/v6 只由 lite 线构建
+
+          # （它们没有 OCR 的 wheelhouse），必须各自成组，否则会和 amd64 / arm64
+
+          # 混在同一个 digest 里，没法只替换其中一个平台。
+
           GROUPS = [
-              ("x86",     "ubuntu-latest", ["linux/amd64", "linux/386"]),
-              ("arm",     arm_runner,      ["linux/arm64", "linux/arm/v7", "linux/arm/v6"]),
+
+              ("x86",     "ubuntu-latest", ["linux/amd64"]),
+
+              ("x86-32",  "ubuntu-latest", ["linux/386"]),
+
+              ("arm",     arm_runner,      ["linux/arm64", "linux/arm/v7"]),
+
+              ("armv6",   arm_runner,      ["linux/arm/v6"]),
               ("ppc64le", "ubuntu-latest", ["linux/ppc64le"]),
               ("s390x",   "ubuntu-latest", ["linux/s390x"]),
               ("riscv64", "ubuntu-latest", ["linux/riscv64"]),
@@ -334,7 +351,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     # 闸门：① 有发布意图 ② 无任何失败 ③ 平台集合完整
-    if: ${{ (inputs.force == false && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))) && !cancelled() && !contains(needs.*.result, 'failure') && needs.plan.outputs.full == 'true' }}
+    if: ${{ !inputs.digest_only && (inputs.force == false && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))) && !cancelled() && !contains(needs.*.result, 'failure') && needs.plan.outputs.full == 'true' }}
     permissions:
       contents: read
       packages: write
