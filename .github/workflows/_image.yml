@@ -30,10 +30,6 @@ on:
         description: '冒烟是否校验 pycurl.IMPERSONATE（ja3 线为 true）'
         type: boolean
         default: false
-      tag_prefix:
-        description: 'tag 前缀：latest 线为空串，ja3 / lite 为 ja3- / lite-'
-        type: string
-        default: ''
       platforms:
         description: '平台子集（空 = 用 default_platforms）'
         type: string
@@ -47,9 +43,9 @@ on:
         type: boolean
         default: true
     outputs:
-      expected:
-        description: '该变体的平台全集，供发布侧做平台集合校验'
-        value: ${{ jobs.plan.outputs.expected }}
+      groups:
+        description: '该变体实际参与构建的组 → 平台列表（JSON）'
+        value: ${{ jobs.plan.outputs.groups }}
     secrets:
       GHCR_TOKEN:
         required: false
@@ -209,12 +205,10 @@ jobs:
           if not include:
               sys.exit("::error::没有可构建的平台")
 
-          GROUP_OF = {
-              "linux/amd64": "x86", "linux/386": "x86",
-              "linux/arm64": "arm", "linux/arm/v7": "arm", "linux/arm/v6": "arm",
-              "linux/ppc64le": "ppc64le", "linux/s390x": "s390x",
-              "linux/riscv64": "riscv64", "linux/loong64": "loong64",
-          }
+          # 平台 → 组 的映射从 GROUPS 推导，不再手抄一份：
+          # 之前这里独立维护，改 GROUPS（把 386 拆成 x86-32）时漏改，
+          # smoke 的 group 名与缓存 scope 就对不上了。
+          GROUP_OF = {p: name for name, _runner, plats in GROUPS for p in plats}
           smoke = []
           for p in plats:
               smoke.append({
@@ -226,6 +220,8 @@ jobs:
           print("matrix=" + json.dumps({"include": include}))
           print("smoke_matrix=" + json.dumps({"include": smoke}))
           print("expected=" + ",".join(sorted(plats)))
+          # 实际参与构建的组 → 平台列表；merge job 据此组装，不再在 workflow 里硬编码组名
+          print("groups=" + ",".join(g["group"] for g in include))
           print("full=%s" % str(sorted(plats) == sorted(default)).lower())
           PY
           echo "--- 构建分组 ---"
@@ -275,8 +271,8 @@ jobs:
           push: ${{ env.PUBLISH == 'true' }}
           outputs: ${{ env.PUBLISH == 'true' && format('type=image,name={0},push-by-digest=true,name-canonical=true', env.GHCR_IMAGE) || '' }}
           provenance: false
-          cache-from: type=gha,scope=qd-${{ inputs.variant }}-${{ matrix.group }}
-          cache-to: type=gha,mode=max,scope=qd-${{ inputs.variant }}-${{ matrix.group }},ignore-error=true
+          cache-from: type=gha,scope=qd-${{ inputs.variant }}-${{ matrix.group }}-g2
+          cache-to: type=gha,mode=max,scope=qd-${{ inputs.variant }}-${{ matrix.group }}-g2,ignore-error=true
       - name: Export digest
         if: env.PUBLISH == 'true'
         run: |
@@ -321,7 +317,7 @@ jobs:
           tags: qd-smoke:test
           provenance: false
           # build-args 必须与 build 阶段一致，否则缓存不命中会退化成全量重建
-          cache-from: type=gha,scope=qd-${{ inputs.variant }}-${{ matrix.group }}
+          cache-from: type=gha,scope=qd-${{ inputs.variant }}-${{ matrix.group }}-g2
       - name: Run smoke
         run: |
           set -eu

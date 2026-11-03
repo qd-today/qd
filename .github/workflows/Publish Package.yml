@@ -41,7 +41,6 @@ jobs:
       dockerfile: Dockerfile
       default_platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le,linux/riscv64,linux/loong64
       check_impersonate: false
-      tag_prefix: ''
       platforms: ${{ github.event.inputs.platforms || '' }}
       native_arm: ${{ github.event.inputs.native_arm != 'false' }}
       force: ${{ github.event.inputs.force == 'true' }}
@@ -54,7 +53,6 @@ jobs:
       dockerfile: Dockerfile.lite
       default_platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7,linux/ppc64le,linux/riscv64,linux/s390x,linux/loong64
       check_impersonate: false
-      tag_prefix: 'lite-'
       platforms: ${{ github.event.inputs.platforms || '' }}
       native_arm: ${{ github.event.inputs.native_arm != 'false' }}
       force: ${{ github.event.inputs.force == 'true' }}
@@ -69,10 +67,6 @@ jobs:
     if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.event.inputs.platforms == '' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
     permissions:
       contents: read
-    env:
-      MAIN_GROUPS: x86 arm ppc64le riscv64 loong64
-      LITE_ONLY_GROUPS: x86-32 armv6 s390x
-      ALL_LITE_GROUPS: x86 x86-32 arm armv6 ppc64le riscv64 s390x loong64
     steps:
       - name: Download latest digests
         uses: actions/download-artifact@v4
@@ -85,6 +79,10 @@ jobs:
           pattern: digests-lite-*
           path: /tmp/d/lite
       - name: Assemble
+        env:
+          # 组名由 _image.yml 的 plan 输出（GROUPS 是唯一来源），这里不再维护第二份列表
+          latest_GROUPS_CSV: ${{ needs.latest.outputs.groups }}
+          lite_GROUPS_CSV: ${{ needs.lite.outputs.groups }}
         run: |
           set -euo pipefail
           dg() {
@@ -96,6 +94,13 @@ jobs:
             local variant=$1; shift
             for g in "$@"; do printf ' ghcr.io/qd-today/qd@%s' "$(dg "$variant" "$g")"; done
           }
+          MAIN_GROUPS="$(echo "${MAIN_GROUPS_CSV}" | tr ',' ' ')"
+          ALL_LITE_GROUPS="$(echo "${LITE_GROUPS_CSV}" | tr ',' ' ')"
+          # 主线覆盖不到的组 = lite 有、main 没有；用它补位
+          LITE_ONLY_GROUPS=$(comm -13 <(printf '%s\n' $MAIN_GROUPS | sort) \
+                                      <(printf '%s\n' $ALL_LITE_GROUPS | sort) | paste -sd' ' -)
+          echo "main 组: $MAIN_GROUPS"
+          echo "lite 补位: $LITE_ONLY_GROUPS"
           # latest：main 的平台 + lite 补位的三个
           { srcs latest $MAIN_GROUPS; srcs lite $LITE_ONLY_GROUPS; } > /tmp/srcs-latest.txt
           { srcs lite $ALL_LITE_GROUPS; } > /tmp/srcs-lite.txt

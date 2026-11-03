@@ -38,7 +38,6 @@ jobs:
       dockerfile: Dockerfile.ja3
       default_platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/riscv64
       check_impersonate: true
-      tag_prefix: 'ja3-'
       platforms: ${{ github.event.inputs.platforms || '' }}
       native_arm: ${{ github.event.inputs.native_arm != 'false' }}
       force: ${{ github.event.inputs.force == 'true' }}
@@ -51,7 +50,6 @@ jobs:
       dockerfile: Dockerfile.ja3-lite
       default_platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7,linux/riscv64
       check_impersonate: true
-      tag_prefix: 'ja3-lite-'
       platforms: ${{ github.event.inputs.platforms || '' }}
       native_arm: ${{ github.event.inputs.native_arm != 'false' }}
       force: ${{ github.event.inputs.force == 'true' }}
@@ -64,10 +62,6 @@ jobs:
     if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.event.inputs.platforms == '' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
     permissions:
       contents: read
-    env:
-      JA3_GROUPS: x86 arm riscv64
-      JA3_LITE_ONLY_GROUPS: x86-32 armv6
-      ALL_JA3_LITE_GROUPS: x86 x86-32 arm armv6 riscv64
     steps:
       - name: Download ja3 digests
         uses: actions/download-artifact@v4
@@ -80,6 +74,10 @@ jobs:
           pattern: digests-ja3-lite-*
           path: /tmp/d/ja3-lite
       - name: Assemble
+        env:
+          # 组名由 _image.yml 的 plan 输出（GROUPS 是唯一来源），这里不再维护第二份列表
+          MAIN_GROUPS_CSV: ${{ needs.ja3.outputs.groups }}
+          LITE_GROUPS_CSV: ${{ needs.ja3-lite.outputs.groups }}
         run: |
           set -euo pipefail
           dg() {
@@ -91,8 +89,14 @@ jobs:
             local variant=$1; shift
             for g in "$@"; do printf ' ghcr.io/qd-today/qd@%s' "$(dg "$variant" "$g")"; done
           }
-          { srcs ja3 $JA3_GROUPS; srcs ja3-lite $JA3_LITE_ONLY_GROUPS; } > /tmp/srcs-ja3.txt
-          { srcs ja3-lite $ALL_JA3_LITE_GROUPS; } > /tmp/srcs-ja3-lite.txt
+          MAIN_GROUPS="$(echo "${MAIN_GROUPS_CSV}" | tr ',' ' ')"
+          ALL_LITE_GROUPS="$(echo "${LITE_GROUPS_CSV}" | tr ',' ' ')"
+          LITE_ONLY_GROUPS=$(comm -13 <(printf '%s\n' $MAIN_GROUPS | sort) \
+                                      <(printf '%s\n' $ALL_LITE_GROUPS | sort) | paste -sd' ' -)
+          echo "ja3 组: $MAIN_GROUPS"
+          echo "ja3-lite 补位: $LITE_ONLY_GROUPS"
+          { srcs ja3 $MAIN_GROUPS; srcs ja3-lite $LITE_ONLY_GROUPS; } > /tmp/srcs-ja3.txt
+          { srcs ja3-lite $ALL_LITE_GROUPS; } > /tmp/srcs-ja3-lite.txt
           echo "ja3 来源: $(cat /tmp/srcs-ja3.txt)"
           echo "ja3-lite 来源: $(cat /tmp/srcs-ja3-lite.txt)"
           for f in /tmp/srcs-ja3.txt /tmp/srcs-ja3-lite.txt; do
