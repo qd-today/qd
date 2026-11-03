@@ -70,12 +70,19 @@ dependencies = [
 # OCR 栈：三个 wheel 来自 ddddocr 与 onnxruntime 的 wheelhouse，版本必须与那两个 tag 对齐。
 # 声明成 extra 是因为 lite 线故意不带它——runtime 用 QIANDAO_LITE 关闭相关功能。
 # 非 Docker 用户想用 OCR 就 pip install .[ocr]（会从 PyPI 装同名发行名）。
+#
+# 386 与 s390x 用 marker 排除：onnxruntime 只在 PyPI 发 x86_64 / aarch64 的轮子，
+# 这两个架构没有可用的 musllinux 轮子。marker 求值后它们从 --extra ocr 里消失，
+# 等价于「装了 extra 但什么也不装」，不需要在 Dockerfile 里再判断一次。
+# armv6 没法用 marker 表达：platform.machine() 在 armv6 容器里报的是内核值 armv7l
+# （与 armv7 无法区分），由 Dockerfile 的 TARGETVARIANT 处理。
+
 ocr = [
-    "ddddocr==1.6.1",
-    "numpy==2.4.6",
-    "onnxruntime==1.24.4",
-    "opencv-python-headless==5.0.0.93",
-    "pillow==13.0.0",
+    "ddddocr==1.6.1; platform_machine != 'i686' and platform_machine != 's390x'",
+    "numpy==2.4.6; platform_machine != 'i686' and platform_machine != 's390x'",
+    "onnxruntime==1.24.4; platform_machine != 'i686' and platform_machine != 's390x'",
+    "opencv-python-headless==5.0.0.93; platform_machine != 'i686' and platform_machine != 's390x'",
+    "pillow==13.0.0; platform_machine != 'i686' and platform_machine != 's390x'",
 ]
 
 [tool.uv]

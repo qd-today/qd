@@ -73,10 +73,7 @@ update_out_alpine() {
     command -v uv >/dev/null 2>&1 || {
         echo "Error: 需要 uv 才能安装依赖，见 https://docs.astral.sh/uv/"; return 1; }
     install_deps_uv && \
-    echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
-    echo "pip3 install ddddocr" && \
-    echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
-    echo "pip3 install pycurl"
+    echo "Info: OCR 与 pycurl 已随镜像提供（latest / ja3 线自带，lite 线不带）"
 }
 
 set_alpine_mirrors() {
@@ -136,18 +133,14 @@ set_alpine_mirrors() {
 }
 
 install_deps_uv() {
-    # 依赖来源是随代码一起更新的 pyproject.toml + uv.lock（不再有 requirements.txt）。
-    # 哪些包由基座/Alpine 提供，由 install-deps.py 在运行时现场判断——不再靠 sed 名单。
-    if [ "$(printenv QIANDAO_LITE)" = "True" ]; then
-        uv export --frozen --no-hashes --no-emit-project -o /tmp/qd-req.txt
-    else
-        uv export --frozen --no-hashes --no-emit-project --extra ocr -o /tmp/qd-req.txt
-    fi
-    # 只认构建期落盘的基座清单：现场探测会把我们自己装过的包也当成基座提供的，
-    # 导致锁里升级的版本永远装不上
-    python3 docker/install-deps.py /tmp/qd-req.txt \
-        --base-manifest /usr/local/share/qd-base-packages.txt > /tmp/qd-req.install.txt
-    uv pip install --system --break-system-packages -r /tmp/qd-req.install.txt
+    # 依赖由镜像的 wheelhouse 装进 /opt/venv，运行期访问不到 wheelhouse
+    # （那是构建期的 bind mount）。所以热更新只更新代码，不重装依赖：
+    #   - pycurl 在 PyPI 只有 sdist，现场编译需要 curl-config，且拿不到 IMPERSONATE 补丁
+    #   - onnxruntime / opencv 没有 musllinux 轮子，根本装不上
+    # 依赖有变更时请拉新镜像——镜像 tag 与 wheelhouse tag 是一一对应的。
+    echo "Info: 依赖由镜像提供（wheelhouse -> /opt/venv），热更新不重装依赖"
+    echo "Info: 如需更新依赖版本，请拉取对应 tag 的新镜像"
+    return 0
 }
 
 update_in_alpine() {
