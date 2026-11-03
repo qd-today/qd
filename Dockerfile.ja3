@@ -11,7 +11,10 @@
 #   - 版本对齐由 uv.lock 与 wheelhouse tag 保证，不一致时解析直接失败。
 
 ARG ALPINE_VERSION=3.24
-FROM alpine:${ALPINE_VERSION}
+# 官方 alpine 没有 loongarch64，CI 对 loong64 传 ghcr.io/loong64/alpine:3.24。
+# 其余架构用默认值。
+ARG BASE_IMAGE=alpine:${ALPINE_VERSION}
+FROM ${BASE_IMAGE}
 
 ARG ALPINE_VERSION
 LABEL maintainer="a76yyyy <q981331502@163.com>"
