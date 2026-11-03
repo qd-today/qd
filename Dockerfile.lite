@@ -11,12 +11,6 @@
 #   - 版本对齐由 uv.lock 与 wheelhouse tag 保证，不一致时解析直接失败。
 
 ARG ALPINE_VERSION=3.24
-# uv 只作为工具跑在构建机上，用 $BUILDPLATFORM 拉取：官方镜像没有 s390x /
-# ppc64le / riscv64 / loong64 这些平台，按目标平台解析会直接报
-# "no match for platform in manifest"。挂载时用 stage 名（而不是镜像名），
-# 才会沿用这个 stage 的平台。
-FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:0.8.3 AS uvsrc
-
 FROM alpine:${ALPINE_VERSION}
 
 ARG ALPINE_VERSION
@@ -38,6 +32,9 @@ ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 # 必须走环境变量而不是逐条 --no-cache：sync / pip / export 都要生效。
 ENV UV_NO_CACHE=1
 # 不去自动下载 Python：镜像里的 alpine python3 就是目标解释器
+# uv 用 Alpine 仓库的包（apk add uv）：它是 native 到目标平台的二进制，
+# 9 个架构都有。官方 ghcr 镜像只发主流平台，且用 --mount from= 挂进来时
+# 拿到的是构建机架构的二进制，在 s390x / ppc64le 这类容器里跑不起来。
 ENV UV_PYTHON_DOWNLOADS=never
 # 为什么走 export + pip install 而不是 uv sync：
 # uv.lock 里每个包都记了下载地址（source = { registry = "https://pypi.org/simple" }）
@@ -57,13 +54,13 @@ ENV UV_PYTHON=/usr/bin/python3
 #
 # 系统包取三个清单的并集（三个仓库各自只列自己需要的），再补上 ddddocr 那层的便利包
 # （bash 给 update.sh 用、tzdata 给 zoneinfo、icu-data-en 给 onnxruntime 的 libicu）。
-RUN --mount=type=bind,from=uvsrc,source=/uv,target=/usr/local/bin/uv \
+RUN \
     --mount=type=bind,from=a76yyyy/pycurl:2.0.0-wheelhouse,source=/wheels,target=/w3 \
     set -eu && \
     { [ -z "$APK_MIRROR" ] || sed -i "s|https://dl-cdn.alpinelinux.org|$APK_MIRROR|g" /etc/apk/repositories; } && \
     apk add --update --no-cache \
         build-base python3-dev linux-headers libffi-dev \
-        $(cat /w3/system-packages.txt | sort -u) bash ca-certificates tzdata && \
+        $(cat /w3/system-packages.txt | sort -u) bash ca-certificates tzdata uv && \
     uv venv /opt/venv --python /usr/bin/python3 && \
     uv export --frozen --no-hashes --no-emit-project -o /tmp/req.txt && \
     uv pip sync --python /opt/venv/bin/python --no-cache \
@@ -73,7 +70,7 @@ RUN --mount=type=bind,from=uvsrc,source=/uv,target=/usr/local/bin/uv \
     /opt/venv/bin/python -c "import pycurl; \
         assert pycurl.version.startswith('PycURL/7.49.0'), pycurl.version; \
         print('pycurl', pycurl.version)" && \
-    apk del build-base python3-dev linux-headers libffi-dev && \
+    apk del build-base python3-dev linux-headers libffi-dev uv && \
     rm -rf /var/cache/apk/*
 
 # 代码直接用构建上下文（.dockerignore 已排除 .git / node_modules 等），
