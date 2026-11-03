@@ -11,6 +11,12 @@
 #   - 版本对齐由 uv.lock 与 wheelhouse tag 保证，不一致时解析直接失败。
 
 ARG ALPINE_VERSION=3.24
+# uv 只作为工具跑在构建机上，用 $BUILDPLATFORM 拉取：官方镜像没有 s390x /
+# ppc64le / riscv64 / loong64 这些平台，按目标平台解析会直接报
+# "no match for platform in manifest"。挂载时用 stage 名（而不是镜像名），
+# 才会沿用这个 stage 的平台。
+FROM --platform=$BUILDPLATFORM ghcr.io/astral-sh/uv:0.8.3 AS uvsrc
+
 FROM alpine:${ALPINE_VERSION}
 
 ARG ALPINE_VERSION
@@ -49,7 +55,7 @@ ENV UV_PYTHON=/usr/bin/python3
 #
 # 系统包取三个清单的并集（三个仓库各自只列自己需要的），再补上 ddddocr 那层的便利包
 # （bash 给 update.sh 用、tzdata 给 zoneinfo、icu-data-en 给 onnxruntime 的 libicu）。
-RUN --mount=type=bind,from=ghcr.io/astral-sh/uv:0.8.3,source=/uv,target=/usr/local/bin/uv \
+RUN --mount=type=bind,from=uvsrc,source=/uv,target=/usr/local/bin/uv \
     --mount=type=bind,from=a76yyyy/onnxruntime:1.24.4-wheelhouse,source=/wheels,target=/w1 \
     --mount=type=bind,from=a76yyyy/ddddocr:1.6.1-wheelhouse,source=/wheels,target=/w2 \
     --mount=type=bind,from=a76yyyy/pycurl:2.0.0-wheelhouse,source=/wheels,target=/w3 \
