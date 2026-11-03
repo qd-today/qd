@@ -59,11 +59,11 @@ on:
         required: false
 
 env:
+  # digest 推送与 tag 写入共用这一道门禁：非发布 ref 不推任何东西，
+  # 也就不会在 GHCR 上留下没人认领的孤儿 manifest。
   ALPINE_VERSION: '3.24'
   # 官方 alpine 无 loongarch64，这个架构改用第三方构建的同版本基座
   LOONG64_BASE: ghcr.io/loong64/alpine
-  # digest 推送与 tag 写入共用这一道门禁：非发布 ref 不推任何东西，
-  # 也就不会在 GHCR 上留下没人认领的孤儿 manifest。
   PUBLISH: ${{ inputs.force == false && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
   GHCR_IMAGE: ghcr.io/qd-today/qd
 
@@ -274,6 +274,10 @@ jobs:
           push: ${{ env.PUBLISH == 'true' }}
           outputs: ${{ env.PUBLISH == 'true' && format('type=image,name={0},push-by-digest=true,name-canonical=true', env.GHCR_IMAGE) || '' }}
           provenance: false
+          # 只有 loong64 组会换基座（它是单平台成组，matrix.platforms 恰好等于
+          # linux/loong64）；其余架构走 Dockerfile 里 ARG BASE_IMAGE 的默认值。
+          build-args: |
+            BASE_IMAGE=${{ matrix.platforms == 'linux/loong64' && format('{0}:{1}', env.LOONG64_BASE, env.ALPINE_VERSION) || format('alpine:{0}', env.ALPINE_VERSION) }}
           cache-from: type=gha,scope=qd-${{ inputs.variant }}-${{ matrix.group }}-g2
           cache-to: type=gha,mode=max,scope=qd-${{ inputs.variant }}-${{ matrix.group }}-g2,ignore-error=true
       - name: Export digest
@@ -319,7 +323,10 @@ jobs:
           push: false
           tags: qd-smoke:test
           provenance: false
-          # build-args 必须与 build 阶段一致，否则缓存不命中会退化成全量重建
+          # 冒烟是从同 group 的层缓存重建单平台镜像，build-args 必须与 build 阶段一致，
+          # 否则缓存不命中会退化成全量重建（loong64 还会去拉不存在的官方 alpine）
+          build-args: |
+            BASE_IMAGE=${{ matrix.platform == 'linux/loong64' && format('{0}:{1}', env.LOONG64_BASE, env.ALPINE_VERSION) || format('alpine:{0}', env.ALPINE_VERSION) }}
           cache-from: type=gha,scope=qd-${{ inputs.variant }}-${{ matrix.group }}-g2
       - name: Run smoke
         run: |
