@@ -60,10 +60,13 @@ RUN --mount=type=bind,from=ghcr.io/astral-sh/uv:0.8.3,source=/uv,target=/usr/loc
         $(cat /w3/system-packages.txt | sort -u) bash ca-certificates tzdata && \
     uv venv /opt/venv --python /usr/bin/python3 && \
     uv export --frozen --no-hashes --no-emit-project -o /tmp/req.txt && \
-    uv pip install --python /opt/venv/bin/python --no-cache \
+    uv pip sync --python /opt/venv/bin/python --no-cache \
         --index-url "${PIP_MIRROR:-https://pypi.org/simple}" \
         --extra-index-url file:///w3/simple \
-        -r /tmp/req.txt && \
+        /tmp/req.txt && \
+    /opt/venv/bin/python -c "import pycurl; \
+        assert pycurl.version.startswith('PycURL/7.49.0'), pycurl.version; \
+        print('pycurl', pycurl.version)" && \
     apk del build-base python3-dev linux-headers libffi-dev && \
     rm -rf /var/cache/apk/*
 
