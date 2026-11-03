@@ -46,10 +46,10 @@ on:
         description: '是否用原生 arm64 runner 构建 arm64'
         type: boolean
         default: true
-      digest_only:
-        description: '只构建并上传 digest，不合并发布 tag（供上层 merge job 汇总）'
-        type: boolean
-        default: false
+    outputs:
+      expected:
+        description: '该变体的平台全集，供发布侧做平台集合校验'
+        value: ${{ jobs.plan.outputs.expected }}
     secrets:
       GHCR_TOKEN:
         required: false
@@ -63,8 +63,9 @@ on:
         required: false
 
 env:
-  # digest_only 时即使不在 master/tag 上也要推 digest——上层 merge job 要用
-  PUBLISH: ${{ inputs.digest_only || (inputs.force == false && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))) }}
+  # digest 推送与 tag 写入共用这一道门禁：非发布 ref 不推任何东西，
+  # 也就不会在 GHCR 上留下没人认领的孤儿 manifest。
+  PUBLISH: ${{ inputs.force == false && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
   GHCR_IMAGE: ghcr.io/qd-today/qd
 
 jobs:
@@ -344,113 +345,3 @@ jobs:
           PY
           echo "smoke(${{ inputs.variant }}/${{ matrix.platform }}): PASS"
           EOF
-
-  publish:
-    needs: [plan, build, smoke]
-    name: Merge digests and publish
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    # 闸门：① 有发布意图 ② 无任何失败 ③ 平台集合完整
-    if: ${{ !inputs.digest_only && (inputs.force == false && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))) && !cancelled() && !contains(needs.*.result, 'failure') && needs.plan.outputs.full == 'true' }}
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Download digests
-        uses: actions/download-artifact@v4
-        with:
-          pattern: digests-${{ inputs.variant }}-*
-          path: /tmp/digests
-          merge-multiple: true
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ secrets.GHCR_TOKEN || github.actor }}
-          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
-      - name: Login to qdtoday DockerHub
-        uses: docker/login-action@v3
-        with:
-          registry: docker.io
-          username: ${{ secrets.QD_DOCKER_USERNAME }}
-          password: ${{ secrets.QD_DOCKER_PASSWORD }}
-      - name: Login to a76yyyy DockerHub
-        uses: docker/login-action@v3
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Create multi-arch manifests
-        env:
-          REF_NAME: ${{ github.ref_name }}
-          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
-          TAG_PREFIX: ${{ inputs.tag_prefix }}
-        run: |
-          set -euo pipefail
-          SRCS=""
-          for f in /tmp/digests/*.digest; do
-            SRCS="$SRCS ghcr.io/qd-today/qd@$(cat "$f")"
-          done
-          echo "聚合来源:${SRCS}"
-
-          # 与历史发布保持一致（P=${TAG_PREFIX}）：
-          #   master 推送 → ghcr:P-latest、qdtoday/qd:P-dev、a76yyyy/qiandao:P-dev
-          #   tag 推送    → qdtoday/qd:P-latest+P-版本、a76yyyy/qiandao:P-latest+P-版本
-          #                 （ghcr 历史上只在 master 推送时更新，保持不变）
-          # 前缀必须带：三个变体共用同一个 ghcr 仓库，不加前缀会互相覆盖 manifest
-          P="${TAG_PREFIX}"
-          GHCR_TAGS="${P}latest"
-          QD_TAGS="${P}dev"
-          A76_TAGS="${P}dev"
-          if [ "$IS_TAG" = "true" ]; then
-            QD_TAGS="${P}latest ${P}${REF_NAME}"
-            A76_TAGS="${P}latest ${P}${REF_NAME}"
-          fi
-          for T in $GHCR_TAGS; do
-            echo "::group::ghcr.io/qd-today/qd:${T}"
-            docker buildx imagetools create -t "ghcr.io/qd-today/qd:${T}" $SRCS
-            echo "::endgroup::"
-          done
-          for T in $QD_TAGS; do
-            echo "::group::docker.io/qdtoday/qd:${T}"
-            docker buildx imagetools create -t "docker.io/qdtoday/qd:${T}" $SRCS
-            echo "::endgroup::"
-          done
-          for T in $A76_TAGS; do
-            echo "::group::docker.io/a76yyyy/qiandao:${T}"
-            docker buildx imagetools create -t "docker.io/a76yyyy/qiandao:${T}" $SRCS
-            echo "::endgroup::"
-          done
-      - name: Verify manifest platform completeness
-        env:
-          EXPECTED: ${{ needs.plan.outputs.expected }}
-          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
-          REF_NAME: ${{ github.ref_name }}
-          TAG_PREFIX: ${{ inputs.tag_prefix }}
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          import json, os, subprocess, sys
-          expected = set(os.environ["EXPECTED"].split(","))
-          prefix = os.environ.get("TAG_PREFIX", "")
-          tags = ["ghcr.io/qd-today/qd:" + prefix + "latest"]
-          for tag in tags:
-              out = subprocess.run(["docker", "buildx", "imagetools", "inspect", tag, "--raw"],
-                                   capture_output=True, text=True, check=True).stdout
-              idx = json.loads(out)
-              got = set()
-              for m in idx.get("manifests", []):
-                  p = m.get("platform", {})
-                  if not p:
-                      continue
-                  arch, variant = p.get("architecture"), p.get("variant")
-                  plat = "linux/" + arch + (("/" + variant) if variant else "")
-                  got.add(plat)
-              missing, extra = expected - got, got - expected
-              if missing or extra:
-                  print("::error::%s 平台集合与计划不一致：缺 %s，多 %s" % (tag, missing or "无", extra or "无"))
-                  sys.exit(1)
-              print("%s 平台集合一致：%s" % (tag, ", ".join(sorted(got))))
-          PY

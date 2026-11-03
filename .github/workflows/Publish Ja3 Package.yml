@@ -11,7 +11,7 @@ on:
         type: boolean
         default: true
       force:
-        description: '强制重新构建（默认会跳过「仅文档改动」或「该 commit 已验证过」的重复运行）'
+        description: '强制重新构建（只影响「是否重建」，不影响发布资格；发布资格由 ref 与平台集合决定）'
         type: boolean
         default: false
   push:
@@ -28,6 +28,8 @@ jobs:
   # 与 Publish Package 同理：ja3（带 OCR）只有 4 个平台可用——pycurl 的 ja3 线本身只发
   # 6 个平台，去掉 386 / arm/v6 后与 ddddocr / onnxruntime 的交集就是 4 个。
   # ja3-lite（无 OCR）能覆盖 6 个，于是用它补上 386 与 arm/v6。
+  #
+  # 三个 job 的职责：构建 / 组装清单 / 写 tag，其中只有 publish 碰 registry 的 tag。
   ja3:
     uses: ./.github/workflows/_image.yml
     secrets: inherit
@@ -40,7 +42,6 @@ jobs:
       platforms: ${{ github.event.inputs.platforms || '' }}
       native_arm: ${{ github.event.inputs.native_arm != 'false' }}
       force: ${{ github.event.inputs.force == 'true' }}
-      digest_only: true
 
   ja3-lite:
     uses: ./.github/workflows/_image.yml
@@ -54,17 +55,15 @@ jobs:
       platforms: ${{ github.event.inputs.platforms || '' }}
       native_arm: ${{ github.event.inputs.native_arm != 'false' }}
       force: ${{ github.event.inputs.force == 'true' }}
-      digest_only: true
 
   merge:
     needs: [ja3, ja3-lite]
-    name: Merge ja3 + ja3-lite digests and publish
+    name: Assemble digest lists
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.event.inputs.platforms == '' && github.event.inputs.force != 'true' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
+    timeout-minutes: 10
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.event.inputs.platforms == '' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
     permissions:
       contents: read
-      packages: write
     env:
       JA3_GROUPS: x86 arm riscv64
       JA3_LITE_ONLY_GROUPS: x86-32 armv6
@@ -80,6 +79,49 @@ jobs:
         with:
           pattern: digests-ja3-lite-*
           path: /tmp/d/ja3-lite
+      - name: Assemble
+        run: |
+          set -euo pipefail
+          dg() {
+            local f="/tmp/d/$1/digests-$1-$2/$2.digest"
+            [ -f "$f" ] || { echo "::error::缺少 digest: $f"; exit 1; }
+            tr -d '[:space:]' < "$f"
+          }
+          srcs() {
+            local variant=$1; shift
+            for g in "$@"; do printf ' ghcr.io/qd-today/qd@%s' "$(dg "$variant" "$g")"; done
+          }
+          { srcs ja3 $JA3_GROUPS; srcs ja3-lite $JA3_LITE_ONLY_GROUPS; } > /tmp/srcs-ja3.txt
+          { srcs ja3-lite $ALL_JA3_LITE_GROUPS; } > /tmp/srcs-ja3-lite.txt
+          echo "ja3 来源: $(cat /tmp/srcs-ja3.txt)"
+          echo "ja3-lite 来源: $(cat /tmp/srcs-ja3-lite.txt)"
+          for f in /tmp/srcs-ja3.txt /tmp/srcs-ja3-lite.txt; do
+            n=$(tr ' ' '\n' < "$f" | grep -c '^ghcr' || true)
+            [ "$n" = "6" ] || { echo "::error::$f 期望 6 个 digest，实际 $n"; exit 1; }
+          done
+      - name: Upload digest lists
+        uses: actions/upload-artifact@v4
+        with:
+          name: manifest-srcs
+          path: /tmp/srcs-ja3*.txt
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: [merge]
+    name: Write tags
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.event.inputs.platforms == '' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Download digest lists
+        uses: actions/download-artifact@v4
+        with:
+          name: manifest-srcs
+          path: /tmp
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to GitHub Container Registry
@@ -100,31 +142,21 @@ jobs:
           registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Create manifests
+      - name: Write tags
         env:
           REF_NAME: ${{ github.ref_name }}
           IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
           set -euo pipefail
-          dg() {
-            local f="/tmp/d/$1/digests-$1-$2/$2.digest"
-            [ -f "$f" ] || { echo "::error::缺少 digest: $f"; exit 1; }
-            tr -d '[:space:]' < "$f"
-          }
-          srcs() {
-            local variant=$1; shift
-            for g in "$@"; do printf ' ghcr.io/qd-today/qd@%s' "$(dg "$variant" "$g")"; done
-          }
+          SRCS_JA3="$(cat /tmp/srcs-ja3.txt)"
+          SRCS_JA3_LITE="$(cat /tmp/srcs-ja3-lite.txt)"
 
-          SRCS_JA3="$(srcs ja3 $JA3_GROUPS)$(srcs ja3-lite $JA3_LITE_ONLY_GROUPS)"
-          SRCS_JA3_LITE="$(srcs ja3-lite $ALL_JA3_LITE_GROUPS)"
-          echo "ja3 来源:${SRCS_JA3}"
-          echo "ja3-lite 来源:${SRCS_JA3_LITE}"
-
-          JA3_TAGS="ja3-dev"; JA3_LITE_TAGS="ja3-lite-dev"
           if [ "$IS_TAG" = "true" ]; then
-            JA3_TAGS="ja3-latest ja3-${REF_NAME} ja3-dev"
-            JA3_LITE_TAGS="ja3-lite-latest ja3-lite-${REF_NAME} ja3-lite-dev"
+            JA3_TAGS="ja3-latest ja3-${REF_NAME}"
+            JA3_LITE_TAGS="ja3-lite-latest ja3-lite-${REF_NAME}"
+          else
+            JA3_TAGS="ja3-dev"
+            JA3_LITE_TAGS="ja3-lite-dev"
           fi
 
           publish() {
@@ -136,28 +168,24 @@ jobs:
             done
           }
 
-          publish ghcr.io/qd-today/qd "ja3-latest" "$SRCS_JA3"
-          publish ghcr.io/qd-today/qd "ja3-lite-latest" "$SRCS_JA3_LITE"
-          publish docker.io/qdtoday/qd "$JA3_TAGS" "$SRCS_JA3"
-          publish docker.io/qdtoday/qd "$JA3_LITE_TAGS" "$SRCS_JA3_LITE"
-          publish docker.io/a76yyyy/qiandao "$JA3_TAGS" "$SRCS_JA3"
-          publish docker.io/a76yyyy/qiandao "$JA3_LITE_TAGS" "$SRCS_JA3_LITE"
+          for reg in ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao; do
+            publish "$reg" "$JA3_TAGS" "$SRCS_JA3"
+            publish "$reg" "$JA3_LITE_TAGS" "$SRCS_JA3_LITE"
+          done
       - name: Verify manifest platform completeness
+        env:
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, subprocess, sys
+          import json, os, subprocess, sys
 
-          EXPECT = {
-              "ghcr.io/qd-today/qd:ja3-latest": {
-                  "linux/amd64", "linux/arm64", "linux/arm/v7", "linux/riscv64",
-                  "linux/386", "linux/arm/v6",
-              },
-              "ghcr.io/qd-today/qd:ja3-lite-latest": {
-                  "linux/amd64", "linux/arm64", "linux/arm/v7", "linux/riscv64",
-                  "linux/386", "linux/arm/v6",
-              },
-          }
+          is_tag = os.environ["IS_TAG"] == "true"
+          ja3_tag = "ja3-latest" if is_tag else "ja3-dev"
+          ja3_lite_tag = "ja3-lite-latest" if is_tag else "ja3-lite-dev"
+
+          EXPECT = {"linux/amd64", "linux/arm64", "linux/arm/v7", "linux/riscv64",
+                    "linux/386", "linux/arm/v6"}
 
           def platforms(tag):
               out = subprocess.run(["docker", "buildx", "imagetools", "inspect", tag, "--raw"],
@@ -172,13 +200,19 @@ jobs:
               return got
 
           failed = False
-          for tag, expect in EXPECT.items():
-              got = platforms(tag)
-              missing, extra = expect - got, got - expect
-              if missing or extra:
-                  print(f"::error::{tag} 平台集合不一致：缺 {missing or '无'}，多 {extra or '无'}")
-                  failed = True
-              else:
-                  print(f"{tag} 平台集合一致：{', '.join(sorted(got))}")
+          for reg in ("ghcr.io/qd-today/qd", "docker.io/qdtoday/qd", "docker.io/a76yyyy/qiandao"):
+              for tag in (ja3_tag, ja3_lite_tag):
+                  ref = f"{reg}:{tag}"
+                  try:
+                      got = platforms(ref)
+                  except subprocess.CalledProcessError:
+                      print(f"::error::{ref} 不存在")
+                      failed = True
+                      continue
+                  if got != EXPECT:
+                      print(f"::error::{ref} 平台集合不一致：缺 {EXPECT - got or '无'}，多 {got - EXPECT or '无'}")
+                      failed = True
+                  else:
+                      print(f"{ref} 平台集合一致（6 个）")
           sys.exit(1 if failed else 0)
           PY

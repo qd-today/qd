@@ -11,7 +11,7 @@ on:
         type: boolean
         default: true
       force:
-        description: '强制重新构建（默认会跳过「仅文档改动」或「该 commit 已验证过」的重复运行）'
+        description: '强制重新构建（只影响「是否重建」，不影响发布资格；发布资格由 ref 与平台集合决定）'
         type: boolean
         default: false
   push:
@@ -25,13 +25,14 @@ on:
     tags: ["*"]
 
 jobs:
-  # 四条线共用 .github/workflows/_image.yml（plan -> build -> smoke -> publish），
-  # 差异全部通过 with 传入，避免多份 workflow 重复维护后逐渐漂移。
+  # latest 只有 6 个平台（386 / arm/v6 / s390x 没有 OCR 的 wheelhouse，连 --mount 都解析不了），
+  # 而 lite 只依赖 pycurl、能覆盖 9 个。所以 lite 构建一次，既产出 lite-latest，
+  # 又用它的 digest 补上 latest 缺的那 3 个平台。
   #
-  # 这里拆成两个构建 + 一个合并：
-  #   latest 只有 6 个平台（没有 OCR wheelhouse 的 386 / arm/v6 / s390x 挂不上）
-  #   lite 有 9 个平台（只依赖 pycurl），正好补上那 3 个空缺
-  # 所以 latest 的 manifest 由两批 digest 拼成，lite 只构建一次同时服务 lite-latest。
+  # 三个 job 的职责严格分开：
+  #   latest / lite  只构建 + 冒烟（digest 是否推 GHCR 由 _image.yml 的 ref 门禁决定）
+  #   merge          只组装 digest 清单并传递，不碰任何 registry
+  #   publish        唯一写 tag 的地方
   latest:
     uses: ./.github/workflows/_image.yml
     secrets: inherit
@@ -44,8 +45,6 @@ jobs:
       platforms: ${{ github.event.inputs.platforms || '' }}
       native_arm: ${{ github.event.inputs.native_arm != 'false' }}
       force: ${{ github.event.inputs.force == 'true' }}
-      # 只构建与上传 digest，tag 合并在下面的 merge job 统一做（要拼两批来源）
-      digest_only: true
 
   lite:
     uses: ./.github/workflows/_image.yml
@@ -59,21 +58,18 @@ jobs:
       platforms: ${{ github.event.inputs.platforms || '' }}
       native_arm: ${{ github.event.inputs.native_arm != 'false' }}
       force: ${{ github.event.inputs.force == 'true' }}
-      digest_only: true
 
   merge:
     needs: [latest, lite]
-    name: Merge latest + lite digests and publish
+    name: Assemble digest lists
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
-    # 只在「两个构建都成功 + 没指定平台子集」时发布：
-    # 子集构建缺 digest，拼出来的 manifest 会残缺，宁可跳过
-    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.event.inputs.platforms == '' && github.event.inputs.force != 'true' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
+    timeout-minutes: 10
+    # 只在「发布 ref + 两个构建都成功 + 没指定平台子集」时组装：
+    # 子集构建缺 digest，拼出来的 manifest 会残缺，宁可不出
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.event.inputs.platforms == '' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
     permissions:
       contents: read
-      packages: write
     env:
-      # latest 由 main 提供这些组，其余三个用 lite 的
       MAIN_GROUPS: x86 arm ppc64le riscv64 loong64
       LITE_ONLY_GROUPS: x86-32 armv6 s390x
       ALL_LITE_GROUPS: x86 x86-32 arm armv6 ppc64le riscv64 s390x loong64
@@ -88,6 +84,52 @@ jobs:
         with:
           pattern: digests-lite-*
           path: /tmp/d/lite
+      - name: Assemble
+        run: |
+          set -euo pipefail
+          dg() {
+            local f="/tmp/d/$1/digests-$1-$2/$2.digest"
+            [ -f "$f" ] || { echo "::error::缺少 digest: $f"; exit 1; }
+            tr -d '[:space:]' < "$f"
+          }
+          srcs() {
+            local variant=$1; shift
+            for g in "$@"; do printf ' ghcr.io/qd-today/qd@%s' "$(dg "$variant" "$g")"; done
+          }
+          # latest：main 的平台 + lite 补位的三个
+          { srcs latest $MAIN_GROUPS; srcs lite $LITE_ONLY_GROUPS; } > /tmp/srcs-latest.txt
+          { srcs lite $ALL_LITE_GROUPS; } > /tmp/srcs-lite.txt
+          echo "latest 来源: $(cat /tmp/srcs-latest.txt)"
+          echo "lite 来源: $(cat /tmp/srcs-lite.txt)"
+          # latest 应当 9 个平台引用、lite 也是 9 个
+          for f in /tmp/srcs-latest.txt /tmp/srcs-lite.txt; do
+            n=$(tr ' ' '\n' < "$f" | grep -c '^ghcr' || true)
+            [ "$n" = "9" ] || { echo "::error::$f 期望 9 个 digest，实际 $n"; exit 1; }
+          done
+      - name: Upload digest lists
+        uses: actions/upload-artifact@v4
+        with:
+          name: manifest-srcs
+          path: /tmp/srcs-*.txt
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: [merge]
+    name: Write tags
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # 唯一写 tag 的地方；门禁与 _image.yml 的 digest 推送保持一致
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.event.inputs.platforms == '' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Download digest lists
+        uses: actions/download-artifact@v4
+        with:
+          name: manifest-srcs
+          path: /tmp
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to GitHub Container Registry
@@ -108,38 +150,26 @@ jobs:
           registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-      - name: Create manifests
+      - name: Write tags
         env:
           REF_NAME: ${{ github.ref_name }}
           IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
           set -euo pipefail
-          dg() {  # dg <variant> <group>
-            local f="/tmp/d/$1/digests-$1-$2/$2.digest"
-            [ -f "$f" ] || { echo "::error::缺少 digest: $f"; exit 1; }
-            tr -d '[:space:]' < "$f"
-          }
-          srcs() {  # 按 group 列表拼 ghcr 的 digest 引用
-            local variant=$1; shift
-            for g in "$@"; do printf ' ghcr.io/qd-today/qd@%s' "$(dg "$variant" "$g")"; done
-          }
+          SRCS_LATEST="$(cat /tmp/srcs-latest.txt)"
+          SRCS_LITE="$(cat /tmp/srcs-lite.txt)"
 
-          SRCS_LATEST="$(srcs latest $MAIN_GROUPS)$(srcs lite $LITE_ONLY_GROUPS)"
-          SRCS_LITE="$(srcs lite $ALL_LITE_GROUPS)"
-          echo "latest 来源:${SRCS_LATEST}"
-          echo "lite 来源:${SRCS_LITE}"
-
-          # 与 _image.yml 的历史行为保持一致：
-          #   master 推送 → <P>latest + <P>dev
-          #   tag 推送    → <P>latest + <P>版本 + <P>dev（ghcr 仍只更新 <P>latest）
-          LATEST_TAGS="dev"; LITE_TAGS="lite-dev"
+          # 标签归属：master push 只推进 dev，tag push 只写 latest + 版本。
+          # 两族互斥，任何一次运行只影响其中一族。
           if [ "$IS_TAG" = "true" ]; then
-            LATEST_TAGS="latest ${REF_NAME} dev"
-            LITE_TAGS="lite-latest lite-${REF_NAME} lite-dev"
+            LATEST_TAGS="latest ${REF_NAME}"
+            LITE_TAGS="lite-latest lite-${REF_NAME}"
+          else
+            LATEST_TAGS="dev"
+            LITE_TAGS="lite-dev"
           fi
-          GHCR_LATEST="latest"; GHCR_LITE="lite-latest"
 
-          publish() {  # publish <registry-image> <tags> <srcs>
+          publish() {
             local img=$1 tags=$2 srcs=$3
             for t in $tags; do
               echo "::group::${img}:${t}"
@@ -148,31 +178,32 @@ jobs:
             done
           }
 
-          publish ghcr.io/qd-today/qd "$GHCR_LATEST" "$SRCS_LATEST"
-          publish ghcr.io/qd-today/qd "$GHCR_LITE" "$SRCS_LITE"
-          publish docker.io/qdtoday/qd "$LATEST_TAGS" "$SRCS_LATEST"
-          publish docker.io/qdtoday/qd "$LITE_TAGS" "$SRCS_LITE"
-          publish docker.io/a76yyyy/qiandao "$LATEST_TAGS" "$SRCS_LATEST"
-          publish docker.io/a76yyyy/qiandao "$LITE_TAGS" "$SRCS_LITE"
+          # 三个 registry 的 tag 名集合必须完全一致
+          for reg in ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao; do
+            publish "$reg" "$LATEST_TAGS" "$SRCS_LATEST"
+            publish "$reg" "$LITE_TAGS" "$SRCS_LITE"
+          done
       - name: Verify manifest platform completeness
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import json, subprocess, sys
+          import json, os, subprocess, sys
 
-          # latest 应当是 6 + 3 的并集；lite 是完整的 9 个
-          EXPECT = {
-              "ghcr.io/qd-today/qd:latest": {
-                  "linux/amd64", "linux/arm64", "linux/arm/v7",
-                  "linux/ppc64le", "linux/riscv64", "linux/loong64",
-                  "linux/386", "linux/arm/v6", "linux/s390x",
-              },
-              "ghcr.io/qd-today/qd:lite-latest": {
-                  "linux/amd64", "linux/arm64", "linux/arm/v7",
-                  "linux/ppc64le", "linux/riscv64", "linux/loong64",
-                  "linux/386", "linux/arm/v6", "linux/s390x",
-              },
-          }
+          is_tag = os.environ["IS_TAG"] == "true"
+          ver = os.environ["REF_NAME"]
+          latest_tag = "latest" if is_tag else "dev"
+          lite_tag = "lite-latest" if is_tag else "lite-dev"
+
+          # 同一个 tag 在三个 registry 上指向同一份内容，但各 registry 的
+          # manifest digest 互不相同，所以按 tag 名逐个校验平台集合即可
+          EXPECT_PLATFORMS = [
+              "linux/amd64", "linux/arm64", "linux/arm/v7",
+              "linux/ppc64le", "linux/riscv64", "linux/loong64",
+              "linux/386", "linux/arm/v6", "linux/s390x",
+          ]
 
           def platforms(tag):
               out = subprocess.run(["docker", "buildx", "imagetools", "inspect", tag, "--raw"],
@@ -187,13 +218,19 @@ jobs:
               return got
 
           failed = False
-          for tag, expect in EXPECT.items():
-              got = platforms(tag)
-              missing, extra = expect - got, got - expect
-              if missing or extra:
-                  print(f"::error::{tag} 平台集合不一致：缺 {missing or '无'}，多 {extra or '无'}")
-                  failed = True
-              else:
-                  print(f"{tag} 平台集合一致：{', '.join(sorted(got))}")
+          for reg in ("ghcr.io/qd-today/qd", "docker.io/qdtoday/qd", "docker.io/a76yyyy/qiandao"):
+              for tag in (latest_tag, lite_tag):
+                  ref = f"{reg}:{tag}"
+                  try:
+                      got = platforms(ref)
+                  except subprocess.CalledProcessError:
+                      print(f"::error::{ref} 不存在")
+                      failed = True
+                      continue
+                  if got != set(EXPECT_PLATFORMS):
+                      print(f"::error::{ref} 平台集合不一致：缺 {set(EXPECT_PLATFORMS) - got or '无'}，多 {got - set(EXPECT_PLATFORMS) or '无'}")
+                      failed = True
+                  else:
+                      print(f"{ref} 平台集合一致（9 个）")
           sys.exit(1 if failed else 0)
           PY
