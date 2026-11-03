@@ -5,11 +5,13 @@ description = "QD 定时签到框架的运行依赖"
 requires-python = ">=3.14"
 
 # 依赖口径：
-#   - 全部用 `>=` 下限，精确版本由 uv.lock 冻结
-#   - 基座镜像（a76yyyy/pycurl）与 apk 已装的包也列在这里：一来 Docker 构建要靠这份
-#     清单判断「哪些不用装」，二来非 Docker 用户 pip install . 时才有完整的依赖声明
-#   - Docker 构建会在镜像内推导「基座已有哪些包」并把它们从安装清单里剔除，
-#     所以这里写 `>=` 不会导致基座里的自编版本被 PyPI 版覆盖
+#   - wheelhouse 提供的包用 `==` 钉死，其余用 `>=` 下限；精确版本由 uv.lock 冻结
+#   - 为什么这几个必须钉：Docker 构建里 `uv lock` 只能从 PyPI 解析版本，而安装时优先命中
+#     本地 wheelhouse。两边版本不一致时 uv 会去 PyPI 取「更高版本」，然后在 musl 上找不到
+#     轮子直接失败（onnxruntime 与 opencv 的 PyPI 轮子都只有 manylinux）。钉死后 lock 与
+#     wheelhouse tag 一一对应，改一层就要同步改这里
+#   - opencv-python-headless 的版本是「<上游版本>.<构建号>」，PyPI 上只有 5.0.0.93 这种
+#     四段式；wheelhouse 里那份也标 5.0.0.93（源码 tag 仍是 5.0.0）
 dependencies = [
     # ---- 基座镜像 / Alpine 源提供的（Docker 构建时自动跳过）----
     "aiohappyeyeballs>=2.6.1",
@@ -26,7 +28,7 @@ dependencies = [
     "packaging>=26.2",
     "propcache>=0.5.2",
     "pycryptodome>=3.23.0",
-    "pycurl>=7.48.0",
+    "pycurl==7.49.0",
     "six>=1.17.0",
     "tornado>=6.5.5,<7",
     "typing-extensions>=4.15.0",
@@ -46,7 +48,12 @@ dependencies = [
     "jinja2>=3.1.6",
     "passlib>=1.7.4",
     "pbkdf2>=1.3",
-    "pymysql>=1.2.3",
+    # 锁在 1.x 最后一版：1.2.0 弃用了 Connection.ping() 的 reconnect 参数（默认
+    # True → False），SQLAlchemy 1.4 的 aiomysql 方言会因此改调无参 ping()，
+    # 而 AsyncAdapt_aiomysql_connection.ping(self, reconnect) 要求该参数，
+    # DB_TYPE=mysql 启动即 TypeError（issue #640）。1.1.3 含 CVE-2024-36039
+    # 与 callproc 的 procname 转义两处安全修复，是 1.x 的安全终点。
+    "pymysql>=1.1.3,<1.2",
     "pysocks>=1.7.1",
     "python-dateutil>=3.0.0",
     "pytz>=2026.5",
@@ -60,14 +67,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# OCR 栈：基座镜像（a76yyyy/pycurl 的 latest / ja3 线）已提供，Docker 构建时会被跳过；
-# 声明成 extra 是因为 lite 线（纯 Alpine 基座）**故意不带**它——runtime 用 QIANDAO_LITE
-# 关闭相关功能。非 Docker 用户想用 OCR 就 pip install .[ocr]。
+# OCR 栈：三个 wheel 来自 ddddocr 与 onnxruntime 的 wheelhouse，版本必须与那两个 tag 对齐。
+# 声明成 extra 是因为 lite 线故意不带它——runtime 用 QIANDAO_LITE 关闭相关功能。
+# 非 Docker 用户想用 OCR 就 pip install .[ocr]（会从 PyPI 装同名发行名）。
 ocr = [
-    "ddddocr>=1.6.1",
-    "numpy>=2.4.6",
-    "onnxruntime>=1.24.4",
-    "pillow>=12.2.0",
+    "ddddocr==1.6.1",
+    "numpy==2.4.6",
+    "onnxruntime==1.24.4",
+    "opencv-python-headless==5.0.0.93",
+    "pillow==13.0.0",
 ]
 
 [tool.uv]

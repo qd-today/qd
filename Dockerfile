@@ -1,16 +1,23 @@
-# QD 运行环境。
-# 基座 a76yyyy/pycurl 已提供 pycurl（含 ja3 补丁）、ddddocr、OpenCV、onnxruntime，
-# 本文件只安装 QD 自身的依赖并放入代码。
-ARG BASE_IMAGE=a76yyyy/pycurl:1.5.1
-FROM ${BASE_IMAGE}
+﻿# QD 运行环境。
+#
+# 基座是纯 alpine：Python 依赖全部来自三个 wheelhouse（onnxruntime / ddddocr / pycurl），
+# 不再 FROM a76yyyy/pycurl 继承「已经装好的包」。
+#
+# 为什么不再继承基座：
+#   - 依赖来源变成契约而不是启发式。旧版由 docker/install-deps.py 现场探测「基座提供了
+#     什么」再跳过，那是猜测：曾经把打过 IMPERSONATE 补丁的 pycurl 覆盖成 PyPI 版，
+#     ja3 线实际失效。
+#   - venv 看不到基座里的包，继续 FROM 重基座会变成双份（venv 一份 + 基座一份）。
+#   - 版本对齐由 uv.lock 与 wheelhouse tag 保证，不一致时解析直接失败。
 
-# FROM 之前的 ARG 在 FROM 之后即失效，这里重新声明以供 LABEL 使用
-ARG BASE_IMAGE
+ARG ALPINE_VERSION=3.24
+FROM alpine:${ALPINE_VERSION}
+
+ARG ALPINE_VERSION
 LABEL maintainer="a76yyyy <q981331502@163.com>"
 LABEL org.opencontainers.image.source=https://github.com/qd-today/qd
-LABEL org.opencontainers.image.base.name="${BASE_IMAGE}"
 
-# 本地构建加速（CI 在海外无需配置）：APK_MIRROR 例 https://mirrors.tuna.tsinghua.edu.cn
+# 本地构建加速（CI 在海外无需配置）
 ARG APK_MIRROR=""
 ARG PIP_MIRROR=""
 
@@ -19,34 +26,50 @@ WORKDIR /usr/src/app
 # uv 是单个静态二进制，直接取官方镜像里的；目标镜像因此不需要装 pip
 COPY --from=ghcr.io/astral-sh/uv:0.8.3 /uv /usr/local/bin/uv
 
-# 依赖单一来源：pyproject.toml + uv.lock。
-#
-# apk 只负责编译工具（用完即删），Python 包全部由 uv 安装。基座镜像里已有的包
-# （自编的 pycurl / Pillow、源码装的 ddddocr、apk 的 numpy / onnxruntime / OpenCV）
-# 由 docker/install-deps.py 在构建期识别并跳过——照单安装会把它们覆盖成 PyPI 版，
-# ja3 的 IMPERSONATE 补丁当年就是这么丢的。
+# 依赖单一来源：pyproject.toml + uv.lock
 COPY pyproject.toml uv.lock /usr/src/app/
-COPY docker/install-deps.py /tmp/install-deps.py
+
+# venv 放 /opt 而不是项目目录：/usr/src/app 会被代码整体覆盖，放里面会被盖掉
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+# uv 默认把解压后的包缓存到 ~/.cache/uv；在容器里那是纯浪费（缓存体积约等于 venv）。
+# 必须走环境变量而不是逐条 --no-cache：sync / pip / export 都要生效。
+ENV UV_NO_CACHE=1
+# 不去自动下载 Python：镜像里的 alpine python3 就是目标解释器
+ENV UV_PYTHON_DOWNLOADS=never
+ENV UV_PYTHON=/usr/bin/python3
 
 # 编译期工具：greenlet / markupsafe / tornado / pycryptodome 在部分架构没有 musllinux
 # 轮子，必须现编；装完 apk del，不留在运行时镜像里。
-RUN set -eu && \
+#
+# 三个 wheelhouse 用 bind mount 挂进来而不是 COPY：COPY 会把整份 wheel 写进镜像层，
+# 而 RUN 结束后它们就用完了，镜像里不该有 /w1 /w2 /w3。
+#
+# 系统包取三个清单的并集（三个仓库各自只列自己需要的），再补上 ddddocr 那层的便利包
+# （bash 给 update.sh 用、tzdata 给 zoneinfo、icu-data-en 给 onnxruntime 的 libicu）。
+RUN --mount=type=bind,from=a76yyyy/onnxruntime:1.24.4-wheelhouse,source=/wheels,target=/w1 \
+    --mount=type=bind,from=a76yyyy/ddddocr:1.6.1-wheelhouse,source=/wheels,target=/w2 \
+    --mount=type=bind,from=a76yyyy/pycurl:2.0.0-wheelhouse,source=/wheels,target=/w3 \
+    set -eu && \
     { [ -z "$APK_MIRROR" ] || sed -i "s|https://dl-cdn.alpinelinux.org|$APK_MIRROR|g" /etc/apk/repositories; } && \
-    apk add --update --no-cache --virtual .build-deps \
-        build-base python3-dev linux-headers libffi-dev && \
-    uv export --frozen --no-hashes --no-emit-project --extra ocr -o /tmp/req.txt && \
-    mkdir -p /usr/local/share && \
-    python3 /tmp/install-deps.py /tmp/req.txt \
-        --write-manifest /usr/local/share/qd-base-packages.txt > /tmp/req.install.txt && \
-    { [ -z "$PIP_MIRROR" ] || export UV_DEFAULT_INDEX="$PIP_MIRROR"; } && \
-    uv pip install --system --break-system-packages -r /tmp/req.install.txt && \
-    apk del .build-deps && \
-    rm -rf /var/cache/apk/* /tmp/req.txt /tmp/req.install.txt /tmp/install-deps.py /root/.cache/uv
+    apk add --update --no-cache \
+        build-base python3-dev linux-headers libffi-dev \
+        $(cat /w1/system-packages.txt /w2/system-packages.txt /w3/system-packages.txt | sort -u) \
+        bash ca-certificates icu-data-en tzdata && \
+    uv sync --frozen --no-dev --extra ocr \
+        --index-url "${PIP_MIRROR:-https://pypi.org/simple}" \
+        --extra-index-url file:///w1/simple \
+        --extra-index-url file:///w2/simple \
+        --extra-index-url file:///w3/simple && \
+    apk del build-base python3-dev linux-headers libffi-dev && \
+    rm -rf /var/cache/apk/*
 
 # 代码直接用构建上下文（.dockerignore 已排除 .git / node_modules 等），
 # 不再在构建时从 gitee clone——那会让镜像内容与仓库脱节，且需要把部署私钥打进镜像
 COPY . /usr/src/app
 RUN chmod +x /usr/src/app/update.sh && ln -sf /usr/src/app/update.sh /bin/update
+
+# venv 里的可执行文件优先
+ENV PATH=/opt/venv/bin:$PATH
 
 ENV PORT=80
 EXPOSE 80/tcp
