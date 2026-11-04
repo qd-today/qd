@@ -24,13 +24,17 @@ LABEL org.opencontainers.image.source=https://github.com/qd-today/qd
 ARG APK_MIRROR=""
 ARG PIP_MIRROR=""
 
+# 依赖来源：三个组件仓库的发布版本。update.sh 从这里读，保证热更新装的是
+# 与镜像构建同一批 wheel，不在脚本里维护第二份版本号。
+ARG PYCURL_RELEASE=2.0.0
+ARG PYCURL_TAG_PREFIX=ja3-
+
 WORKDIR /usr/src/app
 
 # 依赖单一来源：pyproject.toml + uv.lock
 COPY pyproject.toml uv.lock /usr/src/app/
 
 # venv 放 /opt 而不是项目目录：/usr/src/app 会被代码整体覆盖，放里面会被盖掉
-ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 # uv 默认把解压后的包缓存到 ~/.cache/uv；在容器里那是纯浪费（缓存体积约等于 venv）。
 # 必须走环境变量而不是逐条 --no-cache：sync / pip / export 都要生效。
 ENV UV_NO_CACHE=1
@@ -58,19 +62,19 @@ ENV UV_PYTHON=/usr/bin/python3
 # 系统包取三个清单的并集（三个仓库各自只列自己需要的），再补上 ddddocr 那层的便利包
 # （bash 给 update.sh 用、tzdata 给 zoneinfo、icu-data-en 给 onnxruntime 的 libicu）。
 RUN \
-    --mount=type=bind,from=a76yyyy/pycurl:ja3-2.0.0-wheelhouse,source=/wheels,target=/w3 \
+    --mount=type=bind,from=a76yyyy/pycurl:${PYCURL_TAG_PREFIX}${PYCURL_RELEASE}-wheelhouse,source=/wheels,target=/w3 \
     set -eu && \
     { [ -z "$APK_MIRROR" ] || sed -i "s|https://dl-cdn.alpinelinux.org|$APK_MIRROR|g" /etc/apk/repositories; } && \
     apk add --update --no-cache \
         build-base python3-dev linux-headers libffi-dev \
         $(cat /w3/system-packages.txt | sort -u) bash ca-certificates tzdata uv && \
-    uv venv /opt/venv --python /usr/bin/python3 && \
+    uv venv .venv --python /usr/bin/python3 && \
     uv export --frozen --no-hashes --no-emit-project -o /tmp/req.txt && \
-    uv pip sync --python /opt/venv/bin/python --no-cache \
+    uv pip sync --python .venv/bin/python --no-cache \
         --index-url "${PIP_MIRROR:-https://pypi.org/simple}" \
         --extra-index-url file:///w3/simple \
         /tmp/req.txt && \
-    /opt/venv/bin/python -c "import pycurl; \
+    .venv/bin/python -c "import pycurl; \
         assert pycurl.version.startswith('PycURL/7.49.0'), pycurl.version; \
         assert hasattr(pycurl, 'IMPERSONATE'), 'IMPERSONATE 缺失（pycurl 被 PyPI 版覆盖？）'; \
         print('pycurl', pycurl.version)" && \
@@ -83,7 +87,7 @@ COPY . /usr/src/app
 RUN chmod +x /usr/src/app/update.sh && ln -sf /usr/src/app/update.sh /bin/update
 
 # venv 里的可执行文件优先
-ENV PATH=/opt/venv/bin:$PATH
+ENV PATH=/usr/src/app/.venv/bin:$PATH
 
 ENV PORT=80
 EXPOSE 80/tcp

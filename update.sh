@@ -138,69 +138,76 @@ is_musl() {
     ldd --version 2>&1 | grep -qi musl
 }
 
+# 三仓的发布版本只写在 Dockerfile 的 ARG 里，这里读同一份，
+# 让热更新装的 wheel 与镜像构建用的完全一致，不在脚本里维护第二份版本号。
+read_release_args() {
+    if [ ! -f Dockerfile ]; then
+        echo "Error: 找不到 Dockerfile，无法确定依赖版本" >&2
+        return 1
+    fi
+    _pycurl=$(sed -n 's/^ARG PYCURL_RELEASE=//p' Dockerfile | tail -1)
+    _pycurl_prefix=$(sed -n 's/^ARG PYCURL_TAG_PREFIX=//p' Dockerfile | tail -1)
+    _ddddocr=$(sed -n 's/^ARG DDDDOCR_RELEASE=//p' Dockerfile | tail -1)
+    _onnx=$(sed -n 's/^ARG ONNXRUNTIME_RELEASE=//p' Dockerfile | tail -1)
+    if [ -z "$_pycurl" ]; then
+        echo "Error: Dockerfile 里没有 ARG PYCURL_RELEASE" >&2
+        return 1
+    fi
+    echo "Info: 依赖版本取自 Dockerfile —— pycurl=${_pycurl_prefix}${_pycurl} ddddocr=${_ddddocr:-无} onnxruntime=${_onnx:-无}"
+}
+
 install_deps_uv() {
-    # 四种形态，各自的依赖来源不同：
-    #   新镜像（容器 + /opt/venv） -> 镜像自带，热更新只换代码
-    #   旧镜像（容器，无 /opt/venv） -> 依赖装在系统 python，与新代码不兼容，只能换镜像
-    #   Alpine 裸机（musl）        -> GitHub Release 的 musllinux 轮子
-    #   Ubuntu / Debian 裸机（glibc）-> PyPI 的 manylinux 轮子
+    # 四种形态：
+    #   新镜像（容器 + .venv）  -> 镜像自带，热更新只换代码
+    #   旧镜像（容器，无 .venv）-> 依赖在系统 python，与新代码不兼容，只能换镜像
+    #   Alpine 裸机（musl）     -> apk uv + 本地 wheelhouse（musllinux）
+    #   glibc 裸机（Ubuntu 等） -> 官方 uv + uv sync（许多 manylinux 轮子）
     if [ -f /.dockerenv ]; then
-        if [ -x /opt/venv/bin/python ]; then
-            echo "Info: 依赖由镜像提供（wheelhouse -> /opt/venv），热更新不重装依赖"
+        if [ -x .venv/bin/python ]; then
+            echo "Info: 依赖由镜像提供（/usr/src/app/.venv），热更新不重装依赖"
             echo "Info: 如需更新依赖版本，请拉取对应 tag 的新镜像"
             return 0
         fi
-        echo "Error: 当前镜像没有 /opt/venv，与新代码不兼容。" >&2
+        echo "Error: 当前镜像没有 .venv，与新代码不兼容。" >&2
         echo "       这是依赖形态变更的边界，热更新无法跨越，请拉取对应 tag 的新镜像。" >&2
         return 1
     fi
 
     if is_musl; then
-        install_deps_from_release
+        install_deps_alpine
     else
-        install_deps_from_pypi
+        install_deps_glibc
     fi
 }
 
-install_deps_from_pypi() {
-    # glibc（Ubuntu / Debian 等）：PyPI 的 manylinux 轮子齐全，不需要用我们自编的
-    # musllinux 轮子。注意 pycurl——PyPI 版没有 IMPERSONATE 补丁，这条路上 ja3 线
-    # 装不出来，需要指纹伪装请用 Alpine 或容器部署。
-    if ! command -v uv >/dev/null 2>&1; then
-        echo "Error: 需要 uv，见 https://docs.astral.sh/uv/" >&2
-        return 1
-    fi
-    echo "Info: 检测到 glibc，从 PyPI 安装依赖"
-    _req=$(mktemp) || return 1
-    if uv export --frozen --no-hashes --no-emit-project -o "$_req" >/dev/null 2>&1; then
-        # shellcheck disable=SC2086
-        uv pip install --system --break-system-packages --no-cache \
-            --index-url https://pypi.org/simple -r "$_req"
-        _rc=$?
-    else
-        # shellcheck disable=SC2086
-        uv pip install --system --break-system-packages --no-cache \
-            --index-url https://pypi.org/simple pycurl ddddocr onnxruntime
-        _rc=$?
-    fi
-    rm -f "$_req"
-    if [ "$_rc" -ne 0 ]; then
-        echo "Error: 依赖安装失败" >&2
-        return $_rc
-    fi
-    echo "Info: 提示——PyPI 的 pycurl 不含 IMPERSONATE 补丁，ja3 线在此形态下不可用"
-    return 0
-}
+install_deps_alpine() {
+    echo "Info: 检测到 musl（Alpine），使用本地 wheelhouse 安装依赖"
+    set_alpine_mirrors "${alpine_mirrors}"
 
-install_deps_from_release() {
-    # 与 pyproject.toml / uv.lock 同批发布的三个仓库版本；升级依赖时改这里
-    _onnx_release=1.24.4
-    _ddddocr_release=1.6.1
-    _pycurl_release=2.0.0
+    # 少数纯 Python 包（greenlet / pycryptodome 这类）在部分架构上没有 musllinux
+    # 轮子，要现编。编译工具只在裸机场景需要，装完即删。
+    apk add --no-cache --virtual .build_deps build-base python3-dev linux-headers libffi-dev \
+        || { echo "Error: 安装编译工具失败" >&2; return 1; }
+    if [ -x "/usr/bin/python3" ]; then
+        ln -sf /usr/bin/python3 /usr/bin/python
+        ln -sf /usr/bin/python3 /usr/local/bin/python
+    fi
+
+    apk add --no-cache uv || { echo "Error: 安装 uv 失败" >&2; return 1; }
+
+    # 用 uv 的默认位置创建虚拟环境，与镜像里的路径一致（/usr/src/app/.venv）
+    uv venv .venv --python python3 || { echo "Error: 创建 .venv 失败" >&2; return 1; }
+
+    # requirements.txt 由 lock 导出，不提交到仓库，避免「lock 改了文件没跟上」
+    _req=/tmp/qd-requirements.txt
+    uv export --frozen --no-hashes --no-emit-project -o "$_req" \
+        || { echo "Error: uv export 失败" >&2; return 1; }
+
+    read_release_args || return 1
 
     _arch=$(uname -m)
     case "$_arch" in
-        arm64) _arch=aarch64 ;;   # macOS 报 arm64，Alpine 报 aarch64
+        arm64) _arch=aarch64 ;;
     esac
     case "$_arch" in
         x86_64|aarch64|riscv64|ppc64le|loongarch64|armv7l|armv6l|i686) ;;
@@ -211,78 +218,75 @@ install_deps_from_release() {
     _fetch() {
         _url="https://github.com/qd-today/$1/releases/download/$2/$3-wheels-$_arch.tar.gz"
         echo "Info: 下载 $_url"
-        wget -q "$_url" -O "$_tmp/$1.tar.gz" || return 1
-        tar xzf "$_tmp/$1.tar.gz" -C "$_tmp" || return 1
+        wget -q "$_url" -O "$_tmp/$1.tar.gz" || { echo "Error: 下载 $1 失败" >&2; return 1; }
+        tar xzf "$_tmp/$1.tar.gz" -C "$_tmp" || { echo "Error: 解压 $1 失败" >&2; return 1; }
     }
 
-    echo "Info: 架构 $_arch，pycurl=$_pycurl_release ddddocr=$_ddddocr_release onnxruntime=$_onnx_release"
-    _fetch pycurl-docker "$_pycurl_release" pycurl-docker || { rm -rf "$_tmp"; return 1; }
-
-    _indexes="--extra-index-url file://$_tmp/wheels-$_arch/simple"
-    if [ "${QD_NO_OCR:-0}" != "1" ]; then
-        _fetch ddddocr-docker "$_ddddocr_release" ddddocr-docker || { rm -rf "$_tmp"; return 1; }
-        _fetch onnxruntime-docker "$_onnx_release" onnxruntime-docker || { rm -rf "$_tmp"; return 1; }
-        for _d in "$_tmp"/wheels-*/simple; do
-            [ "$_d" = "$_tmp/wheels-$_arch/simple" ] && continue
-            _indexes="$_indexes --extra-index-url file://$_d"
-        done
+    # 这套 wheel 与镜像同批，全部自包含 C 依赖
+    _fetch pycurl-docker "${_pycurl_prefix}${_pycurl}" pycurl-docker || { rm -rf "$_tmp"; return 1; }
+    # 精简线（lite）的 Dockerfile 没有 OCR 版本参数，跳过
+    if [ -n "$_ddddocr" ] && [ -n "$_onnx" ]; then
+        _fetch ddddocr-docker "$_ddddocr" ddddocr-docker || { rm -rf "$_tmp"; return 1; }
+        _fetch onnxruntime-docker "$_onnx" onnxruntime-docker || { rm -rf "$_tmp"; return 1; }
     fi
 
-    # wheelhouse 里的 wheel 自包含 C 依赖，但仍要这几个系统包（清单随 wheelhouse 发布）
+    # 先装系统包：清单随 wheelhouse 发布，上层照单安装
     _pkgs=$(cat "$_tmp"/wheels-*/system-packages.txt 2>/dev/null | sort -u | tr '\n' ' ')
     if [ -n "$_pkgs" ]; then
         echo "Info: 安装系统包 $_pkgs"
-        apk add --no-cache $_pkgs || { rm -rf "$_tmp"; return 1; }
+        apk add --no-cache $_pkgs || { echo "Error: 安装系统包失败" >&2; rm -rf "$_tmp"; return 1; }
     fi
 
-    if ! command -v uv >/dev/null 2>&1; then
-        echo "Error: 需要 uv，见 https://docs.astral.sh/uv/" >&2
-        rm -rf "$_tmp"
-        return 1
-    fi
+    # 每个 wheelhouse 一个索引，按定义顺序查询；PyPI 只兜底纯 Python 包
+    _indexes=""
+    for _d in "$_tmp"/wheels-*/simple; do
+        [ -d "$_d" ] && _indexes="$_indexes --extra-index-url file://$_d"
+    done
 
-    _req="$_tmp/req.txt"
-    if uv export --frozen --no-hashes --no-emit-project -o "$_req" >/dev/null 2>&1; then
-        echo "Info: 按 uv.lock 安装依赖"
-        # shellcheck disable=SC2086
-        uv pip install --system --break-system-packages --no-cache \
-            --index-url https://pypi.org/simple $_indexes -r "$_req"
-    else
-        echo "Info: 未在项目目录，按包名安装依赖"
-        # shellcheck disable=SC2086
-        uv pip install --system --break-system-packages --no-cache \
-            --index-url https://pypi.org/simple $_indexes pycurl ddddocr onnxruntime
-    fi
+    echo "Info: uv pip sync（按 requirements.txt 严格同步）"
+    # shellcheck disable=SC2086
+    uv pip sync --python .venv/bin/python --no-cache \
+        --index-url https://pypi.org/simple $_indexes "$_req"
     _rc=$?
-    rm -rf "$_tmp"
-    return $_rc
+    rm -rf "$_tmp" "$_req"
+    apk del .build_deps >/dev/null 2>&1
+    rm -rf /var/cache/apk/* /usr/share/man/*
+    if [ "$_rc" -ne 0 ]; then
+        echo "Error: 依赖安装失败" >&2
+        return $_rc
+    fi
+    return 0
 }
 
-update_in_alpine() {
-    # 当前版本号低于 20211228 时, 使用国内源并提示 DDDDOCR API 不可用
-    if [ "$(echo "${localversion}" | awk '$1>20211228 {print 0} $1<=20211228 {print 1}')" == 1 ];then
-        echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" > /etc/apk/repositories
-        echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories
-        set_alpine_mirrors "${alpine_mirrors}"
-        apk del .python-rundeps
-        echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
+install_deps_glibc() {
+    echo "Info: 检测到 glibc（Ubuntu / Debian 等），使用官方 uv 与 uv sync"
+    if ! command -v uv >/dev/null 2>&1; then
+        echo "Info: 安装 uv"
+        command -v curl >/dev/null 2>&1 && curl -LsSf https://astral.sh/uv/install.sh | sh \
+            || wget -qO- https://astral.sh/uv/install.sh | sh
+        # 官方安装脚本把 uv 放在 ~/.local/bin
+        [ -x "$HOME/.local/bin/uv" ] && PATH="$HOME/.local/bin:$PATH" && export PATH
+        command -v uv >/dev/null 2>&1 || { echo "Error: uv 安装失败" >&2; return 1; }
     fi
-
-    set_alpine_mirrors "${alpine_mirrors}"
-
-    # 编译工具用完即删：锁里 greenlet / pycryptodome 这类在没有 musllinux 轮子的架构上要现编
-    apk add --no-cache --virtual .build_deps build-base python3-dev linux-headers libffi-dev
-
-    if [ -x "/usr/bin/python3" ]; then
-        ln -sf /usr/bin/python3 /usr/bin/python
-        ln -sf /usr/bin/python3 /usr/local/bin/python
-    fi
-
-    install_deps_uv
-
-    apk del .build_deps
-    rm -rf /var/cache/apk/* /usr/share/man/* /tmp/qd-req.txt /tmp/qd-req.install.txt
+    # glibc 上 PyPI 的 manylinux 轮子齐全，不需要我们的 musllinux 那份
+    uv sync --frozen || { echo "Error: uv sync 失败" >&2; return 1; }
+    echo "Info: 提示——PyPI 的 pycurl 不含 IMPERSONATE 补丁，ja3 线在此形态下不可用"
+    return 0
 }
+
+# 兼容旧版本：requirements.txt 现在由 uv export 生成，仓库里不再存它。
+# 老版本留下的那份会误导 uv sync（它读 lock，不读 requirements.txt），删掉。
+cleanup_legacy_files() {
+    if [ -f requirements.txt ]; then
+        echo "Info: 移除旧版遗留的 requirements.txt（依赖现在由 uv.lock 管理）"
+        rm -f requirements.txt
+    fi
+    if [ -f Pipfile ] || [ -f Pipfile.lock ]; then
+        echo "Info: 移除旧版遗留的 Pipfile / Pipfile.lock"
+        rm -f Pipfile Pipfile.lock
+    fi
+}
+
 
 echo_auto_reload() {
     if [ "$(printenv AUTO_RELOAD)" ] && [ "${AUTO_RELOAD}" == "False" ];then
@@ -340,9 +344,12 @@ update_tarball() {
 }
 
 update_git() {
+    # 没有 .git 就无法确定版本、无法和 Dockerfile 的 ARG 对齐，
+    # 依赖会装成另一套。这种情况直接报错，让用户克隆仓库或换镜像。
     if ! have_git; then
-        update_tarball
-        return
+        echo "Error: 当前目录没有 git 仓库，无法更新代码。" >&2
+        echo "       请用 git clone 获取源码后再执行本脚本，或直接拉取新镜像。" >&2
+        return 1
     fi
     if [ "${remoteversion}" = ${source_branch} ];then
         git fetch --all && \
@@ -367,6 +374,8 @@ update() {
             echo -e "Info: 正在强制更新中, 请稍候..."
             update_version && \
             update_git && \
+            cleanup_legacy_files && \
+            install_deps_uv && \
             echo -e "Info: 更新完成! \nInfo: 当前版本: ${remoteversion}" && \
             echo_auto_reload
         else
@@ -384,6 +393,8 @@ update() {
                             echo -e "Info: 正在更新中, 请稍候..."
                             update_version && \
                             update_git && \
+                            cleanup_legacy_files && \
+                            install_deps_uv && \
                             get_localversion && \
                             echo -e "Info: 更新完成! \nInfo: 当前版本: $localversion" && \
                             echo_auto_reload

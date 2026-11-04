@@ -24,6 +24,12 @@ LABEL org.opencontainers.image.source=https://github.com/qd-today/qd
 ARG APK_MIRROR=""
 ARG PIP_MIRROR=""
 
+# 依赖来源：三个组件仓库的发布版本。update.sh 从这里读，保证热更新装的是
+# 与镜像构建同一批 wheel，不在脚本里维护第二份版本号。
+ARG ONNXRUNTIME_RELEASE=1.24.4
+ARG DDDDOCR_RELEASE=1.6.1
+ARG PYCURL_RELEASE=2.0.0
+
 WORKDIR /usr/src/app
 
 # 依赖单一来源：pyproject.toml + uv.lock
@@ -56,24 +62,24 @@ ENV UV_PYTHON=/usr/bin/python3
 # 系统包取三个清单的并集（三个仓库各自只列自己需要的），再补上 ddddocr 那层的便利包
 # （bash 给 update.sh 用、tzdata 给 zoneinfo、icu-data-en 给 onnxruntime 的 libicu）。
 RUN \
-    --mount=type=bind,from=a76yyyy/onnxruntime:1.24.4-wheelhouse,source=/wheels,target=/w1 \
-    --mount=type=bind,from=a76yyyy/ddddocr:1.6.1-wheelhouse,source=/wheels,target=/w2 \
-    --mount=type=bind,from=a76yyyy/pycurl:2.0.0-wheelhouse,source=/wheels,target=/w3 \
+    --mount=type=bind,from=a76yyyy/onnxruntime:${ONNXRUNTIME_RELEASE}-wheelhouse,source=/wheels,target=/w1 \
+    --mount=type=bind,from=a76yyyy/ddddocr:${DDDDOCR_RELEASE}-wheelhouse,source=/wheels,target=/w2 \
+    --mount=type=bind,from=a76yyyy/pycurl:${PYCURL_TAG_PREFIX}${PYCURL_RELEASE}-wheelhouse,source=/wheels,target=/w3 \
     set -eu && \
     { [ -z "$APK_MIRROR" ] || sed -i "s|https://dl-cdn.alpinelinux.org|$APK_MIRROR|g" /etc/apk/repositories; } && \
     apk add --update --no-cache \
         build-base python3-dev linux-headers libffi-dev \
         $(cat /w1/system-packages.txt /w2/system-packages.txt /w3/system-packages.txt | sort -u) \
         bash ca-certificates icu-data-en tzdata uv && \
-    uv venv /opt/venv --python /usr/bin/python3 && \
+    uv venv .venv --python /usr/bin/python3 && \
     uv export --frozen --no-hashes --no-emit-project --extra ocr -o /tmp/req.txt && \
-    uv pip sync --python /opt/venv/bin/python --no-cache \
+    uv pip sync --python .venv/bin/python --no-cache \
         --index-url "${PIP_MIRROR:-https://pypi.org/simple}" \
         --extra-index-url file:///w1/simple \
         --extra-index-url file:///w2/simple \
         --extra-index-url file:///w3/simple \
         /tmp/req.txt && \
-    /opt/venv/bin/python -c "import pycurl; \
+    .venv/bin/python -c "import pycurl; \
         assert pycurl.version.startswith('PycURL/7.49.0'), pycurl.version; \
         print('pycurl', pycurl.version)" && \
     apk del build-base python3-dev linux-headers libffi-dev uv && \
@@ -85,7 +91,7 @@ COPY . /usr/src/app
 RUN chmod +x /usr/src/app/update.sh && ln -sf /usr/src/app/update.sh /bin/update
 
 # venv 里的可执行文件优先
-ENV PATH=/opt/venv/bin:$PATH
+ENV PATH=/usr/src/app/.venv/bin:$PATH
 
 ENV PORT=80
 EXPOSE 80/tcp
