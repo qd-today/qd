@@ -19,7 +19,7 @@ Docker 容器部署是部署 QD 的最简单方式。
 > - `20xxxxxx`: 指定 Release 版本, 版本号表示为 Release 发布日期。同样有四种口味, 分别是 `ja3-20xxxxxx`、`lite-20xxxxxx`、`ja3-lite-20xxxxxx`
 > - `dev`: 最新开发版, 同步最新源码, 不保证稳定性。同样有四种口味, 分别是 `lite-dev`、`ja3-dev`、`ja3-lite-dev`
 >
-> 架构说明: `latest` 与 `ja3-latest` 不提供 `386`、`arm/v6`、`s390x` 三个架构, 因为 OCR 相关依赖在这三个架构上没有可用的 musllinux 轮子。这三个架构请使用 `lite` 系列, 其余架构上两者内容完全一致。
+> 架构说明: OCR 相关依赖在 `386`、`arm/v6`、`s390x` 上没有可用的 musllinux 轮子。这三个架构上 `latest` 仍可拉取, 但该平台的内容等同于 `lite-latest` (不含验证码识别); `ja3-latest` 在 `386`、`arm/v6` 上等同于 `ja3-lite-latest`, 在 `s390x` 上不提供。需要验证码识别请使用 `amd64`、`arm64`、`arm/v7`、`ppc64le`、`riscv64`、`loong64`。
 
 ### 部署方法
 
