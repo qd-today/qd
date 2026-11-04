@@ -14,6 +14,19 @@ ARG ALPINE_VERSION=3.24
 # 官方 alpine 没有 loongarch64，CI 对 loong64 传 ghcr.io/loong64/alpine:3.24。
 # 其余架构用默认值。
 ARG BASE_IMAGE=alpine:${ALPINE_VERSION}
+
+# 依赖来源：三个组件仓库的发布版本。update.sh 从这里读，保证热更新装的是
+# 与镜像构建同一批 wheel，不在脚本里维护第二份版本号。
+# 放在第一个 FROM 之前，才能用于 FROM；RUN --mount 的 from= 不支持变量
+# 展开，所以先声明成 stage 再引用 stage 名。
+ARG ONNXRUNTIME_RELEASE=1.24.4
+ARG DDDDOCR_RELEASE=1.6.1
+ARG PYCURL_RELEASE=2.0.0
+ARG PYCURL_TAG_PREFIX=ja3-
+
+FROM a76yyyy/onnxruntime:${ONNXRUNTIME_RELEASE}-wheelhouse AS wh-onnx
+FROM a76yyyy/ddddocr:${DDDDOCR_RELEASE}-wheelhouse AS wh-ddddocr
+FROM a76yyyy/pycurl:${PYCURL_TAG_PREFIX}${PYCURL_RELEASE}-wheelhouse AS wh-pycurl
 FROM ${BASE_IMAGE}
 
 ARG ALPINE_VERSION
@@ -24,12 +37,6 @@ LABEL org.opencontainers.image.source=https://github.com/qd-today/qd
 ARG APK_MIRROR=""
 ARG PIP_MIRROR=""
 
-# 依赖来源：三个组件仓库的发布版本。update.sh 从这里读，保证热更新装的是
-# 与镜像构建同一批 wheel，不在脚本里维护第二份版本号。
-ARG ONNXRUNTIME_RELEASE=1.24.4
-ARG DDDDOCR_RELEASE=1.6.1
-ARG PYCURL_RELEASE=2.0.0
-ARG PYCURL_TAG_PREFIX=ja3-
 
 WORKDIR /usr/src/app
 
@@ -63,9 +70,9 @@ ENV UV_PYTHON=/usr/bin/python3
 # 系统包取三个清单的并集（三个仓库各自只列自己需要的），再补上 ddddocr 那层的便利包
 # （bash 给 update.sh 用、tzdata 给 zoneinfo、icu-data-en 给 onnxruntime 的 libicu）。
 RUN \
-    --mount=type=bind,from=a76yyyy/onnxruntime:${ONNXRUNTIME_RELEASE}-wheelhouse,source=/wheels,target=/w1 \
-    --mount=type=bind,from=a76yyyy/ddddocr:${DDDDOCR_RELEASE}-wheelhouse,source=/wheels,target=/w2 \
-    --mount=type=bind,from=a76yyyy/pycurl:${PYCURL_TAG_PREFIX}${PYCURL_RELEASE}-wheelhouse,source=/wheels,target=/w3 \
+    --mount=type=bind,from=wh-onnx,source=/wheels,target=/w1 \
+    --mount=type=bind,from=wh-ddddocr,source=/wheels,target=/w2 \
+    --mount=type=bind,from=wh-pycurl,source=/wheels,target=/w3 \
     set -eu && \
     { [ -z "$APK_MIRROR" ] || sed -i "s|https://dl-cdn.alpinelinux.org|$APK_MIRROR|g" /etc/apk/repositories; } && \
     apk add --update --no-cache \
