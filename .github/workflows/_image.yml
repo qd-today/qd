@@ -192,9 +192,13 @@ jobs:
 
               ("x86-32",  "ubuntu-latest", ["linux/386"]),
 
-              ("arm",     arm_runner,      ["linux/arm64", "linux/arm/v7"]),
+              # arm 三兄弟都走 x86_64 + QEMU，不用原生 arm64 runner：qd 的 build 阶段是
+              # 用 uv 装 wheel（runtime 行为），而 arm64 runner 上 32 位 ARM 容器走内核
+              # compat 模式，uv 在那种环境里会卡住。三仓里只有 pycurl 的 wheel 阶段
+              # （编译）用 arm_runner，它的 runtime 阶段同样统一 x86_64，理由相同。
+              ("arm",     "ubuntu-latest", ["linux/arm64", "linux/arm/v7"]),
 
-              ("armv6",   arm_runner,      ["linux/arm/v6"]),
+              ("armv6",   "ubuntu-latest", ["linux/arm/v6"]),
               ("ppc64le", "ubuntu-latest", ["linux/ppc64le"]),
               ("s390x",   "ubuntu-latest", ["linux/s390x"]),
               ("riscv64", "ubuntu-latest", ["linux/riscv64"]),
@@ -217,7 +221,7 @@ jobs:
               smoke.append({
                   "platform": p,
                   "group": GROUP_OF[p],
-                  "runner": arm_runner if p == "linux/arm64" else "ubuntu-latest",
+                  "runner": {p2: r2 for _n2, r2, ps2 in GROUPS for p2 in ps2}[p],
               })
 
           print("matrix=" + json.dumps({"include": include}))
