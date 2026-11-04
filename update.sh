@@ -399,8 +399,9 @@ update() {
                     esac
                 else
                     echo -e "Info: 正在强制切换至指定Tag版本: $1, 请稍候..."
-                    update_version && \
                     update_git && \
+                    cleanup_legacy_files && \
+                    install_deps_uv && \
                     get_localversion && \
                     echo -e "Info: 更新完成! \nInfo: 当前版本: $localversion" && \
                     echo_auto_reload
