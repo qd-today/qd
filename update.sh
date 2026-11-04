@@ -136,6 +136,13 @@ install_deps_uv() {
     # 容器内：依赖由镜像的 wheelhouse 装进 /opt/venv，运行期访问不到 wheelhouse
     # （那是构建期的 bind mount）。所以热更新只更新代码，不重装依赖。
     if [ -f /.dockerenv ]; then
+        # 新版镜像把依赖装在 /opt/venv。旧镜像（基座继承时代）装在系统 python 里，
+        # 没有这个目录——新代码找不到依赖，热更新过去也起不来。
+        if [ ! -x /opt/venv/bin/python ]; then
+            echo "Error: 当前镜像没有 /opt/venv，与新代码不兼容。" >&2
+            echo "       这是依赖形态变更的边界，热更新无法跨越，请拉取对应 tag 的新镜像。" >&2
+            return 1
+        fi
         echo "Info: 依赖由镜像提供（wheelhouse -> /opt/venv），热更新不重装依赖"
         echo "Info: 如需更新依赖版本，请拉取对应 tag 的新镜像"
         return 0
