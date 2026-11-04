@@ -137,7 +137,8 @@ jobs:
           # 归一化掉这两处后必须逐字一致，防止改了 main 忘了同步 ja3。
           # lite 结构性不同（不带 OCR、少挂两个 wheelhouse），全文件比对没意义，改成语义检查。
           norm() {
-            sed -e 's|a76yyyy/pycurl:[a-zA-Z0-9._-]*|a76yyyy/pycurl:<wh>|g' -e '/IMPERSONATE/d' "$1"
+            sed -e 's|a76yyyy/pycurl:[a-zA-Z0-9._-]*|a76yyyy/pycurl:<wh>|g' -e '/IMPERSONATE/d' "$1" \
+            -e 's|^ARG PYCURL_TAG_PREFIX=.*|ARG PYCURL_TAG_PREFIX=<p>|' \
           }
           case "${{ inputs.dockerfile }}" in
             Dockerfile.ja3)

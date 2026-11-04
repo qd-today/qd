@@ -20,6 +20,7 @@ ARG BASE_IMAGE=alpine:${ALPINE_VERSION}
 # 放在第一个 FROM 之前，才能用于 FROM；RUN --mount 的 from= 不支持变量
 # 展开，所以先声明成 stage 再引用 stage 名。
 ARG PYCURL_RELEASE=2.0.0
+# 主线为空；ja3 线是 ja3-
 ARG PYCURL_TAG_PREFIX=ja3-
 
 FROM a76yyyy/pycurl:${PYCURL_TAG_PREFIX}${PYCURL_RELEASE}-wheelhouse AS wh-pycurl
