@@ -132,32 +132,35 @@ jobs:
       - name: Verify derived Dockerfile consistency
         if: inputs.dockerfile != 'Dockerfile'
         run: |
-          set -eu
-          # ja3 与 main 只允许两处差异：pycurl 的 wheelhouse tag、ja3 独有的 IMPERSONATE 断言。
-          # 归一化掉这两处后必须逐字一致，防止改了 main 忘了同步 ja3。
-          # lite 结构性不同（不带 OCR、少挂两个 wheelhouse），全文件比对没意义，改成语义检查。
-          norm() {
-            sed -e 's|a76yyyy/pycurl:[a-zA-Z0-9._-]*|a76yyyy/pycurl:<wh>|g' -e '/IMPERSONATE/d' "$1" \
-            -e 's|^ARG PYCURL_TAG_PREFIX=.*|ARG PYCURL_TAG_PREFIX=<p>|' \
-          }
-          case "${{ inputs.dockerfile }}" in
-            Dockerfile.ja3)
-              if ! diff <(norm Dockerfile) <(norm Dockerfile.ja3) > /tmp/df.diff; then
-                echo "::error::Dockerfile.ja3 与 Dockerfile 除 pycurl wheelhouse 与 IMPERSONATE 断言外不一致"
-                head -40 /tmp/df.diff
-                exit 1
-              fi
-              ;;
-            Dockerfile.lite)
-              grep -q 'uv pip sync' Dockerfile.lite || { echo "::error::Dockerfile.lite 缺少 uv pip sync"; exit 1; }
-              if grep -q -- '--extra ocr' Dockerfile.lite; then
-                echo "::error::Dockerfile.lite 不应安装 ocr extra"; exit 1
-              fi
-              if grep -q 'ddddocr:' Dockerfile.lite || grep -q 'onnxruntime:' Dockerfile.lite; then
-                echo "::error::Dockerfile.lite 不应挂 ddddocr / onnxruntime 的 wheelhouse"; exit 1
-              fi
-              ;;
-          esac
+            set -eu
+            # ja3 与 main 只允许两处差异：pycurl 的 wheelhouse tag、ja3 独有的 IMPERSONATE 断言，
+            # 以及 ja3 线把 PYCURL_TAG_PREFIX 设成 ja3-（主线为空）。
+            # 归一化掉这三处后必须逐字一致，防止改了 main 忘了同步 ja3。
+            # lite 结构性不同（不带 OCR、少挂两个 wheelhouse），全文件比对没意义，改成语义检查。
+            norm() {
+              sed -e 's|a76yyyy/pycurl:[a-zA-Z0-9._-]*|a76yyyy/pycurl:<wh>|g' \
+                  -e 's|^ARG PYCURL_TAG_PREFIX=.*|ARG PYCURL_TAG_PREFIX=<p>|' \
+                  -e '/IMPERSONATE/d' \
+                  "$1"
+            }
+            case "${{ inputs.dockerfile }}" in
+              Dockerfile.ja3)
+                if ! diff <(norm Dockerfile) <(norm Dockerfile.ja3) > /tmp/df.diff; then
+                  echo "::error::Dockerfile.ja3 与 Dockerfile 除 pycurl wheelhouse、PYCURL_TAG_PREFIX 与 IMPERSONATE 断言外不一致"
+                  head -40 /tmp/df.diff
+                  exit 1
+                fi
+                ;;
+              Dockerfile.lite)
+                grep -q 'uv pip sync' Dockerfile.lite || { echo "::error::Dockerfile.lite 缺少 uv pip sync"; exit 1; }
+                if grep -q -- '--extra ocr' Dockerfile.lite; then
+                  echo "::error::Dockerfile.lite 不应安装 ocr extra"; exit 1
+                fi
+                if grep -q 'ddddocr:' Dockerfile.lite || grep -q 'onnxruntime:' Dockerfile.lite; then
+                  echo "::error::Dockerfile.lite 不应挂 ddddocr / onnxruntime 的 wheelhouse"; exit 1
+                fi
+                ;;
+            esac
       - name: Self-test CI scripts
         run: python3 .github/workflows/scripts/selftest.py
       - name: Compute matrices
