@@ -75,6 +75,7 @@ jobs:
       matrix: ${{ steps.plan.outputs.matrix }}
       smoke_matrix: ${{ steps.plan.outputs.smoke_matrix }}
       expected: ${{ steps.plan.outputs.expected }}
+      groups: ${{ steps.plan.outputs.groups }}
       full: ${{ steps.plan.outputs.full }}
       skip: ${{ steps.changes.outputs.skip }}
     steps:
@@ -154,6 +155,8 @@ jobs:
               fi
               ;;
           esac
+      - name: Self-test CI scripts
+        run: python3 .github/workflows/scripts/selftest.py
       - name: Compute matrices
         id: plan
         env:

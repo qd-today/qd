@@ -82,37 +82,16 @@ jobs:
           path: /tmp/d/lite
       - name: Assemble
         env:
-          # 组名由 _image.yml 的 plan 输出（GROUPS 是唯一来源），这里不再维护第二份列表
-          latest_GROUPS_CSV: ${{ needs.latest.outputs.groups }}
-          lite_GROUPS_CSV: ${{ needs.lite.outputs.groups }}
+          # 组名由 _image.yml 的 plan 输出提供（GROUPS 只有一处定义）
+          MAIN_GROUPS_CSV: ${{ needs.latest.outputs.groups }}
+          LITE_GROUPS_CSV: ${{ needs.lite.outputs.groups }}
         run: |
           set -euo pipefail
-          dg() {
-            local f="/tmp/d/$1/digests-$1-$2/$2.digest"
-            [ -f "$f" ] || { echo "::error::缺少 digest: $f"; exit 1; }
-            tr -d '[:space:]' < "$f"
-          }
-          srcs() {
-            local variant=$1; shift
-            for g in "$@"; do printf ' ghcr.io/qd-today/qd@%s' "$(dg "$variant" "$g")"; done
-          }
-          MAIN_GROUPS="$(echo "${MAIN_GROUPS_CSV}" | tr ',' ' ')"
-          ALL_LITE_GROUPS="$(echo "${LITE_GROUPS_CSV}" | tr ',' ' ')"
-          # 主线覆盖不到的组 = lite 有、main 没有；用它补位
-          LITE_ONLY_GROUPS=$(comm -13 <(printf '%s\n' $MAIN_GROUPS | sort) \
-                                      <(printf '%s\n' $ALL_LITE_GROUPS | sort) | paste -sd' ' -)
-          echo "main 组: $MAIN_GROUPS"
-          echo "lite 补位: $LITE_ONLY_GROUPS"
-          # latest：main 的平台 + lite 补位的三个
-          { srcs latest $MAIN_GROUPS; srcs lite $LITE_ONLY_GROUPS; } > /tmp/srcs-latest.txt
-          { srcs lite $ALL_LITE_GROUPS; } > /tmp/srcs-lite.txt
-          echo "latest 来源: $(cat /tmp/srcs-latest.txt)"
-          echo "lite 来源: $(cat /tmp/srcs-lite.txt)"
-          # latest 应当 9 个平台引用、lite 也是 9 个
-          for f in /tmp/srcs-latest.txt /tmp/srcs-lite.txt; do
-            n=$(tr ' ' '\n' < "$f" | grep -c '^ghcr' || true)
-            [ "$n" = "9" ] || { echo "::error::$f 期望 9 个 digest，实际 $n"; exit 1; }
-          done
+          python3 .github/workflows/scripts/assemble_manifests.py \
+            --main-variant latest --lite-variant lite \
+            --main-groups "$MAIN_GROUPS_CSV" --lite-groups "$LITE_GROUPS_CSV" \
+            --digest-root /tmp/d --image ghcr.io/qd-today/qd \
+            --out /tmp/srcs
       - name: Upload digest lists
         uses: actions/upload-artifact@v4
         with:

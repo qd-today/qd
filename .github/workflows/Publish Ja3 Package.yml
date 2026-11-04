@@ -75,34 +75,16 @@ jobs:
           path: /tmp/d/ja3-lite
       - name: Assemble
         env:
-          # 组名由 _image.yml 的 plan 输出（GROUPS 是唯一来源），这里不再维护第二份列表
+          # 组名由 _image.yml 的 plan 输出提供（GROUPS 只有一处定义）
           MAIN_GROUPS_CSV: ${{ needs.ja3.outputs.groups }}
           LITE_GROUPS_CSV: ${{ needs.ja3-lite.outputs.groups }}
         run: |
           set -euo pipefail
-          dg() {
-            local f="/tmp/d/$1/digests-$1-$2/$2.digest"
-            [ -f "$f" ] || { echo "::error::缺少 digest: $f"; exit 1; }
-            tr -d '[:space:]' < "$f"
-          }
-          srcs() {
-            local variant=$1; shift
-            for g in "$@"; do printf ' ghcr.io/qd-today/qd@%s' "$(dg "$variant" "$g")"; done
-          }
-          MAIN_GROUPS="$(echo "${MAIN_GROUPS_CSV}" | tr ',' ' ')"
-          ALL_LITE_GROUPS="$(echo "${LITE_GROUPS_CSV}" | tr ',' ' ')"
-          LITE_ONLY_GROUPS=$(comm -13 <(printf '%s\n' $MAIN_GROUPS | sort) \
-                                      <(printf '%s\n' $ALL_LITE_GROUPS | sort) | paste -sd' ' -)
-          echo "ja3 组: $MAIN_GROUPS"
-          echo "ja3-lite 补位: $LITE_ONLY_GROUPS"
-          { srcs ja3 $MAIN_GROUPS; srcs ja3-lite $LITE_ONLY_GROUPS; } > /tmp/srcs-ja3.txt
-          { srcs ja3-lite $ALL_LITE_GROUPS; } > /tmp/srcs-ja3-lite.txt
-          echo "ja3 来源: $(cat /tmp/srcs-ja3.txt)"
-          echo "ja3-lite 来源: $(cat /tmp/srcs-ja3-lite.txt)"
-          for f in /tmp/srcs-ja3.txt /tmp/srcs-ja3-lite.txt; do
-            n=$(tr ' ' '\n' < "$f" | grep -c '^ghcr' || true)
-            [ "$n" = "6" ] || { echo "::error::$f 期望 6 个 digest，实际 $n"; exit 1; }
-          done
+          python3 .github/workflows/scripts/assemble_manifests.py \
+            --main-variant ja3 --lite-variant ja3-lite \
+            --main-groups "$MAIN_GROUPS_CSV" --lite-groups "$LITE_GROUPS_CSV" \
+            --digest-root /tmp/d --image ghcr.io/qd-today/qd \
+            --out /tmp/srcs
       - name: Upload digest lists
         uses: actions/upload-artifact@v4
         with:
