@@ -115,6 +115,49 @@ def test_plan_output_keys():
     check("groups 是逗号分隔的组名", groups and " " not in groups, f"实际 {groups!r}")
 
 
+def test_publish_tags():
+    print("publish_tags.py 的标签分配:")
+    script = os.path.join(HERE, "publish_tags.py")
+
+    def run(*args):
+        rc = subprocess.run([sys.executable, script, *args], capture_output=True, text=True)
+        assert rc.returncode == 0, rc.stderr
+        out = {}
+        for line in rc.stdout.splitlines():
+            k, _, v = line.partition("=")
+            # 值必须带引号，否则 eval 时含空格的值会被当成多条命令
+            check(f"{k} 的值带引号", v.startswith('"') and v.endswith('"'), f"实际 {v!r}")
+            out.setdefault(k, []).extend(v.strip('"').split())
+        return out
+
+    reg = "ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao"
+
+    # master 推送：只推进 dev
+    o = run("--is-tag", "false", "--version", "", "--a-prefix", "", "--a-tag", "latest",
+            "--b-prefix", "lite-", "--b-tag", "latest", "--registries", reg)
+    check("master 只写 dev", o["A_TAGS"] == ["dev"] and o["B_TAGS"] == ["lite-dev"],
+          f"{o['A_TAGS']} / {o['B_TAGS']}")
+    check("master 不写 latest", "latest" not in o["A_TAGS"] and "latest" not in o["B_TAGS"])
+
+    # tag 推送：写 latest 与版本号，不写 dev
+    o = run("--is-tag", "true", "--version", "20261104", "--a-prefix", "ja3-", "--a-tag", "latest",
+            "--b-prefix", "ja3-lite-", "--b-tag", "latest", "--registries", reg)
+    check("tag 写 ja3-latest 与版本号",
+          o["A_TAGS"] == ["ja3-latest", "ja3-20261104"], f"{o['A_TAGS']}")
+    check("tag 写 ja3-lite-latest 与版本号",
+          o["B_TAGS"] == ["ja3-lite-latest", "ja3-lite-20261104"], f"{o['B_TAGS']}")
+    check("tag 不写 dev", "dev" not in " ".join(o["A_TAGS"] + o["B_TAGS"]))
+    check("前缀不重复", not any(t.count("ja3-") > 1 for t in o["A_TAGS"] + o["B_TAGS"]),
+          f"{o['A_TAGS'] + o['B_TAGS']}")
+
+    # tag 推送必须给版本号
+    rc = subprocess.run([sys.executable, script, "--is-tag", "true", "--version", "",
+                         "--a-prefix", "", "--a-tag", "latest",
+                         "--b-prefix", "lite-", "--b-tag", "latest",
+                         "--registries", reg], capture_output=True, text=True)
+    check("tag 推送缺版本号时报错", rc.returncode != 0)
+
+
 def test_workflow_wiring():
     print("workflow 静态一致性:")
     image = open(os.path.join(WF, "_image.yml")).read()
@@ -152,6 +195,7 @@ def main():
     test_assemble()
     test_missing_digest()
     test_plan_output_keys()
+    test_publish_tags()
     test_workflow_wiring()
     print()
     if FAILURES:

@@ -138,44 +138,48 @@ jobs:
           IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
           set -euo pipefail
-          SRCS_JA3="$(cat /tmp/srcs-ja3.txt)"
-          SRCS_JA3_LITE="$(cat /tmp/srcs-ja3-lite.txt)"
+          SRCS_A="$(cat /tmp/srcs-ja3.txt)"
+          SRCS_B="$(cat /tmp/srcs-ja3-lite.txt)"
+          # 标签归属由 publish_tags.py 决定：master 只推进 dev，tag 只写 latest 与版本号
+          eval "$(python3 .github/workflows/scripts/publish_tags.py \
+            --is-tag "$([ "$IS_TAG" = "true" ] && echo true || echo false)" \
+            --version "$REF_NAME" \
+            --a-prefix "ja3-" --a-tag latest \
+            --b-prefix "ja3-lite-" --b-tag latest \
+            --registries "ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao")"
 
-          if [ "$IS_TAG" = "true" ]; then
-            JA3_TAGS="ja3-latest ja3-${REF_NAME}"
-            JA3_LITE_TAGS="ja3-lite-latest ja3-lite-${REF_NAME}"
-          else
-            JA3_TAGS="ja3-dev"
-            JA3_LITE_TAGS="ja3-lite-dev"
-          fi
-
-          publish() {
-            local img=$1 tags=$2 srcs=$3
-            for t in $tags; do
-              echo "::group::${img}:${t}"
-              docker buildx imagetools create -t "${img}:${t}" $srcs
+          for reg in $REGISTRIES; do
+            for t in $A_TAGS; do
+              echo "::group::$reg:$t"
+              docker buildx imagetools create -t "$reg:$t" $SRCS_A
               echo "::endgroup::"
             done
-          }
-
-          for reg in ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao; do
-            publish "$reg" "$JA3_TAGS" "$SRCS_JA3"
-            publish "$reg" "$JA3_LITE_TAGS" "$SRCS_JA3_LITE"
+            for t in $B_TAGS; do
+              echo "::group::$reg:$t"
+              docker buildx imagetools create -t "$reg:$t" $SRCS_B
+              echo "::endgroup::"
+            done
           done
       - name: Verify manifest platform completeness
         env:
           REF_NAME: ${{ github.ref_name }}
           IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+          EXPECT_PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7,linux/riscv64,linux/386,linux/arm/v6
         run: |
           set -euo pipefail
+          eval "$(python3 .github/workflows/scripts/publish_tags.py \
+            --is-tag "$([ "$IS_TAG" = "true" ] && echo true || echo false)" \
+            --version "$REF_NAME" \
+            --a-prefix "ja3-" --a-tag latest \
+            --b-prefix "ja3-lite-" --b-tag latest \
+            --registries "ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao")"
           # 三个 registry 的 tag 名集合必须一致，逐个校验平台集合
-          if [ "$IS_TAG" = "true" ]; then J="ja3-latest"; JL="ja3-lite-latest"; else J="ja3-dev"; JL="ja3-lite-dev"; fi
           REFS=""
-          for reg in ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao; do
-            REFS="$REFS $reg:$J $reg:$JL"
+          for reg in $REGISTRIES; do
+            for t in $A_TAGS $B_TAGS; do REFS="$REFS $reg:$t"; done
           done
           python3 .github/workflows/scripts/verify_manifests.py \
-            --expect "linux/amd64,linux/arm64,linux/arm/v7,linux/riscv64,linux/386,linux/arm/v6" \
+            --expect "$EXPECT_PLATFORMS" \
             $REFS
       - name: Clean up untagged manifests in GHCR
         # 构建期按 digest 推到 ghcr、不打 tag；发布成功后这些 digest 被 index 引用，
