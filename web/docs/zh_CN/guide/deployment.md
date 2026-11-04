@@ -192,3 +192,15 @@ WS_MAX_CONNECTIONS_SUBSCRIBE|No|30|WebSocket 公共模板更新页面最大连�
 SUBSCRIBE_ACCELERATE_URL|No|jsdelivr_cdn|订阅加速方式或地址, 用于加速公共模板更新, 仅适用于 GitHub. <br>[详见配置](https://github.com/qd-today/qd/blob/master/config.py)...
 
 > 详细信息请查阅[config.py](https://github.com/qd-today/qd/blob/master/config.py)
+
+#### 4. 裸 Alpine（源码部署）
+
+容器镜像自带 Python 依赖，只有直接在 Alpine 上跑源码时才需要这一步。
+
+``` sh
+sh install-deps.sh
+```
+
+脚本会从三个组件仓库的 GitHub Release 下载预编译的 musllinux 轮子，用 uv 安装。
+不能靠 PyPI：onnxruntime 与 OpenCV 没有 musllinux 轮子，pycurl 只有源码包。
+`QD_NO_OCR=1 sh install-deps.sh` 可跳过两个 OCR wheelhouse。

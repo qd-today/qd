@@ -192,3 +192,17 @@ python ./chrole.py your@email.address admin
 |SUBSCRIBE_ACCELERATE_URL|No|qd-ph|Subscribe page acceleration URL, the default is qd-ph, <br>[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|
 
 > For details, please refer to [config.py](https://github.com/qd-today/qd/blob/master/config.py)
+
+#### 4. Bare Alpine (source deployment)
+
+Container images ship their Python dependencies, so this step is only needed when you
+run the source directly on Alpine.
+
+``` sh
+sh install-deps.sh
+```
+
+It downloads prebuilt musllinux wheels from the three component repositories' GitHub
+Releases and installs them with uv. PyPI is not enough here: onnxruntime and OpenCV
+have no musllinux wheels, and pycurl is source-only. Use `QD_NO_OCR=1 sh install-deps.sh`
+to skip the two OCR wheelhouses.
