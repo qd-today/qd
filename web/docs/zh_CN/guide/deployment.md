@@ -198,9 +198,9 @@ SUBSCRIBE_ACCELERATE_URL|No|jsdelivr_cdn|订阅加速方式或地址, 用于加�
 容器镜像自带 Python 依赖，只有直接在 Alpine 上跑源码时才需要这一步。
 
 ``` sh
-sh install-deps.sh
+sh update.sh
 ```
 
-脚本会从三个组件仓库的 GitHub Release 下载预编译的 musllinux 轮子，用 uv 安装。
-不能靠 PyPI：onnxruntime 与 OpenCV 没有 musllinux 轮子，pycurl 只有源码包。
-`QD_NO_OCR=1 sh install-deps.sh` 可跳过两个 OCR wheelhouse。
+在容器外运行时会一并安装 Python 依赖：从三个组件仓库的 GitHub Release 下载预编译的
+musllinux 轮子，用 uv 安装。不能靠 PyPI——onnxruntime 与 OpenCV 没有 musllinux
+轮子，pycurl 只有源码包。`QD_NO_OCR=1 sh update.sh` 可跳过两个 OCR wheelhouse。

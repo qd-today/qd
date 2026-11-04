@@ -133,14 +133,85 @@ set_alpine_mirrors() {
 }
 
 install_deps_uv() {
-    # 依赖由镜像的 wheelhouse 装进 /opt/venv，运行期访问不到 wheelhouse
-    # （那是构建期的 bind mount）。所以热更新只更新代码，不重装依赖：
-    #   - pycurl 在 PyPI 只有 sdist，现场编译需要 curl-config，且拿不到 IMPERSONATE 补丁
-    #   - onnxruntime / opencv 没有 musllinux 轮子，根本装不上
-    # 依赖有变更时请拉新镜像——镜像 tag 与 wheelhouse tag 是一一对应的。
-    echo "Info: 依赖由镜像提供（wheelhouse -> /opt/venv），热更新不重装依赖"
-    echo "Info: 如需更新依赖版本，请拉取对应 tag 的新镜像"
-    return 0
+    # 容器内：依赖由镜像的 wheelhouse 装进 /opt/venv，运行期访问不到 wheelhouse
+    # （那是构建期的 bind mount）。所以热更新只更新代码，不重装依赖。
+    if [ -f /.dockerenv ]; then
+        echo "Info: 依赖由镜像提供（wheelhouse -> /opt/venv），热更新不重装依赖"
+        echo "Info: 如需更新依赖版本，请拉取对应 tag 的新镜像"
+        return 0
+    fi
+
+    # 裸 Alpine（源码部署）：拿不到 wheelhouse 镜像，只能从三个组件仓库的 GitHub
+    # Release 取预编译的 musllinux 轮子。这里必须装，不能指望 PyPI：
+    #   - onnxruntime / opencv 没有 musllinux 轮子
+    #   - pycurl 只有 sdist，现场编译要 curl-config，且拿不到 IMPERSONATE 补丁
+    install_deps_from_release
+}
+
+install_deps_from_release() {
+    # 与 pyproject.toml / uv.lock 同批发布的三个仓库版本；升级依赖时改这里
+    _onnx_release=1.24.4
+    _ddddocr_release=1.6.1
+    _pycurl_release=2.0.0
+
+    _arch=$(uname -m)
+    case "$_arch" in
+        arm64) _arch=aarch64 ;;   # macOS 报 arm64，Alpine 报 aarch64
+    esac
+    case "$_arch" in
+        x86_64|aarch64|riscv64|ppc64le|loongarch64|armv7l|armv6l|i686) ;;
+        *) echo "Error: 不支持的架构 $_arch" >&2; return 1 ;;
+    esac
+
+    _tmp=$(mktemp -d) || return 1
+    _fetch() {
+        _url="https://github.com/qd-today/$1/releases/download/$2/$3-wheels-$_arch.tar.gz"
+        echo "Info: 下载 $_url"
+        wget -q "$_url" -O "$_tmp/$1.tar.gz" || return 1
+        tar xzf "$_tmp/$1.tar.gz" -C "$_tmp" || return 1
+    }
+
+    echo "Info: 架构 $_arch，pycurl=$_pycurl_release ddddocr=$_ddddocr_release onnxruntime=$_onnx_release"
+    _fetch pycurl-docker "$_pycurl_release" pycurl-docker || { rm -rf "$_tmp"; return 1; }
+
+    _indexes="--extra-index-url file://$_tmp/wheels-$_arch/simple"
+    if [ "${QD_NO_OCR:-0}" != "1" ]; then
+        _fetch ddddocr-docker "$_ddddocr_release" ddddocr-docker || { rm -rf "$_tmp"; return 1; }
+        _fetch onnxruntime-docker "$_onnx_release" onnxruntime-docker || { rm -rf "$_tmp"; return 1; }
+        for _d in "$_tmp"/wheels-*/simple; do
+            [ "$_d" = "$_tmp/wheels-$_arch/simple" ] && continue
+            _indexes="$_indexes --extra-index-url file://$_d"
+        done
+    fi
+
+    # wheelhouse 里的 wheel 自包含 C 依赖，但仍要这几个系统包（清单随 wheelhouse 发布）
+    _pkgs=$(cat "$_tmp"/wheels-*/system-packages.txt 2>/dev/null | sort -u | tr '\n' ' ')
+    if [ -n "$_pkgs" ]; then
+        echo "Info: 安装系统包 $_pkgs"
+        apk add --no-cache $_pkgs || { rm -rf "$_tmp"; return 1; }
+    fi
+
+    if ! command -v uv >/dev/null 2>&1; then
+        echo "Error: 需要 uv，见 https://docs.astral.sh/uv/" >&2
+        rm -rf "$_tmp"
+        return 1
+    fi
+
+    _req="$_tmp/req.txt"
+    if uv export --frozen --no-hashes --no-emit-project -o "$_req" >/dev/null 2>&1; then
+        echo "Info: 按 uv.lock 安装依赖"
+        # shellcheck disable=SC2086
+        uv pip install --system --break-system-packages --no-cache \
+            --index-url https://pypi.org/simple $_indexes -r "$_req"
+    else
+        echo "Info: 未在项目目录，按包名安装依赖"
+        # shellcheck disable=SC2086
+        uv pip install --system --break-system-packages --no-cache \
+            --index-url https://pypi.org/simple $_indexes pycurl ddddocr onnxruntime
+    fi
+    _rc=$?
+    rm -rf "$_tmp"
+    return $_rc
 }
 
 update_in_alpine() {

@@ -199,10 +199,11 @@ Container images ship their Python dependencies, so this step is only needed whe
 run the source directly on Alpine.
 
 ``` sh
-sh install-deps.sh
+sh update.sh
 ```
 
-It downloads prebuilt musllinux wheels from the three component repositories' GitHub
-Releases and installs them with uv. PyPI is not enough here: onnxruntime and OpenCV
-have no musllinux wheels, and pycurl is source-only. Use `QD_NO_OCR=1 sh install-deps.sh`
-to skip the two OCR wheelhouses.
+Outside a container it also installs the Python dependencies: it downloads prebuilt
+musllinux wheels from the three component repositories' GitHub Releases and installs
+them with uv. PyPI is not enough here — onnxruntime and OpenCV have no musllinux
+wheels, and pycurl is source-only. Use `QD_NO_OCR=1 sh update.sh` to skip the two OCR
+wheelhouses.
