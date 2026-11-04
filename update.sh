@@ -294,15 +294,6 @@ echo_auto_reload() {
     fi
 }
 
-update_version() {
-    # pyproject.toml 与 uv.lock 随归档包一起下来，不再单独拉 requirements.txt
-    if grep -q -E "Alpine|alpine" /etc/issue
-    then
-        update_in_alpine
-    else
-        update_out_alpine
-    fi
-}
 
 # 镜像用 COPY 构建（不带 .git），此时走 tarball 更新；带 .git 时保持原逻辑
 have_git() {
@@ -372,7 +363,6 @@ update() {
             # 强制更新
             remoteversion=${source_branch}
             echo -e "Info: 正在强制更新中, 请稍候..."
-            update_version && \
             update_git && \
             cleanup_legacy_files && \
             install_deps_uv && \
@@ -391,7 +381,6 @@ update() {
                         [yY][eE][sS]|[yY])
                             # 进入更新流程
                             echo -e "Info: 正在更新中, 请稍候..."
-                            update_version && \
                             update_git && \
                             cleanup_legacy_files && \
                             install_deps_uv && \
@@ -426,8 +415,9 @@ update() {
         remoteversion=$(list_remote_tags | sort -r | head -n 1)
         if [ "$(echo "$localversion" "$remoteversion" | awk '$1>=$2 {print 0} $1<$2 {print 1}')" == 1 ];then
             echo -e "Info: 当前版本: $localversion \nInfo: 新版本: $remoteversion \nInfo: 正在更新中, 请稍候..."
-            update_version "${remoteversion}" && \
             update_git && \
+            cleanup_legacy_files && \
+            install_deps_uv && \
             get_localversion && \
             echo -e "Info: 更新完成! \nInfo: 当前版本: $localversion" && \
             echo_auto_reload
