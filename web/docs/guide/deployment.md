@@ -12,11 +12,14 @@ Docker Container Deployment is the easiest way to deploy QD.
 
 > Tag meaning:
 >
-> - `latest`: Latest Release version
-> - `lite-latest`: Latest Release version without OCR related functions
-> - `ja3-latest`: Integrated curl-impersonate to solve the problem that ja3 fingerprint is identified as curl, does not support http3 and Quic connection
-> - `20xxxxxx`: Specify Release version, version number is represented by Release release date
-> - `dev`: Latest development version, synchronized with the latest source code, no stability guarantee
+> - `latest`: Latest Release version, with OCR (captcha recognition) included
+> - `lite-latest`: Latest Release version without OCR related functions, smallest image
+> - `ja3-latest`: Same as `latest`, but with curl-impersonate integrated to solve the problem that ja3 fingerprint is identified as curl, does not support http3 and Quic connection
+> - `ja3-lite-latest`: Same as `lite-latest`, but with curl-impersonate integrated, smallest image that still passes ja3 fingerprint checks
+> - `20xxxxxx`: Specify Release version, version number is represented by Release release date. The same four flavours exist with a prefix: `ja3-20xxxxxx`, `lite-20xxxxxx`, `ja3-lite-20xxxxxx`
+> - `dev`: Latest development version, synchronized with the latest source code, no stability guarantee. The same four flavours exist with a prefix: `lite-dev`, `ja3-dev`, `ja3-lite-dev`
+>
+> Architecture note: `latest` and `ja3-latest` are not published for `386`, `arm/v6` and `s390x`, because the OCR dependencies have no musllinux wheels for those architectures. Use the `lite` flavour on those platforms — it is the same image on every other architecture.
 
 ### Deploy Method
 
@@ -35,7 +38,7 @@ docker-compose up -d
 
 > See [Configuration](#configuration-environment-variables) below for configuration description
 >
-> If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`qdtoday/qd:lite-latest`** image, **this image only removes OCR related functions, other than the mainline version to keep consistent**.
+> If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`qdtoday/qd:lite-latest`** image, **this image only removes OCR related functions and keeps the same behaviour as the mainline version**.
 >
 > **Please don't use AliCloud image source to pull Docker container, it will not pull the latest image.**
 
@@ -55,7 +58,7 @@ docker-compose up -d
    >
    > See [Configuration](#configuration-environment-variables) below for configuration description
    >
-   > If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`qdtoday/qd:lite-latest`** image, **this image only removes OCR related functions, other than the mainline version to keep consistent**.
+   > If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`qdtoday/qd:lite-latest`** image, **this image only removes OCR related functions and keeps the same behaviour as the mainline version**.
 
 2.3. Click `Confirm` to install QD via 1Panel
 
