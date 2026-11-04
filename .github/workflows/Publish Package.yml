@@ -70,6 +70,8 @@ jobs:
     permissions:
       contents: read
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Download latest digests
         uses: actions/download-artifact@v4
         with:
@@ -111,6 +113,8 @@ jobs:
       contents: read
       packages: write
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Download digest lists
         uses: actions/download-artifact@v4
         with:

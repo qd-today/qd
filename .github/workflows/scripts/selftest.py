@@ -126,6 +126,19 @@ def test_workflow_wiring():
 
     for wf in ("Publish Package.yml", "Publish Ja3 Package.yml"):
         text = open(os.path.join(WF, wf)).read()
+        # assemble 写出的文件名，publish 必须读得到
+        out = re.search(r"--out (\S+)", text)
+        mv = re.search(r"--main-variant (\S+) --lite-variant (\S+)", text)
+        if out and mv:
+            produced = {f"{out.group(1)}-{mv.group(1)}.txt", f"{out.group(1)}-{mv.group(2)}.txt"}
+            reads = set(re.findall(r"cat (/tmp/srcs[\w.-]*)", text))
+            check(f"{wf}: publish 读取的文件与 assemble 产出一致", reads == produced,
+                  f"产出 {sorted(produced)} vs 读取 {sorted(reads)}")
+        # 任何跑仓库内脚本的 job 都必须先 checkout，否则脚本文件不存在
+        for block in re.split(r"^  (?=\w)", text, flags=re.M):
+            job = block.split("\n", 1)[0].rstrip(":").strip()
+            if "scripts/" in block:
+                check(f"{wf} / {job}: 跑脚本且有 checkout", "actions/checkout" in block)
         envs = set(re.findall(r"^\s+(\w+):\s*\$\{\{ needs\.[\w-]+\.outputs\.groups \}\}", text, re.M))
         # 脚本参数 --xxx-groups "$VAR" 里的 VAR 必须在 env 中定义
         used = re.findall(r"--(\w+)-groups\s+\"\$(\w+)\"", text)
