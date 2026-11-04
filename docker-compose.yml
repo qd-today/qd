@@ -2,9 +2,22 @@ version: "3"
 
 services:
   qd:
+    # 镜像标签：
+    #   latest           完整功能，含验证码识别（ddddocr + onnxruntime + OpenCV）
+    #   ja3-latest       同 latest，但 pycurl 带 IMPERSONATE，可伪装 TLS 指纹
+    #   lite-latest      精简版，不含验证码识别
+    #   ja3-lite-latest  精简 + TLS 指纹伪装（体积最小，约 120 MB）
+    #   dev              跟随 master 的开发版
+    # 版本号标签：发布时另打 <版本> / ja3-<版本> / lite-<版本> / ja3-lite-<版本>，
+    # 建议生产环境固定版本号而不是用滚动标签。
+    #
+    # 架构差异：386 / armv6 / s390x 上只有 lite 系列可用（这三个架构缺少验证码识别
+    # 依赖的 musllinux 轮子），latest 与 ja3-latest 不提供这三个架构。
     image: qdtoday/qd:latest
-    # image: qdtoday/qd:lite-latest # 精简版
-    # image: qdtoday/qd:dev # 开发版
+    # image: qdtoday/qd:ja3-latest
+    # image: qdtoday/qd:lite-latest
+    # image: qdtoday/qd:ja3-lite-latest
+    # image: qdtoday/qd:dev
     container_name: qd
     depends_on:
       - redis

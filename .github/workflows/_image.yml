@@ -161,76 +161,7 @@ jobs:
           DEFAULT_PLATFORMS: ${{ inputs.default_platforms }}
           NATIVE_ARM: ${{ inputs.native_arm && 'true' || 'false' }}
         run: |
-          python3 - <<'PY' > /tmp/plan.out
-          import json, os, sys
-
-          default = [p.strip() for p in os.environ["DEFAULT_PLATFORMS"].split(",") if p.strip()]
-          raw = (os.environ.get("PLATFORM_INPUT") or "").strip()
-          plats = [p.strip() for p in raw.split(",") if p.strip()] if raw else default
-
-          allowed = {"linux/amd64", "linux/386", "linux/arm64", "linux/arm/v7",
-                     "linux/arm/v6", "linux/ppc64le", "linux/riscv64", "linux/s390x",
-                     "linux/loong64"}
-          bad = [p for p in plats if p not in allowed]
-          if bad:
-              sys.exit("::error::未知平台: %s（可选: %s）" % (",".join(bad), ",".join(sorted(allowed))))
-
-          native = (os.environ.get("NATIVE_ARM") != "false")
-          arm_runner = "ubuntu-24.04-arm" if native else "ubuntu-latest"
-
-          # 按「是否本机原生 + 编译量级」分组；组间完全并行
-          # ppc64le 与 s390x 各自成组：两者都要在 QEMU 下装依赖，合组会串行累加
-          # 分组粒度决定 merge 时能否按组挑选：386 与 arm/v6 只由 lite 线构建
-
-          # （它们没有 OCR 的 wheelhouse），必须各自成组，否则会和 amd64 / arm64
-
-          # 混在同一个 digest 里，没法只替换其中一个平台。
-
-          GROUPS = [
-
-              ("x86",     "ubuntu-latest", ["linux/amd64"]),
-
-              ("x86-32",  "ubuntu-latest", ["linux/386"]),
-
-              # arm 三兄弟都走 x86_64 + QEMU，不用原生 arm64 runner：qd 的 build 阶段是
-              # 用 uv 装 wheel（runtime 行为），而 arm64 runner 上 32 位 ARM 容器走内核
-              # compat 模式，uv 在那种环境里会卡住。三仓里只有 pycurl 的 wheel 阶段
-              # （编译）用 arm_runner，它的 runtime 阶段同样统一 x86_64，理由相同。
-              ("arm",     "ubuntu-latest", ["linux/arm64", "linux/arm/v7"]),
-
-              ("armv6",   "ubuntu-latest", ["linux/arm/v6"]),
-              ("ppc64le", "ubuntu-latest", ["linux/ppc64le"]),
-              ("s390x",   "ubuntu-latest", ["linux/s390x"]),
-              ("riscv64", "ubuntu-latest", ["linux/riscv64"]),
-              ("loong64", "ubuntu-latest", ["linux/loong64"]),
-          ]
-          include = []
-          for name, runner, group_plats in GROUPS:
-              sel = [p for p in group_plats if p in plats]
-              if sel:
-                  include.append({"group": name, "runner": runner, "platforms": ",".join(sel)})
-          if not include:
-              sys.exit("::error::没有可构建的平台")
-
-          # 平台 → 组 的映射从 GROUPS 推导，不再手抄一份：
-          # 之前这里独立维护，改 GROUPS（把 386 拆成 x86-32）时漏改，
-          # smoke 的 group 名与缓存 scope 就对不上了。
-          GROUP_OF = {p: name for name, _runner, plats in GROUPS for p in plats}
-          smoke = []
-          for p in plats:
-              smoke.append({
-                  "platform": p,
-                  "group": GROUP_OF[p],
-                  "runner": {p2: r2 for _n2, r2, ps2 in GROUPS for p2 in ps2}[p],
-              })
-
-          print("matrix=" + json.dumps({"include": include}))
-          print("smoke_matrix=" + json.dumps({"include": smoke}))
-          print("expected=" + ",".join(sorted(plats)))
-          # 实际参与构建的组 → 平台列表；merge job 据此组装，不再在 workflow 里硬编码组名
-          print("groups=" + ",".join(g["group"] for g in include))
-          print("full=%s" % str(sorted(plats) == sorted(default)).lower())
-          PY
+          python3 .github/workflows/scripts/plan.py > /tmp/plan.out
           echo "--- 构建分组 ---"
           sed -n 's/^matrix=//p' /tmp/plan.out | python3 -m json.tool
           echo "--- 冒烟矩阵 ---"

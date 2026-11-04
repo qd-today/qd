@@ -1,6 +1,6 @@
 ﻿# QD 运行环境。
 #
-# 基座是纯 alpine：Python 依赖全部来自三个 wheelhouse（onnxruntime / ddddocr / pycurl），
+# 基座是纯 alpine：Python 依赖只来自 pycurl 的 wheelhouse（ja3 线，不含 OCR 相关的两个），
 # 不再 FROM a76yyyy/pycurl 继承「已经装好的包」。
 #
 # 为什么不再继承基座：

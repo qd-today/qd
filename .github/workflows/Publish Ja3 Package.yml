@@ -178,48 +178,19 @@ jobs:
           done
       - name: Verify manifest platform completeness
         env:
+          REF_NAME: ${{ github.ref_name }}
           IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import json, os, subprocess, sys
-
-          is_tag = os.environ["IS_TAG"] == "true"
-          ja3_tag = "ja3-latest" if is_tag else "ja3-dev"
-          ja3_lite_tag = "ja3-lite-latest" if is_tag else "ja3-lite-dev"
-
-          EXPECT = {"linux/amd64", "linux/arm64", "linux/arm/v7", "linux/riscv64",
-                    "linux/386", "linux/arm/v6"}
-
-          def platforms(tag):
-              out = subprocess.run(["docker", "buildx", "imagetools", "inspect", tag, "--raw"],
-                                   capture_output=True, text=True, check=True).stdout
-              got = set()
-              for m in json.loads(out).get("manifests", []):
-                  p = m.get("platform") or {}
-                  if not p:
-                      continue
-                  arch, variant = p.get("architecture"), p.get("variant")
-                  got.add("linux/" + arch + (("/" + variant) if variant else ""))
-              return got
-
-          failed = False
-          for reg in ("ghcr.io/qd-today/qd", "docker.io/qdtoday/qd", "docker.io/a76yyyy/qiandao"):
-              for tag in (ja3_tag, ja3_lite_tag):
-                  ref = f"{reg}:{tag}"
-                  try:
-                      got = platforms(ref)
-                  except subprocess.CalledProcessError:
-                      print(f"::error::{ref} 不存在")
-                      failed = True
-                      continue
-                  if got != EXPECT:
-                      print(f"::error::{ref} 平台集合不一致：缺 {EXPECT - got or '无'}，多 {got - EXPECT or '无'}")
-                      failed = True
-                  else:
-                      print(f"{ref} 平台集合一致（6 个）")
-          sys.exit(1 if failed else 0)
-          PY
+          # 三个 registry 的 tag 名集合必须一致，逐个校验平台集合
+          if [ "$IS_TAG" = "true" ]; then J="ja3-latest"; JL="ja3-lite-latest"; else J="ja3-dev"; JL="ja3-lite-dev"; fi
+          REFS=""
+          for reg in ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao; do
+            REFS="$REFS $reg:$J $reg:$JL"
+          done
+          python3 .github/workflows/scripts/verify_manifests.py \
+            --expect "linux/amd64,linux/arm64,linux/arm/v7,linux/riscv64,linux/386,linux/arm/v6" \
+            $REFS
       - name: Clean up untagged manifests in GHCR
         # 构建期按 digest 推到 ghcr、不打 tag；发布成功后这些 digest 被 index 引用，
         # 只有失败或半途而废的才会悬空。delete-only-untagged-versions 恰好只清这类。
