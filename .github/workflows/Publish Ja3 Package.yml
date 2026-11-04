@@ -11,7 +11,7 @@ on:
         type: boolean
         default: true
       force:
-        description: '强制重新构建（默认会跳过「仅文档改动」或「该 commit 已验证过」的重复运行）'
+        description: '强制重新构建（只影响「是否重建」，不影响发布资格；发布资格由 ref 与平台集合决定）'
         type: boolean
         default: false
   push:
@@ -25,17 +25,185 @@ on:
     tags: ["*"]
 
 jobs:
-  # 三个变体共用 .github/workflows/_image.yml：plan -> build(架构组矩阵) -> smoke(每平台一个 job) -> publish
-  # 变体差异全部通过 with 传入，避免三份 workflow 重复维护后逐渐漂移
-  image:
+  # 与 Publish Package 同理：ja3（带 OCR）只有 4 个平台可用——pycurl 的 ja3 线本身只发
+  # 6 个平台，去掉 386 / arm/v6 后与 ddddocr / onnxruntime 的交集就是 4 个。
+  # ja3-lite（无 OCR）能覆盖 6 个，于是用它补上 386 与 arm/v6。
+  #
+  # 三个 job 的职责：构建 / 组装清单 / 写 tag，其中只有 publish 碰 registry 的 tag。
+  ja3:
     uses: ./.github/workflows/_image.yml
     secrets: inherit
     with:
       variant: ja3
       dockerfile: Dockerfile.ja3
-      default_platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7,linux/riscv64
+      default_platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/riscv64
       check_impersonate: true
-      tag_prefix: 'ja3-'
       platforms: ${{ github.event.inputs.platforms || '' }}
       native_arm: ${{ github.event.inputs.native_arm != 'false' }}
       force: ${{ github.event.inputs.force == 'true' }}
+
+  ja3-lite:
+    uses: ./.github/workflows/_image.yml
+    secrets: inherit
+    with:
+      variant: ja3-lite
+      dockerfile: Dockerfile.ja3-lite
+      default_platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7,linux/riscv64
+      check_impersonate: true
+      platforms: ${{ github.event.inputs.platforms || '' }}
+      native_arm: ${{ github.event.inputs.native_arm != 'false' }}
+      force: ${{ github.event.inputs.force == 'true' }}
+
+  merge:
+    needs: [ja3, ja3-lite]
+    name: Assemble digest lists
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.event.inputs.platforms == '' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
+    permissions:
+      contents: read
+    steps:
+      - name: Download ja3 digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-ja3-*
+          path: /tmp/d/ja3
+      - name: Download ja3-lite digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-ja3-lite-*
+          path: /tmp/d/ja3-lite
+      - name: Assemble
+        env:
+          # 组名由 _image.yml 的 plan 输出（GROUPS 是唯一来源），这里不再维护第二份列表
+          MAIN_GROUPS_CSV: ${{ needs.ja3.outputs.groups }}
+          LITE_GROUPS_CSV: ${{ needs.ja3-lite.outputs.groups }}
+        run: |
+          set -euo pipefail
+          dg() {
+            local f="/tmp/d/$1/digests-$1-$2/$2.digest"
+            [ -f "$f" ] || { echo "::error::缺少 digest: $f"; exit 1; }
+            tr -d '[:space:]' < "$f"
+          }
+          srcs() {
+            local variant=$1; shift
+            for g in "$@"; do printf ' ghcr.io/qd-today/qd@%s' "$(dg "$variant" "$g")"; done
+          }
+          MAIN_GROUPS="$(echo "${MAIN_GROUPS_CSV}" | tr ',' ' ')"
+          ALL_LITE_GROUPS="$(echo "${LITE_GROUPS_CSV}" | tr ',' ' ')"
+          LITE_ONLY_GROUPS=$(comm -13 <(printf '%s\n' $MAIN_GROUPS | sort) \
+                                      <(printf '%s\n' $ALL_LITE_GROUPS | sort) | paste -sd' ' -)
+          echo "ja3 组: $MAIN_GROUPS"
+          echo "ja3-lite 补位: $LITE_ONLY_GROUPS"
+          { srcs ja3 $MAIN_GROUPS; srcs ja3-lite $LITE_ONLY_GROUPS; } > /tmp/srcs-ja3.txt
+          { srcs ja3-lite $ALL_LITE_GROUPS; } > /tmp/srcs-ja3-lite.txt
+          echo "ja3 来源: $(cat /tmp/srcs-ja3.txt)"
+          echo "ja3-lite 来源: $(cat /tmp/srcs-ja3-lite.txt)"
+          for f in /tmp/srcs-ja3.txt /tmp/srcs-ja3-lite.txt; do
+            n=$(tr ' ' '\n' < "$f" | grep -c '^ghcr' || true)
+            [ "$n" = "6" ] || { echo "::error::$f 期望 6 个 digest，实际 $n"; exit 1; }
+          done
+      - name: Upload digest lists
+        uses: actions/upload-artifact@v4
+        with:
+          name: manifest-srcs
+          path: /tmp/srcs-ja3*.txt
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: [merge]
+    name: Write tags
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && github.event.inputs.platforms == '' && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Download digest lists
+        uses: actions/download-artifact@v4
+        with:
+          name: manifest-srcs
+          path: /tmp
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_TOKEN || github.actor }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+      - name: Login to qdtoday DockerHub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.QD_DOCKER_USERNAME }}
+          password: ${{ secrets.QD_DOCKER_PASSWORD }}
+      - name: Login to a76yyyy DockerHub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Write tags
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          set -euo pipefail
+          SRCS_JA3="$(cat /tmp/srcs-ja3.txt)"
+          SRCS_JA3_LITE="$(cat /tmp/srcs-ja3-lite.txt)"
+
+          if [ "$IS_TAG" = "true" ]; then
+            JA3_TAGS="ja3-latest ja3-${REF_NAME}"
+            JA3_LITE_TAGS="ja3-lite-latest ja3-lite-${REF_NAME}"
+          else
+            JA3_TAGS="ja3-dev"
+            JA3_LITE_TAGS="ja3-lite-dev"
+          fi
+
+          publish() {
+            local img=$1 tags=$2 srcs=$3
+            for t in $tags; do
+              echo "::group::${img}:${t}"
+              docker buildx imagetools create -t "${img}:${t}" $srcs
+              echo "::endgroup::"
+            done
+          }
+
+          for reg in ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao; do
+            publish "$reg" "$JA3_TAGS" "$SRCS_JA3"
+            publish "$reg" "$JA3_LITE_TAGS" "$SRCS_JA3_LITE"
+          done
+      - name: Verify manifest platform completeness
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          set -euo pipefail
+          # 三个 registry 的 tag 名集合必须一致，逐个校验平台集合
+          if [ "$IS_TAG" = "true" ]; then J="ja3-latest"; JL="ja3-lite-latest"; else J="ja3-dev"; JL="ja3-lite-dev"; fi
+          REFS=""
+          for reg in ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao; do
+            REFS="$REFS $reg:$J $reg:$JL"
+          done
+          python3 .github/workflows/scripts/verify_manifests.py \
+            --expect "linux/amd64,linux/arm64,linux/arm/v7,linux/riscv64,linux/386,linux/arm/v6" \
+            $REFS
+      - name: Clean up untagged manifests in GHCR
+        # 构建期按 digest 推到 ghcr、不打 tag；发布成功后这些 digest 被 index 引用，
+        # 只有失败或半途而废的才会悬空。delete-only-untagged-versions 恰好只清这类。
+        # Docker Hub / MIRROR 不需要清理：它们只由 publish 写正式 tag，从不产生悬空 manifest。
+        #
+        # min-versions-to-keep 留 40：Package 与 Ja3 两个 workflow 共用 ghcr 包 qd，
+        # 若一条线正在构建、另一条线同时在清理，设 0 会把对方刚推的 digest 删掉。
+        # 单条线一次最多产生 8 个组 × 2 变体 = 16 个悬空 digest，留 40 足够隔离。
+        if: always()
+        continue-on-error: true
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: qd
+          package-type: container
+          min-versions-to-keep: 40
+          delete-only-untagged-versions: 'true'

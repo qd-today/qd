@@ -12,11 +12,14 @@ Docker 容器部署是部署 QD 的最简单方式。
 
 > Tag 含义:
 >
-> - `latest`: 最新 Release 版本
-> - `lite-latest`: 去除 OCR 相关功能的最新 Release 版本
-> - `ja3-latest`: 集成 curl-impersonate 解决 ja3 指纹被识别为 curl 的问题, 不支持 http3 和 Quic 连接
-> - `20xxxxxx`: 指定 Release 版本, 版本号表示为 Release 发布日期
-> - `dev`: 最新开发版, 同步最新源码, 不保证稳定性
+> - `latest`: 最新 Release 版本, 含 OCR (验证码识别) 功能
+> - `lite-latest`: 去除 OCR 相关功能的最新 Release 版本, 体积最小
+> - `ja3-latest`: 与 `latest` 相同, 但集成 curl-impersonate 解决 ja3 指纹被识别为 curl 的问题, 不支持 http3 和 Quic 连接
+> - `ja3-lite-latest`: 与 `lite-latest` 相同, 但集成 curl-impersonate, 体积最小且能通过 ja3 指纹检测
+> - `20xxxxxx`: 指定 Release 版本, 版本号表示为 Release 发布日期。同样有四种口味, 分别是 `ja3-20xxxxxx`、`lite-20xxxxxx`、`ja3-lite-20xxxxxx`
+> - `dev`: 最新开发版, 同步最新源码, 不保证稳定性。同样有四种口味, 分别是 `lite-dev`、`ja3-dev`、`ja3-lite-dev`
+>
+> 架构说明: `latest` 与 `ja3-latest` 不提供 `386`、`arm/v6`、`s390x` 三个架构, 因为 OCR 相关依赖在这三个架构上没有可用的 musllinux 轮子。这三个架构请使用 `lite` 系列, 其余架构上两者内容完全一致。
 
 ### 部署方法
 
@@ -35,7 +38,7 @@ docker-compose up -d
 
 > 配置描述见下文 [Configuration](#配置环境变量)
 >
-> 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`qdtoday/qd:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 其他与主线版本保持一致**。
+> 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`qdtoday/qd:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 行为与主线版本保持一致**。
 >
 > **请勿使用 阿里云镜像源 拉取 Docker 容器, 会导致无法拉取最新镜像**
 
@@ -55,7 +58,7 @@ docker-compose up -d
    >
    > 配置描述见下文 [Configuration](#配置环境变量)
    >
-   > 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`qdtoday/qd:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 其他与主线版本保持一致**。
+   > 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`qdtoday/qd:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 行为与主线版本保持一致**。
 
 2.3. 点击 `确认` 即可通过 1Panel 安装 QD
 

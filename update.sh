@@ -69,11 +69,11 @@ get_localversion() {
 }
 
 update_out_alpine() {
-    pip install -r requirements.txt && \
-    echo "如需使用 DdddOCR API, 请确认安装 ddddocr Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
-    echo "pip3 install ddddocr" && \
-    echo "如需使用 PyCurl 功能, 请确认安装 pycurl Python模组 (如未安装, 请成功执行以下命令后重启 QD); " && \
-    echo "pip3 install pycurl"
+    # 非 Alpine 环境（自带 python）：只用 uv 装依赖，不再维护 requirements.txt
+    command -v uv >/dev/null 2>&1 || {
+        echo "Error: 需要 uv 才能安装依赖，见 https://docs.astral.sh/uv/"; return 1; }
+    install_deps_uv && \
+    echo "Info: OCR 与 pycurl 已随镜像提供（latest / ja3 线自带，lite 线不带）"
 }
 
 set_alpine_mirrors() {
@@ -132,6 +132,17 @@ set_alpine_mirrors() {
     esac
 }
 
+install_deps_uv() {
+    # 依赖由镜像的 wheelhouse 装进 /opt/venv，运行期访问不到 wheelhouse
+    # （那是构建期的 bind mount）。所以热更新只更新代码，不重装依赖：
+    #   - pycurl 在 PyPI 只有 sdist，现场编译需要 curl-config，且拿不到 IMPERSONATE 补丁
+    #   - onnxruntime / opencv 没有 musllinux 轮子，根本装不上
+    # 依赖有变更时请拉新镜像——镜像 tag 与 wheelhouse tag 是一一对应的。
+    echo "Info: 依赖由镜像提供（wheelhouse -> /opt/venv），热更新不重装依赖"
+    echo "Info: 如需更新依赖版本，请拉取对应 tag 的新镜像"
+    return 0
+}
+
 update_in_alpine() {
     # 当前版本号低于 20211228 时, 使用国内源并提示 DDDDOCR API 不可用
     if [ "$(echo "${localversion}" | awk '$1>20211228 {print 0} $1<=20211228 {print 1}')" == 1 ];then
@@ -141,59 +152,21 @@ update_in_alpine() {
         apk del .python-rundeps
         echo "Info: 如需使用DDDDOCR API, 请重新拉取最新容器 (32位系统暂不支持此API). "
     fi
-    # 安装Python3及框架依赖
-    echo "https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
-    set_alpine_mirrors "${alpine_mirrors}" && \
-    apk add --update --no-cache openssh-client python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado py3-wrapt \
-    py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal py3-async-timeout py3-attrs py3-frozenlist \
-    py3-multidict py3-charset-normalizer py3-aiohttp py3-typing-extensions py3-yarl && \
-    if [ "$(printenv QIANDAO_LITE)" ] && [ "${QIANDAO_LITE}" = "True" ];then
-        echo "Info: QD-Lite will not install ddddocr related components. "
-    else
-        if [ "$(getconf LONG_BIT)" = "32" ];then
-            echo "Info: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python. "
-        else
-            apk add --no-cache py3-opencv py3-pillow
-        fi
-    fi && \
-    # 安装编译依赖
-    apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
-        linux-headers libtool util-linux py3-pip py3-setuptools py3-wheel python3-dev py3-numpy-dev && \
-    # 判断是否存在python3
-    if [ -x "/usr/bin/python3" ];then
-        # 创建软链接
+
+    set_alpine_mirrors "${alpine_mirrors}"
+
+    # 编译工具用完即删：锁里 greenlet / pycryptodome 这类在没有 musllinux 轮子的架构上要现编
+    apk add --no-cache --virtual .build_deps build-base python3-dev linux-headers libffi-dev
+
+    if [ -x "/usr/bin/python3" ]; then
         ln -sf /usr/bin/python3 /usr/bin/python
         ln -sf /usr/bin/python3 /usr/local/bin/python
-        # pypi 换源
-        sed -i 's/pypi.tuna.tsinghua.edu.cn/mirrors.cloud.tencent.com\/pypi/g' requirements.txt
-        # 删除Alpine已有的依赖包
-        sed -i '/ddddocr/d' requirements.txt
-        sed -i '/packaging/d' requirements.txt
-        sed -i '/wrapt/d' requirements.txt
-        sed -i '/pycryptodome/d' requirements.txt
-        sed -i '/tornado/d' requirements.txt
-        sed -i '/MarkupSafe/d' requirements.txt
-        sed -i '/pillow/d' requirements.txt
-        sed -i '/opencv/d' requirements.txt
-        sed -i '/numpy/d' requirements.txt
-        sed -i '/greenlet/d' requirements.txt
-        sed -i '/urllib3/d' requirements.txt
-        sed -i '/cryptography/d' requirements.txt
-        sed -i '/aiosignal/d' requirements.txt
-        sed -i '/async-timeout/d' requirements.txt
-        sed -i '/attrs/d' requirements.txt
-        sed -i '/frozenlist/d' requirements.txt
-        sed -i '/multidict/d' requirements.txt
-        sed -i '/charset-normalizer/d' requirements.txt
-        sed -i '/aiohttp/d' requirements.txt
-        sed -i '/typing-extensions/d' requirements.txt
-        sed -i '/yarl/d' requirements.txt
-    fi && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir --compile --upgrade pycurl && \
+    fi
+
+    install_deps_uv
+
     apk del .build_deps
-    rm -rf /var/cache/apk/*
-    rm -rf /usr/share/man/*
+    rm -rf /var/cache/apk/* /usr/share/man/* /tmp/qd-req.txt /tmp/qd-req.install.txt
 }
 
 echo_auto_reload() {
@@ -203,7 +176,7 @@ echo_auto_reload() {
 }
 
 update_version() {
-    wget https://gitee.com/qd-today/qd/raw/"${remoteversion}"/requirements.txt -O /usr/src/app/requirements.txt && \
+    # pyproject.toml 与 uv.lock 随归档包一起下来，不再单独拉 requirements.txt
     if grep -q -E "Alpine|alpine" /etc/issue
     then
         update_in_alpine
