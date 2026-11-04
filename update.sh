@@ -132,27 +132,64 @@ set_alpine_mirrors() {
     esac
 }
 
+is_musl() {
+    # Alpine 是 musl，Debian / Ubuntu 系是 glibc。两者能装的轮子完全不同。
+    [ -e /lib/ld-musl-*.so.1 ] 2>/dev/null && return 0
+    ldd --version 2>&1 | grep -qi musl
+}
+
 install_deps_uv() {
-    # 容器内：依赖由镜像的 wheelhouse 装进 /opt/venv，运行期访问不到 wheelhouse
-    # （那是构建期的 bind mount）。所以热更新只更新代码，不重装依赖。
+    # 四种形态，各自的依赖来源不同：
+    #   新镜像（容器 + /opt/venv） -> 镜像自带，热更新只换代码
+    #   旧镜像（容器，无 /opt/venv） -> 依赖装在系统 python，与新代码不兼容，只能换镜像
+    #   Alpine 裸机（musl）        -> GitHub Release 的 musllinux 轮子
+    #   Ubuntu / Debian 裸机（glibc）-> PyPI 的 manylinux 轮子
     if [ -f /.dockerenv ]; then
-        # 新版镜像把依赖装在 /opt/venv。旧镜像（基座继承时代）装在系统 python 里，
-        # 没有这个目录——新代码找不到依赖，热更新过去也起不来。
-        if [ ! -x /opt/venv/bin/python ]; then
-            echo "Error: 当前镜像没有 /opt/venv，与新代码不兼容。" >&2
-            echo "       这是依赖形态变更的边界，热更新无法跨越，请拉取对应 tag 的新镜像。" >&2
-            return 1
+        if [ -x /opt/venv/bin/python ]; then
+            echo "Info: 依赖由镜像提供（wheelhouse -> /opt/venv），热更新不重装依赖"
+            echo "Info: 如需更新依赖版本，请拉取对应 tag 的新镜像"
+            return 0
         fi
-        echo "Info: 依赖由镜像提供（wheelhouse -> /opt/venv），热更新不重装依赖"
-        echo "Info: 如需更新依赖版本，请拉取对应 tag 的新镜像"
-        return 0
+        echo "Error: 当前镜像没有 /opt/venv，与新代码不兼容。" >&2
+        echo "       这是依赖形态变更的边界，热更新无法跨越，请拉取对应 tag 的新镜像。" >&2
+        return 1
     fi
 
-    # 裸 Alpine（源码部署）：拿不到 wheelhouse 镜像，只能从三个组件仓库的 GitHub
-    # Release 取预编译的 musllinux 轮子。这里必须装，不能指望 PyPI：
-    #   - onnxruntime / opencv 没有 musllinux 轮子
-    #   - pycurl 只有 sdist，现场编译要 curl-config，且拿不到 IMPERSONATE 补丁
-    install_deps_from_release
+    if is_musl; then
+        install_deps_from_release
+    else
+        install_deps_from_pypi
+    fi
+}
+
+install_deps_from_pypi() {
+    # glibc（Ubuntu / Debian 等）：PyPI 的 manylinux 轮子齐全，不需要用我们自编的
+    # musllinux 轮子。注意 pycurl——PyPI 版没有 IMPERSONATE 补丁，这条路上 ja3 线
+    # 装不出来，需要指纹伪装请用 Alpine 或容器部署。
+    if ! command -v uv >/dev/null 2>&1; then
+        echo "Error: 需要 uv，见 https://docs.astral.sh/uv/" >&2
+        return 1
+    fi
+    echo "Info: 检测到 glibc，从 PyPI 安装依赖"
+    _req=$(mktemp) || return 1
+    if uv export --frozen --no-hashes --no-emit-project -o "$_req" >/dev/null 2>&1; then
+        # shellcheck disable=SC2086
+        uv pip install --system --break-system-packages --no-cache \
+            --index-url https://pypi.org/simple -r "$_req"
+        _rc=$?
+    else
+        # shellcheck disable=SC2086
+        uv pip install --system --break-system-packages --no-cache \
+            --index-url https://pypi.org/simple pycurl ddddocr onnxruntime
+        _rc=$?
+    fi
+    rm -f "$_req"
+    if [ "$_rc" -ne 0 ]; then
+        echo "Error: 依赖安装失败" >&2
+        return $_rc
+    fi
+    echo "Info: 提示——PyPI 的 pycurl 不含 IMPERSONATE 补丁，ja3 线在此形态下不可用"
+    return 0
 }
 
 install_deps_from_release() {
