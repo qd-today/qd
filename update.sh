@@ -343,6 +343,16 @@ update_tarball() {
     rm -rf "${tmp}"
 }
 
+# remoteversion 可以是分支名、tag 或 commit。commit 用「hex 且能解析成 commit」判定，
+# 不能只看长度——tag 也可能长得像 hex。
+is_commit() {
+    case "$1" in
+        *[!0-9a-f]*|"") return 1 ;;
+    esac
+    [ ${#1} -ge 7 ] && [ ${#1} -le 40 ] || return 1
+    git cat-file -e "$1^{commit}" 2>/dev/null
+}
+
 update_git() {
     # 没有 .git 就无法确定版本、无法和 Dockerfile 的 ARG 对齐，
     # 依赖会装成另一套。这种情况直接报错，让用户克隆仓库或换镜像。
@@ -356,6 +366,10 @@ update_git() {
         git reset --hard origin/"${remoteversion}" && \
         git checkout -f "${remoteversion}" && \
         git pull
+    elif is_commit "${remoteversion}"; then
+        # 指定 commit：fetch 后 detached checkout（不建分支，避免和 tag 名冲突）
+        git fetch --all && \
+        git checkout -f "${remoteversion}"
     else
         git fetch origin "${remoteversion}" && \
         git reset --hard origin/"${source_branch}" && \
@@ -378,7 +392,7 @@ update() {
             echo -e "Info: 更新完成! \nInfo: 当前版本: ${remoteversion}" && \
             echo_auto_reload
         else
-            if list_remote_tags | grep -q -w "$1"
+            if list_remote_tags | grep -q -w "$1" || is_commit "$1"
             then
                 remoteversion="$1"
                 if [ "$(echo "$localversion" "$remoteversion" | awk '$1>$2 {print 0} $1=<$2 {print 1}')" == 0 ];then
