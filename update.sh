@@ -198,12 +198,18 @@ install_deps_alpine() {
     # 用 uv 的默认位置创建虚拟环境，与镜像里的路径一致（/usr/src/app/.venv）
     uv venv .venv --python python3 || { echo "Error: 创建 .venv 失败" >&2; return 1; }
 
-    # requirements.txt 由 lock 导出，不提交到仓库，避免「lock 改了文件没跟上」
+    # requirements.txt 由 lock 导出，不提交到仓库，避免「lock 改了文件没跟上」。
+    # OCR 栈在 pyproject 的 optional-dependencies.ocr 里，不带 --extra 就导不出来。
+    # 先读 ARG：决定要不要 --extra ocr、下载哪几个仓的 wheel
+    read_release_args || return 1
+
     _req=/tmp/qd-requirements.txt
-    uv export --frozen --no-hashes --no-emit-project -o "$_req" \
+    _extra=""
+    [ -n "$_ddddocr" ] && [ -n "$_onnx" ] && _extra="--extra ocr"
+    # shellcheck disable=SC2086
+    uv export --frozen --no-hashes --no-emit-project $_extra -o "$_req" \
         || { echo "Error: uv export 失败" >&2; return 1; }
 
-    read_release_args || return 1
 
     _arch=$(uname -m)
     case "$_arch" in
@@ -216,10 +222,13 @@ install_deps_alpine() {
 
     _tmp=$(mktemp -d) || return 1
     _fetch() {
+        # 每个仓解压到自己的子目录：三个 tar 里的顶层目录都叫 wheels-<arch>，
+        # 解压到同一处会互相覆盖，最后只剩一个仓的索引。
         _url="https://github.com/qd-today/$1/releases/download/$2/$3-wheels-$_arch.tar.gz"
         echo "Info: 下载 $_url"
-        wget -q "$_url" -O "$_tmp/$1.tar.gz" || { echo "Error: 下载 $1 失败" >&2; return 1; }
-        tar xzf "$_tmp/$1.tar.gz" -C "$_tmp" || { echo "Error: 解压 $1 失败" >&2; return 1; }
+        mkdir -p "$_tmp/$1"
+        wget -q "$_url" -O "$_tmp/$1/pkg.tar.gz" || { echo "Error: 下载 $1 失败" >&2; return 1; }
+        tar xzf "$_tmp/$1/pkg.tar.gz" -C "$_tmp/$1" || { echo "Error: 解压 $1 失败" >&2; return 1; }
     }
 
     # 这套 wheel 与镜像同批，全部自包含 C 依赖
@@ -231,7 +240,7 @@ install_deps_alpine() {
     fi
 
     # 先装系统包：清单随 wheelhouse 发布，上层照单安装
-    _pkgs=$(cat "$_tmp"/wheels-*/system-packages.txt 2>/dev/null | sort -u | tr '\n' ' ')
+    _pkgs=$(cat "$_tmp"/*/wheels-*/system-packages.txt 2>/dev/null | sort -u | tr '\n' ' ')
     if [ -n "$_pkgs" ]; then
         echo "Info: 安装系统包 $_pkgs"
         apk add --no-cache $_pkgs || { echo "Error: 安装系统包失败" >&2; rm -rf "$_tmp"; return 1; }
@@ -239,7 +248,7 @@ install_deps_alpine() {
 
     # 每个 wheelhouse 一个索引，按定义顺序查询；PyPI 只兜底纯 Python 包
     _indexes=""
-    for _d in "$_tmp"/wheels-*/simple; do
+    for _d in "$_tmp"/*/wheels-*/simple; do
         [ -d "$_d" ] && _indexes="$_indexes --extra-index-url file://$_d"
     done
 
