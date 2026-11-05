@@ -284,6 +284,17 @@ install_deps_glibc() {
             || wget -qO- "${UV_INSTALL_URL}" | sh
         # 官方安装脚本把 uv 放在 ~/.local/bin
         [ -x "$HOME/.local/bin/uv" ] && PATH="$HOME/.local/bin:$PATH" && export PATH
+        # astral.sh 并不总是可达（实测有连不上的时候），和 musl 分支一样用 pip 兜底
+        if ! command -v uv >/dev/null 2>&1; then
+            echo "Info: 官方脚本没装上 uv，改用 pip"
+            if ! python3 -m pip --version >/dev/null 2>&1; then
+                apt-get install -y -qq python3-pip >/dev/null 2>&1 \
+                    || { echo "Error: 装不上 python3-pip" >&2; return 1; }
+            fi
+            python3 -m pip install --no-cache-dir --break-system-packages uv \
+                --index-url "${PIP_INDEX}" \
+                || { echo "Error: pip install uv 失败" >&2; return 1; }
+        fi
         command -v uv >/dev/null 2>&1 || { echo "Error: uv 安装失败" >&2; return 1; }
     fi
     # 与 Alpine 分支一致：解释器看 .python-version，范围看 requires-python，
