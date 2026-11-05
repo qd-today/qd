@@ -75,9 +75,9 @@ def to_opcodes(opnames, _opmap=opmap):  # pylint: disable=dangerous-default-valu
 #
 # 这份表源自 Odoo 的 odoo/tools/safe_eval（单文件时代, 到 odoo 19.0 为止; master 已
 # 拆成 safe_eval/evaluation.py + runtime.py, 表本身没变）。升 Python 后先去对照上游
-# 的 _SAFE_OPCODES: 3.14 下本文件与它逐项一致, 唯一更严的地方是下面的
-# CALL_INTRINSIC_1 操作数过滤; 3.11~3.13 多放行 LIST_TO_TUPLE / LOAD_ASSERTION_ERROR
-# 两个名字, 是上游在旧版本上的遗漏, 不影响 3.14。
+# 的 _SAFE_OPCODES: 本文件与它逐项一致, 唯一更严的地方是下面的 CALL_INTRINSIC_1
+# 操作数过滤（只多拒、不多放）。上游不放行 LOAD_ASSERTION_ERROR / LIST_TO_TUPLE,
+# 这里同样不放 —— 本项目只按 3.14 维护一份表, 不替旧版本兜底。
 #
 # 注意: 3.12 起 `from x import *` 不再用 IMPORT_STAR, 而是 CALL_INTRINSIC_1 +
 # INTRINSIC_IMPORT_STAR, 这里按名字拉黑已经拦不住了。真正的拦截在
@@ -136,8 +136,6 @@ _EXPR_OPCODES = _CONST_OPCODES.union(to_opcodes([
     'BINARY_OP',
     # 3.12: 切片不再是 BINARY_SUBSCR + BUILD_SLICE
     'BINARY_SLICE', 'STORE_SLICE',
-    # 3.11 拆包字面量 (*a, *b) 的专用 opcode, 3.12 起并入 CALL_INTRINSIC_1
-    'LIST_TO_TUPLE',
     # 3.13: 布尔上下文里的真值转换, 以及 3.11 起的栈交换
     'TO_BOOL', 'SWAP',
     # 3.12: 编译器内建操作 (+a、(*a, *b)、生成器收尾) 统一走 CALL_INTRINSIC_1。
@@ -205,8 +203,6 @@ _SAFE_OPCODES = _EXPR_OPCODES.union(to_opcodes([
     'LOAD_FAST_BORROW', 'LOAD_FAST_BORROW_LOAD_FAST_BORROW',  # 3.14
     # lambda 的默认值/注解等函数属性
     'SET_FUNCTION_ATTRIBUTE',
-    # 3.12/3.14: assert 的 AssertionError 常量
-    'LOAD_ASSERTION_ERROR',
     # 3.13 起字符串格式化拆成 CONVERT_VALUE (!s/!r/!a) + FORMAT_SIMPLE/FORMAT_WITH_SPEC
     'CONVERT_VALUE', 'FORMAT_SIMPLE', 'FORMAT_WITH_SPEC',
 

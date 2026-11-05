@@ -6,6 +6,8 @@ CPython 每升级一次大版本都会改动字节码（新增/合并/改名 opc
 forbidden opcode。所以这里用一份表达式语料把「常见的条件写法必须能算」钉死；
 CPython 再加新 opcode 时，用例会直接报出缺了哪些名字。
 
+白名单与 Odoo 上游逐项对齐，只按 Python 3.14 维护，因此在这个版本以下整套跳过。
+
 运行: python -m unittest discover -s tests -v
 """
 import os
@@ -142,6 +144,10 @@ FORBIDDEN_AT_RUNTIME = [
 ]
 
 
+@unittest.skipUnless(
+    sys.version_info >= (3, 14),
+    'safe_eval 的白名单只按 3.14 维护（见 pyproject 的 requires-python）',
+)
 class TestSafeEvalOpcodes(unittest.TestCase):
     def test_expression_corpus(self):
         for expr, env, expected in EXPR_CASES:
