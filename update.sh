@@ -201,14 +201,20 @@ install_deps_alpine() {
         ln -sf /usr/bin/python3 /usr/local/bin/python
     fi
 
-    # uv 从 alpine 3.21 起才进 community 仓库，旧镜像（3.19 那批）装不到。
-    # 装不到就用官方安装脚本，它提供 musl 构建。
+    # uv 从 alpine 3.21 起才进 community 仓库。旧镜像（3.19 那批）走两段兜底：
+    #   1. astral.sh 的官方脚本——旧镜像访问不到那个域名（wget exit 4），只能当备选
+    #   2. apk add py3-pip + pip install uv——uv 在 PyPI 有 musllinux wheel，最稳
     if ! apk add --no-cache uv 2>/dev/null; then
-        echo "Info: apk 没有 uv（老版本 alpine），改用官方安装脚本"
-        wget -qO- https://astral.sh/uv/install.sh | sh \
-            || { echo "Error: 安装 uv 失败" >&2; return 1; }
-        [ -x "$HOME/.local/bin/uv" ] && PATH="$HOME/.local/bin:$PATH" && export PATH
+        echo "Info: apk 没有 uv（老版本 alpine），尝试从 PyPI 安装"
+        if ! python3 -m pip --version >/dev/null 2>&1; then
+            apk add --no-cache py3-pip >/dev/null 2>&1 \
+                || { echo "Error: 装不上 py3-pip" >&2; return 1; }
+        fi
+        python3 -m pip install --no-cache-dir -q uv \
+            --index-url "${PIP_MIRROR:-https://pypi.org/simple}" \
+            || { echo "Error: pip install uv 失败" >&2; return 1; }
         command -v uv >/dev/null 2>&1 || { echo "Error: uv 不在 PATH 里" >&2; return 1; }
+        echo "Info: uv 已通过 pip 安装（$(uv --version 2>&1 | head -1)）"
     fi
 
     # 用 uv 的默认位置创建虚拟环境，与镜像里的路径一致（/usr/src/app/.venv）
