@@ -91,59 +91,27 @@ update_out_alpine() {
 }
 
 set_alpine_mirrors() {
-    echo -e "Info: 当前 Alpine 镜像源: \n$(grep -o 'https://[^ ]*/' /etc/apk/repositories |  awk '!a[$0]++')"
+    echo -e "Info: 当前 Alpine 镜像源: \n$(grep -o 'https://[^ ]*/' /etc/apk/repositories | awk '!a[$0]++')"
+
+    # 只在这里维护「源名 -> host + 中文名」，下面的替换逻辑是通用的一条正则，
+    # 新增镜像源只改这张表，不用再复制四行 sed。
     case "$1" in
-        default | =default )
-            alpine_mirrors="default"
-            echo "Info: 正在设置 Alpine 镜像源为: 默认官方源"
-            sed -i 's/mirrors.tuna.tsinghua.edu.cn/dl-cdn.alpinelinux.org/g' /etc/apk/repositories
-            sed -i 's/mirrors.ustc.edu.cn/dl-cdn.alpinelinux.org/g' /etc/apk/repositories
-            sed -i 's/mirrors.cloud.tencent.com/dl-cdn.alpinelinux.org/g' /etc/apk/repositories
-            sed -i 's/mirrors.aliyun.com/dl-cdn.alpinelinux.org/g' /etc/apk/repositories
-            echo -e "Info: 设置后的 Alpine 镜像源: \n$(grep -o 'https://[^ ]*/' /etc/apk/repositories |  awk '!a[$0]++')"
-            ;;
-        tsinghua | =tsinghua )
-            alpine_mirrors="tsinghua"
-            echo "Info: 正在设置 Alpine 镜像源为: 清华大学源"
-            sed -i 's/dl-cdn.alpinelinux.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
-            sed -i 's/mirrors.ustc.edu.cn/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
-            sed -i 's/mirrors.cloud.tencent.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
-            sed -i 's/mirrors.aliyun.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apk/repositories
-            echo -e "Info: 设置后的 Alpine 镜像源: \n$(grep -o 'https://[^ ]*/' /etc/apk/repositories |  awk '!a[$0]++')"
-            ;;
-        ustc | =ustc )
-            alpine_mirrors="ustc"
-            echo "Info: 正在设置 Alpine 镜像源为: 中国科学技术大学源"
-            sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
-            sed -i 's/mirrors.tuna.tsinghua.edu.cn/mirrors.ustc.edu.cn/g' /etc/apk/repositories
-            sed -i 's/mirrors.cloud.tencent.com/mirrors.ustc.edu.cn/g' /etc/apk/repositories
-            sed -i 's/mirrors.aliyun.com/mirrors.ustc.edu.cn/g' /etc/apk/repositories
-            echo -e "Info: 设置后的 Alpine 镜像源: \n$(grep -o 'https://[^ ]*/' /etc/apk/repositories |  awk '!a[$0]++')"
-            ;;
-        tencent | =tencent )
-            alpine_mirrors="tencent"
-            echo "Info: 正在设置 Alpine 镜像源为: 腾讯云源"
-            sed -i 's/dl-cdn.alpinelinux.org/mirrors.cloud.tencent.com/g' /etc/apk/repositories
-            sed -i 's/mirrors.tuna.tsinghua.edu.cn/mirrors.cloud.tencent.com/g' /etc/apk/repositories
-            sed -i 's/mirrors.ustc.edu.cn/mirrors.cloud.tencent.com/g' /etc/apk/repositories
-            sed -i 's/mirrors.aliyun.com/mirrors.cloud.tencent.com/g' /etc/apk/repositories
-            echo -e "Info: 设置后的 Alpine 镜像源: \n$(grep -o 'https://[^ ]*/' /etc/apk/repositories |  awk '!a[$0]++')"
-            ;;
-        aliyun | =aliyun )
-            alpine_mirrors="aliyun"
-            echo "Info: 正在设置 Alpine 镜像源为: 阿里云源"
-            sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
-            sed -i 's/mirrors.tuna.tsinghua.edu.cn/mirrors.aliyun.com/g' /etc/apk/repositories
-            sed -i 's/mirrors.ustc.edu.cn/mirrors.aliyun.com/g' /etc/apk/repositories
-            sed -i 's/mirrors.cloud.tencent.com/mirrors.aliyun.com/g' /etc/apk/repositories
-            echo -e "Info: 设置后的 Alpine 镜像源: \n$(grep -o 'https://[^ ]*/' /etc/apk/repositories |  awk '!a[$0]++')"
-            ;;
-        * )
-            echo "Error: 未知的 Alpine 镜像源: $1"
-            echo "支持的 Alpine 镜像源: default, tsinghua, ustc, tencent, aliyun"
-            exit 1
-            ;;
+        default | =default     ) _host="dl-cdn.alpinelinux.org";     _label="默认官方源" ;;
+        tsinghua | =tsinghua   ) _host="mirrors.tuna.tsinghua.edu.cn"; _label="清华大学源" ;;
+        ustc | =ustc           ) _host="mirrors.ustc.edu.cn";         _label="中国科学技术大学源" ;;
+        tencent | =tencent     ) _host="mirrors.cloud.tencent.com";   _label="腾讯云源" ;;
+        aliyun | =aliyun       ) _host="mirrors.aliyun.com";          _label="阿里云源" ;;
+        ""                     ) return 0 ;;
+        * ) echo "Error: 未知的 Alpine 镜像源 '$1'。可选: default tsinghua ustc tencent aliyun" >&2
+            return 1 ;;
     esac
+
+    alpine_mirrors="$1"
+    echo "Info: 正在设置 Alpine 镜像源为: ${_label}"
+    # 把文件里任何已知源换成目标源，一条正则覆盖全部组合
+    sed -i -E "s#https://(dl-cdn\.alpinelinux\.org|mirrors\.(tuna\.tsinghua\.edu\.cn|ustc\.edu\.cn|cloud\.tencent\.com|aliyun\.com))#https://${_host}#g" \
+        /etc/apk/repositories
+    echo -e "Info: 设置后的 Alpine 镜像源: \n$(grep -o 'https://[^ ]*/' /etc/apk/repositories | awk '!a[$0]++')"
 }
 
 is_musl() {
