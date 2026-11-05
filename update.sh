@@ -157,22 +157,9 @@ read_release_args() {
 }
 
 install_deps_uv() {
-    # 四种形态：
-    #   新镜像（容器 + .venv）  -> 镜像自带，热更新只换代码
-    #   旧镜像（容器，无 .venv）-> 依赖在系统 python，与新代码不兼容，只能换镜像
-    #   Alpine 裸机（musl）     -> apk uv + 本地 wheelhouse（musllinux）
-    #   glibc 裸机（Ubuntu 等） -> 官方 uv + uv sync（许多 manylinux 轮子）
-    if [ -f /.dockerenv ]; then
-        if [ -x .venv/bin/python ]; then
-            echo "Info: 依赖由镜像提供（/usr/src/app/.venv），热更新不重装依赖"
-            echo "Info: 如需更新依赖版本，请拉取对应 tag 的新镜像"
-            return 0
-        fi
-        echo "Error: 当前镜像没有 .venv，与新代码不兼容。" >&2
-        echo "       这是依赖形态变更的边界，热更新无法跨越，请拉取对应 tag 的新镜像。" >&2
-        return 1
-    fi
-
+    # 容器与裸机动作一致：按 libc 选依赖来源，不看是否在容器里。
+    #   musl（Alpine 容器 / Alpine 裸机 / 旧镜像）-> apk uv + 本地 wheelhouse
+    #   glibc（Ubuntu / Debian 裸机）              -> 官方 uv + uv sync
     if is_musl; then
         install_deps_alpine
     else
@@ -196,7 +183,8 @@ install_deps_alpine() {
     apk add --no-cache uv || { echo "Error: 安装 uv 失败" >&2; return 1; }
 
     # 用 uv 的默认位置创建虚拟环境，与镜像里的路径一致（/usr/src/app/.venv）
-    uv venv .venv --python python3 || { echo "Error: 创建 .venv 失败" >&2; return 1; }
+    uv venv .venv --python python3 --allow-existing \
+        || { echo "Error: 创建或更新 .venv 失败" >&2; return 1; }
 
     # requirements.txt 由 lock 导出，不提交到仓库，避免「lock 改了文件没跟上」。
     # OCR 栈在 pyproject 的 optional-dependencies.ocr 里，不带 --extra 就导不出来。
@@ -350,19 +338,18 @@ is_commit() {
         *[!0-9a-f]*|"") return 1 ;;
     esac
     [ ${#1} -ge 7 ] && [ ${#1} -le 40 ] || return 1
-    # qd 的 tag 是纯数字（如 20250803），也符合 hex 的形式。先排除 tag，
+    # qd 的 tag 是纯数字（如 20250803），也符合 hex 的形式。先排除已知 tag，
     # 否则指定 tag 会被当成 commit 处理，跳过版本比较与降级确认。
-    list_remote_tags 2>/dev/null | grep -qx "$1" && return 1
-    git cat-file -e "$1^{commit}" 2>/dev/null
+    # 不调 git cat-file——镜像里没有 .git，这里必须能离线判断。
+    ! list_remote_tags 2>/dev/null | grep -qx "$1"
 }
 
 update_git() {
-    # 没有 .git 就无法确定版本、无法和 Dockerfile 的 ARG 对齐，
-    # 依赖会装成另一套。这种情况直接报错，让用户克隆仓库或换镜像。
+    # 没有 .git 时（镜像就是这种）走归档包：tarball 的 URL 接受任意 ref
+    # （tag / commit / branch），与 git 的切换语义等价，只是没有本地历史。
     if ! have_git; then
-        echo "Error: 当前目录没有 git 仓库，无法更新代码。" >&2
-        echo "       请用 git clone 获取源码后再执行本脚本，或直接拉取新镜像。" >&2
-        return 1
+        update_tarball
+        return
     fi
     if [ "${remoteversion}" = ${source_branch} ];then
         git fetch --all && \
