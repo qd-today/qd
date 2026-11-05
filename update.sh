@@ -212,7 +212,11 @@ install_deps_alpine() {
     fi
 
     # 用 uv 的默认位置创建虚拟环境，与镜像里的路径一致（/usr/src/app/.venv）
-    uv venv .venv --python python3 --allow-existing \
+    # 用 pyproject 的 requires-python 决定解释器版本，让 uv 自己取（本地没有就下载）。
+    # 写死 python3 会绑到系统那个——旧镜像里是 3.11，和 cp314 的 wheel 对不上。
+    _pyver=$(sed -n 's/^requires-python = ">=\([0-9.]*\)".*/\1/p' pyproject.toml 2>/dev/null | head -1)
+    echo "Info: 创建/更新 .venv（python ${_pyver:-3.14}）"
+    uv venv .venv --python "${_pyver:-3.14}" --allow-existing \
         || { echo "Error: 创建或更新 .venv 失败" >&2; return 1; }
 
     # requirements.txt 由 lock 导出，不提交到仓库，避免「lock 改了文件没跟上」。
