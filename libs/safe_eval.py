@@ -37,8 +37,27 @@ __all__ = ['test_expr', 'safe_eval', 'const_eval']
 # lp:703841), does import time.
 _ALLOWED_MODULES = ['_strptime', 'math', 'time']
 
-_UNSAFE_ATTRIBUTES = ['f_builtins', 'f_globals', 'f_locals', 'gi_frame', 'gi_code',
-                      'co_code', 'func_globals']
+# 属性名里带 __ 的会被 assert_no_dunder_name 拦掉, 剩下的这些是「不带下划线的
+# 自省入口」: 拿到 frame / code / 生成器 / 协程之后能顺着往上爬到执行上下文, 所以
+# 按名字单独禁用。与 upstream odoo/tools/safe_eval 的列表保持一致。
+_UNSAFE_ATTRIBUTES = [
+    # frame
+    'f_builtins', 'f_code', 'f_globals', 'f_locals', 'f_generator',
+    # Py2 遗留的函数属性名
+    'func_code', 'func_globals',
+    # code object
+    'co_code', '_co_code_adaptive',
+    # 方法解析顺序
+    'mro',
+    # traceback
+    'tb_frame',
+    # 生成器
+    'gi_code', 'gi_frame', 'gi_yieldfrom',
+    # 协程
+    'cr_await', 'cr_code', 'cr_frame',
+    # 异步生成器
+    'ag_await', 'ag_code', 'ag_frame',
+]
 
 
 def to_opcodes(opnames, _opmap=opmap):  # pylint: disable=dangerous-default-value

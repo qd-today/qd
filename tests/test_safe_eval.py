@@ -123,6 +123,14 @@ FORBIDDEN_AT_COMPILE = [
     # 这类 opcode upstream 也没放行, 模板里从未用到, 所以按「不放行」钉住:
     # 想支持的话要连同这里一起改, 别只改白名单。
     ('[lambda: x for x in y]', 'eval'),
+    # 不带下划线的自省入口, 靠 _UNSAFE_ATTRIBUTES 拦
+    ('x.mro()', 'eval'),
+    ('x.mro()[1]', 'eval'),
+    ('f.f_code', 'eval'),
+    ('x.tb_frame', 'eval'),
+    ('g.gi_yieldfrom', 'eval'),
+    ('c.cr_frame', 'eval'),
+    ('x._co_code_adaptive', 'eval'),
 ]
 
 # 字节码层面放行（都是普通 LOAD_NAME/CALL），靠沙箱内的 builtins 与名称检查兜住
@@ -180,6 +188,17 @@ class TestSafeEvalOpcodes(unittest.TestCase):
         )
         # (*a, *b) 走 INTRINSIC_LIST_TO_TUPLE，属于允许的语义
         se.test_expr('(*a,)', se._SAFE_OPCODES)
+
+    def test_unsafe_attributes_cover_introspection(self):
+        """frame / code / 生成器 / 协程 的自省属性必须全部禁用，别只拦带 __ 的。"""
+        required = {
+            'f_builtins', 'f_code', 'f_globals', 'f_locals', 'f_generator',
+            'func_code', 'func_globals', 'co_code', '_co_code_adaptive', 'mro',
+            'tb_frame', 'gi_code', 'gi_frame', 'gi_yieldfrom',
+            'cr_await', 'cr_code', 'cr_frame', 'ag_await', 'ag_code', 'ag_frame',
+        }
+        missing = required - set(se._UNSAFE_ATTRIBUTES)
+        self.assertFalse(missing, f'_UNSAFE_ATTRIBUTES 缺少自省属性: {sorted(missing)}')
 
     def test_blacklist_never_leaks(self):
         leaks = se._BLACKLIST & se._SAFE_OPCODES
