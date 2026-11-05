@@ -201,7 +201,15 @@ install_deps_alpine() {
         ln -sf /usr/bin/python3 /usr/local/bin/python
     fi
 
-    apk add --no-cache uv || { echo "Error: 安装 uv 失败" >&2; return 1; }
+    # uv 从 alpine 3.21 起才进 community 仓库，旧镜像（3.19 那批）装不到。
+    # 装不到就用官方安装脚本，它提供 musl 构建。
+    if ! apk add --no-cache uv 2>/dev/null; then
+        echo "Info: apk 没有 uv（老版本 alpine），改用官方安装脚本"
+        wget -qO- https://astral.sh/uv/install.sh | sh \
+            || { echo "Error: 安装 uv 失败" >&2; return 1; }
+        [ -x "$HOME/.local/bin/uv" ] && PATH="$HOME/.local/bin:$PATH" && export PATH
+        command -v uv >/dev/null 2>&1 || { echo "Error: uv 不在 PATH 里" >&2; return 1; }
+    fi
 
     # 用 uv 的默认位置创建虚拟环境，与镜像里的路径一致（/usr/src/app/.venv）
     uv venv .venv --python python3 --allow-existing \
