@@ -183,8 +183,11 @@ install_deps_alpine() {
 
     # 依赖版本没变就不重装。判断依据是调用方传进来的「更新代码前读到的 ARG」，
     # 与当前 Dockerfile 比——不依赖任何落盘的状态文件。
+    # 除了版本没变，还要确认依赖真的装过：空的 .venv（比如刚 python -m venv 建的）
+    # 同样满足「版本没变」，跳过就会留下一个没装包的 venv。pycurl 是必装项，用它当标志。
     if [ -f .venv/pyvenv.cfg ] && [ -n "${_old_deps_stamp:-}" ] \
-        && [ "${_old_deps_stamp}" = "$(deps_stamp)" ]; then
+        && [ "${_old_deps_stamp}" = "$(deps_stamp)" ] \
+        && ls .venv/lib/python*/site-packages/pycurl* >/dev/null 2>&1; then
         echo "Info: Dockerfile 的依赖版本未变，跳过下载与安装"
         return 0
     fi
