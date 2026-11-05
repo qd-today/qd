@@ -210,7 +210,8 @@ install_deps_alpine() {
             apk add --no-cache py3-pip >/dev/null 2>&1 \
                 || { echo "Error: 装不上 py3-pip" >&2; return 1; }
         fi
-        python3 -m pip install --no-cache-dir -q uv \
+        # alpine 的 py3-pip 标了 externally-managed（PEP 668），不加这个参数会被拒
+        python3 -m pip install --no-cache-dir -q --break-system-packages uv \
             --index-url "${PIP_MIRROR:-https://pypi.org/simple}" \
             || { echo "Error: pip install uv 失败" >&2; return 1; }
         command -v uv >/dev/null 2>&1 || { echo "Error: uv 不在 PATH 里" >&2; return 1; }
