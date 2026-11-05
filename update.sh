@@ -167,8 +167,27 @@ install_deps_uv() {
     fi
 }
 
+# 依赖指纹：三个仓的 ARG + uv.lock 的哈希。只有它的值变了才值得重新下载 wheel
+# （三个包合计约 250MB）并重装依赖。
+deps_stamp() {
+    _lock_hash=""
+    [ -f uv.lock ] && _lock_hash=$(sha256sum uv.lock 2>/dev/null | cut -d' ' -f1)
+    echo "${_pycurl_prefix}${_pycurl}|${_ddddocr}|${_onnx}|${_lock_hash:-no-lock}"
+}
+
 install_deps_alpine() {
     echo "Info: 检测到 musl（Alpine），使用本地 wheelhouse 安装依赖"
+    read_release_args || return 1
+
+    # 已装版本与目标一致、且 .venv 可用时直接跳过：热更新多数时候只改代码，
+    # 重下 250MB wheel 没有收益。
+    _stamp_file=".venv/.qd-deps-stamp"
+    _want=$(deps_stamp)
+    if [ -x .venv/bin/python ] && [ -f "$_stamp_file" ] && [ "$(cat "$_stamp_file" 2>/dev/null)" = "$_want" ]; then
+        echo "Info: 依赖版本未变（${_want%%|*} / $_ddddocr / $_onnx），跳过下载与安装"
+        return 0
+    fi
+
     set_alpine_mirrors "${alpine_mirrors}"
 
     # 少数纯 Python 包（greenlet / pycryptodome 这类）在部分架构上没有 musllinux
@@ -188,9 +207,6 @@ install_deps_alpine() {
 
     # requirements.txt 由 lock 导出，不提交到仓库，避免「lock 改了文件没跟上」。
     # OCR 栈在 pyproject 的 optional-dependencies.ocr 里，不带 --extra 就导不出来。
-    # 先读 ARG：决定要不要 --extra ocr、下载哪几个仓的 wheel
-    read_release_args || return 1
-
     _req=/tmp/qd-requirements.txt
     _extra=""
     [ -n "$_ddddocr" ] && [ -n "$_onnx" ] && _extra="--extra ocr"
@@ -248,6 +264,8 @@ install_deps_alpine() {
     rm -rf "$_tmp" "$_req"
     apk del .build_deps >/dev/null 2>&1
     rm -rf /var/cache/apk/* /usr/share/man/*
+    # 记下这次装的版本，下次热更新据此判断是否要重装
+    [ "$_rc" -eq 0 ] && deps_stamp > "$_stamp_file" 2>/dev/null
     if [ "$_rc" -ne 0 ]; then
         echo "Error: 依赖安装失败" >&2
         return $_rc
