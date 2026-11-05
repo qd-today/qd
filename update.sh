@@ -183,7 +183,9 @@ install_deps_alpine() {
     # 重下 250MB wheel 没有收益。
     _stamp_file=".venv/.qd-deps-stamp"
     _want=$(deps_stamp)
-    if [ -x .venv/bin/python ] && [ -f "$_stamp_file" ] && [ "$(cat "$_stamp_file" 2>/dev/null)" = "$_want" ]; then
+    # 用 pyvenv.cfg 判断 .venv 是否可用：-x .venv/bin/python 检查的是符号链接的目标，
+    # 目标不在（如容器里没有 /usr/local/bin/python）时会误判成 venv 不可用。
+    if [ -f .venv/pyvenv.cfg ] && [ -f "$_stamp_file" ] && [ "$(cat "$_stamp_file" 2>/dev/null)" = "$_want" ]; then
         echo "Info: 依赖版本未变（${_want%%|*} / $_ddddocr / $_onnx），跳过下载与安装"
         return 0
     fi
