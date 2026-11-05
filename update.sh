@@ -350,6 +350,9 @@ is_commit() {
         *[!0-9a-f]*|"") return 1 ;;
     esac
     [ ${#1} -ge 7 ] && [ ${#1} -le 40 ] || return 1
+    # qd 的 tag 是纯数字（如 20250803），也符合 hex 的形式。先排除 tag，
+    # 否则指定 tag 会被当成 commit 处理，跳过版本比较与降级确认。
+    list_remote_tags 2>/dev/null | grep -qx "$1" && return 1
     git cat-file -e "$1^{commit}" 2>/dev/null
 }
 
@@ -395,7 +398,9 @@ update() {
             if list_remote_tags | grep -q -w "$1" || is_commit "$1"
             then
                 remoteversion="$1"
-                if is_commit "$remoteversion"; then
+                if list_remote_tags | grep -qx "$remoteversion"; then
+                    : # tag 路径，走下面的版本比较
+                elif is_commit "$remoteversion"; then
                     # 指定 commit：不参与版本比较。commit 没有版本号语义，可能比当前
                     # 新也可能旧，硬套 awk 的数字比较会把它误判成「降级」并要求交互确认。
                     echo -e "Info: 切换到 commit ${remoteversion}, 请稍候..."
