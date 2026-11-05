@@ -167,26 +167,25 @@ install_deps_uv() {
     fi
 }
 
-# 依赖指纹：三个仓的 ARG + uv.lock 的哈希。只有它的值变了才值得重新下载 wheel
-# （三个包合计约 250MB）并重装依赖。
+# 读当前 Dockerfile 的三仓 ARG，拼成一个可比较的串。
+# 依赖装不装由「更新前读一次、更新后再读一次」决定，不落任何状态文件。
 deps_stamp() {
-    _lock_hash=""
-    [ -f uv.lock ] && _lock_hash=$(sha256sum uv.lock 2>/dev/null | cut -d' ' -f1)
-    echo "${_pycurl_prefix}${_pycurl}|${_ddddocr}|${_onnx}|${_lock_hash:-no-lock}"
+    _pycurl=$(sed -n 's/^ARG PYCURL_RELEASE=//p' Dockerfile 2>/dev/null | tail -1)
+    _pycurl_prefix=$(sed -n 's/^ARG PYCURL_TAG_PREFIX=//p' Dockerfile 2>/dev/null | tail -1)
+    _ddddocr=$(sed -n 's/^ARG DDDDOCR_RELEASE=//p' Dockerfile 2>/dev/null | tail -1)
+    _onnx=$(sed -n 's/^ARG ONNXRUNTIME_RELEASE=//p' Dockerfile 2>/dev/null | tail -1)
+    echo "${_pycurl_prefix}${_pycurl}|${_ddddocr}|${_onnx}"
 }
 
 install_deps_alpine() {
     echo "Info: 检测到 musl（Alpine），使用本地 wheelhouse 安装依赖"
     read_release_args || return 1
 
-    # 已装版本与目标一致、且 .venv 可用时直接跳过：热更新多数时候只改代码，
-    # 重下 250MB wheel 没有收益。
-    _stamp_file=".venv/.qd-deps-stamp"
-    _want=$(deps_stamp)
-    # 用 pyvenv.cfg 判断 .venv 是否可用：-x .venv/bin/python 检查的是符号链接的目标，
-    # 目标不在（如容器里没有 /usr/local/bin/python）时会误判成 venv 不可用。
-    if [ -f .venv/pyvenv.cfg ] && [ -f "$_stamp_file" ] && [ "$(cat "$_stamp_file" 2>/dev/null)" = "$_want" ]; then
-        echo "Info: 依赖版本未变（${_want%%|*} / $_ddddocr / $_onnx），跳过下载与安装"
+    # 依赖版本没变就不重装。判断依据是调用方传进来的「更新代码前读到的 ARG」，
+    # 与当前 Dockerfile 比——不依赖任何落盘的状态文件。
+    if [ -f .venv/pyvenv.cfg ] && [ -n "${_old_deps_stamp:-}" ] \
+        && [ "${_old_deps_stamp}" = "$(deps_stamp)" ]; then
+        echo "Info: Dockerfile 的依赖版本未变，跳过下载与安装"
         return 0
     fi
 
@@ -285,8 +284,6 @@ install_deps_alpine() {
     rm -rf "$_tmp" "$_req"
     apk del .build_deps >/dev/null 2>&1
     rm -rf /var/cache/apk/* /usr/share/man/*
-    # 记下这次装的版本，下次热更新据此判断是否要重装
-    [ "$_rc" -eq 0 ] && deps_stamp > "$_stamp_file" 2>/dev/null
     if [ "$_rc" -ne 0 ]; then
         echo "Error: 依赖安装失败" >&2
         return $_rc
@@ -433,6 +430,7 @@ update() {
             # 强制更新
             remoteversion=${source_branch}
             echo -e "Info: 正在强制更新中, 请稍候..."
+            _old_deps_stamp=$(deps_stamp) && \
             update_git && \
             cleanup_legacy_files && \
             install_deps_uv && \
@@ -448,7 +446,8 @@ update() {
                     # 指定 commit：不参与版本比较。commit 没有版本号语义，可能比当前
                     # 新也可能旧，硬套 awk 的数字比较会把它误判成「降级」并要求交互确认。
                     echo -e "Info: 切换到 commit ${remoteversion}, 请稍候..."
-                    update_git && \
+                    _old_deps_stamp=$(deps_stamp) && \
+            update_git && \
                     cleanup_legacy_files && \
                     install_deps_uv && \
                     get_localversion && \
@@ -463,7 +462,8 @@ update() {
                         [yY][eE][sS]|[yY])
                             # 进入更新流程
                             echo -e "Info: 正在更新中, 请稍候..."
-                            update_git && \
+                            _old_deps_stamp=$(deps_stamp) && \
+            update_git && \
                             cleanup_legacy_files && \
                             install_deps_uv && \
                             get_localversion && \
@@ -481,7 +481,8 @@ update() {
                     esac
                 else
                     echo -e "Info: 正在强制切换至指定Tag版本: $1, 请稍候..."
-                    update_git && \
+                    _old_deps_stamp=$(deps_stamp) && \
+            update_git && \
                     cleanup_legacy_files && \
                     install_deps_uv && \
                     get_localversion && \
@@ -498,6 +499,7 @@ update() {
         remoteversion=$(list_remote_tags | sort -r | head -n 1)
         if [ "$(echo "$localversion" "$remoteversion" | awk '$1>=$2 {print 0} $1<$2 {print 1}')" == 1 ];then
             echo -e "Info: 当前版本: $localversion \nInfo: 新版本: $remoteversion \nInfo: 正在更新中, 请稍候..."
+            _old_deps_stamp=$(deps_stamp) && \
             update_git && \
             cleanup_legacy_files && \
             install_deps_uv && \
