@@ -395,7 +395,17 @@ update() {
             if list_remote_tags | grep -q -w "$1" || is_commit "$1"
             then
                 remoteversion="$1"
-                if [ "$(echo "$localversion" "$remoteversion" | awk '$1>$2 {print 0} $1=<$2 {print 1}')" == 0 ];then
+                if is_commit "$remoteversion"; then
+                    # 指定 commit：不参与版本比较。commit 没有版本号语义，可能比当前
+                    # 新也可能旧，硬套 awk 的数字比较会把它误判成「降级」并要求交互确认。
+                    echo -e "Info: 切换到 commit ${remoteversion}, 请稍候..."
+                    update_git && \
+                    cleanup_legacy_files && \
+                    install_deps_uv && \
+                    get_localversion && \
+                    echo -e "Info: 更新完成! \nInfo: 当前 commit: ${remoteversion}" && \
+                    echo_auto_reload
+                elif [ "$(echo "$localversion" "$remoteversion" | awk '$1>$2 {print 0} $1=<$2 {print 1}')" == 0 ];then
                     # 要求用户手动确认更新至旧版本 (因为旧版本可能存在不兼容的情况)
                     echo -e "Warning: 当前版本: ${localversion} , 旧版本: ${remoteversion}"
                     echo -e "Warning: 旧版本可能导致容器崩溃, 建议直接拉取旧版本容器!"
