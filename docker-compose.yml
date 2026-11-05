@@ -39,9 +39,9 @@ services:
       - DOMAIN=
       # - COOKIE_DAY=5
       # - COOKIE_SECURE_MODE=False
-      - COOKIE_SECRET=binux
+      # - COOKIE_SIGN_SECRET=  # 会话 Cookie 签名密钥, 留空则每次启动随机生成(重启后会话失效); 多实例需显式设置
       - PBKDF2_ITERATIONS=400
-      - AES_KEY=binux
+      # - AES_KEY=             # 数据库加密密钥, 留空沿用 binux; 新部署建议设置, 修改前需先迁移数据
       # - DB_TYPE=sqlite3
       # - JAWSDB_MARIA_URL=mysql://user:pass@localhost:3306/dbname?auth_plugin=
       # - QD_SQL_LOGGING_NAME=QD.sql

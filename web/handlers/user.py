@@ -360,6 +360,7 @@ class UserRegPushSw(BaseHandler):
 class UserManagerHandler(BaseHandler):
     @authenticated
     async def get(self, userid):
+        self.require_admin()
         flg = self.get_argument("flg", '')
         title = self.get_argument("title", '')
         log = self.get_argument("log", '')
@@ -381,6 +382,7 @@ class UserManagerHandler(BaseHandler):
 
     @authenticated
     async def post(self, userid):
+        self.require_admin()
         try:
             async with self.db.transaction() as sql_session:
                 user = await self.db.user.get(userid, fields=('role',), sql_session=sql_session)

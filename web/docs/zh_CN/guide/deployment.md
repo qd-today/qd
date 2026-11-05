@@ -123,6 +123,26 @@ python ./chrole.py your@email.address admin
 
 > 首位注册用户默认为管理员, 需要先登出再登陆后才能获得完整管理员权限
 
+## 会话密钥
+
+会话 Cookie 使用 `COOKIE_SIGN_SECRET` 签名。未设置时, 每次启动都会随机生成一份并只保存在内存中, 因此**服务或容器重启后所有登录状态失效, 需要重新登录**; 该密钥不会写入磁盘。
+
+多实例 / 多容器共用同一数据库时, 必须为所有实例设置同一个密钥, 否则登录状态会随请求落到不同实例而随机失效:
+
+``` sh
+# 生成一个随机密钥 (只需生成一次, 妥善保存)
+openssl rand -hex 32
+```
+
+``` yaml
+environment:
+  - COOKIE_SIGN_SECRET=<上面生成的值>
+```
+
+> 更换该密钥 (或删除后让程序重新随机生成) 会使**所有已登录会话立即失效**, 用户需重新登录; 数据库中的任务、模板、变量与凭据不受影响。
+>
+> `COOKIE_SECRET` 已弃用并默认忽略, 请勿再使用。
+
 ## 配置环境变量
 
 变量名|是否必须|默认值|说明
@@ -135,8 +155,9 @@ MULTI_PROCESS|否|False|(实验性)是否启用多进程模式, <br>Windows平�
 AUTO_RELOAD|否|False|是否启用自动热加载, <br>MULTI_PROCESS=True时无效
 STATIC_URL_PREFIX|否|`/static/`|静态文件URL前缀
 DOMAIN|否|''|指定访问域名, <br>**(建议修改)**, 否则通过邮件重置密码及邮箱推送等功能无效
-AES_KEY|否|binux|AES加密密钥, **(强烈建议修改)**
-COOKIE_SECRET|否|binux|cookie加密密钥, **(强烈建议修改)**
+AES_KEY|否|binux|数据库加密密钥, 用于加密数据库中的用户凭据等数据, **(新部署建议首次启动即设置; 修改前必须先迁移数据, 否则凭据不可解密)**
+AES_KEY_STRICT|否|False|为 True 时, 若 AES_KEY 仍为默认值则拒绝启动, **(需先完成数据迁移)**
+COOKIE_SIGN_SECRET|否|每次启动随机生成|会话 Cookie 签名密钥, 不落盘; 未设置时每次启动随机生成, **重启后所有会话失效**, 多实例或多容器部署需显式设置; 也可在 local_config.py 中定义 cookie_secret 覆盖, **(原 COOKIE_SECRET 已弃用并默认忽略)**
 COOKIE_DAY|否|5|Cookie在客户端中保留的天数
 DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
 JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 (mysql://用户名:密码@hostname:port/数据库名?auth_plugin=)

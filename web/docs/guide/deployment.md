@@ -123,6 +123,26 @@ python ./chrole.py your@email.address admin
 
 > The first registered user is the administrator by default, you need to log out and then login to get full administrator rights
 
+## Session secret
+
+Session cookies are signed with `COOKIE_SIGN_SECRET`. When it is not set, a random secret is generated on every start and kept in memory only, so **all sessions are invalidated after a service/container restart** and users have to log in again; the secret is never written to disk.
+
+For multi-instance / multi-container deployments sharing one database, every instance must use the same secret, otherwise sessions randomly break depending on which instance serves the request:
+
+``` sh
+# generate once and keep it safe
+openssl rand -hex 32
+```
+
+``` yaml
+environment:
+  - COOKIE_SIGN_SECRET=<the value generated above>
+```
+
+> Changing this secret (or removing it so a new random one is generated) **invalidates all sessions immediately**; tasks, templates, variables and credentials in the database are not affected.
+>
+> `COOKIE_SECRET` is deprecated and ignored by default.
+
 ## Configuration Environment Variables
 
 |variable name|required|default value|description|
@@ -135,8 +155,9 @@ python ./chrole.py your@email.address admin
 |AUTO_RELOAD|No|False|Whether to enable automatic hot reload, <br>invalid when MULTI_PROCESS=True|
 |STATIC_URL_PREFIX|No|`/static/`|Static file URL prefix|
 |DOMAIN|No|''|Specify the access domain name, <br>**(recommended modification)**, otherwise the function of resetting password by email is not valid|
-|AES_KEY|No|binux|AES encryption key, **(Modification strongly recommended)**|
-|COOKIE_SECRET|No|binux|cookie encryption key, **(Modification strongly recommended)**|
+|AES_KEY|No|binux|Database encryption key for stored credentials, **(set it on first deploy; migrate data before changing, or credentials become undecryptable)**|
+|AES_KEY_STRICT|No|False|When True, refuse to start while AES_KEY is still the default value, **(migrate data first)**|
+|COOKIE_SIGN_SECRET|No|random per start|Session cookie signing key, never stored; generated on every start when unset (**all sessions drop after restart**), set it explicitly for multi-instance/multi-container deployments; can be overridden by defining `cookie_secret` in local_config.py, **(COOKIE_SECRET is deprecated and ignored)**|
 |COOKIE_DAY|No|5|The number of days the cookie is kept in the client|
 |DB_TYPE|No|sqlite3|Set to 'mysql' when MySQL is required|
 |JAWSDB_MARIA_URL|No|''|When you need to use MySQL, <br> set to `mysql://username:password@hostname:port/database_name?auth_plugin=`|

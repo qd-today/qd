@@ -1,15 +1,15 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
 # vim: set et sw=4 ts=4 sts=4 ff=unix fenc=utf8:
 # Author: Binux <i@binux.me>
 #         http://binux.me
 # Created on 2014-07-30 12:21:48
 # Modified on 2023-06-13 18:12:35
 # pylint: disable=invalid-name, wildcard-import
-# flake8: noqa: F401,F403
 
 import hashlib
 import os
+import secrets
+import sys
 from urllib.parse import parse_qs, urlparse
 
 from libs.config_utils import strtobool
@@ -53,13 +53,38 @@ cookie_secure_mode = bool(
 # 启用后仅支持通过 HTTPS 访问 QD 框架, 请确保已正确配置 HTTPS 及证书
 # HTTP 访问将导致 Cookie 无法正常设置, 无法登录和使用框架功能
 
-cookie_secret = hashlib.sha256(
-    os.getenv("COOKIE_SECRET", "binux").encode("utf-8")
-).digest()  # Cookie 加密密钥, 强烈建议修改
+# ===================== 密钥管理 =====================
+# COOKIE_SIGN_SECRET: 仅用于签名会话 Cookie, 不落盘; 未配置时每次启动随机生成, 重启即失效。
+# COOKIE_SECRET: 已弃用, 默认忽略 (仅提示), 请改用 COOKIE_SIGN_SECRET。
+# AES_KEY: 用于加密数据库中的用户密钥 (userkey) 等数据, 与 Cookie 无关,
+#          修改前必须先迁移数据库 (见 tools/rotate_aes_key.py)。
+# 实际取值放在文件末尾 (local_config 导入之后), 便于在 local_config.py 中直接覆盖
+# cookie_secret / aes_key。
+_INSECURE_DEFAULT_SECRETS = {"binux"}
+
+
+def _resolve_cookie_secret():
+    value = os.getenv("COOKIE_SIGN_SECRET", "").strip()
+    if value and value not in _INSECURE_DEFAULT_SECRETS:
+        return value
+    if os.getenv("COOKIE_SECRET", "").strip():
+        print(
+            "[QD] 警告: COOKIE_SECRET 已弃用并被忽略, 请改用 COOKIE_SIGN_SECRET",
+            file=sys.stderr,
+        )
+    # 未配置时生成一次性密钥, 并写入环境变量, 使 fork/forkserver/spawn 出来的
+    # 子进程拿到同一份值 (MULTI_PROCESS 模式下会话才不会随机失效)
+    value = secrets.token_hex(32)
+    os.environ.setdefault("COOKIE_SIGN_SECRET", value)
+    print(
+        "[QD] 未配置 COOKIE_SIGN_SECRET, 本次启动使用随机密钥, 服务重启后所有会话失效; "
+        "多实例或多容器部署请显式设置该变量",
+        file=sys.stderr,
+    )
+    return value
+
+
 pbkdf2_iterations = int(os.getenv("PBKDF2_ITERATIONS", "400"))  # pbkdf2 迭代次数
-aes_key = hashlib.sha256(
-    os.getenv("AES_KEY", "binux").encode("utf-8")
-).digest()  # AES 加密密钥, 强烈建议修改
 
 # 数据库设置
 ## 数据库类型, 修改 sqlite3 为 mysql 使用 mysql
@@ -336,17 +361,41 @@ try:
     from local_config import *  # 修改 `local_config.py` 文件的内容不受通过 Git 更新源码的影响
 
     if not hasattr(mysql, "auth_plugin"):
-        setattr(
-            mysql, "auth_plugin", parse_qs(mysql_url.query).get("auth_plugin", [""])[0]
-        )
+        mysql.auth_plugin = parse_qs(mysql_url.query).get("auth_plugin", [""])[0]
 except ImportError:
     pass
 
 try:
-    from libs.parse_url import parse_url  # pylint: disable=ungrouped-imports
+    from libs.parse_url import parse_url
 
     for index, proxy in enumerate(proxies):
         if isinstance(proxy, str):
             proxies[index] = parse_url(proxy)
 except Exception as e:
     raise e
+
+# ===================== 密钥最终取值 =====================
+# 放在 local_config 导入之后: 在 local_config.py 中直接定义 cookie_secret / aes_key
+# 即可覆盖下面的逻辑, 此时不再读取环境变量。
+if "cookie_secret" not in globals():
+    cookie_secret = hashlib.sha256(
+        _resolve_cookie_secret().encode("utf-8")
+    ).digest()  # Cookie 加密密钥
+
+if "aes_key" not in globals():
+    # AES_KEY 决定数据库内 userkey 的可解密性, 不能像 Cookie 密钥一样自动随机生成,
+    # 否则存量数据会永久无法解密; 未显式配置时沿用旧值并提示迁移。
+    _aes_key_env = os.getenv("AES_KEY", "").strip()
+    if _aes_key_env and _aes_key_env not in _INSECURE_DEFAULT_SECRETS:
+        aes_key = hashlib.sha256(_aes_key_env.encode("utf-8")).digest()
+    else:
+        if strtobool(os.getenv("AES_KEY_STRICT", "False")):
+            raise RuntimeError(
+                "AES_KEY 仍为公开默认值, 请先执行 tools/rotate_aes_key.py 迁移数据库后再设置 AES_KEY"
+            )
+        print(
+            "[QD] 警告: AES_KEY 仍为公开默认值, 数据库或备份泄露时用户凭据可被解密; "
+            "轮换方式见 tools/rotate_aes_key.py (需先迁移数据)",
+            file=sys.stderr,
+        )
+        aes_key = hashlib.sha256(b"binux").digest()

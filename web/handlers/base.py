@@ -6,7 +6,8 @@
 # Created on 2012-12-15 16:16:38
 
 
-from typing import Any, Awaitable, Mapping, MutableMapping, Union
+import hashlib
+from typing import Any, Awaitable, Union
 
 import jinja2
 import tornado.web
@@ -22,6 +23,13 @@ from libs.log import Log
 logger_web_handler = Log('QD.Web.Handler').getlogger()
 
 __ALL__ = ['HTTPError', 'BaseHandler', 'BaseWebSocket', 'BaseUIModule', 'logger_Web_Handler', ]
+
+
+def session_version(password) -> str:
+    """由加密后的口令字段派生会话版本, 改密后旧会话自动失效。"""
+    if isinstance(password, str):
+        password = password.encode('utf-8')
+    return hashlib.sha256(password or b'').hexdigest()[:16]
 
 
 class _BaseHandler(tornado.web.RequestHandler):
@@ -70,15 +78,68 @@ class _BaseHandler(tornado.web.RequestHandler):
         return utils.ip2varbinary(self.request.remote_ip, utils.is_ip(self.request.remote_ip))
 
     def get_current_user(self):
+        """Cookie 中只保存用户 id 与会话版本, 角色/状态等一律以数据库为准。"""
         ret = self.get_secure_cookie('user', max_age_days=config.cookie_days)
         if not ret:
-            return ret
-        user = umsgpack.unpackb(ret)
+            return None
         try:
-            user['isadmin'] = 'admin' in user['role'] if isinstance(user, Union[Mapping, MutableMapping]) and user.get('role') else False
+            payload = umsgpack.unpackb(ret)
         except Exception as e:
             logger_web_handler.debug(e, exc_info=config.traceback_print)
             return None
+        if not isinstance(payload, dict):
+            return None
+        userid = payload.get('id')
+        if isinstance(userid, bool) or not isinstance(userid, int) or userid <= 0:
+            return None
+        return payload
+
+    async def load_current_user(self):
+        """按 Cookie 中的 id 查库, 角色/状态/会话版本都以数据库为准。"""
+        payload = self.get_current_user()
+        if not payload:
+            self._drop_stale_cookie()
+            self.current_user = None
+            return None
+        try:
+            user = await self.db.user.get(
+                payload['id'],
+                fields=('id', 'email', 'nickname', 'role', 'status', 'password'),
+            )
+        except Exception as e:
+            # 数据库临时异常时不清 Cookie, 避免误踢已登录用户
+            logger_web_handler.debug(e, exc_info=config.traceback_print)
+            self.current_user = None
+            return None
+        if not user:
+            self._drop_stale_cookie()
+            self.current_user = None
+            return None
+        # 账号被禁用后立即失效 (管理员仍可用, 与登录页判断保持一致)
+        if user.get('status') != 'Enable' and user.get('role') != 'admin':
+            self._drop_stale_cookie()
+            self.current_user = None
+            return None
+        version = payload.get('v')
+        if version is not None and version != session_version(user.get('password')):
+            self._drop_stale_cookie()
+            self.current_user = None
+            return None
+        user['isadmin'] = 'admin' in user['role'] if user.get('role') else False
+        user.pop('password', None)
+        self.current_user = user
+        return user
+
+    def _drop_stale_cookie(self):
+        """清理已失效的会话 Cookie, 下次请求直接回到登录页。"""
+        if self.get_cookie('user'):
+            self.clear_cookie('user')
+
+    def require_admin(self):
+        user = self.current_user
+        if not user or not user.get('isadmin'):
+            self.evil(+5)
+            raise HTTPError(403)
         return user
 
     def permission(self, obj, mode='r'):
@@ -104,13 +165,12 @@ class BaseHandler(_BaseHandler):
     application_export = set(('db', 'fetcher'))
     fetcher: fetcher.Fetcher
 
-    def prepare(self):
+    async def prepare(self):
+        await self.load_current_user()
         if config.debug:
             return
         user = self.current_user
-        userid = None
-        if user:
-            userid = user['id']
+        userid = user['id'] if user else None
         if self.db.redis.is_evil(self.ip, userid):
             raise HTTPError(403)
 
@@ -125,13 +185,12 @@ class BaseHandler(_BaseHandler):
 
 
 class BaseWebSocketHandler(_BaseHandler, tornado.websocket.WebSocketHandler):
-    def prepare(self):
+    async def prepare(self):
+        await self.load_current_user()
         if config.debug:
             return
         user = self.current_user
-        userid = None
-        if user:
-            userid = user['id']
+        userid = user['id'] if user else None
         if self.db.redis.is_evil(self.ip, userid):
             self.set_status(403)
             self.finish('Forbidden: iP or userid arrived at the limit of evil')
