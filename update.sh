@@ -363,11 +363,25 @@ list_remote_tags() {
 
 # 无 .git 时的代码更新：下载归档包覆盖代码，config/ 是挂载点不能动
 update_tarball() {
-    uri="https://gitee.com/qd-today/qd/repository/archive/${remoteversion}.tar.gz"
     tmp=$(mktemp -d)
-    echo "Info: 下载 ${uri}"
-    if ! wget -qO- "${uri}" | tar xz -C "${tmp}" 2>/dev/null; then
-        echo "Error: 下载或解压失败: ${uri}"
+    # gitee 会间歇限流（同一个 URL 刚才成功、这次 502），所以多源重试：
+    # GitHub 的 tarball API 优先，回退 gitee；每个源试两次。
+    _ok=0
+    for _base in \
+        "https://api.github.com/repos/qd-today/qd/tarball/${remoteversion}" \
+        "https://gitee.com/qd-today/qd/repository/archive/${remoteversion}.tar.gz"; do
+        for _try in 1 2; do
+            echo "Info: 下载 ${_base}（第 ${_try} 次）"
+            if wget -qO- --timeout=120 "${_base}" 2>/dev/null | tar xz -C "${tmp}" 2>/dev/null; then
+                _ok=1
+                break
+            fi
+            sleep 3
+        done
+        [ "$_ok" = "1" ] && break
+    done
+    if [ "$_ok" != "1" ]; then
+        echo "Error: 下载或解压失败: ${remoteversion}" >&2
         rm -rf "${tmp}"
         return 1
     fi
