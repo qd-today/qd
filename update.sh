@@ -222,8 +222,16 @@ install_deps_alpine() {
     # 用 pyproject 的 requires-python 决定解释器版本，让 uv 自己取（本地没有就下载）。
     # 写死 python3 会绑到系统那个——旧镜像里是 3.11，和 cp314 的 wheel 对不上。
     _pyver=$(sed -n 's/^requires-python = ">=\([0-9.]*\)".*/\1/p' pyproject.toml 2>/dev/null | head -1)
-    echo "Info: 创建/更新 .venv（python ${_pyver:-3.14}）"
-    uv venv .venv --python "${_pyver:-3.14}" --allow-existing \
+    _pyver=${_pyver:-3.14}
+    # 系统解释器版本不够（旧镜像里是 3.11）时显式装一个：uv 自己下的解释器
+    # 放在 ~/.local/share/uv/python，容器可写层里能留住；重建容器会重装。
+    if ! uv python find "${_pyver}" >/dev/null 2>&1; then
+        echo "Info: 系统没有 Python ${_pyver}，用 uv 安装"
+        uv python install "${_pyver}" \
+            || { echo "Error: 安装 Python ${_pyver} 失败" >&2; return 1; }
+    fi
+    echo "Info: 创建/更新 .venv（python ${_pyver}）"
+    uv venv .venv --python "${_pyver}" --allow-existing \
         || { echo "Error: 创建或更新 .venv 失败" >&2; return 1; }
 
     # requirements.txt 由 lock 导出，不提交到仓库，避免「lock 改了文件没跟上」。
