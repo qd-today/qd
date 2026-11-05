@@ -312,8 +312,15 @@ install_deps_glibc() {
         [ -x "$HOME/.local/bin/uv" ] && PATH="$HOME/.local/bin:$PATH" && export PATH
         command -v uv >/dev/null 2>&1 || { echo "Error: uv 安装失败" >&2; return 1; }
     fi
+    # 与 Alpine 分支动作一致：同样装 OCR extra，同样锁到 requires-python 的下界
+    # （不锁的话 uv 会取全局最新，可能装出 3.15 而镜像里是 3.14）。
+    _pyver=$(sed -n 's/^requires-python = ">=\([0-9.]*\)".*/\1/p' pyproject.toml 2>/dev/null | head -1)
+    _pyver=${_pyver:-3.14}
+    uv python install "${_pyver}" >/dev/null 2>&1 || true
+
     # glibc 上 PyPI 的 manylinux 轮子齐全，不需要我们的 musllinux 那份
-    uv sync --frozen || { echo "Error: uv sync 失败" >&2; return 1; }
+    uv sync --frozen --python "${_pyver}" --extra ocr \
+        || { echo "Error: uv sync 失败" >&2; return 1; }
     echo "Info: 提示——PyPI 的 pycurl 不含 IMPERSONATE 补丁，ja3 线在此形态下不可用"
     return 0
 }
