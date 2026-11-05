@@ -326,8 +326,9 @@ update_tarball() {
     # config/ 是 VOLUME 挂载点：既不能删（Resource busy）也不该被归档覆盖，
     # 归档里的 config 只有 .gitkeep，直接丢弃，用户的配置原样保留
     rm -rf "${src}/config"
-    cp -a "${src}/." /usr/src/app/
-    chmod +x /usr/src/app/update.sh 2>/dev/null || true
+    # 用脚本所在目录而不是写死 /usr/src/app：裸机部署时目录不是这个
+    cp -a "${src}/." "${_dir}/"
+    chmod +x "${_dir}/update.sh" 2>/dev/null || true
     rm -rf "${tmp}"
 }
 
