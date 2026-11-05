@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 1. Bugfix(safe_eval): 🐛 补齐 Python 3.12~3.14 新增的字节码操作码, 修复模板条件与 while 条件求值报 `forbidden opcode(s)`: `LOAD_SMALL_INT`/`TO_BOOL`/`NOT_TAKEN` 等
 2. Bugfix(safe_eval): 🔒 `CALL_INTRINSIC_1` 改为按操作数放行, 继续拦截 `from x import *` (3.12 起改用 `INTRINSIC_IMPORT_STAR`)
+3. Bugfix(safe_eval): 🔒 `dateutil` 收敛为显式白名单, `gettz` 换成按 key 查 tzdata 的 `ZoneInfo`, 不再暴露 `zoneinfo` 模块
 
 ## [20250803] - 2025.08.03 更新
 

@@ -200,6 +200,16 @@ class TestSafeEvalOpcodes(unittest.TestCase):
         missing = required - set(se._UNSAFE_ATTRIBUTES)
         self.assertFalse(missing, f'_UNSAFE_ATTRIBUTES 缺少自省属性: {sorted(missing)}')
 
+    def test_module_wrappers_are_minimal(self):
+        """dateutil 只暴露白名单属性；gettz 换成 ZoneInfo，不接受文件路径。"""
+        self.assertEqual(sorted(set(vars(se.dateutil.tz)) - {'_repr'}), ['UTC', 'gettz', 'tzutc'])
+        self.assertEqual(sorted(set(vars(se.dateutil.parser)) - {'_repr'}), ['isoparse', 'parse'])
+        self.assertIs(se.dateutil.tz.gettz, __import__('zoneinfo').ZoneInfo)
+        with self.assertRaises(ValueError):
+            se.dateutil.tz.gettz('/etc/passwd')
+        # zoneinfo 不再作为模块级属性暴露，求值命名空间里也就摸不到它
+        self.assertFalse(hasattr(se, 'zoneinfo'))
+
     def test_blacklist_never_leaks(self):
         leaks = se._BLACKLIST & se._SAFE_OPCODES
         self.assertFalse(leaks, f'黑名单操作码混进了白名单: {sorted(leaks)}')

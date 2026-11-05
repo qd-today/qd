@@ -699,13 +699,20 @@ class WrapModule:
 mods = ['parser', 'relativedelta', 'rrule', 'tz']
 for mod in mods:
     __import__(f'dateutil.{mod}')
+
 datetime = WrapModule(__import__('datetime'), ['date', 'datetime', 'time', 'timedelta', 'timezone', 'tzinfo', 'MAXYEAR', 'MINYEAR'])
-dateutil = WrapModule(dateutil, {  # type: ignore
-    mod: getattr(dateutil, mod).__all__
-    for mod in mods
-})
 json = WrapModule(__import__('json'), ['loads', 'dumps'])
 time = WrapModule(__import__('time'), ['time', 'strptime', 'strftime', 'sleep'])
-zoneinfo = WrapModule(__import__('zoneinfo'), [
-    'ZoneInfo', 'available_timezones',
-])
+
+# dateutil 原来是「子模块 __all__ 全暴露」: 其中 tz.gettz 接受文件路径并去解析
+# tzfile, 等于给沙箱留了个文件读取入口, tz.TZPATH / enfold 之类也一并露在外面。
+# 这里与 upstream 一致改成显式白名单, gettz 换成按 key 查 tzdata 的 ZoneInfo:
+# 参数是时区名而不是路径, 绝对路径直接被拒。
+dateutil = WrapModule(dateutil, {  # type: ignore
+    'tz': ['UTC', 'tzutc'],
+    'parser': ['isoparse', 'parse'],
+    'relativedelta': ['relativedelta', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'],
+    'rrule': ['rrule', 'rruleset', 'rrulestr', 'YEARLY', 'MONTHLY', 'WEEKLY', 'DAILY',
+              'HOURLY', 'MINUTELY', 'SECONDLY', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'],
+})
+dateutil.tz.gettz = __import__('zoneinfo').ZoneInfo
