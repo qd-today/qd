@@ -219,19 +219,11 @@ install_deps_alpine() {
     fi
 
     # 用 uv 的默认位置创建虚拟环境，与镜像里的路径一致（/usr/src/app/.venv）
-    # 用 pyproject 的 requires-python 决定解释器版本，让 uv 自己取（本地没有就下载）。
-    # 写死 python3 会绑到系统那个——旧镜像里是 3.11，和 cp314 的 wheel 对不上。
-    _pyver=$(sed -n 's/^requires-python = ">=\([0-9.]*\)".*/\1/p' pyproject.toml 2>/dev/null | head -1)
-    _pyver=${_pyver:-3.14}
-    # 系统解释器版本不够（旧镜像里是 3.11）时显式装一个：uv 自己下的解释器
-    # 放在 ~/.local/share/uv/python，容器可写层里能留住；重建容器会重装。
-    if ! uv python find "${_pyver}" >/dev/null 2>&1; then
-        echo "Info: 系统没有 Python ${_pyver}，用 uv 安装"
-        uv python install "${_pyver}" \
-            || { echo "Error: 安装 Python ${_pyver} 失败" >&2; return 1; }
-    fi
-    echo "Info: 创建/更新 .venv（python ${_pyver}）"
-    uv venv .venv --python "${_pyver}" --allow-existing \
+    # 解释器版本由仓库根目录的 .python-version 决定（uv 的默认来源），
+    # 版本范围由 pyproject 的 requires-python 约束，脚本不自己解析。
+    # 系统解释器不满足时 uv 会按 .python-version 下载一个。
+    uv python install || { echo "Error: 安装 Python 失败" >&2; return 1; }
+    uv venv .venv --allow-existing \
         || { echo "Error: 创建或更新 .venv 失败" >&2; return 1; }
 
     # requirements.txt 由 lock 导出，不提交到仓库，避免「lock 改了文件没跟上」。
@@ -312,14 +304,10 @@ install_deps_glibc() {
         [ -x "$HOME/.local/bin/uv" ] && PATH="$HOME/.local/bin:$PATH" && export PATH
         command -v uv >/dev/null 2>&1 || { echo "Error: uv 安装失败" >&2; return 1; }
     fi
-    # 与 Alpine 分支动作一致：同样装 OCR extra，同样锁到 requires-python 的下界
-    # （不锁的话 uv 会取全局最新，可能装出 3.15 而镜像里是 3.14）。
-    _pyver=$(sed -n 's/^requires-python = ">=\([0-9.]*\)".*/\1/p' pyproject.toml 2>/dev/null | head -1)
-    _pyver=${_pyver:-3.14}
-    uv python install "${_pyver}" >/dev/null 2>&1 || true
-
-    # glibc 上 PyPI 的 manylinux 轮子齐全，不需要我们的 musllinux 那份
-    uv sync --frozen --python "${_pyver}" --extra ocr \
+    # 与 Alpine 分支一致：解释器看 .python-version，范围看 requires-python，
+    # 差别只在依赖来源（glibc 上 PyPI 的 manylinux 轮子齐全）。
+    uv python install >/dev/null 2>&1 || true
+    uv sync --frozen --extra ocr \
         || { echo "Error: uv sync 失败" >&2; return 1; }
     echo "Info: 提示——PyPI 的 pycurl 不含 IMPERSONATE 补丁，ja3 线在此形态下不可用"
     return 0

@@ -80,7 +80,6 @@ target/
 .ipynb_checkpoints
 
 # pyenv
-.python-version
 .idea/
 .vscode
 # celery beat schedule file
