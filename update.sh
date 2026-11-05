@@ -26,6 +26,20 @@ set -o nounset
 __ScriptVersion="2023.06.14"
 __ScriptName="update.sh"
 source_branch="master"
+
+# 镜像源参数。默认全部指向官方，不设置时行为与之前完全一致。
+#   PIP_INDEX              pip / uv 的包索引
+#   GH_RELEASE_MIRROR      三仓 wheel 的前缀（如 https://ghproxy.example/），空 = 直连
+#   UV_PYTHON_INSTALL_MIRROR  uv python install 的来源
+#   UV_INSTALL_URL         官方 uv 安装脚本地址（仅 glibc 且本地无 uv 时用）
+: "${PIP_INDEX:=https://pypi.org/simple}"
+: "${GH_RELEASE_MIRROR:=}"
+: "${UV_PYTHON_INSTALL_MIRROR:=}"
+: "${UV_INSTALL_URL:=https://astral.sh/uv/install.sh}"
+
+# uv 自己认这两个环境变量，命令里就不用重复传参
+export UV_DEFAULT_INDEX="${PIP_INDEX}"
+[ -n "${UV_PYTHON_INSTALL_MIRROR}" ] && export UV_PYTHON_INSTALL_MIRROR
 alpine_mirrors="ustc"
 
 #-----------------------------------------------------------------------
@@ -214,7 +228,7 @@ install_deps_alpine() {
         fi
         # alpine 的 py3-pip 标了 externally-managed（PEP 668），不加这个参数会被拒
         python3 -m pip install --no-cache-dir --break-system-packages uv \
-            --index-url "${PIP_MIRROR:-https://pypi.org/simple}" \
+            --index-url "${PIP_INDEX}" \
             || { echo "Error: pip install uv 失败" >&2; return 1; }
         command -v uv >/dev/null 2>&1 || { echo "Error: uv 不在 PATH 里" >&2; return 1; }
         echo "Info: uv 已通过 pip 安装（$(uv --version 2>&1 | head -1)）"
@@ -251,7 +265,7 @@ install_deps_alpine() {
     _fetch() {
         # 每个仓解压到自己的子目录：三个 tar 里的顶层目录都叫 wheels-<arch>，
         # 解压到同一处会互相覆盖，最后只剩一个仓的索引。
-        _url="https://github.com/qd-today/$1/releases/download/$2/$3-wheels-$_arch.tar.gz"
+        _url="${GH_RELEASE_MIRROR}https://github.com/qd-today/$1/releases/download/$2/$3-wheels-$_arch.tar.gz"
         echo "Info: 下载 $_url"
         mkdir -p "$_tmp/$1"
         wget -q "$_url" -O "$_tmp/$1/pkg.tar.gz" || { echo "Error: 下载 $1 失败" >&2; return 1; }
@@ -282,7 +296,7 @@ install_deps_alpine() {
     echo "Info: uv pip sync（按 requirements.txt 严格同步）"
     # shellcheck disable=SC2086
     uv pip sync --python .venv/bin/python --no-cache \
-        --index-url https://pypi.org/simple $_indexes "$_req"
+        --default-index "${PIP_INDEX}" $_indexes "$_req"
     _rc=$?
     rm -rf "$_tmp" "$_req"
     apk del .build_deps >/dev/null 2>&1
@@ -298,8 +312,8 @@ install_deps_glibc() {
     echo "Info: 检测到 glibc（Ubuntu / Debian 等），使用官方 uv 与 uv sync"
     if ! command -v uv >/dev/null 2>&1; then
         echo "Info: 安装 uv"
-        command -v curl >/dev/null 2>&1 && curl -LsSf https://astral.sh/uv/install.sh | sh \
-            || wget -qO- https://astral.sh/uv/install.sh | sh
+        command -v curl >/dev/null 2>&1 && curl -LsSf "${UV_INSTALL_URL}" | sh \
+            || wget -qO- "${UV_INSTALL_URL}" | sh
         # 官方安装脚本把 uv 放在 ~/.local/bin
         [ -x "$HOME/.local/bin/uv" ] && PATH="$HOME/.local/bin:$PATH" && export PATH
         command -v uv >/dev/null 2>&1 || { echo "Error: uv 安装失败" >&2; return 1; }
@@ -307,7 +321,7 @@ install_deps_glibc() {
     # 与 Alpine 分支一致：解释器看 .python-version，范围看 requires-python，
     # 差别只在依赖来源（glibc 上 PyPI 的 manylinux 轮子齐全）。
     uv python install >/dev/null 2>&1 || true
-    uv sync --frozen --extra ocr \
+    uv sync --frozen --extra ocr --default-index "${PIP_INDEX}" \
         || { echo "Error: uv sync 失败" >&2; return 1; }
     echo "Info: 提示——PyPI 的 pycurl 不含 IMPERSONATE 补丁，ja3 线在此形态下不可用"
     return 0
