@@ -16,9 +16,38 @@
 # CREATED: 2021-10-28 20:00:00
 #
 #=======================================================================
-_file=$(readlink -f "$0")
-_dir=$(dirname "${_file}")
+# 定位脚本自身路径：GNU readlink 支持 -f，macOS 自带的 BSD readlink 不支持
+if readlink -f "$0" >/dev/null 2>&1; then
+    _file=$(readlink -f "$0")
+else
+    _file="$(cd "$(dirname "$0")" && pwd -P)/$(basename "$0")"
+fi
+
+# 服务目录：脚本不一定就放在 QD 服务目录里（可能被拷到别处执行），
+# 所以按下面顺序定位，定位不到才回退到脚本所在目录。
+#   1. QD_HOME 环境变量（显式指定，优先级最高）
+#   2. 脚本所在目录（其中含 version.json 时）
+#   3. 当前工作目录（在其中含 version.json 时）
+#   4. 脚本所在目录（兜底）
+_script_dir=$(dirname "${_file}")
+if [ -n "${QD_HOME:-}" ]; then
+    if [ ! -d "${QD_HOME}" ]; then
+        echo "Error: QD_HOME 指向的目录不存在: ${QD_HOME}" >&2
+        exit 1
+    fi
+    _dir="${QD_HOME}"
+elif [ -f "${_script_dir}/version.json" ]; then
+    _dir="${_script_dir}"
+elif [ -f "$(pwd)/version.json" ]; then
+    _dir=$(pwd)
+else
+    _dir="${_script_dir}"
+fi
 cd "${_dir}" || exit
+if [ ! -f "${_dir}/version.json" ]; then
+    echo "Warn: ${_dir} 下没有 version.json，可能不是 QD 服务目录。" >&2
+    echo "      若 update.sh 不在服务目录里，请用 QD_HOME=/path/to/qd 指定服务目录。" >&2
+fi
 
 # Treat unset variables as an error
 set -o nounset
@@ -42,6 +71,11 @@ export UV_DEFAULT_INDEX="${PIP_INDEX}"
 [ -n "${UV_PYTHON_INSTALL_MIRROR}" ] && export UV_PYTHON_INSTALL_MIRROR
 alpine_mirrors="ustc"
 
+# 虚拟环境：依赖统一装在 <服务目录>/.venv，与镜像构建时的路径一致
+# （镜像里是 /usr/src/app/.venv，裸机部署时是 QD 服务目录）
+VENV_DIR="${_dir}/.venv"
+VENV_PYTHON="${VENV_DIR}/bin/python"
+
 #-----------------------------------------------------------------------
 # FUNCTION: usage
 # DESCRIPTION:  Display usage information.
@@ -62,6 +96,14 @@ Options:
   -l, --local                   Display Local version
   -r, --remote                  Display Remote version
 
+Environment:
+  QD_HOME                 QD 服务目录。脚本不在服务目录里时用它指定。
+  QD_VENV_PERSIST=1       让脚本把 PATH 提升写进 shell 启动文件（默认只临时提升，不改用户环境）。
+  PIP_INDEX               pip / uv 的包索引，如 https://pypi.tuna.tsinghua.edu.cn/simple
+  GH_RELEASE_MIRROR       三仓 wheel 的下载前缀，如 https://ghproxy.net/
+  UV_PYTHON_INSTALL_MIRROR  uv python install 的来源
+  UV_INSTALL_URL          官方 uv 安装脚本地址（仅 glibc 且本地无 uv 时用）
+
 Exit status:
   0   if OK,
   !=0 if serious problems.
@@ -79,7 +121,29 @@ EOT
 }   # ----------  end of function usage  ----------
 
 get_localversion() {
-    localversion=$(python -c 'import sys, json; print(json.load(open("version.json"))["version"])')
+    # 解释器优先级：虚拟环境 > python3 > python
+    # （Debian 默认只装 python3，没有 python 这个名字）
+    _py=""
+    if [ -x "${VENV_PYTHON}" ]; then
+        _py="${VENV_PYTHON}"
+    else
+        for _c in python3 python; do
+            if command -v "${_c}" >/dev/null 2>&1; then
+                _py="${_c}"
+                break
+            fi
+        done
+    fi
+    if [ -z "${_py}" ]; then
+        echo "Error: 找不到 python 解释器" >&2
+        return 1
+    fi
+    localversion=$("${_py}" -c 'import sys, json; print(json.load(open("version.json"))["version"])' 2>/dev/null)
+    if [ -z "${localversion}" ]; then
+        echo "Error: 读取 ${_dir}/version.json 失败，当前目录可能不是 QD 服务目录。" >&2
+        echo "       若 update.sh 不在服务目录里，请用 QD_HOME=/path/to/qd 指定服务目录。" >&2
+        return 1
+    fi
 }
 
 update_out_alpine() {
@@ -138,6 +202,118 @@ read_release_args() {
     echo "Info: 依赖版本取自 Dockerfile —— pycurl=${_pycurl_prefix}${_pycurl} ddddocr=${_ddddocr:-无} onnxruntime=${_onnx:-无}"
 }
 
+#---------------------------------------------------------------------
+# FUNCTION: sed_inplace
+# DESCRIPTION: 跨平台的 sed 原地替换：BSD sed（macOS 自带）要求 -i 后跟一个
+#              空后缀参数，GNU sed 与 busybox sed 则是 -i 无后缀。
+#---------------------------------------------------------------------
+sed_inplace() {
+    if [ "$(uname -s)" = "Darwin" ]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
+#---------------------------------------------------------------------
+# FUNCTION: venv_path_prepend
+# DESCRIPTION: 临时把虚拟环境的 bin 提到 PATH 最前。
+#              只影响当前脚本及其子进程，退出后不保留。
+#---------------------------------------------------------------------
+venv_path_prepend() {
+    case ":${PATH}:" in
+        *":${VENV_DIR}/bin:"*) ;;
+        *) PATH="${VENV_DIR}/bin:${PATH}"; export PATH ;;
+    esac
+}
+
+#---------------------------------------------------------------------
+# FUNCTION: venv_path_persist
+# DESCRIPTION: 把 PATH 提升写进 shell 启动文件，让登录 / 交互 shell 自动生效。
+#              属于对用户环境的改动，默认不调用，只在 QD_VENV_PERSIST=1 时由
+#              declare_venv 触发。写的是可撤销的独立标记块，重复执行幂等。
+#              Alpine 的 /etc/profile 会 source /etc/profile.d/*.sh（登录 shell）；
+#              bash 交互 shell 读 ~/.bashrc；busybox ash 交互 shell 读 $ENV 指向的文件。
+#---------------------------------------------------------------------
+venv_path_persist() {
+    _tmp=$(mktemp "${TMPDIR:-/tmp}/qd-venv.XXXXXX" 2>/dev/null || mktemp) \
+        || { echo "Error: 无法创建临时文件" >&2; return 1; }
+    # 先把配置块写进临时文件，再用 sed 替换占位符：
+    # heredoc 直接重定向到文件，不嵌在命令替换里，兼容旧版 bash 的解析
+    cat > "${_tmp}" << 'EOT'
+# BEGIN qd virtualenv (auto-generated by update.sh)
+if [ -x "__VENV_DIR__/bin/python" ]; then
+    case ":${PATH}:" in
+        *":__VENV_DIR__/bin:"*) ;;
+        *) PATH="__VENV_DIR__/bin:${PATH}"; export PATH ;;
+    esac
+    export VIRTUAL_ENV="__VENV_DIR__"
+    # busybox ash 的交互 shell 读 $ENV 指向的文件，不读 ~/.ashrc
+    if [ -z "${ENV:-}" ] && [ -r "__HOME__/.ashrc" ]; then
+        export ENV="__HOME__/.ashrc"
+    fi
+fi
+# END qd virtualenv
+EOT
+    sed_inplace "s|__VENV_DIR__|${VENV_DIR}|g; s|__HOME__|${HOME:-/root}|g" "${_tmp}"
+    _targets="/etc/profile.d/qd-venv.sh ${HOME:-/root}/.profile ${HOME:-/root}/.ashrc ${HOME:-/root}/.bashrc"
+    for _t in ${_targets}; do
+        _t_dir=$(dirname "${_t}")
+        [ -d "${_t_dir}" ] || mkdir -p "${_t_dir}" 2>/dev/null || continue
+        # 幂等：先删掉旧的同名块，再追加新块
+        if [ -f "${_t}" ] && grep -q "^# BEGIN qd virtualenv" "${_t}" 2>/dev/null; then
+            sed_inplace '/^# BEGIN qd virtualenv/,/^# END qd virtualenv/d' "${_t}" 2>/dev/null || true
+        fi
+        cat "${_tmp}" >> "${_t}" 2>/dev/null && echo "Info: PATH 优先级已写入 ${_t}"
+    done
+    rm -f "${_tmp}"
+}
+
+#---------------------------------------------------------------------
+# FUNCTION: in_container
+# DESCRIPTION: 判断当前是否在容器里，用于给出不同的 PATH 生效指引。
+#---------------------------------------------------------------------
+in_container() {
+    [ -f /.dockerenv ] || [ -f /run/.containerenv ]
+}
+
+#---------------------------------------------------------------------
+# FUNCTION: declare_venv
+# DESCRIPTION: 声明当前 Python 运行在虚拟环境中，并提升 PATH 中该解释器的优先级。
+#              永久生效属于改用户 shell 环境，默认不做，只在 QD_VENV_PERSIST=1
+#              时由脚本代写；其余情况只给出指引，由用户自己决定。
+#---------------------------------------------------------------------
+declare_venv() {
+    if [ ! -x "${VENV_PYTHON}" ]; then
+        echo "Warn: 未找到虚拟环境解释器: ${VENV_PYTHON}"
+        return 1
+    fi
+    # 声明 + 临时提升（只影响当前脚本及其子进程，脚本退出后不保留）
+    export VIRTUAL_ENV="${VENV_DIR}"
+    venv_path_prepend
+    echo "Info: 当前 Python 运行于虚拟环境: ${VENV_DIR}"
+    echo "Info:   解释器: ${VENV_PYTHON} ($("${VENV_PYTHON}" -V 2>&1))"
+    echo "Info:   PATH 优先级: ${VENV_DIR}/bin 在本次执行的 PATH 中置顶（脚本退出后不保留）"
+    # 永久生效默认不写：改用户的 shell 启动文件是侵入性操作，需显式要求
+    if [ "${QD_VENV_PERSIST:-0}" = "1" ]; then
+        venv_path_persist
+    fi
+    echo "Info: 提示: 在当前 shell 里使用该解释器，可执行:"
+    echo "      export PATH=\"${VENV_DIR}/bin:\${PATH}\""
+    echo "      export VIRTUAL_ENV=\"${VENV_DIR}\""
+    echo "      # 或 source ${VENV_DIR}/bin/activate"
+    if in_container; then
+        echo "Info: 提示: 容器启动命令若是 sh -c \"python run.py\"（非登录 shell，不读启动文件），"
+        echo "      请在 compose 里加 environment: PATH=${VENV_DIR}/bin:\$PATH，"
+        echo "      或把启动命令改为 ${VENV_PYTHON} run.py"
+    else
+        echo "Info: 提示: 需要长期生效时，把上面的 export 写进 ~/.bashrc（或 ~/.profile）；"
+        echo "      脚本默认不改你的 shell 启动文件，设 QD_VENV_PERSIST=1 可由脚本代写"
+        echo "Info: 提示: 若服务由 systemd / supervisor 之类拉起，请在它的启动命令里用"
+        echo "      ${VENV_PYTHON} run.py"
+    fi
+}
+
 install_deps_uv() {
     # 容器与裸机动作一致：按 libc 选依赖来源，不看是否在容器里。
     #   musl（Alpine 容器 / Alpine 裸机 / 旧镜像）-> apk uv + 本地 wheelhouse
@@ -159,6 +335,14 @@ deps_stamp() {
     echo "${_pycurl_prefix}${_pycurl}|${_ddddocr}|${_onnx}"
 }
 
+# glibc 分支的依赖由 uv.lock 决定（不走 wheelhouse），用 lock 的校验和做同样的比对。
+# cksum 是 POSIX 命令，Alpine / Debian / macOS 都有。
+deps_stamp_lock() {
+    if [ -f "${_dir}/uv.lock" ]; then
+        cksum "${_dir}/uv.lock" 2>/dev/null | awk '{print $1"-"$2}'
+    fi
+}
+
 install_deps_alpine() {
     echo "Info: 检测到 musl（Alpine），使用本地 wheelhouse 安装依赖"
     read_release_args || return 1
@@ -167,10 +351,11 @@ install_deps_alpine() {
     # 与当前 Dockerfile 比——不依赖任何落盘的状态文件。
     # 除了版本没变，还要确认依赖真的装过：空的 .venv（比如刚 python -m venv 建的）
     # 同样满足「版本没变」，跳过就会留下一个没装包的 venv。pycurl 是必装项，用它当标志。
-    if [ -f .venv/pyvenv.cfg ] && [ -n "${_old_deps_stamp:-}" ] \
+    if [ -f "${VENV_DIR}/pyvenv.cfg" ] && [ -n "${_old_deps_stamp:-}" ] \
         && [ "${_old_deps_stamp}" = "$(deps_stamp)" ] \
-        && ls .venv/lib/python*/site-packages/pycurl* >/dev/null 2>&1; then
+        && ls "${VENV_DIR}"/lib/python*/site-packages/pycurl* >/dev/null 2>&1; then
         echo "Info: Dockerfile 的依赖版本未变，跳过下载与安装"
+        declare_venv || true
         return 0
     fi
 
@@ -207,7 +392,7 @@ install_deps_alpine() {
     # 版本范围由 pyproject 的 requires-python 约束，脚本不自己解析。
     # 系统解释器不满足时 uv 会按 .python-version 下载一个。
     uv python install || { echo "Error: 安装 Python 失败" >&2; return 1; }
-    uv venv .venv --allow-existing \
+    uv venv "${VENV_DIR}" --allow-existing \
         || { echo "Error: 创建或更新 .venv 失败" >&2; return 1; }
 
     # requirements.txt 由 lock 导出，不提交到仓库，避免「lock 改了文件没跟上」。
@@ -263,7 +448,7 @@ install_deps_alpine() {
 
     echo "Info: uv pip sync（按 requirements.txt 严格同步）"
     # shellcheck disable=SC2086
-    uv pip sync --python .venv/bin/python --no-cache \
+    uv pip sync --python "${VENV_PYTHON}" --no-cache \
         --default-index "${PIP_INDEX}" $_indexes "$_req"
     _rc=$?
     rm -rf "$_tmp" "$_req"
@@ -273,11 +458,19 @@ install_deps_alpine() {
         echo "Error: 依赖安装失败" >&2
         return $_rc
     fi
+    declare_venv || true
     return 0
 }
 
 install_deps_glibc() {
     echo "Info: 检测到 glibc（Ubuntu / Debian 等），使用官方 uv 与 uv sync"
+    # 依赖由 uv.lock 决定：lock 没变且 venv 已就位就跳过，避免每次重复执行都重装一遍
+    if [ -n "${_old_lock_stamp:-}" ] && [ "${_old_lock_stamp}" = "$(deps_stamp_lock)" ] \
+        && [ -x "${VENV_PYTHON}" ]; then
+        echo "Info: uv.lock 未变，跳过依赖同步"
+        declare_venv || true
+        return 0
+    fi
     if ! command -v uv >/dev/null 2>&1; then
         echo "Info: 安装 uv"
         command -v curl >/dev/null 2>&1 && curl -LsSf "${UV_INSTALL_URL}" | sh \
@@ -303,6 +496,7 @@ install_deps_glibc() {
     uv sync --frozen --extra ocr --default-index "${PIP_INDEX}" \
         || { echo "Error: uv sync 失败" >&2; return 1; }
     echo "Info: 提示——PyPI 的 pycurl 不含 IMPERSONATE 补丁，ja3 线在此形态下不可用"
+    declare_venv || true
     return 0
 }
 
@@ -388,7 +582,7 @@ is_commit() {
         *[!0-9a-f]*|"") return 1 ;;
     esac
     [ ${#1} -ge 7 ] && [ ${#1} -le 40 ] || return 1
-    # qd 的 tag 是纯数字（如 20250803），也符合 hex 的形式。先排除已知 tag，
+    # qd 的 tag 是纯数字（如 20261108），也符合 hex 的形式。先排除已知 tag，
     # 否则指定 tag 会被当成 commit 处理，跳过版本比较与降级确认。
     # 不调 git cat-file——镜像里没有 .git，这里必须能离线判断。
     ! list_remote_tags 2>/dev/null | grep -qx "$1"
@@ -419,14 +613,14 @@ update_git() {
 }
 
 update() {
-    get_localversion
+    get_localversion || exit 1
     # 判断是否包含输入参数
     if [ "$#" != 0 ];then
         if [ "$1" = "force" ];then
             # 强制更新
             remoteversion=${source_branch}
             echo -e "Info: 正在强制更新中, 请稍候..."
-            _old_deps_stamp=$(deps_stamp) && \
+            _old_deps_stamp=$(deps_stamp) && _old_lock_stamp=$(deps_stamp_lock) && \
             update_git && \
             cleanup_legacy_files && \
             install_deps_uv && \
@@ -442,7 +636,7 @@ update() {
                     # 指定 commit：不参与版本比较。commit 没有版本号语义，可能比当前
                     # 新也可能旧，硬套 awk 的数字比较会把它误判成「降级」并要求交互确认。
                     echo -e "Info: 切换到 commit ${remoteversion}, 请稍候..."
-                    _old_deps_stamp=$(deps_stamp) && \
+                    _old_deps_stamp=$(deps_stamp) && _old_lock_stamp=$(deps_stamp_lock) && \
             update_git && \
                     cleanup_legacy_files && \
                     install_deps_uv && \
@@ -458,7 +652,7 @@ update() {
                         [yY][eE][sS]|[yY])
                             # 进入更新流程
                             echo -e "Info: 正在更新中, 请稍候..."
-                            _old_deps_stamp=$(deps_stamp) && \
+                            _old_deps_stamp=$(deps_stamp) && _old_lock_stamp=$(deps_stamp_lock) && \
             update_git && \
                             cleanup_legacy_files && \
                             install_deps_uv && \
@@ -477,7 +671,7 @@ update() {
                     esac
                 else
                     echo -e "Info: 正在强制切换至指定Tag版本: $1, 请稍候..."
-                    _old_deps_stamp=$(deps_stamp) && \
+                    _old_deps_stamp=$(deps_stamp) && _old_lock_stamp=$(deps_stamp_lock) && \
             update_git && \
                     cleanup_legacy_files && \
                     install_deps_uv && \
@@ -495,7 +689,7 @@ update() {
         remoteversion=$(list_remote_tags | sort -r | head -n 1)
         if [ "$(echo "$localversion" "$remoteversion" | awk '$1>=$2 {print 0} $1<$2 {print 1}')" == 1 ];then
             echo -e "Info: 当前版本: $localversion \nInfo: 新版本: $remoteversion \nInfo: 正在更新中, 请稍候..."
-            _old_deps_stamp=$(deps_stamp) && \
+            _old_deps_stamp=$(deps_stamp) && _old_lock_stamp=$(deps_stamp_lock) && \
             update_git && \
             cleanup_legacy_files && \
             install_deps_uv && \
@@ -509,12 +703,50 @@ update() {
 }
 
 
-if [ $# == 0 ]; then update; exit 0; fi
+# 主流程收进函数里，末尾再调用。
+# 原因：脚本执行过程中会用 git reset --hard 覆盖自身（代码更新到新版本），
+# 而 bash 是逐行读取脚本文件的——文件被换掉后继续按原偏移量读，会执行到
+# 错位的代码（实测会重复执行一段逻辑）。函数体在首次解析时就被完整读入
+# 内存，之后文件怎么变都不影响本次执行。
+main() {
+if [ $# == 0 ]; then update || exit 1; exit 0; fi
 
 # parse options:
-RET=$(getopt -o hsm:uv:flr \
-    --long help,script-version,mirrors-alpine:,update,version:,force,local,remote \
-    -n ' * ERROR' -- "$@")
+# 长选项需要 GNU getopt：macOS 自带的是 BSD getopt，不认 --long。
+# 装了 gnu-getopt（brew）时优先用 ggetopt；没有的话长选项明确提示，
+# 短选项（-f / -l / -m / -v / -u）仍然可用。
+# 约定：
+#   -o 写成紧跟形式（-ohsm:uv:flr）：BSD getopt 只认这种，GNU / busybox 都认
+#   --long 用等号形式（--long=a,b）：busybox getopt 只认这种，GNU 也认
+# 选项串直接写死在这里，不用变量拼接：变量展开会让 ' * ' 之类被 glob 展开，
+# 把当前目录的文件名当成参数传给 getopt。
+_getopt_bin=getopt
+command -v ggetopt >/dev/null 2>&1 && _getopt_bin=ggetopt
+_getopt_bsd=""
+if ! printf '%s\n' "--help" 2>/dev/null | "${_getopt_bin}" -oh --long=help -- >/dev/null 2>&1; then
+    # BSD getopt（macOS 自带）：既不认 --long，也不认 -o，
+    # optstring 必须直接作为第一个参数。
+    _getopt_bsd="yes"
+    for _arg in "$@"; do
+        case "${_arg}" in
+            --*)
+                echo "Error: 长选项需要 GNU getopt（macOS 自带的 BSD getopt 不支持）。" >&2
+                echo "       可执行 'brew install gnu-getopt' 让 ggetopt 优先于 getopt，" >&2
+                echo "       或改用短选项：-f / -l / -m / -v / -u。" >&2
+                exit 1
+                ;;
+        esac
+    done
+fi
+if [ -n "${_getopt_bsd}" ]; then
+    # BSD getopt 自己会输出结尾的 --，不能再把 -- 当输入传给它，
+    # 否则它会把 -- 当成普通参数排在最前面，选项就匹配不上了。
+    RET=$("${_getopt_bin}" hsm:uv:flr "$@")
+else
+    RET=$("${_getopt_bin}" -ohsm:uv:flr \
+        --long=help,script-version,mirrors-alpine:,update,version:,force,local,remote \
+        -- "$@")
+fi
 
 exitcode=$?
 if [ ${exitcode} != 0 ] ; then echo "Error: $__ScriptName exited with doing nothing." >&2 ; usage; exit 1 ; fi
@@ -531,17 +763,20 @@ while true; do
 
         -m | --mirrors-alpine ) set_alpine_mirrors "$2"; shift 2;;
 
-        -u | --update ) update; exit 0 ;;
+        -u | --update ) update || exit 1; exit 0 ;;
 
-        -v | --version ) update "$2"; exit 0 ;;
+        -v | --version ) update "$2" || exit 1; exit 0 ;;
 
-        -f | --force ) update "force"; exit 0 ;;
+        -f | --force ) update "force" || exit 1; exit 0 ;;
 
-        -l | --local ) get_localversion; echo "当前版本: ${localversion}"; shift ;;
+        -l | --local ) get_localversion || exit 1; echo "当前版本: ${localversion}"; break ;;
 
-        -r | --remote ) echo "远程版本: $(git ls-remote --tags origin | grep -o 'refs/tags/[0-9]*' | sort -r | head -n 1 | grep -o '[^\/]*$')"; shift ;;
+        -r | --remote ) echo "远程版本: $(list_remote_tags | sort -r | head -n 1)"; break ;;
 
         -- ) shift; break ;;
         * ) echo "Error: internal error!" ; exit 1 ;;
      esac
 done
+}
+
+main "$@"
