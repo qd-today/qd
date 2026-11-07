@@ -70,8 +70,10 @@ jobs:
           set -euo pipefail
           curl -sSL -H 'Cache-Control: no-cache' \
             https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash
+          # 安装脚本在 runner 上装到 /usr/local/bin，非 runner 环境可能装到 ~/.local/bin；
+          # 两个都加进 PATH，不强依赖具体位置。
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-          "$HOME/.local/bin/fossa" --version
+          fossa --version || true
 
       - name: Analyze and upload
         run: |
