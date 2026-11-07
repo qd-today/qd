@@ -189,19 +189,7 @@ jobs:
           python3 .github/workflows/scripts/verify_manifests.py \
             --expect "$EXPECT_PLATFORMS" \
             $REFS
-      - name: Clean up untagged manifests in GHCR
-        # 构建期按 digest 推到 ghcr、不打 tag；发布成功后这些 digest 被 index 引用，
-        # 只有失败或半途而废的才会悬空。delete-only-untagged-versions 恰好只清这类。
-        # Docker Hub / MIRROR 不需要清理：它们只由 publish 写正式 tag，从不产生悬空 manifest。
-        #
-        # min-versions-to-keep 留 40：Package 与 Ja3 两个 workflow 共用 ghcr 包 qd，
-        # 若一条线正在构建、另一条线同时在清理，设 0 会把对方刚推的 digest 删掉。
-        # 单条线一次最多产生 8 个组 × 2 变体 = 16 个悬空 digest，留 40 足够隔离。
-        if: always()
-        continue-on-error: true
-        uses: actions/delete-package-versions@v5
-        with:
-          package-name: qd
-          package-type: container
-          min-versions-to-keep: 40
-          delete-only-untagged-versions: 'true'
+      # 不要清理 GHCR 的 untagged 版本。push-by-digest 推上去的 per-arch 子清单
+      # 本身就是「无 tag 版本」，但它们正是 tagged index 的内容；
+      # actions/delete-package-versions 只按 tag 筛、不检查引用关系，会把子清单当垃圾删掉，
+      # 留下 index 还在、子清单全 404 的空壳 tag（见 issue #642）。
