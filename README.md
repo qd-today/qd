@@ -96,6 +96,16 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fqd-today%2Fqd.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fqd-today%2Fqd?ref=badge_large)
 
+容器镜像内随附第三方许可证文书，路径 `/usr/share/doc/third-party/`（每个组件仓一个子目录，
+含 `NOTICE.md`、`SOURCE-OFFER.md`、`licenses/`、`components.json`）。
+
+合规检查分两层承担：本仓库的 FOSSA 项目是 autobuild，覆盖 `pyproject.toml` / `uv.lock`
+这一层 Python 依赖；wheel 里由 auditwheel 收集进来的原生库（libcurl、libidn2、OpenCV 等）
+在 Python 依赖图中不可见，由生产这些 wheel 的三个组件仓
+（[onnxruntime](https://github.com/qd-today/onnxruntime-docker)、
+[ddddocr](https://github.com/qd-today/ddddocr-docker)、
+[pycurl](https://github.com/qd-today/pycurl-docker)）各自扫描并出具文书。
+
 致谢
 ===========
 
