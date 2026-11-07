@@ -29,7 +29,7 @@
   "homepage": "https://github.com/qd-today/qd#readme",
   "dependencies": {
     "curl2har": "npm:@a76yyyy/curl-to-har@^0.0.24",
-    "qs": "^6.16.1",
+    "qs": "^6.16.2",
     "tough-cookie": "^4.1.4",
     "url": "^0.11.4"
   },
