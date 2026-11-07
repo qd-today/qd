@@ -94,7 +94,7 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 
 [MIT](https://fastly.jsdelivr.net/gh/qd-today/qd@master/LICENSE) 许可协议
 
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fqd-today%2Fqd.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fqd-today%2Fqd?ref=badge_large)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B38165%2Fqd.svg?type=large)](https://app.fossa.com/projects/custom%2B38165%2Fqd?ref=badge_large)
 
 容器镜像内随附第三方许可证文书，路径 `/usr/share/doc/third-party/`（每个组件仓一个子目录，
 含 `NOTICE.md`、`SOURCE-OFFER.md`、`licenses/`、`components.json`）。
