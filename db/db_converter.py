@@ -184,8 +184,10 @@ class DBconverter:
 
         if config.db_type == "sqlite3":
             autokey = "AUTOINCREMENT"
+            content_type = "TEXT"
         else:
             autokey = "AUTO_INCREMENT"
+            content_type = "MEDIUMTEXT"
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             await exec_shell(
@@ -305,7 +307,7 @@ class DBconverter:
                 `name` TEXT ,
                 `author` TEXT ,
                 `comments` TEXT ,
-                `content` TEXT ,
+                `content` {content_type} ,
                 `filename` TEXT,
                 `date` TEXT,
                 `version` TEXT,
@@ -843,5 +845,21 @@ class DBconverter:
                             init_env=json.dumps(init_env),
                             sql_session=sql_session,
                         )
+
+        # MySQL 存量库的 pubtpl.content 可能是 TEXT(64KB)，大模板的 base64 会触发 1406；
+        # 仅在类型不是 MEDIUMTEXT 时变更，避免每次启动都重建表。
+        if config.db_type != "sqlite3":
+            try:
+                result = await exec_shell(
+                    "SELECT DATA_TYPE FROM information_schema.COLUMNS "
+                    "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pubtpl' "
+                    "AND COLUMN_NAME = 'content'"
+                )
+                if (result.scalar() or "").lower() != "mediumtext":
+                    await exec_shell(
+                        "ALTER TABLE `pubtpl` MODIFY `content` MEDIUMTEXT NULL"
+                    )
+            except Exception as e:
+                logger_db_converter.debug(e)
 
         return

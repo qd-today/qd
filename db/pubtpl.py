@@ -6,6 +6,7 @@
 # Created on 2014-08-08 19:53:09
 
 from sqlalchemy import Column, Integer, Text, delete, select, update
+from sqlalchemy.dialects.mysql import MEDIUMTEXT
 
 from db.basedb import AlchemyMixin, BaseDB
 
@@ -21,7 +22,7 @@ class Pubtpl(BaseDB, AlchemyMixin):
     name = Column(Text)
     author = Column(Text)
     comments = Column(Text)
-    content = Column(Text)
+    content = Column(Text().with_variant(MEDIUMTEXT, "mysql"))
     filename = Column(Text)
     date = Column(Text)
     version = Column(Text)
