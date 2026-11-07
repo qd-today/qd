@@ -52,7 +52,7 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 [docker-stars-url]: https://hub.docker.com/r/qdtoday/qd
 [docker-image-size-image]: https://img.shields.io/docker/image-size/qdtoday/qd/latest?style=flat&arch=amd64
 [docker-image-size-url]: https://hub.docker.com/r/qdtoday/qd
-[python-version-image]: https://img.shields.io/github/pipenv/locked/python-version/qd-today/qd
+[python-version-image]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fqd-today%2Fqd%2Fmaster%2Fpyproject.toml&query=project.requires-python&label=python&color=blue
 
 </div>
 
