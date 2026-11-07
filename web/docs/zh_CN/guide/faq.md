@@ -154,4 +154,5 @@ QD 使用 `pycurl` 模块来发送 HTTP Proxy 请求。如果没有安装 `pycur
 解决方法 2：更换 Github 加速源
 
 容器的环境变量中增加/修改 `SUBSCRIBE_ACCELERATE_URL=https://xxx.xxx/https://raw.githubusercontent.com/`
+
 `https://xxx.xxx/` 替换为可用的加速源，找不到加速源的可以参考 <https://ghproxy.link> 或 <https://gh-proxy.com> 中发布的加速源
