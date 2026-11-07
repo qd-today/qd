@@ -143,6 +143,75 @@ environment:
 >
 > `COOKIE_SECRET` is deprecated and ignored by default.
 
+## Rotate AES_KEY
+
+`AES_KEY` is the database data encryption key. It encrypts `user.userkey` (the stored user credentials) and the public template data whose `userid` is empty (`tpl.har` / `tpl.tpl` / `task.init_env` / `task.env`).
+
+The default value `binux` is public, so it is only acceptable for a fully isolated internal deployment; once the database or a backup leaks, the stored credentials can be decrypted offline.
+
+> **Changing the `AES_KEY` environment variable directly makes the existing data undecryptable**: logging in then fails with a 500 (`decrypt error`), and the saved tasks and public templates can no longer be read.
+> Existing data must be migrated to the new key with `tools/rotate_aes_key.py` before the environment variable is changed.
+
+The migration script decrypts with the old key, encrypts with the new one and verifies every row by reading it back; a single failure aborts the whole run and nothing is written. It only prints a dry run by default — add `--apply` to actually write.
+
+### Source code deployment
+
+Dependencies are managed by uv (the virtual environment lives in `.venv`), and the script has to be run from the repository root:
+
+``` sh
+cd /path/to/qd
+
+# 1. generate a new secret (once, keep it safe)
+openssl rand -hex 32
+
+# 2. stop the service and back up the database, then do a dry run
+.venv/bin/python -m tools.rotate_aes_key --old binux --new <new secret>
+
+# 3. apply it once the dry run output looks right
+.venv/bin/python -m tools.rotate_aes_key --old binux --new <new secret> --apply
+
+# 4. set AES_KEY=<new secret> and start the service again
+```
+
+For sqlite a `<database>.aes-<timestamp>.bak` copy is left next to the database before it is written; MySQL is not backed up, keep your own `mysqldump`.
+
+### Docker deployment
+
+Inside the image the code lives in `/usr/src/app`, the interpreter is `/usr/src/app/.venv/bin/python` and the database is in the mounted `config` directory (`/usr/src/app/config`). Run the migration in a throwaway container that mounts the same data directory as the running container:
+
+``` sh
+# 1. stop the running container (so no task or login writes while the migration runs)
+docker stop <container>
+
+# 2. back up the database, then run the migration in a throwaway container
+docker run --rm -it \
+  -v /host/path/config:/usr/src/app/config \
+  --entrypoint sh \
+  <image> -c "cd /usr/src/app && python -m tools.rotate_aes_key --old binux --new <new secret> --apply"
+
+# 3. start the container with the new secret
+docker run -d --name qd -p 8923:80 \
+  -v /host/path/config:/usr/src/app/config \
+  -e AES_KEY=<new secret> \
+  <image>
+```
+
+MySQL deployments have to pass the same database environment variables as the running container so that the script connects to the same database:
+
+``` sh
+docker run --rm -it \
+  -e DB_TYPE=mysql \
+  -e JAWSDB_MARIA_URL='mysql://username:password@hostname:3306/database_name?auth_sqombs=' \
+  --entrypoint sh \
+  <image> -c "cd /usr/src/app && python -m tools.rotate_aes_key --old binux --new <new secret> --apply"
+```
+
+> `--old` takes the plaintext value of the **currently effective** AES_KEY; if one has been set before, do not pass the default `binux`.
+>
+> The migration has to run with the service stopped, otherwise running tasks and login requests read and write the database concurrently.
+>
+> Once the migration is done and verified, set `AES_KEY_STRICT=True` to make the framework refuse to start while `AES_KEY` is still the default value.
+
 ## Configuration Environment Variables
 
 |variable name|required|default value|description|
@@ -155,7 +224,7 @@ environment:
 |AUTO_RELOAD|No|False|Whether to enable automatic hot reload, <br>invalid when MULTI_PROCESS=True|
 |STATIC_URL_PREFIX|No|`/static/`|Static file URL prefix|
 |DOMAIN|No|''|Specify the access domain name, <br>**(recommended modification)**, otherwise the function of resetting password by email is not valid|
-|AES_KEY|No|binux|Database encryption key for stored credentials, **(set it on first deploy; migrate data before changing, or credentials become undecryptable)**|
+|AES_KEY|No|binux|Database encryption key for stored credentials, **(set it on first deploy; migrate data before changing, or credentials become undecryptable)**, see [Rotate AES_KEY](#rotate-aes_key)|
 |AES_KEY_STRICT|No|False|When True, refuse to start while AES_KEY is still the default value, **(migrate data first)**|
 |COOKIE_SIGN_SECRET|No|random per start|Session cookie signing key, never stored; generated on every start when unset (**all sessions drop after restart**), set it explicitly for multi-instance/multi-container deployments; can be overridden by defining `cookie_secret` in local_config.py, **(COOKIE_SECRET is deprecated and ignored)**|
 |COOKIE_DAY|No|5|The number of days the cookie is kept in the client|
