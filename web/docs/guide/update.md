@@ -7,6 +7,9 @@
 > The image ships its Python dependencies (OCR and curl-impersonate included), so hot
 > update only replaces the application code and does not reinstall dependencies.
 > To change dependency versions, pull the image of the matching version tag.
+>
+> The update never changes `AES_KEY`. To rotate it, migrate the existing data first as
+> described in [Rotate AES_KEY](deployment#rotate-aes_key), then change the variable.
 
 ## Source Code Deployment Update
 

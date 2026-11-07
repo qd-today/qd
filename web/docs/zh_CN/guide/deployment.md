@@ -143,6 +143,75 @@ environment:
 >
 > `COOKIE_SECRET` 已弃用并默认忽略, 请勿再使用。
 
+## 轮换 AES_KEY
+
+`AES_KEY` 是数据库的数据加密密钥, 用于加密 `user.userkey` (用户凭据), 以及 `userid` 为空的公共模板数据 (`tpl.har` / `tpl.tpl` / `task.init_env` / `task.env`)。
+
+默认值 `binux` 是公开的, 仅适合完全内网自用; 数据库或备份一旦泄露, 用户凭据即可被离线解密。
+
+> **直接改 `AES_KEY` 环境变量会让存量数据无法解密**: 登录时报 500 (`decrypt error`), 已保存的任务与公共模板也读不出来。
+> 必须先用 `tools/rotate_aes_key.py` 把存量数据迁移到新密钥, 再改环境变量。
+
+迁移脚本先用旧密钥解密、再用新密钥加密, 并逐条回读校验; 任何一行失败即整体中止, 不落库。默认只试运行, 加 `--apply` 才真正写入。
+
+### 源码部署
+
+依赖由 uv 管理 (虚拟环境在 `.venv`), 脚本要在仓库根目录执行:
+
+``` sh
+cd /path/to/qd
+
+# 1. 生成新密钥 (只需生成一次, 妥善保存)
+openssl rand -hex 32
+
+# 2. 停掉服务并备份数据库后, 先试运行
+.venv/bin/python -m tools.rotate_aes_key --old binux --new <新密钥>
+
+# 3. 确认输出无误后落库
+.venv/bin/python -m tools.rotate_aes_key --old binux --new <新密钥> --apply
+
+# 4. 设置 AES_KEY=<新密钥> 后再启动服务
+```
+
+sqlite 落库前会在数据库同目录留一份 `<库名>.aes-<时间戳>.bak`; MySQL 不做备份, 请自行保留 `mysqldump`。
+
+### Docker 部署
+
+镜像内代码在 `/usr/src/app`, 解释器是 `/usr/src/app/.venv/bin/python`, 数据库在挂载的 `config` 目录 (`/usr/src/app/config`)。用一次性容器执行迁移, 挂载与运行容器同一份数据目录:
+
+``` sh
+# 1. 停掉正在运行的容器 (避免迁移期间有任务或登录并发写库)
+docker stop <容器名>
+
+# 2. 备份数据库后, 用一次性容器执行迁移
+docker run --rm -it \
+  -v /宿主机路径/config:/usr/src/app/config \
+  --entrypoint sh \
+  <镜像名> -c "cd /usr/src/app && python -m tools.rotate_aes_key --old binux --new <新密钥> --apply"
+
+# 3. 用新密钥启动容器
+docker run -d --name qd -p 8923:80 \
+  -v /宿主机路径/config:/usr/src/app/config \
+  -e AES_KEY=<新密钥> \
+  <镜像名>
+```
+
+MySQL 部署需要额外传入与运行容器相同的数据库环境变量, 让脚本连到同一个库:
+
+``` sh
+docker run --rm -it \
+  -e DB_TYPE=mysql \
+  -e JAWSDB_MARIA_URL='mysql://用户名:密码@hostname:3306/数据库名?auth_sqombs=' \
+  --entrypoint sh \
+  <镜像名> -c "cd /usr/src/app && python -m tools.rotate_aes_key --old binux --new <新密钥> --apply"
+```
+
+> `--old` 填**当前生效**的 AES_KEY 明文值; 如果之前已经设置过, 不要填默认值 `binux`。
+>
+> 迁移必须在服务停止后进行, 否则运行中的任务与登录请求会与迁移并发读写。
+>
+> 迁移完成并确认可用后, 可设置 `AES_KEY_STRICT=True` 让框架在 `AES_KEY` 仍是默认值时拒绝启动。
+
 ## 配置环境变量
 
 变量名|是否必须|默认值|说明
@@ -155,7 +224,7 @@ MULTI_PROCESS|否|False|(实验性)是否启用多进程模式, <br>Windows平�
 AUTO_RELOAD|否|False|是否启用自动热加载, <br>MULTI_PROCESS=True时无效
 STATIC_URL_PREFIX|否|`/static/`|静态文件URL前缀
 DOMAIN|否|''|指定访问域名, <br>**(建议修改)**, 否则通过邮件重置密码及邮箱推送等功能无效
-AES_KEY|否|binux|数据库加密密钥, 用于加密数据库中的用户凭据等数据, **(新部署建议首次启动即设置; 修改前必须先迁移数据, 否则凭据不可解密)**
+AES_KEY|否|binux|数据库加密密钥, 用于加密数据库中的用户凭据等数据, **(新部署建议首次启动即设置; 修改前必须先迁移数据, 否则凭据不可解密)**, 迁移方法见 [轮换 AES_KEY](#轮换-aes_key)
 AES_KEY_STRICT|否|False|为 True 时, 若 AES_KEY 仍为默认值则拒绝启动, **(需先完成数据迁移)**
 COOKIE_SIGN_SECRET|否|每次启动随机生成|会话 Cookie 签名密钥, 不落盘; 未设置时每次启动随机生成, **重启后所有会话失效**, 多实例或多容器部署需显式设置; 也可在 local_config.py 中定义 cookie_secret 覆盖, **(原 COOKIE_SECRET 已弃用并默认忽略)**
 COOKIE_DAY|否|5|Cookie在客户端中保留的天数
