@@ -92,13 +92,35 @@
     });
   </script>
   <script>
+    // 致贺措辞分类
+    var FESTIVAL_ANKANG = ['端午节', '重阳节', '清明节']   // 宜"安康"的节日
+    var FESTIVAL_EXCLUDE = ['龙头节']                     // 不参与致贺的节日
+
     function get_holiday_or_version(version) {
       if (version === '' || version === undefined || version === null) {
         return version
       }
       var d = Solar.fromDate(new Date())
-      festivals = d.getFestivals().length > 0 ? d.getFestivals() : d.getLunar().getFestivals()
-      return festivals.length > 0 ? festivals[0] + '快乐' : version
+      var holiday = HolidayUtil.getHoliday(d.toYmd())
+      var name = null
+      if (holiday && !holiday.isWork()) {
+        name = holiday.getName()
+      } else {
+        var festivals = d.getFestivals().length > 0 ? d.getFestivals() : d.getLunar().getFestivals()
+        if (festivals.length > 0) {
+          name = festivals[0]
+        }
+      }
+      if (!name || FESTIVAL_EXCLUDE.indexOf(name) >= 0) {
+        return version
+      }
+      if (FESTIVAL_ANKANG.indexOf(name) >= 0) {
+        return name + '安康'
+      }
+      if (name.charAt(name.length - 1) === '日') {
+        return name
+      }
+      return name + '快乐'
     }
   </script>
   {% block body %}{% endblock %}
