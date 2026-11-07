@@ -17,6 +17,7 @@ on:
   push:
     paths-ignore:
       - 'docs/**'
+      - '.gitignore'
       - '.github/**'
       - '**.md'
       - '**.png'
