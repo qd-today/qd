@@ -36,7 +36,40 @@
       {% endif %}
 	  <!-- 登录页面-忘记密码增加按钮效果 -->
     <button type="submit" class="btn btn-default" onclick="document.forms[0].action='/password_reset'+location.search">忘记密码?</button>
+    </div>{% if oidc_providers or handler.get_argument('oidc_error', '') %}
+    {%- set oidc_error_code = handler.get_argument('oidc_error', '') %}
+    {%- set oidc_error_texts = {
+      'provider_not_found': '第三方登录提供方不存在或已禁用。',
+      'discovery_failed': '无法连接身份提供方，请稍后重试或联系管理员。',
+      'metadata_invalid': '身份提供方配置无效，请联系管理员。',
+      'not_configured': '第三方登录尚未正确配置，请联系管理员。',
+      'state_mismatch': '登录会话已失效或被篡改，请重新发起登录。',
+      'token_exchange_failed': '与身份提供方交换令牌失败，请稍后重试。',
+      'invalid_request': '第三方登录请求无效，请重新发起操作。',
+      'invalid_response': '身份提供方返回了无效响应，请稍后重试。',
+      'upstream_error': '身份提供方暂时不可用，请稍后重试。',
+      'invalid_id_token': '身份令牌校验失败，登录已被拒绝。',
+      'nonce_mismatch': '身份令牌校验失败，登录已被拒绝。',
+      'email_missing': '身份提供方未返回邮箱，无法匹配账号。',
+      'email_unverified': '身份提供方未验证该邮箱，出于安全考虑无法自动登录；请使用密码登录后在「我的」页手动绑定。',
+      'user_disabled': '该账号已被禁用，请联系管理员。',
+      'no_account': '未找到与该身份匹配的账号，请先注册或联系管理员。',
+      'already_bound_other': '该身份已绑定其它账号，无法自动登录。',
+      'bound_by_other': '该身份已被其它账号绑定。',
+      'already_bound_self': '当前账号已绑定该提供方，请先解绑后再绑定其它身份。',
+      'last_credential': '这是账号最后的登录凭据，解绑后将无法登录，操作已被拒绝。',
+      'internal_error': '服务内部错误，请稍后重试或联系管理员。'
+    } %}
+    <hr>
+    <div class="text-center">
+      {%- if oidc_error_code %}
+      <p class="alert alert-danger">{{ oidc_error_texts.get(oidc_error_code, '第三方登录失败，请稍后重试或联系管理员。') }}</p>
+      {%- endif %}
+      {%- for p in oidc_providers %}
+      <a class="btn btn-default" href="/oidc/{{ p.id }}/login" title="使用 {{ p.name }} 登录">{% if p.icon %}<img src="{{ p.icon }}" alt="" style="height:16px;margin-right:4px;vertical-align:text-bottom">{% endif %}{{ p.name }}</a>
+      {%- endfor %}
     </div>
+    {%- endif %}
 </div>
 {{ utils.submit_loading() }}
 {% endblock %}

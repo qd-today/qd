@@ -15,6 +15,8 @@ from sqlalchemy import update
 
 import config
 from db import DB, Site, Task, Tpl, User
+from db.basedb import engine
+from db.user_oidc import UserOidc
 from libs import mcrypto as crypto
 from libs.fetcher import Fetcher
 from libs.log import Log
@@ -861,5 +863,17 @@ class DBconverter:
                     )
             except Exception as e:
                 logger_db_converter.debug(e)
+
+        # OIDC 账号绑定表: 使用 SQLAlchemy metadata.create_all(checkfirst=True) 保证幂等,
+        # 同时兼容 MySQL 与 SQLite3 (不使用任何 MySQL 方言 DDL)。
+        try:
+            async with engine.begin() as conn:
+                await conn.run_sync(
+                    lambda sync_conn: UserOidc.metadata.create_all(
+                        sync_conn, tables=[UserOidc.__table__], checkfirst=True
+                    )
+                )
+        except Exception as e:
+            logger_db_converter.error("Create user_oidc table error: %s", e, exc_info=True)
 
         return

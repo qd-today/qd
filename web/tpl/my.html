@@ -24,7 +24,9 @@
       <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/user/{{ userid }}/database" title="备份数据库">数据库
       </button>
       <button type="button" class="btn btn-default modal_load" data-load-method="GET" href="/util/toolbox/{{ userid }}" title="工具箱">工具箱
-      </button>
+      </button>{% if oidc_providers %}
+      <a class="btn btn-default" href="/oidc/manage" title="绑定第三方登录">第三方登录
+      </a>{% endif %}
     </h2>
     <div class="text-left" style="float:left;margin-right:5px;margin-bottom: 5px;">
       <span class="btn-group">

@@ -7,7 +7,9 @@
 # pylint: disable=invalid-name, wildcard-import
 
 import hashlib
+import json
 import os
+import re
 import secrets
 import sys
 from urllib.parse import parse_qs, urlparse
@@ -399,3 +401,132 @@ if "aes_key" not in globals():
             file=sys.stderr,
         )
         aes_key = hashlib.sha256(b"binux").digest()
+
+# ===================== OIDC 登录配置 =====================
+# 同样放在 local_config 导入之后: 在 local_config.py 中直接定义 oidc_providers
+# 即可覆盖下面的逻辑, 此时不再读取环境变量。
+#
+# 环境变量 OIDC_PROVIDERS 为 JSON 数组字符串, 每个元素形如:
+#   {
+#     "id": "keycloak",                     # 必填, ^[a-zA-Z0-9_-]{1,64}$
+#     "name": "Keycloak",                   # 必填, 登录页展示名
+#     "issuer": "https://idp.example.com/realms/main",  # 必填
+#     "client_id": "qd",                    # 必填
+#     "client_secret": "xxx",               # 必填, 永不回传前端/日志
+#     "scopes": "openid profile email",     # 选填, 默认 openid profile email
+#     "icon": "",                           # 选填, 默认 ''
+#     "enabled": true                       # 选填, 默认 true
+#   }
+# 非法条目会被跳过并告警, 不会导致进程启动失败。
+_OIDC_PROVIDER_ID_RE = re.compile(r"^[a-zA-Z0-9_-]{1,64}$")
+_OIDC_DEFAULT_SCOPES = "openid profile email"
+
+
+def _parse_oidc_providers(raw):
+    '''校验并规范化 OIDC provider 配置, 非法条目跳过并告警。'''
+    if not raw:
+        return []
+    if isinstance(raw, str):
+        try:
+            raw = json.loads(raw)
+        except (ValueError, TypeError) as e:
+            print(
+                "[QD] 警告: OIDC_PROVIDERS 不是合法 JSON, 已忽略: %s" % e,
+                file=sys.stderr,
+            )
+            return []
+    if not isinstance(raw, list):
+        print("[QD] 警告: OIDC_PROVIDERS 必须是 JSON 数组, 已忽略", file=sys.stderr)
+        return []
+
+    providers = []
+    seen_ids = set()
+    for index, item in enumerate(raw):
+        if not isinstance(item, dict):
+            print(
+                "[QD] 警告: OIDC_PROVIDERS[%d] 不是对象, 已跳过" % index,
+                file=sys.stderr,
+            )
+            continue
+        provider_id = item.get("id")
+        if not isinstance(provider_id, str) or not _OIDC_PROVIDER_ID_RE.match(provider_id):
+            print(
+                "[QD] 警告: OIDC_PROVIDERS[%d] 的 id 非法 (需匹配 ^[a-zA-Z0-9_-]{1,64}$), 已跳过" % index,
+                file=sys.stderr,
+            )
+            continue
+        if provider_id in seen_ids:
+            print(
+                "[QD] 警告: OIDC_PROVIDERS[%d] 的 id '%s' 重复, 已跳过" % (index, provider_id),
+                file=sys.stderr,
+            )
+            continue
+
+        name = item.get("name")
+        issuer = item.get("issuer")
+        client_id = item.get("client_id")
+        client_secret = item.get("client_secret")
+        missing = [
+            key
+            for key, value in (
+                ("name", name),
+                ("issuer", issuer),
+                ("client_id", client_id),
+                ("client_secret", client_secret),
+            )
+            if not isinstance(value, str) or not value
+        ]
+        if missing:
+            print(
+                "[QD] 警告: OIDC_PROVIDERS[%d] ('%s') 缺少必填字段 %s, 已跳过"
+                % (index, provider_id, ", ".join(missing)),
+                file=sys.stderr,
+            )
+            continue
+
+        scopes = item.get("scopes") or _OIDC_DEFAULT_SCOPES
+        icon = item.get("icon") or ""
+        enabled = item.get("enabled", True)
+
+        providers.append(
+            {
+                "id": provider_id,
+                "name": name,
+                "issuer": issuer.rstrip("/"),
+                "client_id": client_id,
+                "client_secret": client_secret,
+                "scopes": scopes,
+                "icon": icon,
+                "enabled": bool(enabled),
+            }
+        )
+        seen_ids.add(provider_id)
+
+    return providers
+
+
+if "oidc_providers" not in globals():
+    oidc_providers = _parse_oidc_providers(os.getenv("OIDC_PROVIDERS", ""))
+else:
+    oidc_providers = _parse_oidc_providers(oidc_providers)
+
+
+def get_oidc_provider(provider_id):
+    '''按 id 查找已启用(或全部)的 provider 配置, 未找到返回 None。'''
+    for provider in oidc_providers:
+        if provider.get("id") == provider_id:
+            return provider
+    return None
+
+
+def get_enabled_providers():
+    '''返回可安全下发到前端/模板的 provider 子集 (仅 id/name/icon)。'''
+    return [
+        {
+            "id": provider["id"],
+            "name": provider["name"],
+            "icon": provider.get("icon", ""),
+        }
+        for provider in oidc_providers
+        if provider.get("enabled", True)
+    ]
