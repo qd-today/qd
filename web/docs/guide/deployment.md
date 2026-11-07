@@ -12,11 +12,14 @@ Docker Container Deployment is the easiest way to deploy QD.
 
 > Tag meaning:
 >
-> - `latest`: Latest Release version
-> - `lite-latest`: Latest Release version without OCR related functions
-> - `ja3-latest`: Integrated curl-impersonate to solve the problem that ja3 fingerprint is identified as curl, does not support http3 and Quic connection
-> - `20xxxxxx`: Specify Release version, version number is represented by Release release date
-> - `dev`: Latest development version, synchronized with the latest source code, no stability guarantee
+> - `latest`: Latest Release version, with OCR (captcha recognition) included
+> - `lite-latest`: Latest Release version without OCR related functions, smallest image
+> - `ja3-latest`: Same as `latest`, but with curl-impersonate integrated to solve the problem that ja3 fingerprint is identified as curl, does not support http3 and Quic connection
+> - `ja3-lite-latest`: Same as `lite-latest`, but with curl-impersonate integrated, smallest image that still passes ja3 fingerprint checks
+> - `20xxxxxx`: Specify Release version, version number is represented by Release release date. The same four flavours exist with a prefix: `ja3-20xxxxxx`, `lite-20xxxxxx`, `ja3-lite-20xxxxxx`
+> - `dev`: Latest development version, synchronized with the latest source code, no stability guarantee. The same four flavours exist with a prefix: `lite-dev`, `ja3-dev`, `ja3-lite-dev`
+>
+> Architecture note: the OCR dependencies have no musllinux wheels for `386`, `arm/v6` and `s390x`. On those three architectures `latest` is still pullable, but the platform entry is the `lite` flavour (no captcha recognition); `ja3-latest` is the `ja3-lite` flavour on `386` and `arm/v6`, and is not published for `s390x`. Use `amd64`, `arm64`, `arm/v7`, `ppc64le`, `riscv64` or `loong64` if you need captcha recognition.
 
 ### Deploy Method
 
@@ -35,7 +38,7 @@ docker-compose up -d
 
 > See [Configuration](#configuration-environment-variables) below for configuration description
 >
-> If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`qdtoday/qd:lite-latest`** image, **this image only removes OCR related functions, other than the mainline version to keep consistent**.
+> If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`qdtoday/qd:lite-latest`** image, **this image only removes OCR related functions and keeps the same behaviour as the mainline version**.
 >
 > **Please don't use AliCloud image source to pull Docker container, it will not pull the latest image.**
 
@@ -55,7 +58,7 @@ docker-compose up -d
    >
    > See [Configuration](#configuration-environment-variables) below for configuration description
    >
-   > If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`qdtoday/qd:lite-latest`** image, **this image only removes OCR related functions, other than the mainline version to keep consistent**.
+   > If you don't need `OCR` or `hard disk space is not larger than 600M`, please use **`qdtoday/qd:lite-latest`** image, **this image only removes OCR related functions and keeps the same behaviour as the mainline version**.
 
 2.3. Click `Confirm` to install QD via 1Panel
 
@@ -120,6 +123,26 @@ python ./chrole.py your@email.address admin
 
 > The first registered user is the administrator by default, you need to log out and then login to get full administrator rights
 
+## Session secret
+
+Session cookies are signed with `COOKIE_SIGN_SECRET`. When it is not set, a random secret is generated on every start and kept in memory only, so **all sessions are invalidated after a service/container restart** and users have to log in again; the secret is never written to disk.
+
+For multi-instance / multi-container deployments sharing one database, every instance must use the same secret, otherwise sessions randomly break depending on which instance serves the request:
+
+``` sh
+# generate once and keep it safe
+openssl rand -hex 32
+```
+
+``` yaml
+environment:
+  - COOKIE_SIGN_SECRET=<the value generated above>
+```
+
+> Changing this secret (or removing it so a new random one is generated) **invalidates all sessions immediately**; tasks, templates, variables and credentials in the database are not affected.
+>
+> `COOKIE_SECRET` is deprecated and ignored by default.
+
 ## Configuration Environment Variables
 
 |variable name|required|default value|description|
@@ -132,8 +155,9 @@ python ./chrole.py your@email.address admin
 |AUTO_RELOAD|No|False|Whether to enable automatic hot reload, <br>invalid when MULTI_PROCESS=True|
 |STATIC_URL_PREFIX|No|`/static/`|Static file URL prefix|
 |DOMAIN|No|''|Specify the access domain name, <br>**(recommended modification)**, otherwise the function of resetting password by email is not valid|
-|AES_KEY|No|binux|AES encryption key, **(Modification strongly recommended)**|
-|COOKIE_SECRET|No|binux|cookie encryption key, **(Modification strongly recommended)**|
+|AES_KEY|No|binux|Database encryption key for stored credentials, **(set it on first deploy; migrate data before changing, or credentials become undecryptable)**|
+|AES_KEY_STRICT|No|False|When True, refuse to start while AES_KEY is still the default value, **(migrate data first)**|
+|COOKIE_SIGN_SECRET|No|random per start|Session cookie signing key, never stored; generated on every start when unset (**all sessions drop after restart**), set it explicitly for multi-instance/multi-container deployments; can be overridden by defining `cookie_secret` in local_config.py, **(COOKIE_SECRET is deprecated and ignored)**|
 |COOKIE_DAY|No|5|The number of days the cookie is kept in the client|
 |DB_TYPE|No|sqlite3|Set to 'mysql' when MySQL is required|
 |JAWSDB_MARIA_URL|No|''|When you need to use MySQL, <br> set to `mysql://username:password@hostname:port/database_name?auth_plugin=`|
@@ -189,3 +213,18 @@ python ./chrole.py your@email.address admin
 |SUBSCRIBE_ACCELERATE_URL|No|qd-ph|Subscribe page acceleration URL, the default is qd-ph, <br>[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|
 
 > For details, please refer to [config.py](https://github.com/qd-today/qd/blob/master/config.py)
+
+#### 4. Bare Alpine (source deployment)
+
+Container images ship their Python dependencies, so this step is only needed when you
+run the source directly on Alpine.
+
+``` sh
+sh update.sh
+```
+
+Outside a container it also installs the Python dependencies: it downloads prebuilt
+musllinux wheels from the three component repositories' GitHub Releases and installs
+them with uv. PyPI is not enough here — onnxruntime and OpenCV have no musllinux
+wheels, and pycurl is source-only. Use `QD_NO_OCR=1 sh update.sh` to skip the two OCR
+wheelhouses.

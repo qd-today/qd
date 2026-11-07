@@ -15,7 +15,7 @@ from tornado import gen
 import config
 from libs import mcrypto as crypto
 from libs import utils
-from web.handlers.base import BaseHandler, logger_web_handler
+from web.handlers.base import BaseHandler, logger_web_handler, session_version
 
 
 class ForbiddenHandler(BaseHandler):
@@ -52,7 +52,7 @@ class LoginHandler(BaseHandler):
                 return
 
             if await self.db.user.challenge(email, password, sql_session=sql_session):
-                user = await self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role', 'email_verified'), sql_session=sql_session)
+                user = await self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role', 'email_verified', 'password'), sql_session=sql_session)
                 if not user:
                     await self.render('login.html', password_error='不存在此邮箱或密码错误', email=email, regFlg=reg_flg)
                     return
@@ -67,7 +67,7 @@ class LoginHandler(BaseHandler):
                 )
                 if config.cookie_secure_mode:
                     setcookie['secure'] = True
-                self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
+                self.set_secure_cookie('user', umsgpack.packb({'id': user['id'], 'v': session_version(user['password'])}), **setcookie)
                 await self.db.user.mod(user['id'], atime=time.time(), aip=self.ip2varbinary, sql_session=sql_session)
 
                 # 如果用户MD5不一致就更新MD5
@@ -131,7 +131,7 @@ class RegisterHandler(BaseHandler):
                         self.evil(+3)
                         await self.render('register.html', email_error='email地址已注册', regFlg=reg_flg)
                         return
-                    user = await self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role'), sql_session=sql_session)
+                    user = await self.db.user.get(email=email, fields=('id', 'email', 'nickname', 'role', 'password'), sql_session=sql_session)
                     await self.db.notepad.add(dict(userid=user['id'], notepadid=1), sql_session=sql_session)
                     setcookie = dict(
                         expires_days=config.cookie_days,
@@ -139,7 +139,7 @@ class RegisterHandler(BaseHandler):
                     )
                     if config.cookie_secure_mode:
                         setcookie['secure'] = True
-                    self.set_secure_cookie('user', umsgpack.packb(user), **setcookie)
+                    self.set_secure_cookie('user', umsgpack.packb({'id': user['id'], 'v': session_version(user['password'])}), **setcookie)
                     usertmp = await self.db.user.list(sql_session=sql_session, fields=('id', 'email', 'nickname', 'role', 'email_verified'))
                     if len(usertmp) == 1 and config.user0isadmin:
                         if usertmp[0]['email'] == email:

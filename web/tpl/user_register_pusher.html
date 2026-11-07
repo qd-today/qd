@@ -4,6 +4,21 @@
   <script src="{{ static_url('components/blueimp-md5/js/md5.js') }}"></script>
   <hr>
 
+  <style>
+    /* 查看SPT 链接 + 悬停二维码浮层 */
+    .qd-spt-qr { position: relative; display: inline-block; margin-left: 6px; }
+    .qd-spt-qr > a { white-space: nowrap; }
+    .qd-spt-qr .qd-spt-qr-pop {
+      display: none; position: absolute; left: 0; top: 100%; z-index: 1060;
+      margin-top: 6px; padding: 8px; background: #fff;
+      border: 1px solid #ddd; border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .15); text-align: center;
+    }
+    .qd-spt-qr:hover .qd-spt-qr-pop { display: block; }
+    .qd-spt-qr .qd-spt-qr-pop img { display: block; width: 160px; height: 160px; }
+    .qd-spt-qr .qd-spt-qr-tip { display: block; margin-top: 4px; font-size: 12px; color: #888; }
+  </style>
+
   <div id="run-result"></div>
 
   {% if current_user %}
@@ -15,8 +30,11 @@
     <label class="control-label" for="note">Server酱</label>
     <input type="text" class="form-control" name="skey" value="" id="skey" placeholder="Sendkey">
     <!-- 注册wxpusher -->
-    <label class="control-label" for="note">WxPusher</label>
+    <label class="control-label" for="note">WxPusher 标准推送 （<a href='https://wxpusher.zjiecode.com/docs/' target='_blank' rel='noopener noreferrer'>点击这里查看文档</a>）</label>
     <input type="text" class="form-control" name="wxpusher_token" value="" id="wxpusher_token" placeholder="APPTOKEN;WxPusher_UID">
+    <!-- 注册wxpusher极简推送 -->
+    <label class="control-label" for="note">WxPusher 极简推送 (多个用逗号分隔, 最多10个), <a href='https://wxpusher.zjiecode.com/download/' target='_blank' rel='noopener noreferrer'>点击下载 APP</a>，<span class="qd-spt-qr"><a href="https://wxpusher.zjiecode.com/docs/#/?id=spt" target="_blank" rel="noopener noreferrer">查看 SPT</a><span class="qd-spt-qr-pop"><img src="https://wxpusher.zjiecode.com/api/qrcode/RwjGLMOPTYp35zSYQr0HxbCPrV9eU0wKVBXU1D5VVtya0cQXEJWPjqBdW3gKLifS.jpg" alt="WxPusher 极简推送二维码"><span class="qd-spt-qr-tip">微信扫码关注后, 即可直接获取 SPT</span></span></span></label>
+    <input type="text" class="form-control" name="wxpusher_spt" value="" id="wxpusher_spt" placeholder="SPT_xxxx,SPT_yyyy">
 
     <!-- 注册企业微信 Pusher -->
     <label class="control-label" for="note">企业微信 Pusher</label>

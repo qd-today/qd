@@ -1,71 +1,134 @@
-# 基础镜像
-# 集成 curl-impersonate 解决 ja3 指纹被识别为 curl 的问题
-# https://github.com/qd-today/qd/issues/289
-# 不支持 http3 和 Quic 连接, 如需相关功能请使用 latest 版本
-FROM a76yyyy/pycurl:ja3-latest
+﻿# QD 运行环境。
+#
+# 基座是纯 alpine：Python 依赖全部来自三个 wheelhouse（onnxruntime / ddddocr / pycurl），
+# 不再 FROM a76yyyy/pycurl 继承「已经装好的包」。
+#
+# 为什么不再继承基座：
+#   - 依赖来源变成契约而不是启发式。旧版由 docker/install-deps.py 现场探测「基座提供了
+#     什么」再跳过，那是猜测：曾经把打过 IMPERSONATE 补丁的 pycurl 覆盖成 PyPI 版，
+#     ja3 线实际失效。
+#   - venv 看不到基座里的包，继续 FROM 重基座会变成双份（venv 一份 + 基座一份）。
+#   - 版本对齐由 uv.lock 与 wheelhouse tag 保证，不一致时解析直接失败。
 
-# 维护者信息
-LABEL maintainer "a76yyyy <q981331502@163.com>"
+ARG ALPINE_VERSION=3.24
+# 官方 alpine 没有 loongarch64，CI 对 loong64 传 ghcr.io/loong64/alpine:3.24。
+# 其余架构用默认值。
+ARG BASE_IMAGE=alpine:${ALPINE_VERSION}
+
+# 依赖来源：三个组件仓库的发布版本。update.sh 从这里读，保证热更新装的是
+# 与镜像构建同一批 wheel，不在脚本里维护第二份版本号。
+# 放在第一个 FROM 之前，才能用于 FROM；RUN --mount 的 from= 不支持变量
+# 展开，所以先声明成 stage 再引用 stage 名。
+ARG ONNXRUNTIME_RELEASE=1.24.4
+ARG DDDDOCR_RELEASE=1.6.1
+ARG PYCURL_RELEASE=2.0.4
+# 主线为空；ja3 线是 ja3-
+ARG PYCURL_TAG_PREFIX=ja3-
+
+FROM a76yyyy/onnxruntime:${ONNXRUNTIME_RELEASE}-wheelhouse AS wh-onnx
+FROM a76yyyy/ddddocr:${DDDDOCR_RELEASE}-wheelhouse AS wh-ddddocr
+FROM a76yyyy/pycurl:${PYCURL_TAG_PREFIX}${PYCURL_RELEASE}-wheelhouse AS wh-pycurl
+FROM ${BASE_IMAGE}
+
+ARG ALPINE_VERSION
+LABEL maintainer="a76yyyy <q981331502@163.com>"
 LABEL org.opencontainers.image.source=https://github.com/qd-today/qd
 
-ADD ssh/qd_fetch /root/.ssh/id_rsa
-ADD ssh/qd_fetch.pub /root/.ssh/id_rsa.pub
+# 本地构建加速（CI 在海外无需配置）
+ARG APK_MIRROR=""
+ARG PIP_MIRROR=""
+
 WORKDIR /usr/src/app
 
-# QD && Pip install modules
-RUN sed -i 's/mirrors.ustc.edu.cn/dl-cdn.alpinelinux.org/g' /etc/apk/repositories && \
-    sed -i 's/edge/v3.19/g' /etc/apk/repositories && \
-    sed -i '/testing/d' /etc/apk/repositories && \
-    apk update && apk add --update --no-cache openssh-client && \
-    chmod 600 /root/.ssh/id_rsa && \
-    ssh-keyscan gitee.com > /root/.ssh/known_hosts && \
-    let num=$RANDOM%100+10 && \
-    sleep $num && \
-    git clone --depth 1 git@gitee.com:qd-today/qd.git /gitclone_tmp && \
-    yes | cp -rf /gitclone_tmp/. /usr/src/app && \
-    rm -rf /gitclone_tmp && \
-    chmod +x /usr/src/app/update.sh && \
-    ln -s /usr/src/app/update.sh /bin/update && \
-    apk add --update --no-cache python3 py3-six py3-markupsafe py3-pycryptodome py3-tornado \
-    py3-wrapt py3-packaging py3-greenlet py3-urllib3 py3-cryptography py3-aiosignal \
-    py3-async-timeout py3-attrs py3-frozenlist py3-multidict py3-charset-normalizer \
-    py3-aiohttp py3-typing-extensions py3-yarl py3-cffi && \
-    [[ $(getconf LONG_BIT) = "32" ]] && \
-    echo "Tips: 32-bit systems do not support ddddocr, so there is no need to install numpy and opencv-python" || \
-    apk add --update --no-cache py3-opencv py3-pillow && \
-    apk add --no-cache --virtual .build_deps cmake make perl autoconf g++ automake \
-    linux-headers libtool util-linux py3-pip py3-setuptools py3-wheel python3-dev py3-numpy-dev && \
-    sed -i '/pycurl/d' requirements.txt && \
-    sed -i '/ddddocr/d' requirements.txt && \
-    sed -i '/packaging/d' requirements.txt && \
-    sed -i '/wrapt/d' requirements.txt && \
-    sed -i '/pycryptodome/d' requirements.txt && \
-    sed -i '/tornado/d' requirements.txt && \
-    sed -i '/MarkupSafe/d' requirements.txt && \
-    sed -i '/pillow/d' requirements.txt && \
-    sed -i '/opencv/d' requirements.txt && \
-    sed -i '/numpy/d' requirements.txt && \
-    sed -i '/greenlet/d' requirements.txt && \
-    sed -i '/urllib3/d' requirements.txt && \
-    sed -i '/cryptography/d' requirements.txt && \
-    sed -i '/aiosignal/d' requirements.txt && \
-    sed -i '/async-timeout/d' requirements.txt && \
-    sed -i '/attrs/d' requirements.txt && \
-    sed -i '/frozenlist/d' requirements.txt && \
-    sed -i '/multidict/d' requirements.txt && \
-    sed -i '/charset-normalizer/d' requirements.txt && \
-    sed -i '/aiohttp/d' requirements.txt && \
-    sed -i '/typing-extensions/d' requirements.txt && \
-    sed -i '/yarl/d' requirements.txt && \
-    sed -i '/cffi/d' requirements.txt && \
-    pip install --no-cache-dir -r requirements.txt --break-system-packages && \
-    apk del .build_deps && \
-    sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories && \
-    rm -rf /var/cache/apk/* && \
-    rm -rf /usr/share/man/*
+# 依赖单一来源：pyproject.toml + uv.lock
+COPY pyproject.toml uv.lock /usr/src/app/
 
-ENV PORT 80
-EXPOSE $PORT/tcp
+# uv 默认把解压后的包缓存到 ~/.cache/uv；在容器里那是纯浪费（缓存体积约等于 venv）。
+# 必须走环境变量而不是逐条 --no-cache：sync / pip / export 都要生效。
+ENV UV_NO_CACHE=1
+# 不去自动下载 Python：镜像里的 alpine python3 就是目标解释器
+# uv 用 Alpine 仓库的包（apk add uv）：它是 native 到目标平台的二进制，
+# 9 个架构都有。官方 ghcr 镜像只发主流平台，且用 --mount from= 挂进来时
+# 拿到的是构建机架构的二进制，在 s390x / ppc64le 这类容器里跑不起来。
+ENV UV_PYTHON_DOWNLOADS=never
+# 为什么走 export + pip install 而不是 uv sync：
+# uv.lock 里每个包都记了下载地址（source = { registry = "https://pypi.org/simple" }）
+# 与具体的 sdist/wheel URL。`uv sync` 的语义是「从 lockfile 装」，它照着那些 URL 取，
+# 不再解析索引——于是 pycurl 只会拿到 PyPI 的 sdist（PyPI 没有它的 musllinux 轮子），
+# 当场因为缺 curl-config 编译失败，--extra-index-url 完全用不上。
+# `uv export --no-hashes` 产出的只有 `pycurl==7.49.0` 这种版本约束、没有任何 URL，
+# 于是安装时按下面的索引重新解析，命中 wheelhouse 里的 musllinux 轮子。
+# 版本一致性仍由 lock 保证（export 的版本就是 lock 冻的版本）。
+ENV UV_PYTHON=/usr/bin/python3
+
+# 编译期工具：greenlet / markupsafe / tornado / pycryptodome 在部分架构没有 musllinux
+# 轮子，必须现编；装完 apk del，不留在运行时镜像里。
+#
+# 三个 wheelhouse 用 bind mount 挂进来而不是 COPY：COPY 会把整份 wheel 写进镜像层，
+# 而 RUN 结束后它们就用完了，镜像里不该有 /w1 /w2 /w3。
+#
+# 系统包取三个清单的并集（三个仓库各自只列自己需要的），再补上 ddddocr 那层的便利包
+# （bash 给 update.sh 用、tzdata 给 zoneinfo、icu-data-en 给 onnxruntime 的 libicu）。
+RUN \
+    --mount=type=bind,from=wh-onnx,source=/wheels,target=/w1 \
+    --mount=type=bind,from=wh-ddddocr,source=/wheels,target=/w2 \
+    --mount=type=bind,from=wh-pycurl,source=/wheels,target=/w3 \
+    set -eu && \
+    { [ -z "$APK_MIRROR" ] || sed -i "s|https://dl-cdn.alpinelinux.org|$APK_MIRROR|g" /etc/apk/repositories; } && \
+    apk add --update --no-cache \
+        build-base python3-dev linux-headers libffi-dev \
+        $(cat /w1/system-packages.txt /w2/system-packages.txt /w3/system-packages.txt | sort -u) \
+        bash ca-certificates icu-data-en tzdata uv && \
+    uv venv .venv --python /usr/bin/python3 && \
+    uv export --frozen --no-hashes --no-emit-project --extra ocr -o /tmp/req.txt && \
+    uv pip sync --python .venv/bin/python --no-cache \
+        --index-url "${PIP_MIRROR:-https://pypi.org/simple}" \
+        --extra-index-url file:///w1/simple \
+        --extra-index-url file:///w2/simple \
+        --extra-index-url file:///w3/simple \
+        /tmp/req.txt && \
+    .venv/bin/python -c "import pycurl; \
+        assert pycurl.version.startswith('PycURL/7.49.0'), pycurl.version; \
+        print('pycurl', pycurl.version)" && \
+    .venv/bin/python -c "import pycurl; assert hasattr(pycurl, 'IMPERSONATE'), 'IMPERSONATE 缺失（pycurl 被 PyPI 版覆盖？）'" && \
+    apk del build-base python3-dev linux-headers libffi-dev uv && \
+    rm -rf /var/cache/apk/*
+
+# 分发义务：镜像里装着 wheel 随包的原生库（libcurl / libidn2 / libunistring / OpenCV /
+# libgcc 等），LGPL/GPL 要求随分发提供许可证文本与源码获取途径。文书由三个 wheelhouse
+# 各自生成，按组件分目录放——三家文件名相同，混在一起会互相覆盖。
+#
+# 用 COPY --from 而不是 mount+cp：缺件时构建直接失败（fail-fast），不会静默少一份文书。
+#
+# licenses/ 目录三个仓都有（没有 copyleft 组件时为空目录），所以四个 Dockerfile 的
+# COPY 完全一致。末尾那条 RUN 校验「NOTICE 声明了 copyleft」与「licenses/ 是否随镜像
+# 分发」是否自洽——将来某条线真出现 copyleft 却漏搬了全文，构建会在这里红掉。
+
+COPY --from=wh-onnx /wheels/NOTICE.md /wheels/SOURCE-OFFER.md /wheels/components.json /usr/share/doc/third-party/onnxruntime/
+COPY --from=wh-ddddocr /wheels/NOTICE.md /wheels/SOURCE-OFFER.md /wheels/components.json /usr/share/doc/third-party/ddddocr/
+COPY --from=wh-pycurl /wheels/NOTICE.md /wheels/SOURCE-OFFER.md /wheels/components.json /usr/share/doc/third-party/pycurl/
+COPY --from=wh-pycurl /wheels/licenses /usr/share/doc/third-party/pycurl/licenses
+COPY docker/third-party-readme.md /usr/share/doc/third-party/README.md
+
+# 代码直接用构建上下文（.dockerignore 已排除 .git / node_modules 等），
+# 不再在构建时从 gitee clone——那会让镜像内容与仓库脱节，且需要把部署私钥打进镜像
+COPY . /usr/src/app
+# 末尾顺手做一次自洽校验：「NOTICE 声明了 copyleft」必须与「licenses/ 已随镜像分发」同时成立。
+# 放在这条已有 RUN 里而不是单起一条，是为了不产生一个 0 B 的空层。
+RUN set -eu; \
+    chmod +x /usr/src/app/update.sh && ln -sf /usr/src/app/update.sh /bin/update; \
+    for d in /usr/share/doc/third-party/*/; do \
+        if grep -q '^## 需要履行义务的组件' "$d/NOTICE.md" && [ ! -d "$d/licenses" ]; then \
+            echo "错误: ${d} 的 NOTICE 声明了 copyleft 组件，但 licenses/ 没有随镜像分发"; exit 1; \
+        fi; \
+    done; \
+    find /usr/share/doc/third-party -type f | sort
+
+# venv 里的可执行文件优先
+ENV PATH=/usr/src/app/.venv/bin:$PATH
+
+ENV PORT=80
+EXPOSE 80/tcp
 
 # timezone
 ENV TZ=CST-8

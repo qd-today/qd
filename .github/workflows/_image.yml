@@ -1,0 +1,297 @@
+name: _Image (reusable)
+
+# 三个变体（latest / ja3 / lite）共用的构建-冒烟-发布流水线。
+# 变体差异全部由 inputs 表达，避免三份 workflow 各抄一遍逻辑后逐渐漂移
+# （此前就是三份独立 workflow：同一批 QEMU/缓存/冒烟改动要改三次）。
+#
+# 阶段划分：
+#   1) build  ：按架构组并行构建；发布模式按 digest 推到 ghcr（不产中间 tag）
+#   2) smoke  ：从 build 写下的层缓存重建单平台镜像，逐平台真跑
+#               （import run + pycurl 版本/补丁校验——历史上正是缺这一步，
+#                 pip 把基座里打过补丁的 pycurl 覆盖成 vanilla 版本都没人发现）
+#   3) publish：全部构建 + 全部冒烟通过后，用 imagetools 把各 digest 合并成正式 tag，
+#               并断言 manifest 平台集合与计划一致
+on:
+  workflow_call:
+    inputs:
+      variant:
+        description: '变体标识，仅用于缓存 scope 与日志命名'
+        type: string
+        required: true
+      dockerfile:
+        description: '该变体的 Dockerfile'
+        type: string
+        required: true
+      default_platforms:
+        description: '该变体的默认平台集合（逗号分隔）'
+        type: string
+        required: true
+      check_impersonate:
+        description: '冒烟是否校验 pycurl.IMPERSONATE（ja3 线为 true）'
+        type: boolean
+        default: false
+      platforms:
+        description: '平台子集（空 = 用 default_platforms）'
+        type: string
+        default: ''
+      force:
+        description: '强制重新构建（默认会跳过「仅文档改动」或「该 commit 已验证过」的重复运行）'
+        type: boolean
+        default: false
+      native_arm:
+        description: '是否用原生 arm64 runner 构建 arm64'
+        type: boolean
+        default: true
+    outputs:
+      groups:
+        description: '该变体实际参与构建的组 → 平台列表（JSON）'
+        value: ${{ jobs.plan.outputs.groups }}
+    secrets:
+      GHCR_TOKEN:
+        required: false
+      DOCKER_USERNAME:
+        required: false
+      DOCKER_PASSWORD:
+        required: false
+      QD_DOCKER_USERNAME:
+        required: false
+      QD_DOCKER_PASSWORD:
+        required: false
+
+env:
+  ALPINE_VERSION: '3.24'
+  # 官方 alpine 无 loongarch64，这个架构改用第三方构建的同版本基座
+  LOONG64_BASE: ghcr.io/loong64/alpine
+  # digest 推送与 tag 写入共用这一道门禁：非发布 ref 不推任何东西，
+  # 也就不会在 GHCR 上留下没人认领的孤儿 manifest。
+  # 门禁只看 ref：force 决定的是「是否重建」，不改变发布资格，
+  # 否则「强制重建并发布」会因 digest 未推而让 merge 拿不到产物。
+  PUBLISH: ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/') }}
+  GHCR_IMAGE: ghcr.io/qd-today/qd
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    name: Plan
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      smoke_matrix: ${{ steps.plan.outputs.smoke_matrix }}
+      expected: ${{ steps.plan.outputs.expected }}
+      groups: ${{ steps.plan.outputs.groups }}
+      full: ${{ steps.plan.outputs.full }}
+      skip: ${{ steps.changes.outputs.skip }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Decide whether a rebuild is needed
+        id: changes
+        # 只在 workflow_dispatch 下生效：master 推送与 tag 发布必须全量。
+        # 基准取「该分支上本 workflow 最近一次成功运行的 commit」，用
+        # git diff 看改动是否命中影响镜像的路径；没命中则整体跳过
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKERFILE: ${{ inputs.dockerfile }}
+        run: |
+          set -euo pipefail
+          case "${{ github.event_name }}" in
+            workflow_dispatch) ;;
+            *) echo "skip=false" >> "$GITHUB_OUTPUT"; echo "reason=release-event"; exit 0 ;;
+          esac
+          if [ "${{ inputs.force }}" = "true" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"; echo "reason=forced"; exit 0
+          fi
+          base=$(gh run list --workflow "${GITHUB_WORKFLOW}" --branch "${GITHUB_REF_NAME}" \
+                   --status success --limit 1 --json headSha --jq '.[0].headSha' 2>/dev/null || true)
+          if [ -z "$base" ] || [ "$base" = "null" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"; echo "reason=no-previous-success"; exit 0
+          fi
+          changed=$(git diff --name-only "$base" "$GITHUB_SHA" || true)
+          echo "基准 ${base}..${GITHUB_SHA} 的改动："
+          if [ -z "$changed" ]; then
+            echo "  （无改动，该 commit 已验证过）"
+            echo "skip=true" >> "$GITHUB_OUTPUT"; echo "reason=already-verified"; exit 0
+          fi
+          echo "$changed" | sed 's/^/  /'
+          relevant=0
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            case "$f" in
+              Dockerfile|Dockerfile.ja3|Dockerfile.lite|.dockerignore|requirements.txt|Pipfile|Pipfile.lock|libs/*|web/*|db/*|config/*|worker*|qd.py|run.py|backup.py|chrole.py)
+                relevant=1 ;;
+            esac
+          done <<EOF
+          $changed
+          EOF
+          if [ "$relevant" = "1" ]; then
+            echo "skip=false" >> "$GITHUB_OUTPUT"; echo "reason=app-inputs-changed"
+          else
+            echo "skip=true" >> "$GITHUB_OUTPUT"; echo "reason=unrelated-to-image"
+          fi
+      - name: Verify derived Dockerfile consistency
+        if: inputs.dockerfile != 'Dockerfile'
+        run: |
+            set -eu
+            # ja3 与 main 只允许两处差异：pycurl 的 wheelhouse tag、ja3 独有的 IMPERSONATE 断言，
+            # 以及 ja3 线把 PYCURL_TAG_PREFIX 设成 ja3-（主线为空）。
+            # 归一化掉这三处后必须逐字一致，防止改了 main 忘了同步 ja3。
+            # lite 结构性不同（不带 OCR、少挂两个 wheelhouse），全文件比对没意义，改成语义检查。
+            norm() {
+              sed -e 's|a76yyyy/pycurl:[a-zA-Z0-9._-]*|a76yyyy/pycurl:<wh>|g' \
+                  -e 's|^ARG PYCURL_TAG_PREFIX=.*|ARG PYCURL_TAG_PREFIX=<p>|' \
+                  -e '/IMPERSONATE/d' \
+                  "$1"
+            }
+            case "${{ inputs.dockerfile }}" in
+              Dockerfile.ja3)
+                if ! diff <(norm Dockerfile) <(norm Dockerfile.ja3) > /tmp/df.diff; then
+                  echo "::error::Dockerfile.ja3 与 Dockerfile 除 pycurl wheelhouse、PYCURL_TAG_PREFIX 与 IMPERSONATE 断言外不一致"
+                  head -40 /tmp/df.diff
+                  exit 1
+                fi
+                ;;
+              Dockerfile.lite)
+                grep -q 'uv pip sync' Dockerfile.lite || { echo "::error::Dockerfile.lite 缺少 uv pip sync"; exit 1; }
+                if grep -q -- '--extra ocr' Dockerfile.lite; then
+                  echo "::error::Dockerfile.lite 不应安装 ocr extra"; exit 1
+                fi
+                if grep -q 'ddddocr:' Dockerfile.lite || grep -q 'onnxruntime:' Dockerfile.lite; then
+                  echo "::error::Dockerfile.lite 不应挂 ddddocr / onnxruntime 的 wheelhouse"; exit 1
+                fi
+                ;;
+            esac
+      - name: Self-test CI scripts
+        run: python3 .github/workflows/scripts/selftest.py
+      - name: Compute matrices
+        id: plan
+        env:
+          PLATFORM_INPUT: ${{ inputs.platforms }}
+          DEFAULT_PLATFORMS: ${{ inputs.default_platforms }}
+          NATIVE_ARM: ${{ inputs.native_arm && 'true' || 'false' }}
+        run: |
+          python3 .github/workflows/scripts/plan.py > /tmp/plan.out
+          echo "--- 构建分组 ---"
+          sed -n 's/^matrix=//p' /tmp/plan.out | python3 -m json.tool
+          echo "--- 冒烟矩阵 ---"
+          sed -n 's/^smoke_matrix=//p' /tmp/plan.out | python3 -m json.tool
+          echo "--- 其余 ---"
+          grep -Ev '^(matrix|smoke_matrix)=' /tmp/plan.out
+          # /tmp/plan.out 的每一行都是 key=value，直接追加到 $GITHUB_OUTPUT
+          cat /tmp/plan.out >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    name: Build ${{ matrix.group }} (${{ matrix.platforms }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 300
+    if: ${{ needs.plan.outputs.skip != 'true' }}
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        if: env.PUBLISH == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_TOKEN || github.actor }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+      - name: Build
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./${{ inputs.dockerfile }}
+          platforms: ${{ matrix.platforms }}
+          # 发布模式按 digest 推送：各架构组并行构建，用 digest 传递产物不必协调 tag 命名，
+          # 也不在 tag 列表里留下可被拉取的一次性中间产物
+          push: ${{ env.PUBLISH == 'true' }}
+          outputs: ${{ env.PUBLISH == 'true' && format('type=image,name={0},push-by-digest=true,name-canonical=true', env.GHCR_IMAGE) || '' }}
+          provenance: false
+          # 只有 loong64 组会换基座（它是单平台成组，matrix.platforms 恰好等于
+          # linux/loong64）；其余架构走 Dockerfile 里 ARG BASE_IMAGE 的默认值。
+          build-args: |
+            BASE_IMAGE=${{ matrix.platforms == 'linux/loong64' && format('{0}:{1}', env.LOONG64_BASE, env.ALPINE_VERSION) || format('alpine:{0}', env.ALPINE_VERSION) }}
+          cache-from: type=gha,scope=qd-${{ inputs.variant }}-${{ matrix.group }}-g2
+          cache-to: type=gha,mode=max,scope=qd-${{ inputs.variant }}-${{ matrix.group }}-g2,ignore-error=true
+      - name: Export digest
+        if: env.PUBLISH == 'true'
+        run: |
+          set -eu
+          mkdir -p /tmp/digests
+          echo "${{ steps.build.outputs.digest }}" > "/tmp/digests/${{ matrix.group }}.digest"
+      - name: Upload digest
+        if: env.PUBLISH == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ inputs.variant }}-${{ matrix.group }}
+          path: /tmp/digests/*.digest
+          retention-days: 1
+          if-no-files-found: error
+
+  smoke:
+    needs: [plan, build]
+    name: Smoke ${{ matrix.platform }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    if: ${{ needs.plan.outputs.skip != 'true' && needs.build.result == 'success' }}
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.smoke_matrix) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Materialize image from cache (${{ matrix.platform }})
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./${{ inputs.dockerfile }}
+          platforms: ${{ matrix.platform }}
+          load: true
+          push: false
+          tags: qd-smoke:test
+          provenance: false
+          # 冒烟是从同 group 的层缓存重建单平台镜像，build-args 必须与 build 阶段一致，
+          # 否则缓存不命中会退化成全量重建（loong64 还会去拉不存在的官方 alpine）
+          build-args: |
+            BASE_IMAGE=${{ matrix.platform == 'linux/loong64' && format('{0}:{1}', env.LOONG64_BASE, env.ALPINE_VERSION) || format('alpine:{0}', env.ALPINE_VERSION) }}
+          cache-from: type=gha,scope=qd-${{ inputs.variant }}-${{ matrix.group }}-g2
+      - name: Run smoke
+        run: |
+          set -eu
+          IMPERSONATE="${{ inputs.check_impersonate }}"
+          docker run --rm -i --platform ${{ matrix.platform }} --entrypoint sh qd-smoke:test -s <<'EOF'
+          set -eu
+          cd /usr/src/app
+          # 入口可导入：覆盖 tornado / aiohttp / db / web / worker 全链路 import
+          timeout 120 python3 -c "import run" 2>&1 | grep -v cpuid_info || true
+          timeout 120 python3 -c "import run"
+          # pycurl 必须来自基座（版本不被 pip 覆盖）；ja3 线还必须有 IMPERSONATE 补丁
+          timeout 60 python3 - <<'PY'
+          import pycurl
+          print("pycurl", pycurl.version.split()[0])
+          want = "${IMPERSONATE}"
+          has = hasattr(pycurl, "IMPERSONATE")
+          if want == "true" and not has:
+              raise SystemExit("ja3 线缺少 pycurl.IMPERSONATE：基座补丁被覆盖")
+          if want == "false" and has:
+              print("note: 非 ja3 线也带 IMPERSONATE（基座变更？）")
+          PY
+          echo "smoke(${{ inputs.variant }}/${{ matrix.platform }}): PASS"
+          EOF

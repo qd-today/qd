@@ -52,7 +52,7 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 [docker-stars-url]: https://hub.docker.com/r/qdtoday/qd
 [docker-image-size-image]: https://img.shields.io/docker/image-size/qdtoday/qd/latest?style=flat&arch=amd64
 [docker-image-size-url]: https://hub.docker.com/r/qdtoday/qd
-[python-version-image]: https://img.shields.io/github/pipenv/locked/python-version/qd-today/qd
+[python-version-image]: https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2Fqd-today%2Fqd%2Fmaster%2Fpyproject.toml&query=project.requires-python&label=python&color=blue
 
 </div>
 
@@ -66,6 +66,22 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 
 请参阅 **[使用指南](https://qd-today.github.io/qd/zh_CN/)**
 
+镜像
+==========
+
+| 标签 | 说明 |
+|---|---|
+| `latest` | 完整功能，含验证码识别 |
+| `lite-latest` | 精简版，不含验证码识别 |
+| `ja3-latest` | 含验证码识别，pycurl 带 TLS 指纹伪装 |
+| `ja3-lite-latest` | 精简 + TLS 指纹伪装 |
+
+`386` / `arm/v6` / `s390x` 上没有可用的 OCR 依赖轮子：这三个架构上 `latest` 仍可拉取，
+但对应平台的内容等同于 `lite-latest`（不含验证码识别）；`ja3-latest` 在 `386` / `arm/v6`
+上等同于 `ja3-lite-latest`，在 `s390x` 上不提供。需要验证码识别请使用 `amd64` / `arm64` /
+`arm/v7` / `ppc64le` / `riscv64` / `loong64`。部署方式与配置见
+[使用指南](https://qd-today.github.io/qd/zh_CN/)。
+
 更新日志
 ===========
 
@@ -78,7 +94,7 @@ QD —— 一个<b>HTTP请求定时任务自动执行框架</b> base on HAR Edit
 
 [MIT](https://fastly.jsdelivr.net/gh/qd-today/qd@master/LICENSE) 许可协议
 
-[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fqd-today%2Fqd.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fqd-today%2Fqd?ref=badge_large)
+[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B38165%2Fqd.svg?type=large)](https://app.fossa.com/projects/custom%2B38165%2Fqd?ref=badge_large)
 
 致谢
 ===========
@@ -134,4 +150,10 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 Stargazers over time
 ===========
 
-[![Stargazers over time](https://starchart.cc/qd-today/qd.svg)](https://starchart.cc/qd-today/qd)
+<a href="https://www.star-history.com/?repos=qd-today%2Fqd&type=date&legend=bottom-right">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=qd-today/qd&type=date&theme=dark&legend=bottom-right" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=qd-today/qd&type=date&legend=bottom-right" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=qd-today/qd&type=date&legend=bottom-right" />
+ </picture>
+</a>

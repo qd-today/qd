@@ -46,7 +46,7 @@ class Pusher:
 
     async def pusher(self, userid, pushsw, flg, title, content):
         sql_session = self.sql_session
-        notice = await self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token', 'qywx_webhook', 'diypusher'), sql_session=sql_session)
+        notice = await self.db.user.get(userid, fields=('skey', 'barkurl', 'noticeflg', 'wxpusher', 'qywx_token', 'tg_token', 'dingding_token', 'qywx_webhook', 'wxpusher_spt', 'diypusher'), sql_session=sql_session)
 
         if notice['noticeflg'] & flg != 0:
             user = await self.db.user.get(userid, fields=('id', 'email', 'email_verified', 'nickname'), sql_session=sql_session)
@@ -72,6 +72,8 @@ class Pusher:
                 notice['noticeflg'] & 0x800) == 0 else True
             pusher["qywxwebhooksw"] = False if (
                 notice['noticeflg'] & 0x1000) == 0 else True
+            pusher["wxpushersptsw"] = False if (
+                notice['noticeflg'] & 0x2000) == 0 else True
 
             def nonepush(*args, **kwargs):  # pylint: disable=unused-argument
                 return
@@ -92,6 +94,8 @@ class Pusher:
                     pusher["dingdingpushersw"]) else nonepush
                 qywx_webhook_send = self.qywx_webhook_send if (
                     pusher["qywxwebhooksw"]) else nonepush
+                send2wxpusher_spt = self.send2wxpusher_spt if (
+                    pusher["wxpushersptsw"]) else nonepush
 
                 await gen.convert_yielded([send2bark(notice['barkurl'], title, content),
                                            send2s(notice['skey'],
@@ -109,7 +113,9 @@ class Pusher:
                                            send2dingding(
                                                notice['dingding_token'], title, content),
                                            qywx_webhook_send(
-                                               notice['qywx_webhook'], title, content)
+                                               notice['qywx_webhook'], title, content),
+                                           send2wxpusher_spt(
+                                               notice['wxpusher_spt'], title + "  " + content)
                                            ])
 
     async def send2bark(self, barklink, title, content):
@@ -254,6 +260,34 @@ class Pusher:
             except Exception as e:
                 r = traceback.format_exc()
                 logger_funcs.error('Sent to WxPusher error: %s', e, exc_info=config.traceback_print)
+                return e
+        else:
+            return Exception("参数不完整! ")
+
+        return r
+
+    async def send2wxpusher_spt(self, wxpusher_spt, content):
+        r = 'False'
+        spts = [x.strip() for x in wxpusher_spt.split(',') if x.strip()][:10]
+        if len(spts) > 0:
+            try:
+                link = "https://wxpusher.zjiecode.com/api/send/message/simple-push"
+                content = content.replace('\\r\\n', '\n')
+                d = {
+                    "content": content,
+                    "summary": content[:99],
+                    "contentType": 3,
+                }
+                d["sptList"] = spts
+                async with aiohttp.ClientSession(conn_timeout=config.connect_timeout) as session:
+                    async with session.post(link, json=d, verify_ssl=False, timeout=config.request_timeout) as res:
+                        r = await self.judge_res(res)
+                        _json = await res.json()
+                        if _json.get('code') != 1000:
+                            raise Exception(_json)
+            except Exception as e:
+                r = traceback.format_exc()
+                logger_funcs.error('Sent to WxPusher SPT error: %s', e, exc_info=config.traceback_print)
                 return e
         else:
             return Exception("参数不完整! ")

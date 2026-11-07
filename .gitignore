@@ -80,7 +80,6 @@ target/
 .ipynb_checkpoints
 
 # pyenv
-.python-version
 .idea/
 .vscode
 # celery beat schedule file
@@ -187,3 +186,5 @@ cache
 
 alembic.ini
 .hintrc
+# CI 运行时生成，不提交
+fossa-deps.yml

@@ -3,6 +3,10 @@
 > Please always remember to back up your database before updating or redeploying.
 >
 > After the update, please restart the container or clear the browser cache.
+>
+> The image ships its Python dependencies (OCR and curl-impersonate included), so hot
+> update only replaces the application code and does not reinstall dependencies.
+> To change dependency versions, pull the image of the matching version tag.
 
 ## Source Code Deployment Update
 

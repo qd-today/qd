@@ -1,9 +1,23 @@
 name: Publish Latest Package
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: '要构建的平台列表，逗号分隔不要空格，如 linux/amd64,linux/arm64；留空=该变体默认平台'
+        type: string
+        default: ''
+      native_arm:
+        description: '用 GitHub 原生 arm64 runner 构建 arm64（比 QEMU 快数倍）；该 runner 不可用时取消勾选回退 QEMU'
+        type: boolean
+        default: true
+      force:
+        description: '强制重新构建（只影响「是否重建」，不影响发布资格；发布资格由 ref 与平台集合决定）'
+        type: boolean
+        default: false
   push:
     paths-ignore:
       - 'docs/**'
+      - '.gitignore'
       - '.github/**'
       - '**.md'
       - '**.png'
@@ -12,76 +26,171 @@ on:
     tags: ["*"]
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    name: Publish Latest Package job
-    if: startsWith(github.repository, 'qd-today/qd') # 仓库名
+  # latest 只有 6 个平台（386 / arm/v6 / s390x 没有 OCR 的 wheelhouse，连 --mount 都解析不了），
+  # 而 lite 只依赖 pycurl、能覆盖 9 个。所以 lite 构建一次，既产出 lite-latest，
+  # 又用它的 digest 补上 latest 缺的那 3 个平台。
+  #
+  # 三个 job 的职责严格分开：
+  #   latest / lite  只构建 + 冒烟（digest 是否推 GHCR 由 _image.yml 的 ref 门禁决定）
+  #   merge          只组装 digest 清单并传递，不碰任何 registry
+  #   publish        唯一写 tag 的地方
+  latest:
+    uses: ./.github/workflows/_image.yml
+    secrets: inherit
+    with:
+      variant: latest
+      dockerfile: Dockerfile
+      default_platforms: linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le,linux/riscv64,linux/loong64
+      check_impersonate: false
+      platforms: ${{ github.event.inputs.platforms || '' }}
+      native_arm: ${{ github.event.inputs.native_arm != 'false' }}
+      force: ${{ github.event.inputs.force == 'true' }}
 
+  lite:
+    uses: ./.github/workflows/_image.yml
+    secrets: inherit
+    with:
+      variant: lite
+      dockerfile: Dockerfile.lite
+      default_platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7,linux/ppc64le,linux/riscv64,linux/s390x,linux/loong64
+      check_impersonate: false
+      platforms: ${{ github.event.inputs.platforms || '' }}
+      native_arm: ${{ github.event.inputs.native_arm != 'false' }}
+      force: ${{ github.event.inputs.force == 'true' }}
+
+  merge:
+    needs: [latest, lite]
+    name: Assemble digest lists
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # 只在「发布 ref + 两个构建都成功 + 没指定平台子集」时组装。
+    # 子集构建缺 digest，拼出来的 manifest 会残缺，宁可不出。
+    # 平台子集只可能出现在 dispatch：push 事件没有 inputs，取值是 null，
+    # 直接比 == '' 会判 false 而把整条链路跳过。
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && (github.event_name != 'workflow_dispatch' || github.event.inputs.platforms == '') && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
+    permissions:
+      contents: read
     steps:
-    - name: Checkout
-      uses: actions/checkout@v3
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v2
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v2
-      with:
-        registry: ghcr.io
-        username: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
-        password: ${{ secrets.GITHUB_TOKEN }} # dockerServer Token
-    - name: login to qdtoday DockerHub
-      uses: docker/login-action@v2
-      with:
-        registry: docker.io
-        username: ${{ secrets.QD_DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=QD_DOCKER_USERNAME  value=dockerid
-        password: ${{ secrets.QD_DOCKER_PASSWORD }} # dockerServer Token 在setting创建secrets name=QD_DOCKER_PASSWORD  value=dockerToken
-    - name: Publish Latest Package
-      uses: docker/build-push-action@v4
-      if: github.ref == 'refs/heads/master'
-      with:
-        context: .
-        file: ./Dockerfile
-        platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
-        push: true
-        tags: ghcr.io/qd-today/qd:latest,docker.io/qdtoday/qd:dev
-    - name: Login to a76yyyy DockerHub
-      uses: docker/login-action@v2
-      if: github.ref == 'refs/heads/master'
-      with:
-        registry: docker.io
-        username: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
-        password: ${{ secrets.DOCKER_PASSWORD }} # dockerServer Token 在setting创建secrets name=DOCKER_PASSWORD  value=dockerToken
-    - name: Push image to a76yyyy DockerHub
-      if: github.ref == 'refs/heads/master'
-      run: |
-        docker buildx imagetools create \
-          --tag docker.io/a76yyyy/qiandao:dev \
-          docker.io/qdtoday/qd:dev
-    - name: Get version
-      id: get_version
-      if: startsWith(github.ref, 'refs/tags/')
-      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
-    - name: Build Latest Package
-      uses: docker/build-push-action@v4
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        context: .
-        file: ./Dockerfile
-        platforms: linux/386,linux/arm64,linux/amd64,linux/arm/v6,linux/arm/v7 # 你准备构建的镜像平台
-        push: true
-        tags: docker.io/qdtoday/qd:latest,docker.io/qdtoday/qd:${{ steps.get_version.outputs.VERSION }}
-    - name: Login to a76yyyy DockerHub
-      uses: docker/login-action@v2
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        registry: docker.io
-        username: ${{ secrets.DOCKER_USERNAME }} # dockerServer Username 在setting创建secrets name=DOCKER_USERNAME  value=dockerid
-        password: ${{ secrets.DOCKER_PASSWORD }} # dockerServer Token 在setting创建secrets name=DOCKER_PASSWORD  value=dockerToken
-    - name: Push image to a76yyyy DockerHub
-      if: startsWith(github.ref, 'refs/tags/')
-      run: |
-        docker buildx imagetools create \
-          --tag docker.io/a76yyyy/qiandao:latest \
-          --tag docker.io/a76yyyy/qiandao:${{ steps.get_version.outputs.VERSION }} \
-          docker.io/qdtoday/qd:${{ steps.get_version.outputs.VERSION }}
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download latest digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-latest-*
+          path: /tmp/d/latest
+      - name: Download lite digests
+        uses: actions/download-artifact@v4
+        with:
+          pattern: digests-lite-*
+          path: /tmp/d/lite
+      - name: Assemble
+        env:
+          # 组名由 _image.yml 的 plan 输出提供（GROUPS 只有一处定义）
+          MAIN_GROUPS_CSV: ${{ needs.latest.outputs.groups }}
+          LITE_GROUPS_CSV: ${{ needs.lite.outputs.groups }}
+        run: |
+          set -euo pipefail
+          python3 .github/workflows/scripts/assemble_manifests.py \
+            --main-variant latest --lite-variant lite \
+            --main-groups "$MAIN_GROUPS_CSV" --lite-groups "$LITE_GROUPS_CSV" \
+            --digest-root /tmp/d --image ghcr.io/qd-today/qd \
+            --out /tmp/srcs
+      - name: Upload digest lists
+        uses: actions/upload-artifact@v4
+        with:
+          name: manifest-srcs
+          path: /tmp/srcs-*.txt
+          retention-days: 1
+          if-no-files-found: error
+
+  publish:
+    needs: [merge]
+    name: Write tags
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    # 唯一写 tag 的地方；门禁与 _image.yml 的 digest 推送保持一致
+    if: ${{ !cancelled() && !contains(needs.*.result, 'failure') && (github.event_name != 'workflow_dispatch' || github.event.inputs.platforms == '') && (github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/')) }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download digest lists
+        uses: actions/download-artifact@v4
+        with:
+          name: manifest-srcs
+          path: /tmp
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ secrets.GHCR_TOKEN || github.actor }}
+          password: ${{ secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
+      - name: Login to qdtoday DockerHub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.QD_DOCKER_USERNAME }}
+          password: ${{ secrets.QD_DOCKER_PASSWORD }}
+      - name: Login to a76yyyy DockerHub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Write tags
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+        run: |
+          set -euo pipefail
+          SRCS_A="$(cat /tmp/srcs-latest.txt)"
+          SRCS_B="$(cat /tmp/srcs-lite.txt)"
+          # 标签归属由 publish_tags.py 决定：master 只推进 dev，tag 只写 latest 与版本号
+          eval "$(python3 .github/workflows/scripts/publish_tags.py \
+            --is-tag "$([ "$IS_TAG" = "true" ] && echo true || echo false)" \
+            --version "$REF_NAME" \
+            --a-prefix "" --a-tag latest \
+            --b-prefix "lite-" --b-tag latest \
+            --registries "ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao")"
+
+          for reg in $REGISTRIES; do
+            for t in $A_TAGS; do
+              echo "::group::$reg:$t"
+              docker buildx imagetools create -t "$reg:$t" $SRCS_A
+              echo "::endgroup::"
+            done
+            for t in $B_TAGS; do
+              echo "::group::$reg:$t"
+              docker buildx imagetools create -t "$reg:$t" $SRCS_B
+              echo "::endgroup::"
+            done
+          done
+      - name: Verify manifest platform completeness
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          IS_TAG: ${{ startsWith(github.ref, 'refs/tags/') }}
+          EXPECT_PLATFORMS: linux/amd64,linux/arm64,linux/arm/v7,linux/ppc64le,linux/riscv64,linux/loong64,linux/386,linux/arm/v6,linux/s390x
+        run: |
+          set -euo pipefail
+          eval "$(python3 .github/workflows/scripts/publish_tags.py \
+            --is-tag "$([ "$IS_TAG" = "true" ] && echo true || echo false)" \
+            --version "$REF_NAME" \
+            --a-prefix "" --a-tag latest \
+            --b-prefix "lite-" --b-tag latest \
+            --registries "ghcr.io/qd-today/qd docker.io/qdtoday/qd docker.io/a76yyyy/qiandao")"
+          # 三个 registry 的 tag 名集合必须一致，逐个校验平台集合
+          REFS=""
+          for reg in $REGISTRIES; do
+            for t in $A_TAGS $B_TAGS; do REFS="$REFS $reg:$t"; done
+          done
+          python3 .github/workflows/scripts/verify_manifests.py \
+            --expect "$EXPECT_PLATFORMS" \
+            $REFS
+      # 不要清理 GHCR 的 untagged 版本。push-by-digest 推上去的 per-arch 子清单
+      # 本身就是「无 tag 版本」，但它们正是 tagged index 的内容；
+      # actions/delete-package-versions 只按 tag 筛、不检查引用关系，会把子清单当垃圾删掉，
+      # 留下 index 还在、子清单全 404 的空壳 tag（见 issue #642）。

@@ -487,7 +487,7 @@ class UtilRSAHandler(BaseHandler):
 
 class ToolboxHandler(BaseHandler):
     async def get(self, userid):
-        if self.current_user["isadmin"] or self.check_permission(
+        if (self.current_user or {}).get("isadmin") or self.check_permission(
             {"userid": int(userid)}, "r"
         ):
             await self.render("toolbox.html", userid=userid)
@@ -554,7 +554,7 @@ class ToolboxNotepadHandler(BaseHandler):
     async def get(self, userid=None, notepadid=1):
         if userid is None:
             raise HTTPError(405)
-        if self.current_user["isadmin"] or self.check_permission(
+        if (self.current_user or {}).get("isadmin") or self.check_permission(
             {"userid": int(userid)}, "r"
         ):
             notepadlist = await self.db.notepad.list(
@@ -666,7 +666,7 @@ class ToolboxNotepadListHandler(BaseHandler):
     async def get(self, userid=None, notepadid=1):
         if userid is None:
             raise HTTPError(405)
-        if self.current_user["isadmin"] or self.check_permission(
+        if (self.current_user or {}).get("isadmin") or self.check_permission(
             {"userid": int(userid)}, "r"
         ):
             notepadlist = await self.db.notepad.list(

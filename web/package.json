@@ -29,33 +29,30 @@
   "homepage": "https://github.com/qd-today/qd#readme",
   "dependencies": {
     "curl2har": "npm:@a76yyyy/curl-to-har@^0.0.24",
-    "qs": "^6.14.0",
+    "qs": "^6.16.2",
     "tough-cookie": "^4.1.4",
     "url": "^0.11.4"
   },
   "engines": {
-    "node": ">= 0.10.0"
+    "node": ">=20"
   },
   "devDependencies": {
-    "@types/tough-cookie": "^4.0.5",
-    "bower": "^1.8.14",
-    "coffeescript": "^2.7.0",
-    "grunt": "^1.6.1",
-    "grunt-bower-task": "^0.6.2",
-    "grunt-contrib-clean": "^2.0.1",
-    "grunt-contrib-concat": "^2.1.0",
-    "grunt-contrib-jshint": "^3.2.0",
-    "grunt-contrib-uglify": "^5.2.2",
-    "grunt-contrib-watch": "^1.1.0",
     "process": "^0.11.10",
-    "terser-webpack-plugin": "^5.3.14",
-    "ts-loader": "^9.5.2",
-    "tslib": "^2.8.1",
-    "typescript": "^4.9.5",
+    "terser-webpack-plugin": "^5.6.1",
     "util": "^0.12.5",
-    "vitepress": "1.0.0-beta.1",
-    "vue": "^3.5.18",
-    "webpack": "^5.101.0",
+    "vitepress": "^1.6.4",
+    "webpack": "^5.112.2",
     "webpack-cli": "^5.1.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": "^8.5.23",
+      "nanoid": "^3.3.18",
+      "source-map-js": "^1.2.2",
+      "preact": "^10.27.3",
+      "ajv": "^8.20.0",
+      "fast-uri": "^3.1.9",
+      "vite": "^6.4.4"
+    }
   }
 }

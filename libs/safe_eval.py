@@ -37,11 +37,34 @@ __all__ = ['test_expr', 'safe_eval', 'const_eval']
 # lp:703841), does import time.
 _ALLOWED_MODULES = ['_strptime', 'math', 'time']
 
-_UNSAFE_ATTRIBUTES = ['f_builtins', 'f_globals', 'f_locals', 'gi_frame', 'gi_code',
-                      'co_code', 'func_globals']
+# 属性名里带 __ 的会被 assert_no_dunder_name 拦掉, 剩下的这些是「不带下划线的
+# 自省入口」: 拿到 frame / code / 生成器 / 协程之后能顺着往上爬到执行上下文, 所以
+# 按名字单独禁用。与 upstream odoo/tools/safe_eval 的列表保持一致。
+_UNSAFE_ATTRIBUTES = [
+    # frame
+    'f_builtins', 'f_code', 'f_globals', 'f_locals', 'f_generator',
+    # Py2 遗留的函数属性名
+    'func_code', 'func_globals',
+    # code object
+    'co_code', '_co_code_adaptive',
+    # 方法解析顺序
+    'mro',
+    # traceback
+    'tb_frame',
+    # 生成器
+    'gi_code', 'gi_frame', 'gi_yieldfrom',
+    # 协程
+    'cr_await', 'cr_code', 'cr_frame',
+    # 异步生成器
+    'ag_await', 'ag_code', 'ag_frame',
+]
 
 
 def to_opcodes(opnames, _opmap=opmap):  # pylint: disable=dangerous-default-value
+    # 名字在当前解释器上不存在时会被静默跳过, 因此同一份列表可以同时描述多个 Python
+    # 版本。代价是 CPython 新增/改名 opcode 时必须同步维护本文件, 否则 safe_eval 会在
+    # 运行期对本来无害的表达式报 ValueError（例如 3.14 的 LOAD_SMALL_INT）。
+    # tests/test_safe_eval.py 会用一份表达式语料守住这条线。
     for x in opnames:
         if x in _opmap:
             yield _opmap[x]
@@ -49,6 +72,16 @@ def to_opcodes(opnames, _opmap=opmap):  # pylint: disable=dangerous-default-valu
 
 # opcodes which absolutely positively must not be usable in safe_eval,
 # explicitly subtracted from all sets of valid opcodes just in case
+#
+# 这份表源自 Odoo 的 odoo/tools/safe_eval（单文件时代, 到 odoo 19.0 为止; master 已
+# 拆成 safe_eval/evaluation.py + runtime.py, 表本身没变）。升 Python 后先去对照上游
+# 的 _SAFE_OPCODES: 本文件与它逐项一致, 唯一更严的地方是下面的 CALL_INTRINSIC_1
+# 操作数过滤（只多拒、不多放）。上游不放行 LOAD_ASSERTION_ERROR / LIST_TO_TUPLE,
+# 这里同样不放 —— 本项目只按 3.14 维护一份表, 不替旧版本兜底。
+#
+# 注意: 3.12 起 `from x import *` 不再用 IMPORT_STAR, 而是 CALL_INTRINSIC_1 +
+# INTRINSIC_IMPORT_STAR, 这里按名字拉黑已经拦不住了。真正的拦截在
+# _ALLOWED_INTRINSIC_1 / assert_valid_codeobj(), 不要删。
 _BLACKLIST = set(to_opcodes([
     # can't provide access to accessing arbitrary modules
     'IMPORT_STAR', 'IMPORT_NAME', 'IMPORT_FROM',
@@ -73,6 +106,10 @@ _CONST_OPCODES = set(to_opcodes([
     'COPY',
     # Added in 3.11 https://docs.python.org/3.11/whatsnew/3.11.html
     'RESUME',
+    # 3.12: 常量不再借道栈返回
+    'RETURN_CONST',
+    # 3.14: 小整数 / 常用常量不再进 co_consts, 而是直接编码进指令
+    'LOAD_SMALL_INT', 'LOAD_COMMON_CONSTANT',
 ])) - _BLACKLIST
 
 # operations which are both binary and inplace, same order as in doc'
@@ -97,6 +134,14 @@ _EXPR_OPCODES = _CONST_OPCODES.union(to_opcodes([
     'GEN_START',  # added in 3.10 but already removed from 3.11.
     # Added in 3.11, replacing all BINARY_* and INPLACE_*
     'BINARY_OP',
+    # 3.12: 切片不再是 BINARY_SUBSCR + BUILD_SLICE
+    'BINARY_SLICE', 'STORE_SLICE',
+    # 3.13: 布尔上下文里的真值转换, 以及 3.11 起的栈交换
+    'TO_BOOL', 'SWAP',
+    # 3.12: 编译器内建操作 (+a、(*a, *b)、生成器收尾) 统一走 CALL_INTRINSIC_1。
+    # 一个 opcode 对应多种语义, 光看 opcode 不够, 还需按操作数过滤,
+    # 见下面的 _ALLOWED_INTRINSIC_1 / assert_valid_codeobj()
+    'CALL_INTRINSIC_1',
 ])) - _BLACKLIST
 
 _SAFE_OPCODES = _EXPR_OPCODES.union(to_opcodes([
@@ -129,6 +174,9 @@ _SAFE_OPCODES = _EXPR_OPCODES.union(to_opcodes([
     # replacement of POP_JUMP_IF_TRUE and POP_JUMP_IF_FALSE
     'POP_JUMP_FORWARD_IF_FALSE', 'POP_JUMP_FORWARD_IF_TRUE',
     'POP_JUMP_BACKWARD_IF_FALSE', 'POP_JUMP_BACKWARD_IF_TRUE',
+    # 3.11 里 `if x is None` 的特化跳转, 3.12 起收敛成 POP_JUMP_IF_(NOT_)NONE
+    'POP_JUMP_FORWARD_IF_NONE', 'POP_JUMP_BACKWARD_IF_NONE',
+    'POP_JUMP_FORWARD_IF_NOT_NONE', 'POP_JUMP_BACKWARD_IF_NOT_NONE',
     # replacement of JUMP_ABSOLUTE
     'JUMP_BACKWARD',
     # replacement of JUMP_IF_NOT_EXC_MATCH
@@ -137,9 +185,52 @@ _SAFE_OPCODES = _EXPR_OPCODES.union(to_opcodes([
     'RETURN_GENERATOR',
     'PUSH_EXC_INFO',
     'NOP',
-    'FORMAT_VALUE', 'BUILD_STRING'
+    'FORMAT_VALUE', 'BUILD_STRING',
+
+    # ---- 3.12 ~ 3.14 ----------------------------------------------------------
+    # 3.12 把 POP_JUMP_FORWARD_IF_*/POP_JUMP_BACKWARD_IF_* 合并回 POP_JUMP_IF_*,
+    # 跳转方向改由操作数表达; 3.13 起 NOT_TAKEN 记录「没有跳转」这一分支的目标
+    'POP_JUMP_IF_FALSE', 'POP_JUMP_IF_TRUE', 'NOT_TAKEN',
+    # 3.12 把 `if x is None` 的特化跳转也收敛成这两条
+    'POP_JUMP_IF_NONE', 'POP_JUMP_IF_NOT_NONE',
+    # 循环收尾 (END_FOR 3.12, POP_ITER 3.13) 与无中断的向后跳转
+    'END_FOR', 'POP_ITER', 'JUMP_BACKWARD_NO_INTERRUPT',
+    # 3.13: 关键字参数调用不再走 KW_NAMES + PRECALL
+    'CALL_KW',
+    # 局部变量的检查/借用读与 superinstruction: 推导式 (PEP 709 内联) 与 lambda 会用到
+    'LOAD_FAST_CHECK', 'LOAD_FAST_AND_CLEAR',
+    'LOAD_FAST_LOAD_FAST', 'STORE_FAST_LOAD_FAST', 'STORE_FAST_STORE_FAST',
+    'LOAD_FAST_BORROW', 'LOAD_FAST_BORROW_LOAD_FAST_BORROW',  # 3.14
+    # lambda 的默认值/注解等函数属性
+    'SET_FUNCTION_ATTRIBUTE',
+    # 3.13 起字符串格式化拆成 CONVERT_VALUE (!s/!r/!a) + FORMAT_SIMPLE/FORMAT_WITH_SPEC
+    'CONVERT_VALUE', 'FORMAT_SIMPLE', 'FORMAT_WITH_SPEC',
 
 ])) - _BLACKLIST
+
+# 3.12 起, 编译器把若干「非表达式语义」的动作塞进了 CALL_INTRINSIC_1 一个 opcode:
+# *a 拆包、+a、生成器停止标记……以及 import * / type 别名这类必须挡掉的东西。
+# 因此光放行 opcode 不够, 还要按操作数挑出无副作用的那几个。
+_ALLOWED_INTRINSIC_1_NAMES = frozenset([
+    'INTRINSIC_STOPITERATION_ERROR',  # 生成器表达式收尾, 由编译器插入
+    'INTRINSIC_UNARY_POSITIVE',       # +a
+    'INTRINSIC_LIST_TO_TUPLE',        # (*a, *b)
+])
+# 名称表在 dis 里是私有属性, 取不到就退化成「一个也不放行」: 宁可让
+# (*a, *b) 这类写法报错, 也不要把受限执行环境放宽
+_INTRINSIC_1_DESCS = getattr(dis, '_intrinsic_1_descs', ())
+_ALLOWED_INTRINSIC_1 = frozenset(
+    idx for idx, name in enumerate(_INTRINSIC_1_DESCS) if name in _ALLOWED_INTRINSIC_1_NAMES
+)
+_CALL_INTRINSIC_1 = opmap.get('CALL_INTRINSIC_1')
+
+
+def _intrinsic_1_name(index):
+    """把 CALL_INTRINSIC_1 的操作数还原成名字, 仅用于报错信息。"""
+    if 0 <= index < len(_INTRINSIC_1_DESCS):
+        return _INTRINSIC_1_DESCS[index]
+    return f'#{index}'
+
 
 _logger = Log('QD.Http.Fetcher').getlogger()
 
@@ -359,9 +450,18 @@ def assert_valid_codeobj(allowed_codes, code_obj, expr):
 
     # set operations are almost twice as fast as a manual iteration + condition
     # when loading /web according to line_profiler
-    code_codes = {i.opcode for i in dis.get_instructions(code_obj)}
+    instructions = list(dis.get_instructions(code_obj))
+    code_codes = {i.opcode for i in instructions}
     if not allowed_codes >= code_codes:
-        raise ValueError(f"forbidden opcode(s) in {expr!r}: {', '.join(opname[x] for x in (code_codes - allowed_codes))}")
+        raise ValueError(
+            f"forbidden opcode(s) in {expr!r}: {', '.join(sorted(opname[x] for x in (code_codes - allowed_codes)))}"
+        )
+
+    # CALL_INTRINSIC_1 是一个 opcode 对应多种语义, 还得看它带了哪个内建
+    if _CALL_INTRINSIC_1 is not None and _CALL_INTRINSIC_1 in code_codes:
+        for i in instructions:
+            if i.opcode == _CALL_INTRINSIC_1 and i.arg not in _ALLOWED_INTRINSIC_1:
+                raise ValueError(f"forbidden intrinsic in {expr!r}: {_intrinsic_1_name(i.arg)}")
 
     for const in code_obj.co_consts:
         if isinstance(const, CodeType):
@@ -595,13 +695,20 @@ class WrapModule:
 mods = ['parser', 'relativedelta', 'rrule', 'tz']
 for mod in mods:
     __import__(f'dateutil.{mod}')
+
 datetime = WrapModule(__import__('datetime'), ['date', 'datetime', 'time', 'timedelta', 'timezone', 'tzinfo', 'MAXYEAR', 'MINYEAR'])
-dateutil = WrapModule(dateutil, {  # type: ignore
-    mod: getattr(dateutil, mod).__all__
-    for mod in mods
-})
 json = WrapModule(__import__('json'), ['loads', 'dumps'])
 time = WrapModule(__import__('time'), ['time', 'strptime', 'strftime', 'sleep'])
-zoneinfo = WrapModule(__import__('zoneinfo'), [
-    'ZoneInfo', 'available_timezones',
-])
+
+# dateutil 原来是「子模块 __all__ 全暴露」: 其中 tz.gettz 接受文件路径并去解析
+# tzfile, 等于给沙箱留了个文件读取入口, tz.TZPATH / enfold 之类也一并露在外面。
+# 这里与 upstream 一致改成显式白名单, gettz 换成按 key 查 tzdata 的 ZoneInfo:
+# 参数是时区名而不是路径, 绝对路径直接被拒。
+dateutil = WrapModule(dateutil, {  # type: ignore
+    'tz': ['UTC', 'tzutc'],
+    'parser': ['isoparse', 'parse'],
+    'relativedelta': ['relativedelta', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'],
+    'rrule': ['rrule', 'rruleset', 'rrulestr', 'YEARLY', 'MONTHLY', 'WEEKLY', 'DAILY',
+              'HOURLY', 'MINUTELY', 'SECONDLY', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'],
+})
+dateutil.tz.gettz = __import__('zoneinfo').ZoneInfo

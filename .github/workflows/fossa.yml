@@ -1,0 +1,86 @@
+name: FOSSA
+
+# 把 qd 的两层依赖放在同一个 FOSSA 项目里：
+#   * uv.lock / pnpm-lock.yaml —— CLI 在仓库根目录自动发现
+#   * wheel 里 auditwheel 收进来的原生库 —— fossa-deps.yml（本 workflow 生成，不提交）
+# 依赖图看不到随包原生库，所以必须由 wheelhouse 随附的 fossa-deps.yml 补上。
+on:
+  push:
+    branches: [master]
+    tags: ["*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    env:
+      FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve wheelhouse tags from Dockerfiles
+        id: wh
+        run: |
+          set -euo pipefail
+          arg() { grep -m1 "^ARG $1=" "$2" | sed -E "s/^ARG $1=//" | tr -d '\r'; }
+          onnx=$(arg ONNXRUNTIME_RELEASE Dockerfile)
+          ddddocr=$(arg DDDDOCR_RELEASE Dockerfile)
+          pycurl=$(arg PYCURL_RELEASE Dockerfile)
+          prefix=$(arg PYCURL_TAG_PREFIX Dockerfile.ja3)
+          {
+            echo "onnx=a76yyyy/onnxruntime:${onnx}-wheelhouse"
+            echo "ddddocr=a76yyyy/ddddocr:${ddddocr}-wheelhouse"
+            echo "pycurl_main=a76yyyy/pycurl:${pycurl}-wheelhouse"
+            echo "pycurl_ja3=a76yyyy/pycurl:${prefix}${pycurl}-wheelhouse"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Export fossa-deps.yml from published wheelhouses
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/wh
+          for pair in \
+            "onnx=${{ steps.wh.outputs.onnx }}" \
+            "ddddocr=${{ steps.wh.outputs.ddddocr }}" \
+            "pycurl-main=${{ steps.wh.outputs.pycurl_main }}" \
+            "pycurl-ja3=${{ steps.wh.outputs.pycurl_ja3 }}"; do
+            name=${pair%%=*}; ref=${pair#*=}
+            echo "→ ${name}: ${ref}"
+            docker pull -q "$ref"
+            # wheelhouse 是 FROM scratch，指定一个占位命令才能 create；不会被执行。
+            docker create --name "wh-${name}" "$ref" sh >/dev/null
+            docker cp "wh-${name}:/wheels/fossa-deps.yml" "/tmp/wh/${name}.yml"
+            docker rm -f "wh-${name}" >/dev/null
+          done
+
+      - name: Merge into fossa-deps.yml
+        run: |
+          set -euo pipefail
+          python3 -m venv /tmp/fossa-venv
+          /tmp/fossa-venv/bin/pip install -q pyyaml
+          /tmp/fossa-venv/bin/python .github/workflows/scripts/merge-fossa-deps.py \
+            --inputs /tmp/wh/*.yml --output fossa-deps.yml
+          echo "--- 生成的 fossa-deps.yml ---"
+          cat fossa-deps.yml
+
+      - name: Install fossa-cli
+        run: |
+          set -euo pipefail
+          curl -sSL -H 'Cache-Control: no-cache' \
+            https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash
+          # 安装脚本在 runner 上装到 /usr/local/bin，非 runner 环境可能装到 ~/.local/bin；
+          # 两个都加进 PATH，不强依赖具体位置。
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          fossa --version || true
+
+      - name: Analyze and upload
+        run: |
+          set -euo pipefail
+          if [ -z "${FOSSA_API_KEY:-}" ]; then
+            echo "::warning::未设置 FOSSA_API_KEY，跳过上传"
+            exit 0
+          fi
+          # 扫仓库根目录才会触发 uv / pnpm 策略；根目录的 fossa-deps.yml 会被自动读取并追加。
+          fossa analyze . --project qd --revision "${{ github.ref_name }}" --json

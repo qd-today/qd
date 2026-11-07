@@ -12,11 +12,14 @@ Docker 容器部署是部署 QD 的最简单方式。
 
 > Tag 含义:
 >
-> - `latest`: 最新 Release 版本
-> - `lite-latest`: 去除 OCR 相关功能的最新 Release 版本
-> - `ja3-latest`: 集成 curl-impersonate 解决 ja3 指纹被识别为 curl 的问题, 不支持 http3 和 Quic 连接
-> - `20xxxxxx`: 指定 Release 版本, 版本号表示为 Release 发布日期
-> - `dev`: 最新开发版, 同步最新源码, 不保证稳定性
+> - `latest`: 最新 Release 版本, 含 OCR (验证码识别) 功能
+> - `lite-latest`: 去除 OCR 相关功能的最新 Release 版本, 体积最小
+> - `ja3-latest`: 与 `latest` 相同, 但集成 curl-impersonate 解决 ja3 指纹被识别为 curl 的问题, 不支持 http3 和 Quic 连接
+> - `ja3-lite-latest`: 与 `lite-latest` 相同, 但集成 curl-impersonate, 体积最小且能通过 ja3 指纹检测
+> - `20xxxxxx`: 指定 Release 版本, 版本号表示为 Release 发布日期。同样有四种口味, 分别是 `ja3-20xxxxxx`、`lite-20xxxxxx`、`ja3-lite-20xxxxxx`
+> - `dev`: 最新开发版, 同步最新源码, 不保证稳定性。同样有四种口味, 分别是 `lite-dev`、`ja3-dev`、`ja3-lite-dev`
+>
+> 架构说明: OCR 相关依赖在 `386`、`arm/v6`、`s390x` 上没有可用的 musllinux 轮子。这三个架构上 `latest` 仍可拉取, 但该平台的内容等同于 `lite-latest` (不含验证码识别); `ja3-latest` 在 `386`、`arm/v6` 上等同于 `ja3-lite-latest`, 在 `s390x` 上不提供。需要验证码识别请使用 `amd64`、`arm64`、`arm/v7`、`ppc64le`、`riscv64`、`loong64`。
 
 ### 部署方法
 
@@ -35,7 +38,7 @@ docker-compose up -d
 
 > 配置描述见下文 [Configuration](#配置环境变量)
 >
-> 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`qdtoday/qd:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 其他与主线版本保持一致**。
+> 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`qdtoday/qd:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 行为与主线版本保持一致**。
 >
 > **请勿使用 阿里云镜像源 拉取 Docker 容器, 会导致无法拉取最新镜像**
 
@@ -55,7 +58,7 @@ docker-compose up -d
    >
    > 配置描述见下文 [Configuration](#配置环境变量)
    >
-   > 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`qdtoday/qd:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 其他与主线版本保持一致**。
+   > 如不需要`OCR功能`或者`硬盘空间不大于600M`, 请使用 **`qdtoday/qd:lite-latest`** 镜像, **该镜像仅去除了OCR相关功能, 行为与主线版本保持一致**。
 
 2.3. 点击 `确认` 即可通过 1Panel 安装 QD
 
@@ -120,6 +123,26 @@ python ./chrole.py your@email.address admin
 
 > 首位注册用户默认为管理员, 需要先登出再登陆后才能获得完整管理员权限
 
+## 会话密钥
+
+会话 Cookie 使用 `COOKIE_SIGN_SECRET` 签名。未设置时, 每次启动都会随机生成一份并只保存在内存中, 因此**服务或容器重启后所有登录状态失效, 需要重新登录**; 该密钥不会写入磁盘。
+
+多实例 / 多容器共用同一数据库时, 必须为所有实例设置同一个密钥, 否则登录状态会随请求落到不同实例而随机失效:
+
+``` sh
+# 生成一个随机密钥 (只需生成一次, 妥善保存)
+openssl rand -hex 32
+```
+
+``` yaml
+environment:
+  - COOKIE_SIGN_SECRET=<上面生成的值>
+```
+
+> 更换该密钥 (或删除后让程序重新随机生成) 会使**所有已登录会话立即失效**, 用户需重新登录; 数据库中的任务、模板、变量与凭据不受影响。
+>
+> `COOKIE_SECRET` 已弃用并默认忽略, 请勿再使用。
+
 ## 配置环境变量
 
 变量名|是否必须|默认值|说明
@@ -132,8 +155,9 @@ MULTI_PROCESS|否|False|(实验性)是否启用多进程模式, <br>Windows平�
 AUTO_RELOAD|否|False|是否启用自动热加载, <br>MULTI_PROCESS=True时无效
 STATIC_URL_PREFIX|否|`/static/`|静态文件URL前缀
 DOMAIN|否|''|指定访问域名, <br>**(建议修改)**, 否则通过邮件重置密码及邮箱推送等功能无效
-AES_KEY|否|binux|AES加密密钥, **(强烈建议修改)**
-COOKIE_SECRET|否|binux|cookie加密密钥, **(强烈建议修改)**
+AES_KEY|否|binux|数据库加密密钥, 用于加密数据库中的用户凭据等数据, **(新部署建议首次启动即设置; 修改前必须先迁移数据, 否则凭据不可解密)**
+AES_KEY_STRICT|否|False|为 True 时, 若 AES_KEY 仍为默认值则拒绝启动, **(需先完成数据迁移)**
+COOKIE_SIGN_SECRET|否|每次启动随机生成|会话 Cookie 签名密钥, 不落盘; 未设置时每次启动随机生成, **重启后所有会话失效**, 多实例或多容器部署需显式设置; 也可在 local_config.py 中定义 cookie_secret 覆盖, **(原 COOKIE_SECRET 已弃用并默认忽略)**
 COOKIE_DAY|否|5|Cookie在客户端中保留的天数
 DB_TYPE|否|sqlite3|需要使用MySQL时设置为'mysql'
 JAWSDB_MARIA_URL|否|''|需要使用MySQL时, <br>设置为 (mysql://用户名:密码@hostname:port/数据库名?auth_plugin=)
@@ -189,3 +213,15 @@ WS_MAX_CONNECTIONS_SUBSCRIBE|No|30|WebSocket 公共模板更新页面最大连�
 SUBSCRIBE_ACCELERATE_URL|No|jsdelivr_cdn|订阅加速方式或地址, 用于加速公共模板更新, 仅适用于 GitHub. <br>[详见配置](https://github.com/qd-today/qd/blob/master/config.py)...
 
 > 详细信息请查阅[config.py](https://github.com/qd-today/qd/blob/master/config.py)
+
+#### 4. 裸 Alpine（源码部署）
+
+容器镜像自带 Python 依赖，只有直接在 Alpine 上跑源码时才需要这一步。
+
+``` sh
+sh update.sh
+```
+
+在容器外运行时会一并安装 Python 依赖：从三个组件仓库的 GitHub Release 下载预编译的
+musllinux 轮子，用 uv 安装。不能靠 PyPI——onnxruntime 与 OpenCV 没有 musllinux
+轮子，pycurl 只有源码包。`QD_NO_OCR=1 sh update.sh` 可跳过两个 OCR wheelhouse。

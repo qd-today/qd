@@ -44,6 +44,7 @@ class DBnew():
                 `qywx_webhook` VARCHAR(1024) NOT NULL DEFAULT '',
                 `tg_token` VARCHAR(1024) NOT NULL DEFAULT '',
                 `dingding_token` VARCHAR(1024) NOT NULL DEFAULT '',
+                `wxpusher_spt` VARCHAR(1024) NOT NULL DEFAULT '',
                 `push_batch` VARCHAR(1024) NOT NULL DEFAULT '{"sw":false,"time":0,"delta":86400}'
                 );
                 CREATE TABLE IF NOT EXISTS `tpl` (
