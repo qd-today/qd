@@ -19,7 +19,7 @@ ARG BASE_IMAGE=alpine:${ALPINE_VERSION}
 # 与镜像构建同一批 wheel，不在脚本里维护第二份版本号。
 # 放在第一个 FROM 之前，才能用于 FROM；RUN --mount 的 from= 不支持变量
 # 展开，所以先声明成 stage 再引用 stage 名。
-ARG PYCURL_RELEASE=2.0.2
+ARG PYCURL_RELEASE=2.0.4
 # 主线为空；ja3 线是 ja3-
 ARG PYCURL_TAG_PREFIX=ja3-
 
@@ -33,7 +33,6 @@ LABEL org.opencontainers.image.source=https://github.com/qd-today/qd
 # 本地构建加速（CI 在海外无需配置）
 ARG APK_MIRROR=""
 ARG PIP_MIRROR=""
-
 
 WORKDIR /usr/src/app
 
@@ -93,27 +92,27 @@ RUN \
 #
 # 用 COPY --from 而不是 mount+cp：缺件时构建直接失败（fail-fast），不会静默少一份文书。
 #
-# licenses/ 只在含 copyleft 组件的仓里存在：当前只有 pycurl 主线有，onnxruntime /
-# ddddocr / pycurl ja3 都没有。末尾那条 RUN 校验「NOTICE 声明了 copyleft」与
-# 「licenses/ 是否随镜像分发」是否自洽——将来哪个仓新增了 copyleft 组件，构建会在这里
-# 红掉，提醒补一行 COPY，而不是悄悄漏掉。
+# licenses/ 目录三个仓都有（没有 copyleft 组件时为空目录），所以四个 Dockerfile 的
+# COPY 完全一致。末尾那条 RUN 校验「NOTICE 声明了 copyleft」与「licenses/ 是否随镜像
+# 分发」是否自洽——将来某条线真出现 copyleft 却漏搬了全文，构建会在这里红掉。
 
 COPY --from=wh-pycurl /wheels/NOTICE.md /wheels/SOURCE-OFFER.md /wheels/components.json /usr/share/doc/third-party/pycurl/
+COPY --from=wh-pycurl /wheels/licenses /usr/share/doc/third-party/pycurl/licenses
 COPY docker/third-party-readme.md /usr/share/doc/third-party/README.md
+
+# 代码直接用构建上下文（.dockerignore 已排除 .git / node_modules 等），
+# 不再在构建时从 gitee clone——那会让镜像内容与仓库脱节，且需要把部署私钥打进镜像
+COPY . /usr/src/app
+# 末尾顺手做一次自洽校验：「NOTICE 声明了 copyleft」必须与「licenses/ 已随镜像分发」同时成立。
+# 放在这条已有 RUN 里而不是单起一条，是为了不产生一个 0 B 的空层。
 RUN set -eu; \
+    chmod +x /usr/src/app/update.sh && ln -sf /usr/src/app/update.sh /bin/update; \
     for d in /usr/share/doc/third-party/*/; do \
         if grep -q '^## 需要履行义务的组件' "$d/NOTICE.md" && [ ! -d "$d/licenses" ]; then \
             echo "错误: ${d} 的 NOTICE 声明了 copyleft 组件，但 licenses/ 没有随镜像分发"; exit 1; \
         fi; \
     done; \
     find /usr/share/doc/third-party -type f | sort
-
-
-
-# 代码直接用构建上下文（.dockerignore 已排除 .git / node_modules 等），
-# 不再在构建时从 gitee clone——那会让镜像内容与仓库脱节，且需要把部署私钥打进镜像
-COPY . /usr/src/app
-RUN chmod +x /usr/src/app/update.sh && ln -sf /usr/src/app/update.sh /bin/update
 
 # venv 里的可执行文件优先
 ENV PATH=/usr/src/app/.venv/bin:$PATH
