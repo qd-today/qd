@@ -7,23 +7,20 @@
 | --- | --- |
 | `NOTICE.md` | 随包组件、版本、许可证结论 |
 | `SOURCE-OFFER.md` | copyleft 组件的源码获取途径 |
-| `licenses/` | 许可证全文（LGPL / GPL 等），**只有含 copyleft 组件的仓才有此目录** |
+| `licenses/` | 许可证全文（LGPL / GPL 等）；无 copyleft 组件的仓里放一份 `README.md` 说明情况 |
 | `components.json` | 机器可读的完整清单（含 `selfBuilt` 与 apk 出处） |
 
 ## 为什么这些文书在组件仓里生成
 
-auditwheel 会把原生依赖收进 wheel 的 `.libs/`，这些库在 Python 依赖图里完全不可见——
-`pip` / `uv.lock` / FOSSA 的 autobuild 都看不到它们。所以由生产这些 wheel 的仓在构建时
-实测扫描，生成上述文书，再由本镜像原样随附。
+auditwheel 会把原生依赖收进 wheel 的 `.libs/`，这些库不在 `uv.lock` 的依赖图里，
+Python 包管理器看不到它们。所以由生产这些 wheel 的组件仓在构建时实测扫描并出具文书，
+本镜像原样随附。
 
-## 范围（分层承担）
+## 合规范围
 
-合规检查分两层，合起来才是完整视图：
+qd 的 FOSSA 项目由 `fossa analyze` 上传，一个项目同时覆盖：
 
-- **本仓库（qd）**：FOSSA 项目是 autobuild，覆盖 `pyproject.toml` / `uv.lock` 这一层
-  Python 依赖。
-- **三个组件仓**（[onnxruntime](https://github.com/qd-today/onnxruntime-docker)、
-  [ddddocr](https://github.com/qd-today/ddddocr-docker)、
-  [pycurl](https://github.com/qd-today/pycurl-docker)）：负责 wheel 内随包的原生库。
+- `uv.lock` / `pnpm-lock.yaml` 的 Python 与前端依赖（CLI 自动发现）；
+- 四个 Docker 变体随包分发的原生库（CI 汇总各 wheelhouse 的 `fossa-deps.yml` 后追加）。
 
 分发义务以本目录随附的文书为准。
