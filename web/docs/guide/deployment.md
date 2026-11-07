@@ -154,6 +154,10 @@ The default value `binux` is public, so it is only acceptable for a fully isolat
 
 The migration script decrypts with the old key, encrypts with the new one and verifies every row by reading it back; a single failure aborts the whole run and nothing is written. It only prints a dry run by default — add `--apply` to actually write.
 
+Coverage: `user.userkey` for every user, plus the public data whose `userid` is `0` or `NULL` (`tpl.har` / `tpl.tpl` / `task.init_env` / `task.env` / `task.session`). Private data is encrypted with each user's `user.userkey`, whose plaintext does not change during a rotation, so it does not need to be re-encrypted.
+
+The summary prints "re-encrypted N columns, skipped M columns". **A non-zero M must be explained** (plaintext columns, data encrypted outside QD, or a wrong `--old`); do not treat such a run as successful.
+
 ### Source code deployment
 
 Dependencies are managed by uv (the virtual environment lives in `.venv`), and the script has to be run from the repository root:
