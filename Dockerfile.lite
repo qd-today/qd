@@ -86,36 +86,29 @@ RUN \
     apk del build-base python3-dev linux-headers libffi-dev uv && \
     rm -rf /var/cache/apk/*
 
-# 分发义务：镜像里装着 pycurl 随包的原生库（libcurl / libidn2 / libunistring 等），
-# LGPL 要求随分发提供许可证文本与源码获取途径。文书由 pycurl 的 wheelhouse 生成，搬进来。
+# 分发义务：镜像里装着 wheel 随包的原生库（libcurl / libidn2 / libunistring / OpenCV /
+# libgcc 等），LGPL/GPL 要求随分发提供许可证文本与源码获取途径。文书由三个 wheelhouse
+# 各自生成，按组件分目录放——三家文件名相同，混在一起会互相覆盖。
 #
-# 用 bind mount + cp 而不是 COPY --from：components.json 是较新的产物，旧的 wheelhouse
-# tag 里没有，COPY 遇到缺文件会直接让构建失败；这里缺什么就跳过。
-RUN --mount=type=bind,from=wh-pycurl,source=/wheels,target=/w3 \
-    set -eux; \
-    base=/usr/share/doc/third-party; \
-    dst="$base/pycurl"; \
-    mkdir -p "$dst"; \
-    for f in NOTICE.md SOURCE-OFFER.md components.json; do \
-        if [ -f "/w3/$f" ]; then cp "/w3/$f" "$dst/$f"; fi; \
+# 用 COPY --from 而不是 mount+cp：缺件时构建直接失败（fail-fast），不会静默少一份文书。
+#
+# licenses/ 只在含 copyleft 组件的仓里存在：当前只有 pycurl 主线有，onnxruntime /
+# ddddocr / pycurl ja3 都没有。末尾那条 RUN 校验「NOTICE 声明了 copyleft」与
+# 「licenses/ 是否随镜像分发」是否自洽——将来哪个仓新增了 copyleft 组件，构建会在这里
+# 红掉，提醒补一行 COPY，而不是悄悄漏掉。
+
+COPY --from=wh-pycurl /wheels/NOTICE.md /wheels/SOURCE-OFFER.md /wheels/components.json /usr/share/doc/third-party/pycurl/
+COPY --from=wh-pycurl /wheels/licenses /usr/share/doc/third-party/pycurl/licenses
+COPY docker/third-party-readme.md /usr/share/doc/third-party/README.md
+RUN set -eu; \
+    for d in /usr/share/doc/third-party/*/; do \
+        if grep -q '^## 需要履行义务的组件' "$d/NOTICE.md" && [ ! -d "$d/licenses" ]; then \
+            echo "错误: ${d} 的 NOTICE 声明了 copyleft 组件，但 licenses/ 没有随镜像分发"; exit 1; \
+        fi; \
     done; \
-    if [ -d /w3/licenses ]; then cp -r /w3/licenses "$dst/licenses"; fi; \
-    printf '%s\n' \
-        '# 第三方许可证文书（qd 镜像）' \
-        '' \
-        '每个子目录对应一个 wheelhouse 组件仓，内容由该仓构建时的 pack_wheel.py' \
-        '--compliance 从 wheel 里实测生成：' \
-        '  NOTICE.md          随包组件与许可证结论' \
-        '  SOURCE-OFFER.md    copyleft 组件的源码获取途径' \
-        '  licenses/          许可证全文（LGPL/GPL 等）' \
-        '  components.json    机器可读的完整清单（含 selfBuilt / apk 出处）' \
-        '' \
-        '范围（分层承担）：这些仓负责「wheel 内随包的原生库」——auditwheel 会把依赖收进' \
-        'wheel 的 .libs/，这些库在 Python 依赖图里不可见，所以由生产它们的仓单独扫描并' \
-        '出具文书。qd 自身的 FOSSA 项目是 autobuild，只覆盖 pyproject.toml / uv.lock' \
-        '这一层 Python 依赖。两层结论合起来才是完整视图；分发义务以本目录的文书为准。' \
-        > "$base/README.md"; \
-    find "$base" -type f | sort
+    find /usr/share/doc/third-party -type f | sort
+
+
 
 # 代码直接用构建上下文（.dockerignore 已排除 .git / node_modules 等），
 # 不再在构建时从 gitee clone——那会让镜像内容与仓库脱节，且需要把部署私钥打进镜像

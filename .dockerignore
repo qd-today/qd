@@ -5,6 +5,8 @@
 docs
 web/docs
 *.md
+# 合规文书要随镜像分发，不能被上面的 *.md 排除
+!docker/third-party-readme.md
 *.png
 *.yml
 *.yaml
