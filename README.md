@@ -160,8 +160,6 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 Stargazers over time
 ===========
 
-## Star History
-
 <a href="https://www.star-history.com/?repos=qd-today%2Fqd&type=date&legend=bottom-right">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=qd-today/qd&type=date&theme=dark&legend=bottom-right" />
