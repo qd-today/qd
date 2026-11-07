@@ -186,3 +186,5 @@ cache
 
 alembic.ini
 .hintrc
+# CI 运行时生成，不提交
+fossa-deps.yml
