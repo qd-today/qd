@@ -282,6 +282,7 @@ docker run --rm -it \
 |WS_MAX_QUEUE_SIZE|No|100|WebSocket maximum queue size, the default is 100|
 |WS_MAX_CONNECTIONS_SUBSCRIBE|No|30|WebSocket subscribe page maximum number of connections, the default is 30|
 |SUBSCRIBE_ACCELERATE_URL|No|qd-ph|Subscribe page acceleration URL, the default is qd-ph, <br>[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|
+|OIDC_PROVIDERS|No|""|OIDC login configuration, a JSON array string, supports multiple providers at once (e.g. Keycloak); <br>each element requires `id` (^[a-zA-Z0-9_-]{1,64}$), `name`, `issuer`, `client_id`, `client_secret`, <br>and accepts optional `scopes` (default openid profile email), `icon`, `enabled` (default true); <br>invalid entries are skipped with a warning in the log and never abort startup; <br>you may also define `oidc_providers` directly in local_config.py to override, <br>[See configuration for details](https://github.com/qd-today/qd/blob/master/config.py)...|
 
 > For details, please refer to [config.py](https://github.com/qd-today/qd/blob/master/config.py)
 

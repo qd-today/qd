@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Features
+
+1. Feature(OIDC): 🚀 新增 OIDC 登录支持, 可同时配置多个 provider (如 Keycloak), 已有用户可在「我的」页随时绑定/解绑 (#618)
+
 ## [20261108] - 2026.11.08 更新
 
 ### Features

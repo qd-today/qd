@@ -282,6 +282,7 @@ WS_MAX_MESSAGE_SIZE|No|10485760|WebSocket 单次接收最大消息大小, 默认
 WS_MAX_QUEUE_SIZE|No|100|WebSocket 最大消息队列大小, 默认为 100
 WS_MAX_CONNECTIONS_SUBSCRIBE|No|30|WebSocket 公共模板更新页面最大连接数, 默认为 30
 SUBSCRIBE_ACCELERATE_URL|No|jsdelivr_cdn|订阅加速方式或地址, 用于加速公共模板更新, 仅适用于 GitHub. <br>[详见配置](https://github.com/qd-today/qd/blob/master/config.py)...
+OIDC_PROVIDERS|否|""|OIDC 登录配置, 为 JSON 数组字符串, 可同时配置多个 provider (如 Keycloak); <br>每个元素必填 `id`(^[a-zA-Z0-9_-]{1,64}$)、`name`、`issuer`、`client_id`、`client_secret`, <br>选填 `scopes`(默认 openid profile email)、`icon`、`enabled`(默认 true); <br>非法条目会被跳过并在日志中告警, 不会导致启动失败; <br>也可在 local_config.py 中直接定义 `oidc_providers` 覆盖, <br>[详见配置](https://github.com/qd-today/qd/blob/master/config.py)...
 
 > 详细信息请查阅[config.py](https://github.com/qd-today/qd/blob/master/config.py)
 

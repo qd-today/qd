@@ -16,6 +16,7 @@ from db.task import Task
 from db.tasklog import Tasklog
 from db.tpl import Tpl
 from db.user import User
+from db.user_oidc import UserOidc
 
 
 class DB(AlchemyMixin):
@@ -29,3 +30,4 @@ class DB(AlchemyMixin):
         self.site = Site()
         self.pubtpl = Pubtpl()
         self.notepad = Notepad()
+        self.user_oidc = UserOidc()

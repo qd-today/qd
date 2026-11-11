@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}QD 第三方登录{% endblock %}
+
+{% block head %}
+{{ super() }}
+{% endblock %}
+
+{% block body %}
+{{ utils.header(current_user) }}
+<section>
+  <div class="container">
+    <h2>第三方登录绑定</h2>
+    <hr>
+
+    {# providers: 后端以 render 参数 providers=[{id,name,icon,binding}] 传入;
+       同时兼容 jinja 全局 oidc_providers。 #}
+    {% set providers = providers if providers is defined else (oidc_providers | default([])) %}
+    {% set bindings_map = bindings | default({}) %}
+    {% set oidc_error_code = oidc_error if oidc_error is defined else handler.get_argument('oidc_error', '') %}
+
+    {% set oidc_error_texts = {
+      'provider_not_found': '第三方登录提供方不存在或已禁用。',
+      'discovery_failed': '无法连接身份提供方，请稍后重试或联系管理员。',
+      'metadata_invalid': '身份提供方配置无效，请联系管理员。',
+      'not_configured': '第三方登录尚未正确配置，请联系管理员。',
+      'state_mismatch': '登录会话已失效或被篡改，请重新发起操作。',
+      'token_exchange_failed': '与身份提供方交换令牌失败，请稍后重试。',
+      'invalid_request': '第三方登录请求无效，请重新发起操作。',
+      'invalid_response': '身份提供方返回了无效响应，请稍后重试。',
+      'upstream_error': '身份提供方暂时不可用，请稍后重试。',
+      'invalid_id_token': '身份令牌校验失败，操作已被拒绝。',
+      'nonce_mismatch': '身份令牌校验失败，操作已被拒绝。',
+      'email_missing': '身份提供方未返回邮箱，无法匹配账号。',
+      'email_unverified': '身份提供方未验证该邮箱，出于安全考虑无法自动登录；请使用密码登录后在「我的」页手动绑定。',
+      'user_disabled': '该账号已被禁用，请联系管理员。',
+      'no_account': '未找到与该身份匹配的账号，请先注册或联系管理员。',
+      'already_bound_other': '该身份已绑定其它账号，无法自动登录。',
+      'bound_by_other': '该身份已被其它账号绑定，无法绑定到当前账号。',
+      'already_bound_self': '当前账号已绑定该提供方，请先解绑后再绑定其它身份。',
+      'not_bound': '当前账号未绑定该提供方，无需解绑。',
+      'last_credential': '这是账号最后的登录凭据，解绑后将无法登录，操作已被拒绝。',
+      'internal_error': '服务内部错误，请稍后重试或联系管理员。'
+    } %}
+
+    {% if oidc_error_code %}
+    <p class="alert alert-danger">{{ oidc_error_texts.get(oidc_error_code, '第三方登录操作失败，请稍后重试或联系管理员。') }}</p>
+    {% endif %}
+
+    {% if not providers %}
+    <p class="alert alert-info">未配置任何可用的第三方登录提供方。</p>
+    {% else %}
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th title="第三方登录提供方">提供方</th>
+          <th title="当前账号的绑定状态">绑定状态</th>
+          <th title="绑定的身份标识">绑定账号</th>
+          <th title="绑定时间">绑定时间</th>
+          <th style="text-align:center" title="操作区">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in providers %}
+        {# 后端在 provider 项内嵌 binding;同时兼容独立的 bindings 字典。 #}
+        {% set binding = p.get('binding') if p.get is defined else none %}
+        {% if not binding %}{% set binding = bindings_map.get(p.id) %}{% endif %}
+        <tr>
+          <td>
+            {% if p.icon %}<img src="{{ p.icon }}" alt="" style="height:16px;margin-right:4px;vertical-align:text-bottom">{% endif %}
+            {{ p.name }}
+          </td>
+          {% if binding %}
+          <td><span class="text-success">已绑定</span></td>
+          <td>
+            {{ binding.get('subject') }}
+            {% if binding.get('email') %}<br><small class="text-muted">{{ binding.get('email') }}</small>{% endif %}
+          </td>
+          <td>{{ format_date(binding.get('ctime')) if binding.get('ctime') else '-' }}</td>
+          <td style="text-align:center">
+            {# 解绑会改变账号登录凭据, 必须携带 CSRF token。
+               这里用真正的 <form> 而不是 utils.apost() 宏 (它提交的原生表单
+               不带 _xsrf), token 由 base.render_string 注入的 xsrf_form_html() 下发。 #}
+            <form method="POST" action="/oidc/{{ p.id }}/unbind" style="display:inline"
+              onsubmit="return confirm('确定要解绑 {{ p.name }} 吗？解绑后该身份将无法登录本站。')">
+              {# xsrf_form_html() 返回 HTML 字符串, 必须 |safe 关闭 autoescape,
+                 否则会被转义成文本而不会成为真正的表单字段。 #}
+              {{ xsrf_form_html() | safe }}
+              <button type="submit" class="btn btn-default" title="解绑 {{ p.name }}">解绑</button>
+            </form>
+          </td>
+          {% else %}
+          <td><span class="text-muted">未绑定</span></td>
+          <td>-</td>
+          <td>-</td>
+          <td style="text-align:center">
+            <a class="btn btn-default" href="/oidc/{{ p.id }}/bind" title="绑定 {{ p.name }}">绑定</a>
+          </td>
+          {% endif %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="text-muted">提示：绑定的第三方身份可用于登录本站；解绑前请确保账号仍有可用的密码，否则将无法登录。</p>
+    {% endif %}
+  </div>
+</section>
+{{ utils.apost() }}
+{% endblock %}

@@ -56,6 +56,21 @@ dependencies = [
     "pymysql>=1.1.3,<1.2",
     "pysocks>=1.7.1",
     "python-dateutil>=3.0.0",
+    # OIDC id_token 校验：纯 Python 实现（python-jose）。不加 [pycryptodome] extra：
+    # jose 内部零处 import Crypto，该 extra 纯冗余，只会强加 pycryptodome<4.0.0。
+    #
+    # 换 cryptography 系（authlib / pyjwt[crypto]）并非不可行，而是本次的成本取舍：
+    #   a) apk 直供：Alpine main 各架构都提供 py3-cryptography（v3.24 = 47.0.0，
+    #      edge = 50.0.0，含 loongarch64），但 venv 要绕开 uv.lock 从 apk 取包，
+    #      等于为单个依赖开一条不经过 lock 的旁路，版本对齐不再由 lock 保证；
+    #   b) 自建 wheelhouse：九架构 main 都有 rust/cargo/maturin/openssl-dev/python3-dev，
+    #      可现编后用 `auditwheel repair --plat musllinux_1_2_<arch>` 转 tag，做法与
+    #      本仓库 pycurl/onnxruntime 一致（PyPI 无 pycurl musllinux 轮子，已是先例），
+    #      代价是新增一条 wheelhouse 流水线与 Rust 工具链。
+    # 两条路都可行，但都要动构建体系；python-jose 是纯 Python、零原生依赖，
+    # 在九架构上无需任何额外构建投入，故本次选它。注意其 CVE-2026-85394 的
+    # 处置与不可利用性论证见 SECURITY.md「已知依赖风险」。
+    "python-jose>=3.5.0",
     "pytz>=2026.5",
     "redis>=8.1.0",
     "requests>=2.34.2",

@@ -55,5 +55,6 @@ class Application(tornado.web.Application):
             'format_date': utils.format_date,
             'varbinary2ip': utils.varbinary2ip,
             'version': self.version,
+            'oidc_providers': config.get_enabled_providers(),
         })
         self.jinja_env.filters.update(ui_methods)
