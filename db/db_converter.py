@@ -24,6 +24,45 @@ from libs.log import Log
 logger_db_converter = Log("QD.DB.Converter").getlogger()
 
 
+class OidcTableError(RuntimeError):
+    """OIDC 绑定表不可用时抛出, 用于阻断服务启动而不是静默降级。"""
+
+
+async def ensure_user_oidc_table():
+    """幂等创建 OIDC 账号绑定表; 失败时抛出 OidcTableError。
+
+    使用 SQLAlchemy metadata.create_all(checkfirst=True) 保证幂等, 同时兼容
+    MySQL 与 SQLite3 (不使用任何 MySQL 方言 DDL)。
+
+    字符集以模型声明为准: `UserOidc.__table__` 的 `__table_args__` 已声明
+    `mysql_charset='utf8mb4'` (db/user_oidc.py), 编译出的 DDL 自带 `CHARSET=utf8mb4`。
+    这里**不**向 create_all 传 `mysql_charset=` —— 该关键字不属于
+    `MetaData.create_all()` / `Table.create()` 的签名 (会 TypeError:
+    "MetaData.create_all() got an unexpected keyword argument 'mysql_charset'"),
+    表级字符集的唯一权威来源是模型上的 dialect option。若两者都需要变更,
+    改模型而不是调用点, 以免出现两处声明不一致。
+
+    失败必须可见: 调用点 run.py:62 是 `loop.run_until_complete(run)`, 异常会
+    直接从 `convert_new_type()` 冒泡、终止 start_server() (实测进程 exit 1,
+    不会启动 HTTP 服务)。若不抛而只记日志, 服务会照常起来, 运行期 OIDC 请求
+    才以 `1146 Table '...user_oidc' doesn't exist` 失败。
+    """
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(
+                lambda sync_conn: UserOidc.metadata.create_all(
+                    sync_conn, tables=[UserOidc.__table__], checkfirst=True
+                )
+            )
+    except Exception as e:
+        logger_db_converter.error(
+            "创建 OIDC 绑定表 user_oidc 失败, OIDC 登录将不可用, 服务启动已中止: %s",
+            e,
+            exc_info=True,
+        )
+        raise OidcTableError("user_oidc table unavailable: %s" % (e,)) from e
+
+
 class DBconverter:
     def __init__(self, path=config.sqlite3.path):
         self.path = path
@@ -864,16 +903,7 @@ class DBconverter:
             except Exception as e:
                 logger_db_converter.debug(e)
 
-        # OIDC 账号绑定表: 使用 SQLAlchemy metadata.create_all(checkfirst=True) 保证幂等,
-        # 同时兼容 MySQL 与 SQLite3 (不使用任何 MySQL 方言 DDL)。
-        try:
-            async with engine.begin() as conn:
-                await conn.run_sync(
-                    lambda sync_conn: UserOidc.metadata.create_all(
-                        sync_conn, tables=[UserOidc.__table__], checkfirst=True
-                    )
-                )
-        except Exception as e:
-            logger_db_converter.error("Create user_oidc table error: %s", e, exc_info=True)
+        # OIDC 账号绑定表: 失败必须阻断启动, 不允许静默降级 (见 ensure_user_oidc_table)
+        await ensure_user_oidc_table()
 
         return

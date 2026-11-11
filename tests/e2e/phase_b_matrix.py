@@ -14,9 +14,9 @@ Evidence is written to `.team/e2e/02-phaseB-matrix.json`.
 
 from __future__ import annotations
 
-import hashlib
 import json
 import os
+import re
 import sys
 import time
 import traceback
@@ -30,6 +30,21 @@ from qd_runner import QdApp  # noqa: E402
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 EVIDENCE = os.path.join(REPO, ".team", "e2e", "02-phaseB-matrix.json")
+
+# The session-cookie version string must match what the server computes, so we
+# call the product's own helper instead of re-implementing its hash here.  This
+# also keeps a weak-hash sink out of the test file (CodeQL alert on the former
+# local copy).  Importing it has no side effect: `config/database.db` is not
+# created and the process exits 0 (verified).
+sys.path.insert(0, REPO)
+from web.handlers.base import session_version as _product_session_version  # noqa: E402
+
+# The admin user-management form posts `md5(plaintext)` as `adminpwd` (see
+# web/tpl/user_manage.html:90).  Use the product's own helper rather than a
+# fresh hashlib.md5 sink in this file -- same reasoning as the session_version
+# delegation above.  This is a protocol artifact the server re-hashes with
+# PBKDF2 before comparing (db/user.py:121 challenge_md5), not stored as-is.
+from libs.utils import md5string as _md5string  # noqa: E402
 
 PORT = 8791
 DOMAIN = f"127.0.0.1:{PORT}"
@@ -48,15 +63,47 @@ NOPASS_EMAIL = "nopass@example.test"      # seeded fixture, no usable password
 U3_EMAIL = kc.UNVERIFIED_USER_EMAIL       # "unverified-target@example.test"
 U3_PASSWORD = "u3-password-123"
 
+# §7.3 (10) deleting a user must clean up its OIDC bindings, and the freed
+# identity must be able to auto-bind again (must-fix #2).  A dedicated account
+# keeps the deletion from disturbing the fixtures the other sections rely on.
+U4_EMAIL = "delete-me@example.test"
+U4_PASSWORD = "u4-password-123"
+
+
+def admin_delete_user(sess, admin_userid, target_userid, admin_email,
+                      admin_password):
+    """Drive the real admin delete path.
+
+    Two details that are easy to get wrong (both cost a RED run):
+      * the URL segment is the ADMIN's own userid -- web/tpl/user_manage.html:2
+        is rendered at /user/<current user>/manage and the form posts back to
+        that same path; the *target* is carried in the body keyed by its id.
+      * `adminpwd` is md5(plaintext) (user_manage.html:90), which the server
+        re-hashes with PBKDF2 before comparing (db/user.py:121).
+    """
+    r = sess.post(f"http://{DOMAIN}/user/{admin_userid}/manage",
+                  data={"adminmail": admin_email,
+                        "adminpwd": _md5string(admin_password),
+                        str(target_userid): "on",
+                        "delbtn": ""},
+                  allow_redirects=False, timeout=20)
+    return r
+
 
 # --------------------------------------------------------------------------
 # small helpers
 # --------------------------------------------------------------------------
 
 def session_version(password) -> str:
-    if isinstance(password, str):
-        password = password.encode("utf-8")
-    return hashlib.sha256(password or b"").hexdigest()[:16]
+    """Local alias so call sites read unchanged.
+
+    Deliberately delegates to the product helper (imported above): the version
+    string is derived from an *already encrypted* password column, is never
+    stored or compared against a plaintext secret, and must stay byte-identical
+    to the server's computation.  Re-implementing the hash here duplicated a
+    weak-hash sink for no benefit.
+    """
+    return _product_session_version(password)
 
 
 def app_session():
@@ -64,6 +111,34 @@ def app_session():
     s = requests.Session()
     s.trust_env = False
     return s
+
+
+# Tornado renders xsrf_form_html() as a hidden input whose value is the same
+# signed string that it also sets as the `_xsrf` cookie.
+_XSRF_INPUT_RE = re.compile(r'name="_xsrf"\s+value="([^"]+)"')
+
+
+def xsrf_token(sess):
+    """Return a valid `_xsrf` form token for an authenticated session.
+
+    GET /oidc/manage renders the real unbind <form>, which embeds
+    `xsrf_form_html()`.  Fetching it both sets the `_xsrf` cookie and yields
+    the matching form value -- exactly what a browser submits.  Returns None
+    if the page did not render a token (so callers can assert on that).
+    """
+    r = sess.get(f"http://{DOMAIN}/oidc/manage",
+                 allow_redirects=False, timeout=20)
+    if r.status_code != 200:
+        return None
+    m = _XSRF_INPUT_RE.search(r.text)
+    return m.group(1) if m else None
+
+
+def post_unbind(sess, provider, token):
+    """POST an unbind with (or, when token is None, without) the `_xsrf` field."""
+    data = {"_xsrf": token} if token is not None else {}
+    return sess.post(f"http://{DOMAIN}/oidc/{provider}/unbind",
+                     data=data, allow_redirects=False, timeout=20)
 
 
 def rec(status=None, location=None, body=None, **extra):
@@ -188,6 +263,49 @@ def ensure_second_kc_user():
         headers={"Authorization": f"Bearer {token}"},
     )
     return uid[0]["id"]
+
+
+def ensure_kc_user(username, email, password):
+    """Idempotently create a Keycloak user with a verified email; returns its
+    subject (Keycloak user id).  Used by the §7.3 (10) deletion fixture."""
+    token = kc.admin_token()
+    hdr = {"Authorization": f"Bearer {token}"}
+    found = kc._request(  # noqa: SLF001
+        "GET",
+        f"{kc.KC_BASE}/admin/realms/{kc.REALM}/users?username={username}&exact=true",
+        headers=hdr,
+    )
+    if found:
+        # Repair a user created before the name fix: Keycloak raises
+        # VERIFY_PROFILE at login while firstName/lastName are missing, which
+        # would make the binding silently never happen.
+        if not found[0].get("firstName") or not found[0].get("lastName"):
+            kc._request(  # noqa: SLF001
+                "PUT",
+                f"{kc.KC_BASE}/admin/realms/{kc.REALM}/users/{found[0]['id']}",
+                body={"firstName": "Delete", "lastName": "Me"},
+                headers=hdr, expect=204)
+        return found[0]["id"]
+    kc._request(  # noqa: SLF001
+        "POST",
+        f"{kc.KC_BASE}/admin/realms/{kc.REALM}/users",
+        body={"username": username, "email": email,
+              # firstName/lastName are REQUIRED: without them Keycloak raises
+              # the VERIFY_PROFILE required action at login, so the browser
+              # never reaches the callback and the binding silently never
+              # happens (cost me one RED run).
+              "firstName": "Delete", "lastName": "Me",
+              "enabled": True, "emailVerified": True,
+              "credentials": [{"type": "password", "value": password,
+                               "temporary": False}]},
+        headers=hdr,
+    )
+    found = kc._request(  # noqa: SLF001
+        "GET",
+        f"{kc.KC_BASE}/admin/realms/{kc.REALM}/users?username={username}&exact=true",
+        headers=hdr,
+    )
+    return found[0]["id"]
 
 
 def seed_passwordless_user(app):
@@ -359,8 +477,25 @@ def main():
                     rows_after=after_get),
                 "handler implements post() only")
 
-        r = s_u2.post(f"http://{DOMAIN}/oidc/keycloak/unbind",
-                      allow_redirects=False, timeout=20)
+        # §7.3 (3) unbind is CSRF-protected: POST without `_xsrf` must be
+        # rejected and must NOT delete the row.  This is a real browser-level
+        # protection added in this round, so it is asserted before the happy
+        # path -- otherwise a missing token would silently look like success.
+        tok_u2 = xsrf_token(s_u2)
+        rep.add("unbind-csrf: GET /oidc/manage exposes an _xsrf form token",
+                tok_u2 is not None, {"token_present": tok_u2 is not None},
+                "tornado xsrf_form_html() embedded in the unbind <form>")
+
+        r = post_unbind(s_u2, "keycloak", None)
+        after_no_token = app.sqlite_rows(
+            "SELECT * FROM user_oidc WHERE userid=?", (u2["id"],))
+        rep.add("unbind-csrf: POST without _xsrf -> 403 and row kept",
+                r.status_code == 403 and len(after_no_token) == 1,
+                rec(r.status_code, r.headers.get("Location"),
+                    rows_after=after_no_token),
+                "check_xsrf_cookie() rejects a forged cross-site POST")
+
+        r = post_unbind(s_u2, "keycloak", tok_u2)
         rep.add("unbind: POST /oidc/keycloak/unbind -> 302 /oidc/manage",
                 r.status_code == 302
                 and r.headers.get("Location", "").rstrip("/").endswith("/oidc/manage"),
@@ -401,10 +536,11 @@ def main():
         rep.add("last-credential: seeded passwordless user session is accepted",
                 r.status_code == 200, rec(r.status_code),
                 "fixture: password column = b'' (product has no UI for this)")
+        m = _XSRF_INPUT_RE.search(r.text)
+        tok_np = m.group(1) if m else None
 
         # positive control: another binding remains -> unbind allowed
-        r = s_np.post(f"http://{DOMAIN}/oidc/keycloak/unbind",
-                      allow_redirects=False, timeout=20)
+        r = post_unbind(s_np, "keycloak", tok_np)
         still = app.sqlite_rows(
             "SELECT provider FROM user_oidc WHERE userid=?", (nopass_id,))
         rep.add("last-credential: unbind ALLOWED when another binding remains",
@@ -415,8 +551,7 @@ def main():
                     remaining=[x["provider"] for x in still]))
 
         # now the real guard: only one binding left, no password
-        r = s_np.post(f"http://{DOMAIN}/oidc/keycloak2/unbind",
-                      allow_redirects=False, timeout=20)
+        r = post_unbind(s_np, "keycloak2", tok_np)
         loc = r.headers.get("Location", "")
         still = app.sqlite_rows(
             "SELECT provider FROM user_oidc WHERE userid=?", (nopass_id,))
@@ -527,9 +662,17 @@ def main():
                 rec(cb.status_code if cb else None, loc_b, rows=rows_uv),
                 "explicit, authenticated binding is still allowed")
 
-        # tear the control binding down again so later assertions see a clean slate
-        s_u3.post(f"http://{DOMAIN}/oidc/keycloak/unbind",
-                  allow_redirects=False, timeout=20)
+        # tear the control binding down again so later assertions see a clean
+        # slate.  Must carry `_xsrf` now that unbind is CSRF-protected.
+        tok_u3 = xsrf_token(s_u3)
+        r_teardown = post_unbind(s_u3, "keycloak", tok_u3)
+        rep.add("email_unverified-control: teardown unbind succeeds (CSRF token)",
+                r_teardown.status_code == 302
+                and app.sqlite_rows(
+                    "SELECT * FROM user_oidc WHERE userid=?", (u3["id"],)) == [],
+                rec(r_teardown.status_code, r_teardown.headers.get("Location"),
+                    token_present=tok_u3 is not None),
+                "keeps the §7.11 fixture reusable across runs")
 
         # ------------------------------------------------------------------
         # §7.3 (6) after unbinding, the identity's binding is really gone
@@ -631,6 +774,89 @@ def main():
         rep.add("neg-provider: unknown provider -> provider_not_found",
                 r.status_code == 302 and "oidc_error=provider_not_found" in loc,
                 rec(r.status_code, loc))
+
+        # ------------------------------------------------------------------
+        # §7.3 (10) deleting a user cleans up its OIDC bindings, and the freed
+        # identity can auto-bind again (must-fix #2).
+        #
+        # The failure mode this guards: if the binding row survived the user
+        # deletion, a *new* account with the same email could never auto-bind
+        # -- `user_oidc.get(userid=new_id)` is empty, so the insert would hit
+        # the UNIQUE(provider, subject) key and fall through to
+        # `already_bound_other` against a userid that no longer exists.
+        # ------------------------------------------------------------------
+        admin = app.sqlite_rows("SELECT id,role FROM user WHERE email=?", (U1_EMAIL,))[0]
+        rep.add("delete-cleanup: U1 is the admin able to drive /user/<id>/manage",
+                admin["role"] == "admin",
+                {"admin": admin}, "USER0ISADMIN promotes the first account")
+
+        # an admin *session*: U1's OIDC session above, or a plain password
+        # login (U1 registered with a password).  Use the password login so the
+        # admin session is independent of the OIDC flows under test.
+        s_admin = app_session()
+        r_admin = login_password(s_admin, U1_EMAIL, U1_PASSWORD)
+        rep.add("delete-cleanup: admin password session established",
+                r_admin.status_code == 302,
+                rec(r_admin.status_code, r_admin.headers.get("Location")))
+
+        s_u4 = app_session()
+        r = register(s_u4, U4_EMAIL, U4_PASSWORD)
+        u4 = app.sqlite_rows("SELECT id,email FROM user WHERE email=?", (U4_EMAIL,))[0]
+        rep.add("delete-cleanup: register U4 and bind its Keycloak identity",
+                r.status_code == 302, rec(r.status_code, r.headers.get("Location")),
+                f"U4={U4_EMAIL} userid={u4['id']}")
+
+        u4_subject = ensure_kc_user("deleteme", U4_EMAIL, U4_PASSWORD)
+        idp_u4 = kc.IdpSession()
+        authorize, cb_url, cb = oidc_roundtrip(
+            s_u4, idp_u4, "keycloak", "login", "deleteme", U4_PASSWORD)
+        rows_u4 = app.sqlite_rows(
+            "SELECT * FROM user_oidc WHERE userid=?", (u4["id"],))
+        rep.add("delete-cleanup: U4 auto-bound before deletion",
+                cb is not None and cb.status_code == 302
+                and len(rows_u4) == 1 and rows_u4[0]["subject"] == u4_subject,
+                rec(cb.status_code if cb else None,
+                    cb.headers.get("Location") if cb else None, rows=rows_u4),
+                f"subject={u4_subject}")
+
+        r_del = admin_delete_user(s_admin, admin["id"], u4["id"], U1_EMAIL, U1_PASSWORD)
+        gone = app.sqlite_rows("SELECT id FROM user WHERE id=?", (u4["id"],))
+        left = app.sqlite_rows(
+            "SELECT * FROM user_oidc WHERE userid=?", (u4["id"],))
+        rep.add("delete-cleanup: admin delete removed the user row",
+                gone == [], {"user_rows_left": gone, "status": r_del.status_code},
+                "real admin path: POST /user/<id>/manage with delbtn")
+        rep.add("delete-cleanup: user_oidc bindings removed with the user",
+                left == [], {"bindings_left": left},
+                "must-fix #2: the delete path clears OIDC bindings")
+
+        # The decisive step: a fresh account with the same email must be able
+        # to auto-bind the very same IdP identity.
+        s_u4b = app_session()
+        r = register(s_u4b, U4_EMAIL, U4_PASSWORD)
+        u4b = app.sqlite_rows("SELECT id,email FROM user WHERE email=?", (U4_EMAIL,))[0]
+        idp_u4b = kc.IdpSession()
+        authorize, cb_url, cb = oidc_roundtrip(
+            s_u4b, idp_u4b, "keycloak", "login", "deleteme", U4_PASSWORD,
+            force_reauth=True)
+        loc = cb.headers.get("Location", "") if cb else None
+        rows_u4b = app.sqlite_rows(
+            "SELECT * FROM user_oidc WHERE userid=?", (u4b["id"],))
+        rep.add("delete-cleanup: re-registered account auto-binds the SAME "
+                "identity (not already_bound_other)",
+                r.status_code == 302 and cb is not None and cb.status_code == 302
+                and loc.endswith("/my/") and "oidc_error" not in (loc or "")
+                and len(rows_u4b) == 1
+                and rows_u4b[0]["subject"] == u4_subject
+                and u4b["id"] != u4["id"],
+                rec(cb.status_code if cb else None, loc, rows=rows_u4b,
+                    old_userid=u4["id"], new_userid=u4b["id"]),
+                "a stale binding row would have produced already_bound_other")
+
+        # leave a clean slate for the final dump
+        tok_u4 = xsrf_token(s_u4b)
+        post_unbind(s_u4b, "keycloak", tok_u4)
+        admin_delete_user(s_admin, admin["id"], u4b["id"], U1_EMAIL, U1_PASSWORD)
 
         final_rows = app.sqlite_rows(
             "SELECT userid,provider,subject,email FROM user_oidc ORDER BY id")

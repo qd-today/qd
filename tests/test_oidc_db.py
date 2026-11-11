@@ -234,6 +234,89 @@ class TestUserOidcDB(unittest.IsolatedAsyncioTestCase):
         rows = await oidc.list(userid=7, provider='keycloak', sql_session=self.session)
         self.assertEqual(len(rows), 2)
 
+    # ---------- 大小写敏感（task-10：MySQL 库默认 *_ai_ci 曾导致账号接管） ----------
+    #
+    # 注意证据强度：SQLite 默认就是 BINARY 比较，所以下面这些**运行时**用例在 SQLite 上
+    # 本来就通过，它们发现不了 MySQL 上的缺陷。真正能钉住回归的是
+    # `test_mysql_ddl_declares_binary_collation`（编译 MySQL 方言 DDL 断言 COLLATE），
+    # 它不依赖活体 MySQL 即可在 CI 上变红。
+
+    async def test_case_differing_subjects_coexist(self):
+        """OIDC Core 1.0 §2：sub 大小写敏感。仅大小写不同的两个 sub 是不同身份，
+        必须能同时存在，而不是被唯一键误判为重复（MySQL 上曾报 1062）。"""
+        oidc = self.UserOidc()
+        await oidc.add(101, 'keycloak', 'ABC-case-test', sql_session=self.session)
+        await oidc.add(202, 'keycloak', 'abc-CASE-TEST', sql_session=self.session)
+
+        rows = await oidc.list(provider='keycloak', sql_session=self.session)
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(
+            sorted(r['subject'] for r in rows), ['ABC-case-test', 'abc-CASE-TEST'],
+        )
+
+    async def test_lookup_by_subject_is_case_sensitive(self):
+        """关键安全断言：查询必须精确匹配大小写，不能命中另一个账号。
+        MySQL 的 *_ai_ci collation 下 `subject='abc-CASE-TEST'` 会命中
+        `'ABC-case-test'` 那一行 —— 那等于登录到别人账号。"""
+        oidc = self.UserOidc()
+        await oidc.add(101, 'keycloak', 'ABC-case-test', sql_session=self.session)
+        await oidc.add(202, 'keycloak', 'abc-CASE-TEST', sql_session=self.session)
+
+        upper = await oidc.get(provider='keycloak', subject='ABC-case-test', sql_session=self.session)
+        lower = await oidc.get(provider='keycloak', subject='abc-CASE-TEST', sql_session=self.session)
+        self.assertEqual(upper['userid'], 101)
+        self.assertEqual(lower['userid'], 202)
+        self.assertNotEqual(upper['userid'], lower['userid'])
+
+        # 任何「第三种大小写变体」都必须查不到，而不是退化成命中某一行。
+        missing = await oidc.get(provider='keycloak', subject='aBc-CaSe-TeSt', sql_session=self.session)
+        self.assertIsNone(missing)
+
+    async def test_mysql_ddl_declares_binary_collation(self):
+        """回归钉子（不依赖活体 MySQL）：MySQL 方言 DDL 必须给 provider/subject
+        显式声明 utf8mb4_bin，且 ctime/mtime 为 INT UNSIGNED、表字符集为 utf8mb4。
+
+        把 `collation='utf8mb4_bin'` 从 db/user_oidc.py 去掉，本用例即变红。"""
+        import re
+        from sqlalchemy.dialects import mysql as mysql_dialect
+        from sqlalchemy.schema import CreateTable
+        from db.user_oidc import UserOidc
+
+        ddl = str(CreateTable(UserOidc.__table__).compile(dialect=mysql_dialect.dialect()))
+
+        for column in ('provider', 'subject'):
+            with self.subTest(column=column):
+                # 形如 `provider VARCHAR(64) COLLATE utf8mb4_bin NOT NULL`
+                self.assertRegex(
+                    ddl, re.compile(r'%s\s+VARCHAR\(\d+\)\s+COLLATE\s+utf8mb4_bin' % column),
+                )
+        self.assertIn('CHARSET=utf8mb4', ddl)
+        self.assertRegex(ddl, re.compile(r'ctime\s+INTEGER\s+UNSIGNED'))
+        self.assertRegex(ddl, re.compile(r'mtime\s+INTEGER\s+UNSIGNED'))
+
+    async def test_sqlite_variant_uses_binary_collation(self):
+        """SQLite 变体也要显式声明 BINARY，不依赖「SQLite 默认恰好是 BINARY」。
+
+        注意断言口径：`Column(...).with_variant(...)` 生成的是 `Variant` 类型对象，
+        其 `.collation` 暴露的是**基础类型**的值（utf8mb4_bin），不能用来判断变体；
+        要看变体必须编译对应方言的 DDL。"""
+        import re
+        from sqlalchemy.dialects import sqlite as sqlite_dialect
+        from sqlalchemy.schema import CreateTable
+        from db.user_oidc import UserOidc
+
+        ddl = str(CreateTable(UserOidc.__table__).compile(dialect=sqlite_dialect.dialect()))
+
+        for column in ('provider', 'subject'):
+            with self.subTest(column=column):
+                # 形如 `subject VARCHAR(255) COLLATE "BINARY" NOT NULL`
+                self.assertRegex(
+                    ddl, re.compile(r'%s\s+VARCHAR\(\d+\)\s+COLLATE\s+"BINARY"' % column),
+                )
+        # SQLite 没有 unsigned，必须是裸 INTEGER（不能把 MySQL 方言带过去）。
+        self.assertNotIn('UNSIGNED', ddl.upper())
+        self.assertRegex(ddl, re.compile(r'ctime\s+INTEGER\s+NOT NULL'))
+
     async def test_unique_constraint_is_declared_on_the_table(self):
         """静态确认唯一约束真的建在 (provider, subject) 上，名字对齐契约。"""
         from db.user_oidc import UserOidc

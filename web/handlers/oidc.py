@@ -229,6 +229,11 @@ class OidcCallbackHandler(_OidcBaseHandler):
             email_verified = claims.get('email_verified')
         except oidc.OidcError as e:
             logger_web_oidc.warning('OIDC callback 失败 (provider=%s): %s', provider, e)
+            # 计入限流, 与密码登录失败同权重 (+5, 见 web/handlers/login.py:81)。
+            # 该分支只覆盖流程/令牌校验失败 (state_mismatch、交换失败、id_token 校验失败
+            # 等), 不包含 _handle_login 内部的 email_unverified / no_account 等
+            # 正常业务回绝 (那些在 try 之外, 走 redirect 分支), 故不会误伤正常用户。
+            self.evil(+5)
             self.clear_flow(provider)
             return self.redirect('%s?oidc_error=%s' % (error_target, e.code))
         except Exception as e:  # pylint: disable=broad-except
@@ -256,6 +261,8 @@ class OidcCallbackHandler(_OidcBaseHandler):
                 return self.redirect('/login?oidc_error=user_disabled')
             if email and email != binding.get('email'):
                 await self.db.user_oidc.mod(binding['id'], email=email)
+            # 与密码登录 (web/handlers/login.py:71) 同口径: 记录最后登录时间与 IP
+            await self.db.user.mod(user['id'], atime=time.time(), aip=self.ip2varbinary)
             self.establish_session(user)
             return self.redirect('/my/')
 
@@ -293,6 +300,8 @@ class OidcCallbackHandler(_OidcBaseHandler):
             if binding is None or binding['userid'] != user['id']:
                 return self.redirect('/login?oidc_error=already_bound_other')
 
+        # 与密码登录 (web/handlers/login.py:71) 同口径: 记录最后登录时间与 IP
+        await self.db.user.mod(user['id'], atime=time.time(), aip=self.ip2varbinary)
         self.establish_session(user)
         return self.redirect('/my/')
 
@@ -334,6 +343,14 @@ class OidcUnbindHandler(_OidcBaseHandler):
 
     @authenticated
     async def post(self, provider):
+        # 解绑会移除一条登录凭据, 属于状态变更, 必须校验 CSRF token。
+        # 用 tornado 自带的 check_xsrf_cookie() (成熟实现): 它读取 _xsrf 参数或
+        # X-Xsrftoken 头, 与 _xsrf Cookie 做恒定时间比较, 缺失/不符一律 403。
+        # 本应用未开 xsrf_cookies 应用设置, 但该方法不依赖它 (见 tornado/web.py
+        # check_xsrf_cookie); 页面通过 base.render_string 注入的 xsrf_form_html()
+        # 下发隐藏字段, 故只影响本端点, 其它路由行为不变。
+        self.check_xsrf_cookie()
+
         provider_conf = config.get_oidc_provider(provider)
         if provider_conf is None:
             return self.redirect('/oidc/manage?oidc_error=provider_not_found')

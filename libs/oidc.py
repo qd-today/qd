@@ -380,6 +380,10 @@ async def verify_id_token(provider, metadata, id_token, jwks, nonce, access_toke
         'require_exp': True,
         'require_iat': False,
         'require_nbf': False,
+        # 允许 60s 时钟偏差: python-jose 的 leeway 只能通过 options 传入
+        # (jose/jwt.py `leeway = options.get("leeway", 0)`), 写成
+        # decode(..., leeway=60) 关键字参数会被忽略。仅作用于 exp/nbf。
+        'leeway': 60,
         'verify_aud': True,
         'verify_iat': True,
         'verify_exp': True,
@@ -414,5 +418,9 @@ async def verify_id_token(provider, metadata, id_token, jwks, nonce, access_toke
     sub = claims.get('sub')
     if not isinstance(sub, str) or not sub:
         raise OidcError('invalid_id_token', 'sub is missing or not a string')
+    # 规范化: utf8mb4_bin 是 PAD SPACE 比较器, 'ABC' 与 'ABC ' 在唯一键上仍会冲突,
+    # 且尾随空格会形成两个视觉相同、语义不同的绑定身份。拒绝任何首尾空白。
+    if sub != sub.strip():
+        raise OidcError('invalid_id_token', 'sub has leading/trailing whitespace')
 
     return claims

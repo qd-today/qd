@@ -427,6 +427,16 @@ class UserManagerHandler(BaseHandler):
                                     for notepad in await self.db.notepad.list(fields=('userid', 'notepadid'), limit=None, userid=sub_user, sql_session=sql_session):
                                         await self.db.notepad.delete(sub_user, notepad['notepadid'], sql_session=sql_session)
 
+                                    # 清理该用户的 OIDC 绑定。必须容忍 user_oidc 表不存在
+                                    # (老库升级中间态, 或建表失败): 否则外层 except 会中断
+                                    # 整个删用户操作并渲染「设置失败」页。表不存在时本就没有
+                                    # 绑定行可清, 故这里降级为警告是安全的。
+                                    try:
+                                        for binding in await self.db.user_oidc.list(userid=sub_user, fields=('id',), limit=None, sql_session=sql_session):
+                                            await self.db.user_oidc.delete(binding['id'], sql_session=sql_session)
+                                    except Exception as e:
+                                        logger_web_handler.warning('UserID: %s delete user_oidc bindings failed! Reason: %s', userid or '-1', str(e), exc_info=config.traceback_print)
+
                                     await self.db.user.delete(sub_user, sql_session=sql_session)
                     else:
                         raise Exception("账号/密码错误")

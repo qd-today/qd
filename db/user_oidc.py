@@ -6,7 +6,6 @@
 import time
 
 from sqlalchemy import (
-    INTEGER,
     Column,
     Integer,
     String,
@@ -15,6 +14,7 @@ from sqlalchemy import (
     select,
     update,
 )
+from sqlalchemy.dialects import mysql
 
 from db.basedb import AlchemyMixin, BaseDB
 
@@ -28,15 +28,31 @@ class UserOidc(BaseDB, AlchemyMixin):
     __tablename__ = 'user_oidc'
     __table_args__ = (
         UniqueConstraint('provider', 'subject', name='uq_user_oidc_provider_subject'),
+        # 显式声明表字符集: 库默认不可依赖 (既有表 utf8mb3/utf8mb4 并存),
+        # latin1 库下非 ASCII 的 subject/email 会 1366 Incorrect string value
+        {'mysql_charset': 'utf8mb4'},
     )
 
     id = Column(Integer, primary_key=True)
     userid = Column(Integer, nullable=False, index=True)
-    provider = Column(String(64), nullable=False, index=True)
-    subject = Column(String(255), nullable=False, index=True)
+    # provider/subject 必须大小写敏感: OIDC Core 1.0 §2 规定 sub 大小写敏感,
+    # 库默认 collation (MySQL 常为 *_ai_ci) 会让仅大小写不同的 sub 互相命中,
+    # 导致登录到对方账号 (且跳过 email_verified 门禁) 或唯一键误判重复。
+    # utf8mb4_bin 兼容 MySQL 5.7/8.x/MariaDB; SQLite 无此 collation 名,
+    # 用 BINARY 变体 (SQLite 默认即为 BINARY 比较, 此处显式声明以固定语义)。
+    provider = Column(
+        String(64, collation='utf8mb4_bin').with_variant(String(64, collation='BINARY'), 'sqlite'),
+        nullable=False, index=True,
+    )
+    subject = Column(
+        String(255, collation='utf8mb4_bin').with_variant(String(255, collation='BINARY'), 'sqlite'),
+        nullable=False, index=True,
+    )
     email = Column(String(256))
-    ctime = Column(INTEGER, nullable=False)
-    mtime = Column(INTEGER, nullable=False)
+    # 对齐仓库既有 DDL 口径 (db/db_converter.py 的 task/tasklog 等表均为 INT UNSIGNED);
+    # SQLite 无 unsigned 概念, 用 Integer 变体。
+    ctime = Column(mysql.INTEGER(unsigned=True).with_variant(Integer, 'sqlite'), nullable=False)
+    mtime = Column(mysql.INTEGER(unsigned=True).with_variant(Integer, 'sqlite'), nullable=False)
 
     async def add(self, userid, provider, subject, email=None, sql_session=None):
         assert userid, 'need userid'

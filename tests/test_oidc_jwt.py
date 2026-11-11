@@ -141,7 +141,14 @@ class IdTokenTestBase(unittest.TestCase):
         self.assert_rejected(claims(nonce=12345))
 
     def test_expired_token_is_rejected(self):
-        e = self.assert_rejected(claims(exp=int(time.time()) - 60))
+        """已过期远超 leeway(60s) 的 token 必须被拒。
+
+        注意偏移量取 360s 而非原来的 60s: 引入 `'leeway': 60` 后,
+        `exp == now - 60` 恰好落在容忍边界上(python-jose `if exp < (now - leeway)`
+        对相等取假), 那正是新用例 `test_boundary_exp_expired_59s_accepted_61s_rejected`
+        专门钉住的边界。本条只负责「明显过期必拒」, 故取远离边界的值。
+        """
+        e = self.assert_rejected(claims(exp=int(time.time()) - 360))
         self.assertEqual(e.code, 'invalid_id_token')
 
     def test_missing_exp_is_rejected(self):
@@ -294,6 +301,21 @@ class IdTokenTestBase(unittest.TestCase):
         e = self.assert_rejected(claims(sub=''))
         self.assertEqual(e.code, 'invalid_id_token')
 
+    def test_sub_with_leading_or_trailing_whitespace_is_rejected(self):
+        """utf8mb4_bin 是 PAD SPACE 比较器：'ABC' 与 'ABC ' 在唯一键上会互相冲突
+        （真实 MariaDB 实测 1062 Duplicate entry），且会形成两个视觉相同、语义不同的
+        绑定身份。因此必须在应用层拒绝任何首尾空白，而不是依赖 DB 层比较器。"""
+        for bad in ('user-subject-1 ', ' user-subject-1', 'user-subject-1\t',
+                    'user-subject-1\n', '\tuser-subject-1 '):
+            with self.subTest(sub=bad):
+                e = self.assert_rejected(claims(sub=bad))
+                self.assertEqual(e.code, 'invalid_id_token')
+
+    def test_sub_with_inner_whitespace_is_still_accepted(self):
+        """只拒绝首尾空白 —— 内部空白是 sub 的合法内容，不得误伤。"""
+        result = self.verify(claims(sub='user subject 1'))
+        self.assertEqual(result['sub'], 'user subject 1')
+
     def test_garbage_token_is_rejected(self):
         self.assert_rejected(token='not-a-jwt-at-all')
 
@@ -334,6 +356,71 @@ class IdTokenTestBase(unittest.TestCase):
         result = self.verify(claims(email='alice@example.test', email_verified=True))
         self.assertEqual(result['email'], 'alice@example.test')
         self.assertIs(result['email_verified'], True)
+
+
+class LeewayTest(unittest.TestCase):
+    """时钟偏差容忍窗口（契约 §4.4 / 评论行内 libs/oidc.py:379）。
+
+    python-jose 的 `leeway` **只能**通过 `options` 传入
+    （`jose/jwt.py` 里 `leeway = options.get("leeway", 0)`），写成
+    `decode(..., leeway=60)` 关键字参数会被直接忽略——实现里已在
+    `options` 字典内声明 `'leeway': 60`。它只作用于 `exp`
+    （`if exp < (now - leeway)`）与 `nbf`（`if nbf > (now + leeway)`），
+    `_validate_iat` 只检查 iat 是整数。
+
+    本类全部驱动**真实的** `libs.oidc.verify_id_token`，不 mock 校验逻辑。
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.oidc = oidc_module()
+        cls.private_pem, cls.public_jwk = make_rsa_key('test-kid-1')
+        cls.jwks = jwks_doc(cls.public_jwk)
+
+    def setUp(self):
+        self.provider = provider()
+        self.metadata = metadata()
+
+    def verify(self, payload):
+        import asyncio
+        token = sign(self.private_pem, payload, 'test-kid-1')
+        return asyncio.run(self.oidc.verify_id_token(
+            self.provider, self.metadata, token, self.jwks, NONCE))
+
+    def assert_rejected(self, payload):
+        with self.assertRaises(self.oidc.OidcError) as ctx:
+            self.verify(payload)
+        return ctx.exception
+
+    def test_exp_expired_30s_is_accepted_with_leeway(self):
+        """(a) 刚过期 30s：在 60s 容忍窗口内，必须接受。"""
+        now = int(time.time())
+        result = self.verify(claims(exp=now - 30, iat=now - 330))
+        self.assertEqual(result['sub'], 'user-subject-1')
+
+    def test_exp_expired_120s_is_rejected_even_with_leeway(self):
+        """(b) 过期 120s：超出容忍窗口，必须仍然拒绝。"""
+        now = int(time.time())
+        e = self.assert_rejected(claims(exp=now - 120, iat=now - 420))
+        self.assertEqual(e.code, 'invalid_id_token')
+
+    def test_nbf_30s_in_the_future_is_accepted_with_leeway(self):
+        """(c) nbf 在未来 30s：本机时钟偏慢的场景，必须接受。"""
+        now = int(time.time())
+        result = self.verify(claims(exp=now + 300, iat=now, nbf=now + 30))
+        self.assertEqual(result['sub'], 'user-subject-1')
+
+    def test_nbf_120s_in_the_future_is_rejected_even_with_leeway(self):
+        """(d) nbf 在未来 120s：超出容忍窗口，必须仍然拒绝。"""
+        now = int(time.time())
+        e = self.assert_rejected(claims(exp=now + 300, iat=now, nbf=now + 120))
+        self.assertEqual(e.code, 'invalid_id_token')
+
+    def test_boundary_exp_expired_59s_accepted_61s_rejected(self):
+        """边界对照：窗口内(59s)接受，窗口外(61s)拒绝——证明容忍是 60s 而非无限。"""
+        now = int(time.time())
+        self.verify(claims(exp=now - 59, iat=now - 359))
+        self.assert_rejected(claims(exp=now - 61, iat=now - 361))
 
 
 if __name__ == '__main__':

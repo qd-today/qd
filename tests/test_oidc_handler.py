@@ -24,6 +24,7 @@ import os
 import sys
 import time
 import unittest
+import unittest.mock
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -35,6 +36,7 @@ import umsgpack  # noqa: E402
 
 import config  # noqa: E402
 import test_oidc_support as support  # noqa: E402
+from web.handlers.base import BaseHandler  # noqa: E402
 from web.handlers.oidc import (  # noqa: E402
     OIDC_FLOW_TTL,
     OidcCallbackHandler,
@@ -91,7 +93,7 @@ class FakeUserDB:
             return dict(user)
         return None
 
-    async def mod(self, id, **kw):
+    async def mod(self, id, sql_session=None, **kw):
         self.mods = getattr(self, 'mods', [])
         self.mods.append((id, kw))
         return 1
@@ -140,15 +142,43 @@ class FakeUserOidcDB:
         self.mods.append((id, kw))
         return 1
 
+    async def delete_by_user_provider(self, userid, provider, sql_session=None):
+        self.deleted = getattr(self, 'deleted', [])
+        self.deleted.append((userid, provider))
+        return 1
+
+
+class FakeRedis:
+    """`db.redis` 的最小替身：只记录 `evil()` 调用（限流计数）。"""
+
+    def __init__(self):
+        self.evil_calls = []
+
+    def evil(self, ip, userid, cnt=None):
+        self.evil_calls.append({'ip': ip, 'userid': userid, 'cnt': cnt})
+
+    def is_evil(self, ip, userid=None):
+        return False
+
 
 class FakeDB:
     def __init__(self, users=(), bindings=()):
         self.user = FakeUserDB(users)
         self.user_oidc = FakeUserOidcDB(bindings)
         self.transactions = []
+        self.redis = FakeRedis()
 
     def transaction(self):
         return _FakeTransaction(self)
+
+
+class _FakeHTTPRequest:
+    """tornado `HTTPServerRequest` 的最小子集：`remote_ip` / `headers` / `method`。"""
+
+    def __init__(self, remote_ip='203.0.113.7', headers=None, method='POST'):
+        self.remote_ip = remote_ip
+        self.headers = dict(headers or {})
+        self.method = method
 
 
 # --------------------------------------------------------------------------
@@ -170,11 +200,20 @@ class FakeRequest:
     _account_usable = staticmethod(_OidcBaseHandler._account_usable)
     _handle_login = OidcCallbackHandler._handle_login
     _handle_bind = OidcCallbackHandler._handle_bind
+    get = OidcCallbackHandler.get
+    get_provider = _OidcBaseHandler.get_provider
+    # 限流与 IP 口径同样绑定产品代码（`web/handlers/base.py:65-78`）
+    evil = BaseHandler.evil
+    ip = BaseHandler.ip
+    ip2varbinary = BaseHandler.ip2varbinary
 
-    def __init__(self, cookies=None, current_user=None, db=None):
+    def __init__(self, cookies=None, current_user=None, db=None,
+                 remote_ip='203.0.113.7', arguments=None):
         self._cookies = dict(cookies or {})
+        self._arguments = dict(arguments or {})
         self.current_user = current_user
         self.db = db if db is not None else FakeDB()
+        self.request = _FakeHTTPRequest(remote_ip=remote_ip)
         self.redirects = []
         self.secure_cookies = {}
         self.cleared = []
@@ -197,6 +236,9 @@ class FakeRequest:
     def redirect(self, url, *args, **kwargs):
         self.redirects.append(url)
         return url
+
+    def get_argument(self, name, default=None):
+        return self._arguments.get(name, default)
 
     # ---- 便利断言辅助 ----
 
@@ -503,6 +545,126 @@ class TestSupportFixtureSanity(unittest.TestCase):
 
     def test_flow_ttl_is_positive(self):
         self.assertGreater(OIDC_FLOW_TTL, 0)
+
+
+# --------------------------------------------------------------------------
+# (e) 登录统计（atime/aip）与限流（evil）
+# --------------------------------------------------------------------------
+
+
+class TestLoginStatsAndEvil(unittest.TestCase):
+    """两个 establish_session 点都要记录最后登录时间/IP；失败分支要计限流。
+
+    口径对齐 `web/handlers/login.py:70-71`（先 set_secure_cookie，再
+    `db.user.mod(atime=..., aip=self.ip2varbinary)`）与 `:81`（失败 `evil(+5)`）。
+    """
+
+    REMOTE_IP = '203.0.113.7'
+    # libs.utils.ip2varbinary('203.0.113.7', 4) == socket.inet_aton(...)
+    EXPECTED_AIP = b'\xcb\x00q\x07'
+
+    def _login_req(self, db, **kw):
+        return FakeRequest(current_user=None, db=db, remote_ip=self.REMOTE_IP, **kw)
+
+    def _mods_with(self, db, key):
+        return [kw for _id, kw in getattr(db.user, 'mods', []) if key in kw]
+
+    def test_existing_binding_records_atime_and_aip(self):
+        """已有绑定分支：建立会话前必须写 atime/aip。"""
+        db = FakeDB(
+            users=[make_user(uid=1)],
+            bindings=[{'id': 7, 'userid': 1, 'provider': PROVIDER_A,
+                       'subject': 'sub-1', 'email': 'alice@example.test'}],
+        )
+        req = self._login_req(db)
+
+        before = time.time()
+        run(req._handle_login(PROVIDER_A, 'sub-1', 'alice@example.test', True))
+        after = time.time()
+
+        self.assertEqual(req.last_redirect, '/my/')
+        self.assertIn('user', req.secure_cookies)
+        hits = self._mods_with(db, 'atime')
+        self.assertEqual(len(hits), 1, '已有绑定分支必须恰好写一次 atime')
+        self.assertGreaterEqual(hits[0]['atime'], before)
+        self.assertLessEqual(hits[0]['atime'], after)
+        self.assertEqual(hits[0]['aip'], self.EXPECTED_AIP)
+
+    def test_auto_bind_records_atime_and_aip(self):
+        """自动绑定分支：建立会话前同样必须写 atime/aip。"""
+        db = FakeDB(users=[make_user(uid=1)])
+        req = self._login_req(db)
+
+        run(req._handle_login(PROVIDER_A, 'sub-1', 'alice@example.test', True))
+
+        self.assertEqual(req.last_redirect, '/my/')
+        self.assertEqual(len(db.user_oidc.added), 1)
+        hits = self._mods_with(db, 'atime')
+        self.assertEqual(len(hits), 1, '自动绑定分支必须恰好写一次 atime')
+        self.assertEqual(hits[0]['aip'], self.EXPECTED_AIP)
+
+    def test_business_refusals_do_not_touch_login_stats(self):
+        """未建立会话的分支绝不能写 atime/aip（否则「最后登录」会被污染）。"""
+        for email_verified in (False, None, 'true'):
+            with self.subTest(email_verified=email_verified):
+                db = FakeDB(users=[make_user(uid=1)])
+                req = self._login_req(db)
+                run(req._handle_login(PROVIDER_A, 'sub-1',
+                                      'alice@example.test', email_verified))
+                self.assertEqual(
+                    req.last_redirect, '/login?oidc_error=email_unverified')
+                self.assertEqual(self._mods_with(db, 'atime'), [])
+                self.assertEqual(req.secure_cookies, {})
+
+    def test_bind_updates_mtime_but_not_atime(self):
+        """绑定是凭据变更（mtime），不是登录事件（atime）——两者必须区分。"""
+        db = FakeDB(users=[make_user(uid=1)])
+        req = FakeRequest(current_user=make_user(uid=1), db=db,
+                          remote_ip=self.REMOTE_IP)
+        flow = fresh_flow(provider=PROVIDER_A, mode='bind', userid=1)
+
+        run(req._handle_bind(PROVIDER_A, 'sub-1', 'alice@example.test', flow))
+
+        self.assertEqual(req.last_redirect, '/oidc/manage')
+        mods = [kw for _id, kw in getattr(db.user, 'mods', [])]
+        self.assertTrue(any('mtime' in kw for kw in mods), '绑定必须更新 mtime')
+        self.assertFalse(any('atime' in kw for kw in mods),
+                         '绑定不得写 atime（那不是登录事件）')
+        self.assertFalse(any('aip' in kw for kw in mods),
+                         '绑定不得写 aip（那不是登录事件）')
+
+    def test_callback_oidc_error_counts_evil(self):
+        """回调的 OidcError 分支必须计限流：这里用「缺 flow cookie」触发。"""
+        db = FakeDB(users=[make_user(uid=1)])
+        req = FakeRequest(current_user=None, db=db, remote_ip=self.REMOTE_IP)
+        provider_conf = {'id': PROVIDER_A, 'enabled': True,
+                         'issuer': support.ISSUER, 'client_id': support.CLIENT_ID}
+
+        with unittest.mock.patch.object(
+                config, 'get_oidc_provider', return_value=provider_conf):
+            run(req.get(PROVIDER_A))
+
+        self.assertEqual(req.last_redirect, '/login?oidc_error=state_mismatch')
+        self.assertEqual(len(db.redis.evil_calls), 1,
+                         'OidcError 分支必须恰好计一次限流')
+        call = db.redis.evil_calls[0]
+        self.assertEqual(call['cnt'], 5, '必须与密码登录失败同权重 (+5)')
+        self.assertEqual(call['ip'], self.REMOTE_IP)
+        self.assertIsNone(call['userid'], '未登录时 userid 为 None')
+
+    def test_callback_business_refusal_does_not_count_evil(self):
+        """正常业务回绝（email_unverified）不在 try 内，绝不能计限流。
+
+        这条是上一条的对照：证明 `evil(+5)` 不是「凡失败都计」。
+        """
+        db = FakeDB(users=[make_user(uid=1)])
+        req = FakeRequest(current_user=None, db=db, remote_ip=self.REMOTE_IP)
+
+        run(req._handle_login(PROVIDER_A, 'sub-1', 'alice@example.test', False))
+
+        self.assertEqual(req.last_redirect, '/login?oidc_error=email_unverified')
+        self.assertEqual(db.redis.evil_calls, [],
+                         '业务回绝绝不计限流，否则正常用户会被误伤')
 
 
 if __name__ == '__main__':

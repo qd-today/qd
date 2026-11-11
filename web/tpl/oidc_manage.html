@@ -78,8 +78,16 @@
           </td>
           <td>{{ format_date(binding.get('ctime')) if binding.get('ctime') else '-' }}</td>
           <td style="text-align:center">
-            <a class="btn btn-default" data-method="POST" href="/oidc/{{ p.id }}/unbind"
-              data-confirm="确定要解绑 {{ p.name }} 吗？解绑后该身份将无法登录本站。" title="解绑 {{ p.name }}">解绑</a>
+            {# 解绑会改变账号登录凭据, 必须携带 CSRF token。
+               这里用真正的 <form> 而不是 utils.apost() 宏 (它提交的原生表单
+               不带 _xsrf), token 由 base.render_string 注入的 xsrf_form_html() 下发。 #}
+            <form method="POST" action="/oidc/{{ p.id }}/unbind" style="display:inline"
+              onsubmit="return confirm('确定要解绑 {{ p.name }} 吗？解绑后该身份将无法登录本站。')">
+              {# xsrf_form_html() 返回 HTML 字符串, 必须 |safe 关闭 autoescape,
+                 否则会被转义成文本而不会成为真正的表单字段。 #}
+              {{ xsrf_form_html() | safe }}
+              <button type="submit" class="btn btn-default" title="解绑 {{ p.name }}">解绑</button>
+            </form>
           </td>
           {% else %}
           <td><span class="text-muted">未绑定</span></td>
